@@ -1,0 +1,9 @@
+packages:
+  - 'api'
+  - 'admin-panel'
+  - 'web'
+
+allowBuilds:
+  bcrypt: true
+  esbuild: true
+  sharp: true
