@@ -1,0 +1,234 @@
+src/controller/admin/adminCategory.controller.ts(18,43): error TS2345: Argument of type 'Model<{ name: string; status: boolean; image: string; order: number; slug: string; deletedAt?: NativeDate | null | undefined; description?: string | null | undefined; } & DefaultTimestampProps, ... 4 more ..., any>' is not assignable to parameter of type 'Model<{ slug: string; deletedAt: Date | null; }, {}, {}, {}, Document<unknown, {}, { slug: string; deletedAt: Date | null; }, {}, {}> & { slug: string; deletedAt: Date | null; } & { ...; } & { ...; }, any>'.
+src/controller/admin/adminCategory.controller.ts(160,45): error TS2345: Argument of type 'Model<{ name: string; status: boolean; image: string; order: number; slug: string; deletedAt?: NativeDate | null | undefined; description?: string | null | undefined; } & DefaultTimestampProps, ... 4 more ..., any>' is not assignable to parameter of type 'Model<{ slug: string; deletedAt: Date | null; }, {}, {}, {}, Document<unknown, {}, { slug: string; deletedAt: Date | null; }, {}, {}> & { slug: string; deletedAt: Date | null; } & { ...; } & { ...; }, any>'.
+src/controller/admin/adminLogo.controller.ts(38,28): error TS6133: 'req' is declared but its value is never read.
+src/controller/admin/adminOrder.controller.ts(35,17): error TS18048: 'refund.amount' is possibly 'undefined'.
+src/controller/admin/adminOrder.controller.ts(42,50): error TS2353: Object literal may only specify known properties, and 'payment_id' does not exist in type 'RazorpayPaginationOptions'.
+src/controller/admin/adminOrder.controller.ts(48,17): error TS18048: 'latestRefund' is possibly 'undefined'.
+src/controller/admin/adminOrder.controller.ts(49,17): error TS18048: 'latestRefund' is possibly 'undefined'.
+src/controller/admin/adminOrder.controller.ts(50,13): error TS18048: 'latestRefund' is possibly 'undefined'.
+src/controller/admin/adminOrder.controller.ts(51,21): error TS18048: 'latestRefund' is possibly 'undefined'.
+src/controller/admin/adminOrder.controller.ts(77,3): error TS6133: 'req' is declared but its value is never read.
+src/controller/admin/adminOrder.controller.ts(104,48): error TS2339: Property 'refundStatus' does not exist on type '{}'.
+src/controller/admin/adminOrder.controller.ts(106,31): error TS2339: Property 'refundedAt' does not exist on type '{}'.
+src/controller/admin/adminOrder.controller.ts(107,9): error TS18048: 'categorizedOrders.mismatched' is possibly 'undefined'.
+src/controller/admin/adminOrder.controller.ts(113,9): error TS18048: 'categorizedOrders.mismatched' is possibly 'undefined'.
+src/controller/admin/adminOrder.controller.ts(130,20): error TS18048: 'categorizedOrders.pending' is possibly 'undefined'.
+src/controller/admin/adminOrder.controller.ts(131,22): error TS18048: 'categorizedOrders.initiated' is possibly 'undefined'.
+src/controller/admin/adminOrder.controller.ts(132,22): error TS18048: 'categorizedOrders.completed' is possibly 'undefined'.
+src/controller/admin/adminOrder.controller.ts(133,19): error TS18048: 'categorizedOrders.failed' is possibly 'undefined'.
+src/controller/admin/adminOrder.controller.ts(134,23): error TS18048: 'categorizedOrders.mismatched' is possibly 'undefined'.
+src/controller/admin/adminOrder.controller.ts(178,71): error TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string | undefined'.
+src/controller/admin/adminOrder.controller.ts(284,9): error TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string | undefined'.
+src/controller/admin/adminOrder.controller.ts(370,3): error TS6133: 'req' is declared but its value is never read.
+src/controller/admin/adminOrder.controller.ts(396,11): error TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string | undefined'.
+src/controller/admin/adminOrder.controller.ts(554,9): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/admin/adminOrder.controller.ts(555,7): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/admin/adminOrder.controller.ts(556,7): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/admin/adminOrder.controller.ts(611,29): error TS2339: Property '_id' does not exist on type '{ payment: { razorpay: { orderId: string; }; }; }'.
+src/controller/admin/adminOrder.controller.ts(612,33): error TS2339: Property 'orderId' does not exist on type '{ payment: { razorpay: { orderId: string; }; }; }'.
+src/controller/admin/adminOrder.controller.ts(613,30): error TS2339: Property 'userId' does not exist on type '{ payment: { razorpay: { orderId: string; }; }; }'.
+src/controller/admin/adminOrder.controller.ts(614,36): error TS2339: Property 'pricing' does not exist on type '{ payment: { razorpay: { orderId: string; }; }; }'.
+src/controller/admin/adminOrder.controller.ts(615,34): error TS2339: Property 'status' does not exist on type '{ payment: { razorpay: { orderId: string; }; }; }'.
+src/controller/admin/adminOrder.controller.ts(616,50): error TS2339: Property 'status' does not exist on type '{ razorpay: { orderId: string; }; }'.
+src/controller/admin/adminOrder.controller.ts(697,5): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/admin/adminOrder.controller.ts(698,5): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/admin/adminOrder.controller.ts(702,9): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/admin/adminOrder.controller.ts(702,36): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/admin/adminOrder.controller.ts(704,12): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/admin/adminOrder.controller.ts(704,36): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/admin/adminOrder.controller.ts(705,7): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/admin/adminOrder.controller.ts(713,24): error TS2339: Property 'email' does not exist on type 'ObjectId'.
+src/controller/admin/adminOrder.controller.ts(714,30): error TS2339: Property 'email' does not exist on type 'ObjectId'.
+src/controller/admin/adminOrder.controller.ts(715,26): error TS2339: Property 'name' does not exist on type 'ObjectId'.
+src/controller/admin/adminOrder.controller.ts(718,24): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/admin/adminProduct.controller.ts(66,43): error TS2345: Argument of type 'Model<{ name: string; slug: string; image: string; images: string[]; colors: ObjectId[]; material: ObjectId[]; sizes: ObjectId[]; category: ObjectId[]; subCategory: ObjectId[]; ... 20 more ...; deletedAt?: NativeDate | ... 1 more ... | undefined; } & DefaultTimestampProps, ... 4 more ..., any>' is not assignable to parameter of type 'Model<{ slug: string; deletedAt: Date | null; }, {}, {}, {}, Document<unknown, {}, { slug: string; deletedAt: Date | null; }, {}, {}> & { slug: string; deletedAt: Date | null; } & { ...; } & { ...; }, any>'.
+src/controller/admin/adminProduct.controller.ts(168,21): error TS18046: 'query.price' is of type 'unknown'.
+src/controller/admin/adminProduct.controller.ts(169,21): error TS18046: 'query.price' is of type 'unknown'.
+src/controller/admin/adminProduct.controller.ts(216,41): error TS2345: Argument of type 'string | string[] | undefined' is not assignable to parameter of type 'string | number | ObjectId | Uint8Array<ArrayBufferLike> | ObjectIdLike'.
+src/controller/admin/adminProduct.controller.ts(285,45): error TS2345: Argument of type 'Model<{ name: string; slug: string; image: string; images: string[]; colors: ObjectId[]; material: ObjectId[]; sizes: ObjectId[]; category: ObjectId[]; subCategory: ObjectId[]; ... 20 more ...; deletedAt?: NativeDate | ... 1 more ... | undefined; } & DefaultTimestampProps, ... 4 more ..., any>' is not assignable to parameter of type 'Model<{ slug: string; deletedAt: Date | null; }, {}, {}, {}, Document<unknown, {}, { slug: string; deletedAt: Date | null; }, {}, {}> & { slug: string; deletedAt: Date | null; } & { ...; } & { ...; }, any>'.
+src/controller/admin/adminProduct.controller.ts(298,37): error TS2339: Property 'toString' does not exist on type 'never'.
+src/controller/admin/adminProduct.controller.ts(324,42): error TS2339: Property 'toString' does not exist on type 'never'.
+src/controller/admin/adminProduct.controller.ts(351,45): error TS2339: Property 'toString' does not exist on type 'never'.
+src/controller/admin/adminProduct.controller.ts(380,36): error TS2339: Property 'toString' does not exist on type 'never'.
+src/controller/admin/adminReview.controller.ts(5,3): error TS6133: 'req' is declared but its value is never read.
+src/controller/admin/adminReview.controller.ts(116,5): error TS2322: Type 'number' is not assignable to type 'Date'.
+src/controller/admin/adminSubCat.controller.ts(23,43): error TS2345: Argument of type 'Model<{ name: string; status: boolean; image: string; order: number; slug: string; category: ObjectId[]; deletedAt?: NativeDate | null | undefined; description?: string | null | undefined; } & DefaultTimestampProps, ... 4 more ..., any>' is not assignable to parameter of type 'Model<{ slug: string; deletedAt: Date | null; }, {}, {}, {}, Document<unknown, {}, { slug: string; deletedAt: Date | null; }, {}, {}> & { slug: string; deletedAt: Date | null; } & { ...; } & { ...; }, any>'.
+src/controller/admin/adminSubCat.controller.ts(167,45): error TS2345: Argument of type 'Model<{ name: string; status: boolean; image: string; order: number; slug: string; category: ObjectId[]; deletedAt?: NativeDate | null | undefined; description?: string | null | undefined; } & DefaultTimestampProps, ... 4 more ..., any>' is not assignable to parameter of type 'Model<{ slug: string; deletedAt: Date | null; }, {}, {}, {}, Document<unknown, {}, { slug: string; deletedAt: Date | null; }, {}, {}> & { slug: string; deletedAt: Date | null; } & { ...; } & { ...; }, any>'.
+src/controller/admin/adminSubSubCat.contoller.ts(23,43): error TS2345: Argument of type 'Model<{ name: string; status: boolean; image: string; order: number; slug: string; subCategory: ObjectId[]; deletedAt?: NativeDate | null | undefined; description?: string | null | undefined; } & DefaultTimestampProps, ... 4 more ..., any>' is not assignable to parameter of type 'Model<{ slug: string; deletedAt: Date | null; }, {}, {}, {}, Document<unknown, {}, { slug: string; deletedAt: Date | null; }, {}, {}> & { slug: string; deletedAt: Date | null; } & { ...; } & { ...; }, any>'.
+src/controller/admin/adminSubSubCat.contoller.ts(168,45): error TS2345: Argument of type 'Model<{ name: string; status: boolean; image: string; order: number; slug: string; subCategory: ObjectId[]; deletedAt?: NativeDate | null | undefined; description?: string | null | undefined; } & DefaultTimestampProps, ... 4 more ..., any>' is not assignable to parameter of type 'Model<{ slug: string; deletedAt: Date | null; }, {}, {}, {}, Document<unknown, {}, { slug: string; deletedAt: Date | null; }, {}, {}> & { slug: string; deletedAt: Date | null; } & { ...; } & { ...; }, any>'.
+src/controller/admin/adminWhyChooseUs.controller.ts(24,24): error TS18046: 'data.save' is of type 'unknown'.
+src/controller/admin/dashboard.controller.ts(5,1): error TS6133: 'env' is declared but its value is never read.
+src/controller/admin/dashboard.controller.ts(8,3): error TS6133: 'req' is declared but its value is never read.
+src/controller/admin/dashboard.controller.ts(96,3): error TS6133: 'req' is declared but its value is never read.
+src/controller/admin/userAdmin.controller.ts(52,11): error TS2304: Cannot find name 'env'.
+src/controller/admin/userAdmin.controller.ts(60,3): error TS6133: 'req' is declared but its value is never read.
+src/controller/admin/userAdmin.controller.ts(74,11): error TS2304: Cannot find name 'env'.
+src/controller/admin/userAdmin.controller.ts(161,11): error TS2304: Cannot find name 'env'.
+src/controller/web/_helpers.ts(7,19): error TS2307: Cannot find module '../lib/cache.js' or its corresponding type declarations.
+src/controller/web/_helpers.ts(8,31): error TS2307: Cannot find module '../utils/responses.js' or its corresponding type declarations.
+src/controller/web/banner.controller.ts(4,58): error TS2345: Argument of type 'Model<{ image: string; description: string; deletedAt?: NativeDate | null | undefined; } & DefaultTimestampProps, {}, {}, {}, Document<unknown, {}, { image: string; description: string; deletedAt?: NativeDate | ... 1 more ... | undefined; } & DefaultTimestampProps, {}, {}> & { ...; } & DefaultTimestampProps & { ...;...' is not assignable to parameter of type 'AnyModel'.
+src/controller/web/cart.controller.ts(122,7): error TS2532: Object is possibly 'undefined'.
+src/controller/web/cart.controller.ts(173,44): error TS2345: Argument of type 'string | string[] | undefined' is not assignable to parameter of type 'string | number | ObjectId | Uint8Array<ArrayBufferLike> | ObjectIdLike'.
+src/controller/web/cart.controller.ts(198,9): error TS2532: Object is possibly 'undefined'.
+src/controller/web/cart.controller.ts(205,28): error TS2532: Object is possibly 'undefined'.
+src/controller/web/cart.controller.ts(209,7): error TS2532: Object is possibly 'undefined'.
+src/controller/web/cart.controller.ts(243,44): error TS2345: Argument of type 'string | string[] | undefined' is not assignable to parameter of type 'string | number | ObjectId | Uint8Array<ArrayBufferLike> | ObjectIdLike'.
+src/controller/web/cart.controller.ts(255,7): error TS2740: Type '(Subdocument<ObjectId, any, { quantity: number; product: ObjectId; color: ObjectId; size?: ObjectId | null | undefined; }> & { ...; })[]' is missing the following properties from type 'DocumentArray<{ quantity: number; product: ObjectId; color: ObjectId; size?: ObjectId | null | undefined; }, Subdocument<ObjectId, any, { quantity: number; product: ObjectId; color: ObjectId; size?: ObjectId | ... 1 more ... | undefined; }> & { ...; }>': isMongooseDocumentArray, create, id, $pop, and 8 more.
+src/controller/web/color.controller.ts(4,57): error TS2345: Argument of type 'Model<{ name: string; code: string; status: boolean; order: number; deletedAt?: NativeDate | null | undefined; } & DefaultTimestampProps, {}, {}, {}, Document<...> & ... 3 more ... & { ...; }, any>' is not assignable to parameter of type 'AnyModel'.
+src/controller/web/faq.controller.ts(4,55): error TS2345: Argument of type 'Model<{ status: boolean; order: number; question: string; answer: string; deletedAt?: NativeDate | null | undefined; } & DefaultTimestampProps, {}, {}, {}, Document<...> & ... 3 more ... & { ...; }, any>' is not assignable to parameter of type 'AnyModel'.
+src/controller/web/logo.controller.ts(4,56): error TS2345: Argument of type 'Model<{ status: boolean; logo: string; deletedAt?: NativeDate | null | undefined; } & DefaultTimestampProps, {}, {}, {}, Document<unknown, {}, { status: boolean; logo: string; deletedAt?: NativeDate | ... 1 more ... | undefined; } & DefaultTimestampProps, {}, {}> & { ...; } & DefaultTimestampProps & { ...; } & { ......' is not assignable to parameter of type 'AnyModel'.
+src/controller/web/material.controller.ts(4,60): error TS2345: Argument of type 'Model<{ name: string; status: boolean; order: number; deletedAt?: NativeDate | null | undefined; } & DefaultTimestampProps, {}, {}, {}, Document<unknown, {}, { ...; } & DefaultTimestampProps, {}, {}> & { ...; } & DefaultTimestampProps & { ...; } & { ...; }, any>' is not assignable to parameter of type 'AnyModel'.
+src/controller/web/nav.controller.ts(40,34): error TS2339: Property 'toString' does not exist on type 'never'.
+src/controller/web/nav.controller.ts(50,38): error TS2339: Property 'toString' does not exist on type 'never'.
+src/controller/web/order.controller.ts(88,20): error TS18049: 'existingOrder.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(111,15): error TS6133: 'cartItemProduct' is declared but its value is never read.
+src/controller/web/order.controller.ts(112,30): error TS2552: Cannot find name 'product'. Did you mean 'Product'?
+src/controller/web/order.controller.ts(116,11): error TS2561: Object literal may only specify known properties, but 'productId' does not exist in type '{ product: string; name: string; image: string; sku: string; quantity: number; price: number; total: number; color: string; size?: string | undefined; isPersonalized: boolean; personalizedName?: string | undefined; }'. Did you mean to write 'product'?
+src/controller/web/order.controller.ts(116,22): error TS2552: Cannot find name 'product'. Did you mean 'Product'?
+src/controller/web/order.controller.ts(119,17): error TS2552: Cannot find name 'product'. Did you mean 'Product'?
+src/controller/web/order.controller.ts(120,24): error TS2552: Cannot find name 'product'. Did you mean 'Product'?
+src/controller/web/order.controller.ts(122,36): error TS2339: Property 'isPersonalized' does not exist on type 'Subdocument<ObjectId, any, FlattenMaps<{ quantity: number; product: ObjectId; color: ObjectId; size?: ObjectId | null | undefined; }>> & FlattenMaps<...>'.
+src/controller/web/order.controller.ts(123,38): error TS2339: Property 'isPersonalized' does not exist on type 'Subdocument<ObjectId, any, FlattenMaps<{ quantity: number; product: ObjectId; color: ObjectId; size?: ObjectId | null | undefined; }>> & FlattenMaps<...>'.
+src/controller/web/order.controller.ts(124,24): error TS2339: Property 'personalizedName' does not exist on type 'Subdocument<ObjectId, any, FlattenMaps<{ quantity: number; product: ObjectId; color: ObjectId; size?: ObjectId | null | undefined; }>> & FlattenMaps<...>'.
+src/controller/web/order.controller.ts(126,28): error TS2552: Cannot find name 'product'. Did you mean 'Product'?
+src/controller/web/order.controller.ts(126,54): error TS2552: Cannot find name 'product'. Did you mean 'Product'?
+src/controller/web/order.controller.ts(129,19): error TS2552: Cannot find name 'product'. Did you mean 'Product'?
+src/controller/web/order.controller.ts(130,16): error TS2552: Cannot find name 'product'. Did you mean 'Product'?
+src/controller/web/order.controller.ts(152,11): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+src/controller/web/order.controller.ts(159,24): error TS2339: Property 'sku' does not exist on type 'Document<unknown, {}, { name: string; status: boolean; code: string; image: string; description: string; order: number; slug: string; colors: ObjectId[]; sizes: ObjectId[]; isPersonalized: boolean; ... 19 more ...; rating?: number | ... 1 more ... | undefined; } & DefaultTimestampProps, {}, {}> & { ...; } & DefaultT...'.
+src/controller/web/order.controller.ts(221,22): error TS18049: 'existingOrder.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(236,16): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(249,11): error TS18049: 'user.address' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(250,36): error TS18049: 'user.address' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(251,35): error TS18049: 'user.address' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(253,11): error TS18049: 'user.address' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(254,35): error TS18049: 'user.address' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(301,11): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(302,11): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(312,7): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(313,7): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(317,5): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(317,5): error TS18049: 'order.payment.razorpay' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(323,36): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(372,7): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(375,23): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(379,25): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(393,28): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(396,8): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(404,5): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(404,29): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(407,5): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(408,5): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(408,5): error TS18049: 'order.payment.razorpay' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(409,5): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(409,5): error TS18049: 'order.payment.razorpay' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(410,5): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(411,5): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(414,5): error TS18049: 'order.notes' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(454,11): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(462,25): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(463,23): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(464,23): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(465,23): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(466,20): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(633,7): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(650,9): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(651,28): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(652,11): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(653,11): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(657,11): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(657,11): error TS18049: 'order.payment.razorpay' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(660,46): error TS2322: Type 'string | undefined' is not assignable to type 'string | number | null'.
+src/controller/web/order.controller.ts(665,46): error TS2339: Property 'id' does not exist on type 'Promise<RazorpayRefund> & void'.
+src/controller/web/order.controller.ts(695,15): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(697,15): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(697,37): error TS2339: Property 'name' does not exist on type '{ fullName: string; phone: string; email: string; area: string; street: string; addressLine1: string; city: string; state: string; pincode: string; country: string; landmark: string; instructions: string; }'.
+src/controller/web/order.controller.ts(698,16): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(707,24): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(744,7): error TS18049: 'order.notes' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(755,9): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(756,7): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(757,7): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(767,15): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(769,15): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(769,37): error TS2339: Property 'name' does not exist on type '{ fullName: string; phone: string; email: string; area: string; street: string; addressLine1: string; city: string; state: string; pincode: string; country: string; landmark: string; instructions: string; }'.
+src/controller/web/order.controller.ts(770,16): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(778,22): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(820,15): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(822,15): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(822,37): error TS2339: Property 'name' does not exist on type '{ fullName: string; phone: string; email: string; area: string; street: string; addressLine1: string; city: string; state: string; pincode: string; country: string; landmark: string; instructions: string; }'.
+src/controller/web/order.controller.ts(823,16): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(852,17): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(854,17): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(854,39): error TS2339: Property 'name' does not exist on type 'FlattenMaps<{ fullName: string; phone: string; email: string; area: string; street: string; addressLine1: string; city: string; state: string; pincode: string; country: string; landmark: string; instructions: string; }>'.
+src/controller/web/order.controller.ts(855,18): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(858,14): error TS18049: 'order.notes' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(974,5): error TS18049: 'order.cancellation' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(975,5): error TS18049: 'order.cancellation' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(978,21): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(980,15): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(980,37): error TS2339: Property 'name' does not exist on type '{ fullName: string; phone: string; email: string; area: string; street: string; addressLine1: string; city: string; state: string; pincode: string; country: string; landmark: string; instructions: string; }'.
+src/controller/web/order.controller.ts(981,16): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(990,24): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1004,5): error TS18049: 'order.cancellation' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1005,5): error TS18049: 'order.cancellation' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1015,5): error TS18049: 'order.cancellation' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1015,5): error TS2322: Type '"processing"' is not assignable to type '"pending" | "completed" | "failed" | "initiated" | null | undefined'.
+src/controller/web/order.controller.ts(1018,15): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1020,15): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1020,37): error TS2339: Property 'name' does not exist on type '{ fullName: string; phone: string; email: string; area: string; street: string; addressLine1: string; city: string; state: string; pincode: string; country: string; landmark: string; instructions: string; }'.
+src/controller/web/order.controller.ts(1021,16): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1031,30): error TS18049: 'order.cancellation' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1059,5): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1060,5): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1061,5): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1072,5): error TS18049: 'order.notes' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1111,11): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1118,15): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1119,25): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1120,23): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1121,23): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1122,23): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1123,20): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1166,9): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1167,28): error TS18049: 'order.pricing' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1171,11): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1171,11): error TS18049: 'order.payment.razorpay' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1174,46): error TS2322: Type 'string | undefined' is not assignable to type 'string | number | null'.
+src/controller/web/order.controller.ts(1178,9): error TS18049: 'order.cancellation' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1179,9): error TS18049: 'order.cancellation' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1179,46): error TS2339: Property 'id' does not exist on type 'Promise<RazorpayRefund> & void'.
+src/controller/web/order.controller.ts(1180,9): error TS18049: 'order.cancellation' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1183,9): error TS18049: 'order.cancellation' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1184,9): error TS18049: 'order.cancellation' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1190,5): error TS18049: 'order.cancellation' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1191,5): error TS18049: 'order.cancellation' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1192,5): error TS18049: 'order.cancellation' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1200,15): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1202,15): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1202,37): error TS2339: Property 'name' does not exist on type '{ fullName: string; phone: string; email: string; area: string; street: string; addressLine1: string; city: string; state: string; pincode: string; country: string; landmark: string; instructions: string; }'.
+src/controller/web/order.controller.ts(1203,16): error TS18049: 'order.shippingAddress' is possibly 'null' or 'undefined'.
+src/controller/web/order.controller.ts(1212,24): error TS18049: 'order.payment' is possibly 'null' or 'undefined'.
+src/controller/web/testimonial.controller.ts(1,1): error TS6192: All imports in import declaration are unused.
+src/controller/web/testimonial.controller.ts(5,63): error TS2345: Argument of type 'Model<{ status: boolean; image: string; description: string; rating: number; title: string; address: string; deletedAt?: NativeDate | null | undefined; } & DefaultTimestampProps, ... 4 more ..., any>' is not assignable to parameter of type 'AnyModel'.
+src/controller/web/user.controller.ts(166,23): error TS18049: 'user.address' is possibly 'null' or 'undefined'.
+src/controller/web/user.controller.ts(167,22): error TS18049: 'user.address' is possibly 'null' or 'undefined'.
+src/controller/web/user.controller.ts(168,20): error TS18049: 'user.address' is possibly 'null' or 'undefined'.
+src/controller/web/user.controller.ts(169,21): error TS18049: 'user.address' is possibly 'null' or 'undefined'.
+src/controller/web/user.controller.ts(170,20): error TS18049: 'user.address' is possibly 'null' or 'undefined'.
+src/controller/web/user.controller.ts(171,28): error TS18049: 'user.address' is possibly 'null' or 'undefined'.
+src/controller/web/user.controller.ts(426,7): error TS2322: Type 'string | undefined' is not assignable to type 'number | null | undefined'.
+src/controller/web/user.controller.ts(505,7): error TS2322: Type 'string | undefined' is not assignable to type 'number | null | undefined'.
+src/controller/web/whyChooseUs.controller.ts(1,1): error TS6192: All imports in import declaration are unused.
+src/controller/web/whyChooseUs.controller.ts(5,63): error TS2345: Argument of type 'Model<{ status: boolean; image: string; description: string; title: string; deletedAt?: NativeDate | null | undefined; } & DefaultTimestampProps, {}, {}, {}, Document<...> & ... 3 more ... & { ...; }, any>' is not assignable to parameter of type 'AnyModel'.
+src/controller/web/wishlist.controller.ts(21,21): error TS2339: Property 'name' does not exist on type 'ObjectId'.
+src/controller/web/wishlist.controller.ts(22,22): error TS2339: Property 'price' does not exist on type 'ObjectId'.
+src/controller/web/wishlist.controller.ts(23,31): error TS2339: Property 'discount_price' does not exist on type 'ObjectId'.
+src/controller/web/wishlist.controller.ts(24,23): error TS2339: Property 'images' does not exist on type 'ObjectId'.
+src/controller/web/wishlist.controller.ts(25,21): error TS2339: Property 'slug' does not exist on type 'ObjectId'.
+src/controller/web/wishlist.controller.ts(106,44): error TS2345: Argument of type 'string | string[] | undefined' is not assignable to parameter of type 'string | number | ObjectId | Uint8Array<ArrayBufferLike> | ObjectIdLike'.
+src/controller/web/wishlist.controller.ts(160,42): error TS2345: Argument of type 'string | string[] | undefined' is not assignable to parameter of type 'string | number | ObjectId | Uint8Array<ArrayBufferLike> | ObjectIdLike'.
+src/middleware/authMiddleware.ts(21,23): error TS2352: Conversion of type 'Jwt & JwtPayload & void' to type 'JwtPayload' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/middleware/authMiddleware.ts(21,34): error TS2769: No overload matches this call.
+src/models/order.ts(215,19): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/routes/admin/adminProduct.routes.ts(15,3): error TS6133: 'uploadSingle' is declared but its value is never read.

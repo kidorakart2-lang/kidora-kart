@@ -1,0 +1,220 @@
+"use client";
+import React, { useEffect, useState } from "react";
+
+import Image from "next/image";
+import Link from "next/link";
+import type { OrderSummaryCartItem, CouponData } from "@/types";
+
+interface OrderSummaryOrderData {
+  giftWrap?: boolean;
+}
+
+export default function OrederSummery({ cartItems, type, orderData, coupon }: { cartItems: OrderSummaryCartItem[]; type: string; orderData: OrderSummaryOrderData; coupon: CouponData | null }) {
+  if (type === "direct" || type === "cart") {
+    const [personalizedName, setPersonalizedName] = useState("");
+
+    // Load personalized name from sessionStorage on component mount
+    useEffect(() => {
+      const storedName = sessionStorage.getItem("personalizedName");
+      if (storedName) {
+        setPersonalizedName(storedName);
+      }
+    }, []);
+
+    // Update sessionStorage when personalizedName changes
+    useEffect(() => {
+      if (personalizedName) {
+        sessionStorage.setItem("personalizedName", personalizedName);
+      }
+    }, [personalizedName]);
+
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setPersonalizedName(e.target.value);
+    };
+
+    const subtotal = cartItems.reduce(
+      (sum, item) =>
+        sum +
+        (item?.product?.discount_price || item?.product?.price) *
+          item?.quantity,
+      0
+    );
+
+    const giftWrapCharge = orderData.giftWrap ? 50 : 0;
+    const shippingCharge = subtotal > 1000 ? 0 : 50;
+
+    let couponDiscount = 0;
+
+    // coupon has: discountPercentage, minAmount, maxAmount (max discount value)
+    if (coupon && coupon.discountPercentage) {
+      const isEligible = subtotal >= (coupon.minAmount || 0);
+
+      if (isEligible) {
+        const percentageDiscount = (subtotal * coupon.discountPercentage) / 100;
+        // Cap discount amount by coupon.maxAmount, e.g. upto 200
+        couponDiscount = Math.min(
+          percentageDiscount,
+          coupon.maxAmount || percentageDiscount
+        );
+      }
+    }
+
+    const total = subtotal + giftWrapCharge + shippingCharge - couponDiscount;
+
+    return (
+      <div>
+        {/* Order Items */}
+        <div className="space-y-4 mb-6">
+          {cartItems.map((item, index) => (
+            <div key={item._id || index} className="flex items-start space-x-4">
+              <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                <Link
+                  className="w-full h-full"
+                  href={`/product-details/${item?.product?.slug}`}
+                >
+                  <Image
+                    src={item?.product?.image || "/placeholder.svg"}
+                    alt={item?.product?.name || "cart image"}
+                    width={80}
+                    height={80}
+                    className="w-full h-full object-cover"
+                  />
+                </Link>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-medium text-gray-900 truncate">
+                  {item?.product?.name}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Qty: {item?.quantity}{" "}
+                  {type == "cart" && item?.color && (
+                    <span className="text-xs text-amber-500 font-medium inline-flex items-center gap-1">
+                      <span
+                        style={{ backgroundColor: item.color.code }}
+                        className="w-3 h-3 rounded-full border border-gray-300 inline-block"
+                      />
+                      {item.color.name}
+                    </span>
+                  )}
+                  {type == "direct" && item?.colorCode && (
+                    <span className="text-xs text-amber-500 font-medium inline-flex items-center gap-1">
+                      <span
+                        style={{ backgroundColor: item.colorCode }}
+                        className="w-3 h-3 rounded-full border border-gray-300 inline-block"
+                      />
+                      {item.colorName}
+                    </span>
+                  )}
+                </p>
+                {/* Size display */}
+                {type == "cart" && item?.size?.name && (
+                  <p className="text-xs text-gray-500">
+                    Size: <span className="font-medium">{item.size.name}</span>
+                  </p>
+                )}
+                {type == "direct" && item?.sizeName && (
+                  <p className="text-xs text-gray-500">
+                    Size: <span className="font-medium">{item.sizeName}</span>
+                  </p>
+                )}
+
+                <p className="text-sm font-medium text-gray-900 mt-1">
+                  ₹{item?.product?.discount_price}
+                  {item?.product?.discount_price && (
+                    <span className="ml-2 text-xs text-gray-500 line-through">
+                      ₹{item?.product?.price}
+                    </span>
+                  )}
+                </p>
+              </div>
+              {item.isPersonalized && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-gray-500">
+                    Personalized Name
+                  </span>
+                  <input
+                    type="text"
+                    value={personalizedName}
+                    onChange={handleNameChange}
+                    className="border border-gray-300 rounded px-2 py-1 text-sm"
+                    placeholder="Enter name"
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Order Total */}
+        <div className="border-t border-gray-200 pt-4 space-y-3">
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>Subtotal</span>
+            <span>
+              ₹
+              {cartItems.reduce(
+                (sum, item) =>
+                  sum +
+                  (item?.product?.discount_price || item?.product?.price) *
+                    item?.quantity,
+                0
+              )}
+            </span>
+          </div>
+
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>Shipping</span>
+            <span className="text-green-600 font-medium">
+              {cartItems.reduce(
+                (sum, item) =>
+                  sum +
+                  (item?.product?.discount_price || item?.product?.price) *
+                    item?.quantity,
+                0
+              ) > 1000
+                ? "Free"
+                : "₹50"}
+            </span>
+          </div>
+
+          {orderData.giftWrap && (
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>Gift Wrap</span>
+              <span>₹50</span>
+            </div>
+          )}
+
+          {couponDiscount > 0 && (
+            <p className="mt-1 text-xs text-emerald-600">
+              Coupon applied: -₹{Math.round(couponDiscount)}
+            </p>
+          )}
+
+          <div className="border-t border-gray-200 pt-3 mt-2">
+            <div className="flex justify-between font-medium text-gray-900">
+              <span>Total</span>
+              <span className="text-lg">₹{total}</span>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Inclusive of all taxes</p>
+          </div>
+
+          {/* Payment Info Cards */}
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+              <span className="text-green-600 text-lg">✓</span>
+              <span className="text-sm font-medium text-green-700">
+                5% Discount on ONLINE Purchase
+              </span>
+            </div>
+            <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              <span className="text-amber-600 text-lg">✓</span>
+              <span className="text-sm text-amber-700">
+                10% Advance And Rest In COD
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return <div>SomeThing went wrong </div>;
+}

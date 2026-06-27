@@ -1,0 +1,329 @@
+import type { Request, Response } from "express";
+import mongoose from "mongoose";
+import Cart from "../../models/cart.js";
+import Product from "../../models/product.js";
+import { asyncHandler } from "../../utils/asyncHandler.js";
+import { success, fail } from "../../utils/responses.js";
+
+// Get user's cart
+export const getCart = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?._id;
+  const cart = await Cart.findOne({ user: userId })
+    .populate("items.product")
+    .populate("items.color")
+    .populate("items.size")
+    .lean();
+
+  if (!cart || cart.items.length === 0) {
+    return success(
+      res,
+      { items: [], totalItems: 0, totalPrice: 0 },
+      "Your cart is empty",
+    );
+  }
+
+  let totalItems = 0;
+  let totalPrice = 0;
+
+  const items = await Promise.all(
+    cart.items.map(async (item) => {
+      const product = await Product.findById(item.product)
+        .select("name price discount_price images slug stock")
+        .lean();
+      if (!product) return null;
+      const itemTotal =
+        product.discount_price > 0
+          ? product.discount_price * item.quantity
+          : product.price * item.quantity;
+
+      totalItems += item.quantity;
+      totalPrice += itemTotal;
+
+      return {
+        _id: item._id,
+        product: {
+          _id: product._id,
+          name: product.name,
+          price: product.price,
+          discount_price: product.discount_price,
+          image: (product.images?.[0] as string) ?? null,
+          slug: product.slug,
+          stock: product.stock,
+        },
+        color: item.color,
+        size: item.size,
+        quantity: item.quantity,
+        itemTotal,
+      } as Record<string, unknown>;
+    }),
+  );
+
+  return success(
+    res,
+    {
+      items: items.filter((i) => i !== null),
+      totalItems,
+      totalPrice: parseFloat(totalPrice.toFixed(2)),
+    },
+    "Cart retrieved successfully",
+  );
+});
+
+// Add item to cart
+export const addToCart = asyncHandler(async (req: Request, res: Response) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { productId, quantity = 1, colorId, sizeId } = req.body as {
+      productId?: string;
+      quantity?: number;
+      colorId?: string;
+      sizeId?: string;
+    };
+    const userId = req.user?._id;
+
+    if (!productId || !colorId) {
+      await session.abortTransaction();
+      return fail(res, "Product ID and Color ID are required", 400);
+    }
+
+    const product = await Product.findOne({
+      _id: productId,
+      status: true,
+      deletedAt: null,
+    }).session(session);
+
+    if (!product) {
+      await session.abortTransaction();
+      return fail(res, "Product not found or not available", 404);
+    }
+
+    if (product.stock < (quantity ?? 1)) {
+      await session.abortTransaction();
+      return fail(res, "Insufficient stock", 400, { availableStock: product.stock });
+    }
+
+    let cart = await Cart.findOne({ user: userId }).session(session);
+    if (!cart) {
+      cart = new Cart({ user: userId, items: [] });
+    }
+
+    const existingItemIndex = cart.items.findIndex((item) => {
+      const productMatch =
+        String(item.product) === productId &&
+        String(item.color) === colorId;
+      const sizeA = item.size ? String(item.size) : null;
+      const sizeB = sizeId ?? null;
+      return productMatch && sizeA === sizeB;
+    });
+
+    if (existingItemIndex > -1) {
+      const existingItem = cart.items[existingItemIndex];
+      if (existingItem) {
+        existingItem.quantity = (existingItem.quantity ?? 0) + (quantity ?? 1);
+      }
+    } else {
+      cart.items.push({
+        product: new mongoose.Types.ObjectId(productId!),
+        quantity: quantity!,
+        color: new mongoose.Types.ObjectId(colorId!),
+        size: sizeId ? new mongoose.Types.ObjectId(sizeId) : null!,
+      } as never);
+    }
+
+    await cart.save({ session });
+    await session.commitTransaction();
+
+    return success(
+      res,
+      {
+        cartId: cart._id,
+        totalItems: cart.items.reduce((sum, item) => sum + item.quantity, 0),
+      },
+      existingItemIndex > -1
+        ? "Quantity Increased in cart"
+        : "Product added to cart",
+    );
+  } catch (error) {
+    await session.abortTransaction();
+    console.error("Error in addToCart:", error);
+    if (error instanceof Error && error.name === "ValidationError") {
+      return fail(res, error.message, 400);
+    }
+    return fail(
+      res,
+      "Failed to add product to cart",
+      500,
+      error instanceof Error ? error.message : error,
+    );
+  } finally {
+    session.endSession();
+  }
+});
+
+// Update cart item quantity
+export const updateCartItem = asyncHandler(
+  async (req: Request, res: Response) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      const { itemId: rawItemId } = req.params;
+      const itemId = Array.isArray(rawItemId) ? rawItemId[0] : rawItemId;
+      const { quantity } = req.body as { quantity?: number };
+      const userId = req.user?._id;
+
+      if (!itemId || !mongoose.Types.ObjectId.isValid(itemId)) {
+        await session.abortTransaction();
+        return fail(res, "Invalid item ID", 400);
+      }
+
+      if (!quantity || quantity < 1) {
+        await session.abortTransaction();
+        return fail(res, "Quantity must be at least 1", 400);
+      }
+
+      const cart = await Cart.findOne({ user: userId }).session(session);
+      if (!cart) {
+        await session.abortTransaction();
+        return fail(res, "Cart not found", 404);
+      }
+
+      const itemIndex = cart.items.findIndex(
+        (item) => item._id.toString() === itemId,
+      );
+      if (itemIndex === -1) {
+        await session.abortTransaction();
+        return fail(res, "Item not found in cart", 404);
+      }
+
+      const item = cart.items[itemIndex];
+      if (!item) {
+        await session.abortTransaction();
+        return fail(res, "Item not found in cart", 404);
+      }
+
+      const product = await Product.findById(item.product).session(session);
+
+      if (!product || product.stock < quantity) {
+        await session.abortTransaction();
+        return fail(res, "Insufficient stock", 400, {
+          availableStock: product?.stock ?? 0,
+          currentQuantity: item.quantity,
+        });
+      }
+
+      item.quantity = quantity!;
+      await cart.save({ session });
+      await session.commitTransaction();
+
+      return success(
+        res,
+        { itemId, newQuantity: quantity },
+        "Cart updated successfully",
+      );
+    } catch (error) {
+      await session.abortTransaction();
+      console.error("Error in updateCartItem:", error);
+      return fail(
+        res,
+        "Failed to update cart",
+        500,
+        error instanceof Error ? error.message : error,
+      );
+    } finally {
+      session.endSession();
+    }
+  },
+);
+
+// Remove item from cart
+export const removeFromCart = asyncHandler(
+  async (req: Request, res: Response) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      const { itemId: rawItemId } = req.params;
+      const itemId = Array.isArray(rawItemId) ? rawItemId[0] : rawItemId;
+      const userId = req.user?._id;
+
+      if (!itemId || !mongoose.Types.ObjectId.isValid(itemId)) {
+        await session.abortTransaction();
+        return fail(res, "Invalid item ID", 400);
+      }
+
+      const cart = await Cart.findOne({ user: userId }).session(session);
+      if (!cart) {
+        await session.abortTransaction();
+        return fail(res, "Cart not found", 404);
+      }
+
+      const initialCount = cart.items.length;
+      cart.items = cart.items.filter(
+        (item) => item._id.toString() !== itemId,
+      ) as unknown as typeof cart.items;
+
+      if (cart.items.length === initialCount) {
+        await session.abortTransaction();
+        return fail(res, "Item not found in cart", 404);
+      }
+
+      await cart.save({ session });
+      await session.commitTransaction();
+
+      return success(
+        res,
+        { itemId, remainingItems: cart.items.length },
+        "Item removed from cart",
+      );
+    } catch (error) {
+      await session.abortTransaction();
+      console.error("Error in removeFromCart:", error);
+      return fail(
+        res,
+        "Failed to remove item from cart",
+        500,
+        error instanceof Error ? error.message : error,
+      );
+    } finally {
+      session.endSession();
+    }
+  },
+);
+
+// Clear cart
+export const clearCart = asyncHandler(async (req: Request, res: Response) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const userId = req.user?._id;
+
+    const result = await Cart.findOneAndUpdate(
+      { user: userId },
+      { $set: { items: [] } },
+      { new: true, session },
+    );
+
+    if (!result) {
+      await session.abortTransaction();
+      return fail(res, "Cart not found", 404);
+    }
+
+    await session.commitTransaction();
+    return success(res, null, "Cart cleared successfully");
+  } catch (error) {
+    await session.abortTransaction();
+    console.error("Error in clearCart:", error);
+    return fail(
+      res,
+      "Failed to clear cart",
+      500,
+      error instanceof Error ? error.message : error,
+    );
+  } finally {
+    session.endSession();
+  }
+});

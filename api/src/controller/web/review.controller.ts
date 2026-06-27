@@ -1,0 +1,83 @@
+import type { Request, Response } from "express";
+import Review from "../../models/review.js";
+import Product from "../../models/product.js";
+import { success, fail } from "../../utils/responses.js";
+
+export const createReview = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const { productId, rating, comment } = req.body as {
+      productId?: string;
+      rating?: number;
+      comment?: string;
+    };
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return fail(res, "Please Login TO add review", 401);
+    }
+
+    if (!productId || !rating || !comment) {
+      return fail(res, "Product ID, rating, and comment are required", 400);
+    }
+
+    const existingReview = await Review.findOne({ userId, productId });
+    if (existingReview) {
+      return fail(res, "You have already reviewed this product", 400);
+    }
+
+    const review = await Review.create({ userId, productId, rating, comment });
+
+    // Side-effect: update product aggregate rating.
+    setImmediate(async () => {
+      const reviews = await Review.find({ productId });
+      const avgRating =
+        reviews.reduce((a, b) => a + (b.rating ?? 0), 0) / reviews.length;
+      await Product.findByIdAndUpdate(productId, {
+        rating: avgRating.toFixed(1),
+        reviewCount: reviews.length,
+      });
+    });
+
+    return success(res, review, "Review submitted successfully", 201);
+  } catch (error) {
+    return fail(
+      res,
+      error instanceof Error ? error.message : "Failed to create review",
+      500,
+    );
+  }
+};
+
+export const getReviewsByProduct = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  try {
+    const { productId } = req.params;
+    const reviews = await Review.find({ productId, deletedAt: null })
+      .populate("userId", "name email avatar")
+      .sort("-createdAt")
+      .lean();
+
+    const avgRating =
+      reviews.length > 0
+        ? reviews.reduce((acc, review) => acc + (review.rating ?? 0), 0) /
+          reviews.length
+        : 0;
+
+    return success(
+      res,
+      reviews,
+      "Product Reviews Found",
+      200,
+      { _rating: avgRating },
+    );
+  } catch (error) {
+    return fail(
+      res,
+      error instanceof Error ? error.message : "Failed to fetch reviews",
+      500,
+      [],
+    );
+  }
+};

@@ -1,0 +1,333 @@
+"use client";
+import Link from "next/link";
+import Image from "next/image";
+
+import { Button } from "@/components/ui/button";
+import {
+  Mail,
+  MapPin,
+  Phone,
+  Award,
+  Shield,
+  Truck,
+  Heart,
+  IndianRupee,
+} from "lucide-react";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store/store";
+import { useEffect, useState } from "react";
+import { InstagramIcon, FacebookIcon, WhatsAppIcon } from "../icons";
+
+interface FeaturedProduct {
+  _id: string;
+  slug: string;
+  image: string;
+  name: string;
+  discount_price: string | number;
+}
+
+interface NavSubCategory {
+  slug: string;
+  name: string;
+}
+
+interface NavCategory {
+  slug: string;
+  subCategories?: NavSubCategory[];
+}
+
+export default function Footer() {
+  const [featuredProducts, setFeaturedProducts] = useState<FeaturedProduct[]>([]);
+
+  const fetchFeaturedProducts = async () => {
+    try {
+      const res = await fetch(
+        process.env.NEXT_PUBLIC_API_URL +
+          "api/website/product/featured-for-footer",
+        {
+          next: {
+            revalidate: 600,
+            tags: ["featured-products"],
+          },
+        }
+      );
+      const data = await res.json();
+      setFeaturedProducts(data._data);
+    } catch (err) {
+    }
+  };
+
+  useEffect(() => {
+    fetchFeaturedProducts();
+  }, []);
+  const categories = useSelector((state: RootState) => state?.ui?.navigation?._data as NavCategory[] | undefined);
+
+  const logo = useSelector((state: RootState) => state.logo.logo);
+
+  return (
+    <footer className="bg-gradient-to-b from-white to-gray-50 text-gray-700 border-t border-gray-200">
+      {/* Features Section */}
+      <div className="border-b border-gray-200 bg-amber-50/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {[
+              {
+                Icon: Truck,
+                title: "Free Shipping",
+                desc: "On orders over  ₹1000",
+              },
+              { Icon: Shield, title: "Secure Payment", desc: "100% Protected" },
+              {
+                Icon: Award,
+                title: "Certified Quality",
+                desc: "Hallmarked Products",
+              },
+              {
+                Icon: Heart,
+                title: "Lifetime Support",
+                desc: "24/7 Customer Care",
+              },
+            ].map(({ Icon, title, desc }, index) => (
+              <div
+                key={title}
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-white transition-colors duration-200"
+              >
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="font-semibold text-sm text-gray-900 truncate">
+                    {title}
+                  </h4>
+                  <p className="text-xs text-gray-600 truncate">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Footer Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-6">
+          {/* Brand & Newsletter - Takes 2 columns on large screens */}
+          <div className="sm:col-span-2 lg:col-span-2">
+            <div className="relative group inline-block mb-4">
+              <Image
+                src={logo || "/images/logo.webp"}
+                alt="Logo"
+                width={100}
+                height={100}
+              />
+            </div>
+            <p className="text-sm text-gray-600 mb-6 max-w-sm">
+              Discover timeless elegance with our exquisite collection of
+              handcrafted jewelry. Subscribe to get exclusive offers and new
+              arrivals.
+            </p>
+
+            {/* Social Media */}
+            <div className="flex gap-2">
+              {[
+                {
+                  Icon: InstagramIcon,
+                  label: "Instagram",
+                  href: "https://www.instagram.com/jewellery__wala_?igsh=MTBqdHI5cjYyMjZsMA==",
+                },
+                {
+                  Icon: FacebookIcon,
+                  label: "Facebook",
+                  href: "https://www.facebook.com/jewellery__wala_?igsh=MTBqdHI5cjYyMjZsMA==",
+                },
+                {
+                  Icon: WhatsAppIcon,
+                  label: "Whatsapp",
+                  href:
+                    "https://wa.me/" + process.env.NEXT_PUBLIC_BUSINESS_PHONE,
+                },
+              ].map(({ Icon, label, href }) => (
+                <Button
+                  key={label}
+                  asChild
+                  variant="outline"
+                  size="icon"
+                  className="border-gray-300 hover:bg-gradient-to-r hover:from-amber-600 hover:to-yellow-500 hover:text-white hover:border-transparent transition-all duration-200"
+                >
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                  >
+                    <Icon />
+                  </a>
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Shop Categories */}
+          <div className="sm:col-span-1 lg:col-span-1">
+            <h3 className="font-bold text-base mb-4 text-gray-900 uppercase tracking-wide border-b-2 border-yellow-400 pb-2 inline-block">
+              Shop
+            </h3>
+            <ul className="space-y-2.5 text-sm">
+              {categories?.map((item: NavCategory) =>
+                item.subCategories?.slice(0, 10)?.map((subCategory: NavSubCategory) => (
+                  <li key={subCategory.name}>
+                    <Link
+                      href={`/category/${item.slug}/${subCategory.slug}`}
+                      className="text-gray-600 hover:text-yellow-600 hover:translate-x-1 inline-block transition-all duration-200"
+                    >
+                      {subCategory.name}
+                    </Link>
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
+
+          {/* Customer Service */}
+          <div className="sm:col-span-1 lg:col-span-1">
+            <h3 className="font-bold text-base mb-4 text-gray-900 uppercase tracking-wide border-b-2 border-yellow-400 pb-2 inline-block">
+              Help
+            </h3>
+            <ul className="space-y-2.5 text-sm">
+              {[
+                { label: "Track Order", href: "/order-track" },
+                { label: "Our Story", href: "/story" },
+                { label: "FAQ", href: "/faq" },
+                { label: "Contact Us", href: "/contact-us" },
+                { label: "About Us", href: "/about" },
+              ].map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-gray-600 hover:text-yellow-600 hover:translate-x-1 inline-block transition-all duration-200"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Policies & Info */}
+          <div className="sm:col-span-1 lg:col-span-1">
+            <h3 className="font-bold text-base mb-4 text-gray-900 uppercase tracking-wide border-b-2 border-yellow-400 pb-2 inline-block">
+              Policies
+            </h3>
+            <ul className="space-y-2.5 text-sm">
+              {[
+                { label: "Privacy Policy", href: "/our-policy" },
+                { label: "Terms of Service", href: "/our-policy?query=terms" },
+                { label: "Refund Policy", href: "/our-policy?query=refund" },
+                {
+                  label: "Shipping Policy",
+                  href: "/our-policy?query=shipping",
+                },
+                {
+                  label: "Size Guide",
+                  href: "/our-policy?query=size-guide",
+                },
+                {
+                  label: "Warranty",
+                  href: "/our-policy?query=warranty",
+                },
+              ].map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-gray-600 hover:text-yellow-600 hover:translate-x-1 inline-block transition-all duration-200"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contact & Featured Products */}
+          <div className="sm:col-span-2 lg:col-span-1">
+            <h3 className="font-bold text-base mb-4 text-gray-900 uppercase tracking-wide border-b-2 border-yellow-400 pb-2 inline-block">
+              Contact
+            </h3>
+            <ul className="space-y-3 text-sm text-gray-600 mb-6">
+              <li className="flex items-start gap-2">
+                <Phone className="w-4 h-4 mt-0.5 flex-shrink-0 text-yellow-600" />
+                <a
+                  href={"tel:+91" + process.env.NEXT_PUBLIC_BUSINESS_PHONE}
+                  className="hover:text-yellow-600 transition-colors"
+                >
+                  {process.env.NEXT_PUBLIC_BUSINESS_PHONE}
+                </a>
+              </li>
+              <li className="flex items-start gap-2">
+                <WhatsAppIcon className="w-4 h-4 mt-0.5 flex-shrink-0 text-yellow-600" />
+                <a
+                  href={"mailto:" + process.env.NEXT_PUBLIC_BUSINESS_EMAIL}
+                  className="hover:text-yellow-600 transition-colors break-all"
+                >
+                  {process.env.NEXT_PUBLIC_BUSINESS_EMAIL}
+                </a>
+              </li>
+              <li className="flex items-start gap-2">
+                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-yellow-600" />
+                <a
+                  href={`https://maps.app.goo.gl/ohKdTgWQicv8Xjf89`}
+                  className="leading-relaxed"
+                >
+                  Jhalamand circle, Guda Rd, Jhalamand, Jodhpur, Rajasthan
+                  342005
+                </a>
+              </li>
+            </ul>
+
+            {/* Featured Products */}
+            {featuredProducts.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-sm text-gray-900 mb-3">
+                  Featured Products
+                </h4>
+                {featuredProducts.map((product: FeaturedProduct) => (
+                  <Link
+                    key={product._id}
+                    href={`/product-details/${product.slug}`}
+                    className="flex items-center gap-3 p-2 rounded-lg border border-gray-200 hover:border-yellow-400 hover:shadow-md transition-all duration-200 group bg-white"
+                  >
+                    <div className="relative w-16 h-16 flex-shrink-0 rounded-md overflow-hidden bg-gray-100">
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h5 className="font-medium text-sm text-gray-900 truncate group-hover:text-yellow-600 transition-colors">
+                        {product.name}
+                      </h5>
+                      <p className="text-sm font-bold text-yellow-600 flex items-center">
+                        <IndianRupee size={12} /> {product.discount_price}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Methods Section */}
+      <div className="border-t border-gray-200 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <p className="text-xs text-gray-500 text-center ">
+            © {new Date().getFullYear()} Jewellery Wala. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
