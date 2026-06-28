@@ -21,6 +21,8 @@ interface SiteAddress {
   state: string;
   postalCode: string;
   country: string;
+  googleMapsUrl: string;
+  googleMapsEmbedUrl: string;
 }
 
 interface SiteSocial {
@@ -70,12 +72,14 @@ export const siteConfig: SiteConfig = {
   },
 
   address: {
-    street: "Main Jhalamand Circle Jodhpur,Rajasthan",
+    street: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS || "Main Jhalamand Circle, Jodhpur, Rajasthan",
     locality: "Jhalamand",
     city: "Jodhpur",
     state: "Rajasthan",
-    postalCode: "342001",
+    postalCode: process.env.NEXT_PUBLIC_BUSINESS_POSTAL_CODE || "342005",
     country: "India",
+    googleMapsUrl: process.env.NEXT_PUBLIC_GOOGLE_MAPS_URL || "https://maps.app.goo.gl/ohKdTgWQicv8Xjf89",
+    googleMapsEmbedUrl: process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3579.0519319886844!2d73.03910947406595!3d26.22750208920371!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39418b779b15f17f%3A0xdd3cdd6bd6778a08!2sJEWELLERY%20WALA!5e0!3m2!1sen!2sin!4v1762241579048!5m2!1sen!2sin",
   },
 
   social: {

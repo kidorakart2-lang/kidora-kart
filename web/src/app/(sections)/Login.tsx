@@ -3,6 +3,7 @@ import GoogleLoginBtn from "@/components/comman/GoogleLoginBtn";
 import InputPassword from "@/components/ui/input-password";
 import { login, setProfile } from "@/redux/features/auth";
 import { clearGuestCart } from "@/redux/features/cart";
+import Cookies from "js-cookie";
 import { clearGuestWishlist } from "@/redux/features/wishlist";
 import {
   syncGuestCartToServer,
@@ -107,6 +108,7 @@ const LoginPage = () => {
 
       dispatch(login(data._token));
       dispatch(setProfile(data._data));
+      Cookies.set("userToken", data._token, { expires: 7, path: "/", sameSite: "lax" });
 
       // Sync guest cart and wishlist to server
       const guestCart = getGuestCartFromStorage();

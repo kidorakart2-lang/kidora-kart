@@ -2,16 +2,18 @@ import jwt, { type SignOptions } from "jsonwebtoken";
 import { env } from "../config/env.js";
 import type { JwtPayload, PasswordResetJwtPayload } from "../types/jwt.js";
 
+/**
+ * Generate a short-lived access token (15 minutes).
+ * Payload contains only _id — no PII (name, email, role) to minimize leak surface.
+ * Role is re-read from DB on every request via req.user (auth middleware).
+ */
 export const generateToken = (
-  user: { _id: unknown; name?: string; email?: string; role?: string },
+  user: { _id: unknown },
 ): string => {
   const payload: JwtPayload = {
     _id: String(user._id),
-    name: user.name,
-    email: user.email,
-    role: user.role,
   };
-  const options: SignOptions = { expiresIn: "10d" };
+  const options: SignOptions = { expiresIn: "15m" };
   return jwt.sign(payload, env.JWT_SECRET, options);
 };
 

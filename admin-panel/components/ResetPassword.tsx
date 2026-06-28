@@ -30,7 +30,6 @@ export default function ResetPassword() {
   const [step, setStep] = useState<string>("request");
   const [email, setEmail] = useState("");
 
-  const token = Cookies.get("adminToken");
   const returnTo = searchParams.get("returnTo");
 
   const handleRequestReset = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -46,13 +45,12 @@ export default function ResetPassword() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-          "api/website/user/forgot-password",
+        "/api/website/user/forgot-password",
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ email: emailValue }),
         },
@@ -85,12 +83,12 @@ export default function ResetPassword() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "api/website/user/verify-otp",
+        "/api/website/user/verify-otp",
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ otp, token: Cookies.get("otpToken") }),
         },
@@ -138,8 +136,7 @@ export default function ResetPassword() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-          "api/website/user/reset-password",
+        "/api/website/user/reset-password",
         {
           method: "POST",
           headers: {

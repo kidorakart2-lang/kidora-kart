@@ -2,7 +2,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Heart, ChevronRight, Sparkles, ShoppingBag } from "lucide-react";
 import Image from "next/image";
-import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { LoadingUi } from "./Cart";
@@ -25,9 +25,10 @@ export default function Wishlist({ wishlist }: { wishlist: Record<string, unknow
         process.env.NEXT_PUBLIC_API_URL + "api/website/wishlist/remove/" + id,
         {
           method: "PUT",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${Cookies.get("user")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
           body: JSON.stringify({
             productId: id,

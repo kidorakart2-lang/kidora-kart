@@ -107,6 +107,83 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const bulkCreate = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { productIds, question, answer, order, status } = req.body as {
+      productIds: string[];
+      question: string;
+      answer: string;
+      order?: number;
+      status?: boolean;
+    };
+
+    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+      fail(res, "At least one product is required", 400);
+      return;
+    }
+
+    const docs = await productFaq.insertMany(
+      productIds.map((productId) => ({
+        product: productId,
+        question,
+        answer,
+        order: order ?? 1,
+        status: status ?? true,
+      })),
+    );
+
+    invalidateCache();
+    success(res, docs, `${docs.length} FAQs created`, 201);
+  } catch (err) {
+    fail(res, err instanceof Error ? err.message : "Failed to create", 500);
+  }
+};
+
+export const bulkCreateFaqs = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { productIds, faqs } = req.body as {
+      productIds: string[];
+      faqs: { question: string; answer: string; order?: number; status?: boolean }[];
+    };
+
+    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+      fail(res, "At least one product is required", 400);
+      return;
+    }
+
+    if (!faqs || !Array.isArray(faqs) || faqs.length === 0) {
+      fail(res, "At least one FAQ entry is required", 400);
+      return;
+    }
+
+    // Validate each FAQ entry
+    for (const [i, faq] of faqs.entries()) {
+      if (!faq.question?.trim() || !faq.answer?.trim()) {
+        fail(res, `FAQ entry ${i + 1} has empty question or answer`, 400);
+        return;
+      }
+    }
+
+    // Create the cross-product: each FAQ for each product
+    const docs = await productFaq.insertMany(
+      productIds.flatMap((productId) =>
+        faqs.map((faq) => ({
+          product: productId,
+          question: faq.question.trim(),
+          answer: faq.answer.trim(),
+          order: faq.order ?? 1,
+          status: faq.status ?? true,
+        })),
+      ),
+    );
+
+    invalidateCache();
+    success(res, docs, `${docs.length} FAQs created (${faqs.length} entries × ${productIds.length} products)`, 201);
+  } catch (err) {
+    fail(res, err instanceof Error ? err.message : "Failed to create FAQs", 500);
+  }
+};
+
 export const changeStatus = async (req: Request, res: Response): Promise<void> => {
   try {
     const result = await productFaq.updateMany(

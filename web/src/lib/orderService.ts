@@ -1,15 +1,11 @@
 import axios from "axios";
-import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 const API_URL = process.env.NEXT_PUBLIC_API_URL + "api/website";
-
-// Get auth token from localStorage/cookies
-const getAuthToken = () => {
-  return Cookies.get("user"); // Adjust based on your auth setup
-};
 
 // Create axios instance with auth
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -23,6 +19,30 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Response interceptor: on 401, attempt a refresh then retry
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    // Only retry once to avoid infinite loops
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        // Try to refresh the access token via httpOnly cookie
+        await fetch(`${API_URL}/user/refresh`, {
+          method: "POST",
+          credentials: "include",
+        });
+        // Retry the original request — the refreshed httpOnly cookie will be sent
+        return api(originalRequest);
+      } catch {
+        // Refresh failed — will reject with the original 401
+      }
+    }
+    return Promise.reject(error);
+  },
+);
 
 // 1. Create Order
 export const createOrder = async (orderData: Record<string, unknown>) => {

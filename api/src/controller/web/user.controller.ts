@@ -9,6 +9,16 @@ import { sendEmail } from "../../lib/nodemailer.js";
 import { uploadToR2 } from "../../lib/cloudflare.js";
 import { env } from "../../config/env.js";
 import { success, fail } from "../../utils/responses.js";
+import {
+  createRefreshToken,
+  verifyRefreshToken,
+  revokeRefreshToken,
+  revokeAllUserRefreshTokens,
+  accessTokenCookieOptions,
+  refreshTokenCookieOptions,
+  clearAccessTokenCookie,
+  clearRefreshTokenCookie,
+} from "../../lib/tokens.js";
 
 const oauthStates = new Map<string, number>();
 
@@ -19,12 +29,39 @@ setInterval(() => {
   }
 }, 120000);
 
+/** Helper: set access + refresh token cookies for a user session */
+async function setSessionCookies(
+  res: Response,
+  user: { _id: unknown },
+  type: "user",
+): Promise<void> {
+  const accessToken = generateToken(user);
+  const refresh = await createRefreshToken(String(user._id), type);
+
+  res.cookie(type === "user" ? "userToken" : "adminToken", accessToken, accessTokenCookieOptions());
+  res.cookie(
+    type === "user" ? "userRefreshToken" : "adminRefreshToken",
+    refresh.tokenValue,
+    refreshTokenCookieOptions(refresh.expiresAt),
+  );
+}
+
+/** Helper: clear all session cookies */
+function clearSessionCookies(res: Response): void {
+  res.cookie("userToken", "", clearAccessTokenCookie());
+  res.cookie("userRefreshToken", "", clearRefreshTokenCookie());
+  res.cookie("adminToken", "", clearAccessTokenCookie());
+  res.cookie("adminRefreshToken", "", clearRefreshTokenCookie());
+  res.cookie("deliveryToken", "", clearAccessTokenCookie());
+  res.cookie("deliveryRefreshToken", "", clearRefreshTokenCookie());
+}
+
 export const registerUser = async (
   req: Request,
   res: Response,
 ): Promise<Response> => {
   if (!req.body) {
-    return fail(res, "Please Give Name , Email and Password", 400);
+    return fail(res, "All fields are required", 400);
   }
   try {
     const { name, email, password } = req.body as {
@@ -49,16 +86,20 @@ export const registerUser = async (
       password: hashed,
     });
 
-    const token = generateToken(newUser.toObject());
+    const userObj = newUser.toObject();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _pw, ...userData } = userObj;
+
+    await setSessionCookies(res, newUser, "user");
 
     return res.status(201).json({
       _status: true,
       _message: "User registered successfully",
-      _token: token,
+      _data: userData,
     });
   } catch (error) {
     console.error(error);
-    return fail(res, "Internal Server Error", 500, error);
+    return fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -67,7 +108,7 @@ export const loginUser = async (
   res: Response,
 ): Promise<Response> => {
   if (!req.body) {
-    return fail(res, "Please Give Email and Password", 400);
+    return fail(res, "Email and password are required", 400);
   }
   try {
     const { email, password } = req.body as {
@@ -83,16 +124,58 @@ export const loginUser = async (
       return fail(res, "Invalid email or password", 401);
     }
 
-    const token = generateToken(user.toObject());
+    const userObj = user.toObject();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _pw, ...userData } = userObj;
+
+    await setSessionCookies(res, user, "user");
 
     return res.status(200).json({
       _status: true,
       _message: "User logged in successfully",
-      _token: token,
+      _data: userData,
     });
   } catch (error) {
     console.error(error);
-    return fail(res, "Internal Server Error", 500, error);
+    return fail(res, "Internal Server Error", 500);
+  }
+};
+
+export const refreshUserToken = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  const refreshValue = req.cookies?.userRefreshToken;
+  if (!refreshValue) {
+    return fail(res, "No refresh token", 401);
+  }
+
+  try {
+    const result = await verifyRefreshToken(refreshValue, "user");
+    if (!result) {
+      clearSessionCookies(res);
+      return fail(res, "Session expired, please log in again", 401);
+    }
+
+    // Rotate refresh token
+    await revokeRefreshToken(result.tokenHash);
+
+    const user = await User.findById(result.userId).select("-password");
+    if (!user || user.deletedAt) {
+      clearSessionCookies(res);
+      return fail(res, "User not found or deactivated", 401);
+    }
+
+    await setSessionCookies(res, user, "user");
+
+    return res.status(200).json({
+      _status: true,
+      _message: "Token refreshed successfully",
+    });
+  } catch (error) {
+    console.error("Refresh token error:", error);
+    clearSessionCookies(res);
+    return fail(res, "Session expired, please log in again", 401);
   }
 };
 
@@ -106,7 +189,7 @@ export const getProfile = async (
     if (!user) return fail(res, "User not found", 404);
     return success(res, user, "User profile Found");
   } catch (error) {
-    return fail(res, "Internal Server Error", 500, error);
+    return fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -127,15 +210,24 @@ export const changePassword = async (
       return fail(res, "Old and new password are required", 400);
     }
 
+    // Enforce minimum password strength
+    if (newPassword.length < 6) {
+      return fail(res, "New password must be at least 6 characters long", 400);
+    }
+
     const isMatch = await comparePassword(oldPassword, user.password);
     if (!isMatch) return fail(res, "Incorrect password", 401);
 
     user.password = await hashPassword(newPassword);
     await user.save();
+
+    // Revoke all existing refresh tokens so other sessions are forced to re-login
+    await revokeAllUserRefreshTokens(String(user._id));
+
     return success(res, null, "Password changed successfully");
   } catch (error) {
     console.error(error);
-    return fail(res, "Internal Server Error", 500, error);
+    return fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -188,7 +280,7 @@ export const updateProfile = async (
     return success(res, user, "User profile updated successfully");
   } catch (error) {
     console.error(error);
-    return fail(res, "Internal Server Error", 500, error);
+    return fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -232,7 +324,7 @@ export const forgotPassword = async (
     });
   } catch (error) {
     console.error("Forgot password error:", error);
-    return fail(res, "Internal Server Error", 500, error);
+    return fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -262,7 +354,7 @@ export const verifyOtp = async (
     });
   } catch (error) {
     console.error("OTP verification error:", error);
-    return fail(res, "Internal Server Error", 500, error);
+    return fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -275,16 +367,22 @@ export const resetPassword = async (
   try {
     const { newPassword } = req.body as { newPassword?: string };
     if (!newPassword) return fail(res, "newPassword is required", 400);
+    if (newPassword.length < 6) return fail(res, "Password must be at least 6 characters", 400);
 
     const userData = await User.findOne({ email: userEmail });
     if (!userData) return fail(res, "Account Not Found", 404);
 
     userData.password = await hashPassword(newPassword);
     await userData.save();
+
+    // Revoke all sessions on password reset
+    await revokeAllUserRefreshTokens(String(userData._id));
+    clearSessionCookies(res);
+
     return success(res, null, "Password reset successfully");
   } catch (error) {
     console.error("Reset password error:", error);
-    return fail(res, "Internal Server Error", 500, error);
+    return fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -297,7 +395,7 @@ export const verifyUser = async (
   try {
     const user = req.user;
     if (user.isEmailVerified) {
-      return fail(res, "You Account is Already Verified", 200);
+      return fail(res, "Your account is already verified", 200);
     }
 
     const email = user.email;
@@ -328,15 +426,11 @@ export const verifyUser = async (
       });
     } catch (emailError) {
       console.error("Failed to send verification email:", emailError);
-      return fail(
-        res,
-        "Failed to send verification email. Please try again later.",
-        500,
-      );
+      return fail(res, "Failed to send verification email. Please try again later.", 500);
     }
   } catch (error) {
     console.error("Verify user error:", error);
-    return fail(res, "Internal Server Error", 500, error);
+    return fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -372,13 +466,9 @@ export const completeVerify = async (
   } catch (error) {
     console.error("Complete verify error:", error);
     if (error instanceof Error && error.name === "TokenExpiredError") {
-      return fail(
-        res,
-        "Verification link has expired. Please request a new one.",
-        400,
-      );
+      return fail(res, "Verification link has expired. Please request a new one.", 400);
     }
-    return fail(res, "Internal Server Error", 500, error);
+    return fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -388,7 +478,23 @@ export const googleAuthInit = async (
 ): Promise<Response> => {
   const state = randomBytes(32).toString("hex");
   oauthStates.set(state, Date.now());
-  return res.status(200).json({ _status: true, _state: state });
+
+  if (!env.GOOGLE_CLIENT_ID) {
+    return fail(res, "Google authentication is not configured", 500);
+  }
+
+  const redirectUri = `${env.FRONTEND_URL}/auth/google/callback`;
+  const googleAuthUrl =
+    `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${encodeURIComponent(env.GOOGLE_CLIENT_ID)}&` +
+    `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+    `response_type=code&` +
+    `scope=${encodeURIComponent("email profile")}&` +
+    `access_type=offline&` +
+    `state=${encodeURIComponent(state)}&` +
+    `prompt=select_account`;
+
+  return res.status(200).json({ _status: true, _state: state, _url: googleAuthUrl });
 };
 
 const buildGooglePayload = (
@@ -404,10 +510,7 @@ export const googleLogin = async (
   res: Response,
 ): Promise<Response> => {
   try {
-    const { credential, mobile } = req.body as {
-      credential?: string;
-      mobile?: string;
-    };
+    const { credential } = req.body as { credential?: string };
     if (!credential) {
       return fail(res, "Google credential is required", 400);
     }
@@ -435,40 +538,30 @@ export const googleLogin = async (
         googleId: parsed.googleId,
         isEmailVerified: true,
         status: true,
-        mobile: mobile ? Number(mobile) : undefined,
       });
     } else if (!user.status) {
-      return fail(
-        res,
-        "Your account has been deactivated. Please contact support.",
-        403,
-      );
+      return fail(res, "Your account has been deactivated. Please contact support.", 403);
     } else if (!user.googleId) {
       user.googleId = parsed.googleId;
-      user.mobile = mobile ? Number(mobile) : null;
       user.isEmailVerified = true;
       if (!user.avatar) user.avatar = parsed.avatar;
       await user.save();
     }
 
-    const token = generateToken(user.toObject());
     const userObj = user.toObject();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userData } = userObj;
 
+    await setSessionCookies(res, user, "user");
+
     return res.status(200).json({
       _status: true,
       _message: "Login successful",
-      _data: { token, user: userData },
+      _data: { user: userData },
     });
   } catch (error) {
     console.error("Google login error:", error);
-    return fail(
-      res,
-      "Error during Google authentication",
-      500,
-      error instanceof Error ? error.message : error,
-    );
+    return fail(res, "Error during Google authentication", 500);
   }
 };
 
@@ -477,7 +570,7 @@ export const googleAuthCallback = async (
   res: Response,
 ): Promise<Response> => {
   try {
-    const { code, mobile, state } = req.body as { code?: string; mobile?: string; state?: string };
+    const { code, state } = req.body as { code?: string; mobile?: string; state?: string };
     if (!code) {
       return fail(res, "Authorization code is required", 400);
     }
@@ -517,40 +610,30 @@ export const googleAuthCallback = async (
         googleId: parsed.googleId,
         isEmailVerified: true,
         status: true,
-        mobile: mobile ? Number(mobile) : undefined,
       });
     } else if (!user.status) {
-      return fail(
-        res,
-        "Your account has been deactivated. Please contact support.",
-        403,
-      );
+      return fail(res, "Your account has been deactivated. Please contact support.", 403);
     } else if (!user.googleId) {
       user.googleId = parsed.googleId;
       user.isEmailVerified = true;
-      user.mobile = mobile ? Number(mobile) : undefined;
       if (!user.avatar) user.avatar = parsed.avatar;
       await user.save();
     }
 
-    const token = generateToken(user.toObject());
     const userObj = user.toObject();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userData } = userObj;
 
+    await setSessionCookies(res, user, "user");
+
     return res.status(200).json({
       _status: true,
       _message: "Login successful",
-      _data: { token, user: userData },
+      _data: { user: userData },
     });
   } catch (error) {
     console.error("Google auth callback error:", error);
-    return fail(
-      res,
-      "Error during Google authentication",
-      500,
-      error instanceof Error ? error.message : error,
-    );
+    return fail(res, "Error during Google authentication", 500);
   }
 };
 
@@ -560,14 +643,39 @@ export const reLogin = async (
 ): Promise<Response> => {
   try {
     if (!req.user) return fail(res, "Unauthorized", 401);
-    const token = generateToken(req.user.toObject());
+
+    await setSessionCookies(res, req.user, "user");
+
     return res.status(200).json({
       _status: true,
       _message: "Login successful",
-      _data: { token },
     });
   } catch (error) {
     console.error("Re-login error:", error);
     return fail(res, "Error during re-login", 500);
   }
+};
+
+export const logoutUser = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  // Revoke refresh token if present
+  const refreshValue = req.cookies?.userRefreshToken;
+  if (refreshValue) {
+    try {
+      const { hashToken } = await import("../../lib/tokens.js");
+      const tokenHash = hashToken(refreshValue);
+      await revokeRefreshToken(tokenHash);
+    } catch {
+      // Ignore revocation errors — clear cookies anyway
+    }
+  }
+
+  clearSessionCookies(res);
+
+  return res.status(200).json({
+    _status: true,
+    _message: "Logged out successfully",
+  });
 };

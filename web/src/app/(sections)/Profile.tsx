@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
-import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 import { toast } from "sonner";
 import Image from "next/image";
 import MyOrders from "./MyOrder";
@@ -75,6 +75,7 @@ const INDIAN_STATES = [
 ];
 export default function AccountPage() {
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const data = useSelector((state: RootState) => state.auth.details);
 
@@ -100,6 +101,11 @@ export default function AccountPage() {
   const fetchUser = async () => {
     setLoading(true);
     const user = await getUser();
+    if (!user) {
+      setLoading(false);
+      router.push("/login?returnTo=/profile");
+      return;
+    }
     dispatch(setProfile(user._data));
     setFormData({
       name: user._data.name,
@@ -123,6 +129,7 @@ export default function AccountPage() {
       return;
     }
     fetchUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const params = useSearchParams();
@@ -189,7 +196,7 @@ export default function AccountPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const token = Cookies.get("user");
+    const token = getAuthToken();
 
     // Create FormData for file upload
     const formDataToSend = new FormData();
@@ -234,6 +241,7 @@ export default function AccountPage() {
         process.env.NEXT_PUBLIC_API_URL + `api/website/user/update-profile`,
         formDataToSend,
         {
+          withCredentials: true,
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,

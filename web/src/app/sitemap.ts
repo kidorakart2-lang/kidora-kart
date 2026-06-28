@@ -35,7 +35,6 @@ export default async function sitemap() {
     const productsRes = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}api/website/product/all`,
       {
-        method: "post",
         next: { revalidate: 86400 },
       }
     );
@@ -73,7 +72,6 @@ export default async function sitemap() {
 
   try {
     const response = await fetch(apiUrl, {
-      method: "post",
       next: { revalidate: 3600 },
     });
 

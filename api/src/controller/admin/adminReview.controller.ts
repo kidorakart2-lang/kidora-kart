@@ -18,7 +18,7 @@ export const getAllReviews = async (
   } catch (error) {
     res.status(500).json({
       _status: false,
-      _message: error instanceof Error ? error.message : "Failed to fetch reviews",
+      _message: "Failed to fetch reviews",
       _data: [],
     });
   }
@@ -49,7 +49,7 @@ export const getReviewById = async (
   } catch (error) {
     res.status(500).json({
       _status: false,
-      _message: error instanceof Error ? error.message : "Failed to fetch review",
+      _message: "Failed to fetch review",
       _data: null,
     });
   }
@@ -81,7 +81,7 @@ export const updateReview = async (
   } catch (error) {
     res.status(500).json({
       _status: false,
-      _message: error instanceof Error ? error.message : "Failed to update review",
+      _message: "Failed to update review",
       _data: null,
     });
   }
@@ -123,7 +123,7 @@ export const deleteReview = async (
   } catch (error) {
     res.status(500).json({
       _status: false,
-      _message: error instanceof Error ? error.message : "Failed to delete review",
+      _message: "Failed to delete review",
       _data: null,
     });
   }

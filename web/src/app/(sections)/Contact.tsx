@@ -11,6 +11,7 @@ import axios from "axios";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { siteConfig, getFullAddress } from "@/lib/utils";
 
 export default function ContactPage() {
   const details = useSelector((state: { auth: { details: { name?: string; email?: string } } }) => state.auth.details);
@@ -59,32 +60,31 @@ export default function ContactPage() {
     {
       icon: Phone,
       title: "Phone",
-      content: process.env.NEXT_PUBLIC_BUSINESS_PHONE,
-      subContent: "Mon-Fri, 9am-6pm EST",
+      content: siteConfig.contact.mobile,
+      subContent: "Mon-Sun, 10am-10pm IST",
       color: "bg-amber-100/80 border border-amber-200/50",
       bgColor: "bg-amber-50/80",
-      href: `tel:${process.env.NEXT_PUBLIC_BUSINESS_PHONE}`,
+      href: `tel:${siteConfig.contact.phone}`,
       ariaLabel: "Contact us by phone",
     },
     {
       icon: Mail,
       title: "Email",
-      content: process.env.NEXT_PUBLIC_BUSINESS_EMAIL,
+      content: siteConfig.contact.email,
       subContent: "We'll respond within 24 hours",
       color: "bg-amber-100/80 border border-amber-200/50",
       bgColor: "bg-amber-50/80",
-      href: `mailto:${process.env.NEXT_PUBLIC_BUSINESS_EMAIL}`,
+      href: `mailto:${siteConfig.contact.email}`,
       ariaLabel: "Send us an email",
     },
     {
       icon: MapPin,
       title: "Address",
-      content: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS,
-      subContent:
-        "Jhalamand circle, Guda Rd, Jhalamand, Jodhpur, Rajasthan 342005",
+      content: siteConfig.address.street,
+      subContent: getFullAddress(),
       color: "bg-amber-100/80 border border-amber-200/50",
       bgColor: "bg-amber-50/80",
-      href: `https://maps.app.goo.gl/ohKdTgWQicv8Xjf89`,
+      href: siteConfig.address.googleMapsUrl,
       ariaLabel: "View our location on map",
     },
   ];

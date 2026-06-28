@@ -11,7 +11,7 @@ import protect from "../../middleware/authMiddleware.js";
 
 const router = Router();
 
-router.post("/view", protect, getCart);
+router.get("/view", protect, getCart);
 
 router.post("/add", protect, uploadNone, addToCart);
 

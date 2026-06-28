@@ -18,6 +18,7 @@ export interface SyncResult {
 
 export interface CartItem {
   productId: string;
+  product?: Record<string, unknown> | null;
   quantity: number;
   colorId: string | null;
   sizeId: string | null;

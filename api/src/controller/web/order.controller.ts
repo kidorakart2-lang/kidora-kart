@@ -24,14 +24,13 @@ const razorpay = new Razorpay({
   key_secret: env.RAZORPAY_KEY_SECRET ?? "",
 });
 
-// Generate 6-digit OTP
+// Generate 6-digit OTP (cryptographically secure)
 const generateOTP = (): string => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return String(crypto.randomInt(100000, 999999));
 };
 
 const generatePackageId = (): string => {
-  const string = env.APP_NAME;
-  return `${string}-${Math.floor(100000 + Math.random() * 900000).toString()}`;
+  return `${env.APP_NAME}-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
 };
 
 type OrderItemInput = {
@@ -148,6 +147,15 @@ export const createOrder = async (
           return;
         }
 
+        // O3: Stock validation — stock may have changed since item was added to cart
+        if ((cartItemProduct as Record<string, unknown>).stock != null && Number((cartItemProduct as Record<string, unknown>).stock) < cartItem.quantity) {
+          res.status(400).json({
+            success: false,
+            message: `Insufficient stock for "${cartItemProduct.name}". Available: ${(cartItemProduct as Record<string, unknown>).stock}, requested: ${cartItem.quantity}`,
+          });
+          return;
+        }
+
         const itemSubtotal = cartItemProduct.discount_price * cartItem.quantity;
         subtotal += itemSubtotal;
 
@@ -169,9 +177,24 @@ export const createOrder = async (
       }
     } else if (purchaseType === "direct") {
       for (const item of items ?? []) {
+        // O2: Validate quantity >= 1
+        if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+          res.status(400).json({ success: false, message: "Quantity must be at least 1" });
+          return;
+        }
+
         const product = await Product.findById(item.productId);
         if (!product) {
           res.status(404).json({ success: false, message: "Product not found" });
+          return;
+        }
+
+        // O3: Stock validation for buy-now flow
+        if (product.stock < item.quantity) {
+          res.status(400).json({
+            success: false,
+            message: `Insufficient stock for "${product.name}". Available: ${product.stock}, requested: ${item.quantity}`,
+          });
           return;
         }
 
@@ -306,8 +329,7 @@ export const createOrder = async (
     console.error("Create Order Error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to create order",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Failed to create order",           error: "Internal Server Error",
     });
   }
 };
@@ -353,9 +375,6 @@ export const createRazorpayOrder = async (
       },
     };
 
-    if (isCodAdvance && order.pricing) {
-      order.pricing.advance = 50;
-    }
     if (isCodAdvance && order.payment) {
       order.payment.codAdvance = true;
     }
@@ -380,8 +399,7 @@ export const createRazorpayOrder = async (
     console.error("Create Razorpay Order Error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to create Razorpay order",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Failed to create Razorpay order",           error: "Internal Server Error",
     });
   }
 };
@@ -419,7 +437,11 @@ export const verifyPayment = async (
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
-    if (generatedSignature !== razorpay_signature) {
+    const sigVerified = crypto.timingSafeEqual(
+      Buffer.from(generatedSignature, "hex"),
+      Buffer.from(razorpay_signature, "hex"),
+    );
+    if (!sigVerified) {
       order.status = "payment_failed";
       if (order.payment) {
         order.payment.status = "failed";
@@ -442,13 +464,34 @@ export const verifyPayment = async (
       return;
     }
 
-    const razorpayOrderDetails = await razorpay.orders.fetch(razorpay_order_id);
-    const expectedAmount = (order.pricing?.total ?? 0) * 100;
+    // O9: Before processing, verify the payment is actually captured on Razorpay
+    let razorpayPaymentState: { status: string } | null = null;
+    try {
+      razorpayPaymentState = await razorpay.payments.fetch(
+        razorpay_payment_id,
+      ) as { status: string };
+    } catch {
+      // If fetch fails, continue with normal flow — the signature check already passed
+    }
+    if (razorpayPaymentState && razorpayPaymentState.status !== "captured" && razorpayPaymentState.status !== "authorized") {
+      res.status(400).json({ success: false, message: "Payment not captured" });
+      return;
+    }
 
-    if (
-      !order.payment?.codAdvance &&
-      razorpayOrderDetails.amount !== expectedAmount
-    ) {
+    const razorpayOrderDetails = await razorpay.orders.fetch(razorpay_order_id);
+
+    // P6: Verify the Razorpay order's notes.orderId matches our order
+    if (razorpayOrderDetails.notes?.orderId !== order.orderId) {
+      res.status(400).json({ success: false, message: "Amount mismatch" });
+      return;
+    }
+
+    // P3: Always validate amount — for COD-advance check against the advance, for full payment check total
+    const expectedAmount = order.payment?.codAdvance
+      ? (order.pricing?.advance ?? 0) * 100
+      : (order.pricing?.total ?? 0) * 100;
+
+    if (razorpayOrderDetails.amount !== expectedAmount) {
       res.status(400).json({ success: false, message: "Amount mismatch" });
       return;
     }
@@ -472,7 +515,9 @@ export const verifyPayment = async (
     if (!order.notes) {
       order.notes = {};
     }
-    order.notes.internal = `Delivery OTP: ${deliveryOTP}`;
+    // P18: Store OTP hash — not plaintext
+    const { hashOtp: hashOtpFn } = await import("../../lib/jwt.js");
+    order.notes.internal = `Delivery OTP hash: ${hashOtpFn(deliveryOTP)}`;
 
     const packageId = generatePackageId();
     order.packageId = packageId;
@@ -548,8 +593,7 @@ export const verifyPayment = async (
     console.error("Verify Payment Error:", error);
     res.status(500).json({
       success: false,
-      message: "Payment verification failed",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Payment verification failed",           error: "Internal Server Error",
     });
   }
 };
@@ -599,8 +643,7 @@ export const getUserOrders = async (
     console.error("Get User Orders Error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch orders",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Failed to fetch orders",           error: "Internal Server Error",
     });
   }
 };
@@ -635,8 +678,7 @@ export const getOrderById = async (
     console.error("Get Order Error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch order",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Failed to fetch order",           error: "Internal Server Error",
     });
   }
 };
@@ -671,8 +713,7 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
     console.error("Get Order Error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch order",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Failed to fetch order",           error: "Internal Server Error",
     });
   }
 };
@@ -722,7 +763,19 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
         ? (order.pricing?.advance ?? 0)
         : (order.pricing?.total ?? 0);
 
+      // O12: Validate refundAmount > 0 before calling Razorpay
+      if (refundAmount <= 0) {
+        console.warn("Refund skipped — amount is 0 or negative for order", order.orderId);
+      } else {
       try {
+        // O9: Fetch Razorpay payment state before issuing refund
+        const paymentId = order.payment?.razorpay?.paymentId;
+        if (paymentId) {
+          try {
+            const rzpPayment = await razorpay.payments.fetch(paymentId) as { status?: string };
+            if (rzpPayment.status !== "captured") {
+              console.warn("Refund skipped — payment not captured for order", order.orderId);
+            } else {
         const refundResponse = await razorpay.payments.refund(
           order.payment?.razorpay?.paymentId ?? "",
           {
@@ -738,6 +791,11 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
           refundId: refundResult.id,
           refundAmount,
         };
+            }
+          } catch (rzpError) {
+            console.error("Razorpay payment fetch failed:", rzpError);
+          }
+        }
       } catch (error) {
         console.error("Refund initiation failed:", error);
         order.cancellation = {
@@ -746,7 +804,8 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
           refundError: error instanceof Error ? error.message : "Unknown error",
         };
       }
-    }
+      }
+      }
 
     await order.save();
 
@@ -789,8 +848,7 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
     console.error("Cancel Order Error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to cancel order",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Failed to cancel order",           error: "Internal Server Error",
     });
   }
 };
@@ -816,10 +874,11 @@ export const verifyDeliveryOTP = async (
       return;
     }
 
-    const storedOTP =
-      order.notes?.internal?.match(/Delivery OTP: (\d{6})/)?.[1];
+    const { hashOtp } = await import("../../lib/jwt.js");
+    const storedHash =
+      order.notes?.internal?.match(/Delivery OTP hash: ([a-f0-9]{64})/)?.[1];
 
-    if (!storedOTP || storedOTP !== otp) {
+    if (!storedHash || storedHash !== hashOtp(otp)) {
       res.status(400).json({ success: false, message: "Invalid OTP" });
       return;
     }
@@ -860,8 +919,7 @@ export const verifyDeliveryOTP = async (
     console.error("Verify OTP Error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to verify OTP",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Failed to verify OTP",           error: "Internal Server Error",
     });
   }
 };
@@ -906,8 +964,7 @@ export const markToShipped = async (
     console.error("Mark to Shipped Error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to mark order as shipped",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Failed to mark order as shipped",           error: "Internal Server Error",
     });
   }
 };
@@ -935,14 +992,24 @@ export const sendDeliveryOTP = async (
       return;
     }
 
+    // sendDeliveryOTP generates a fresh OTP so it works with our hashed storage
+    const newOTP = generateOTP();
+    const { hashOtp: sendHash } = await import("../../lib/jwt.js");
+
     try {
+      // Update the stored hash (replaces old one — the old OTP is no longer valid)
+      await Order.updateOne(
+        { orderId },
+        { $set: { "notes.internal": `Delivery OTP hash: ${sendHash(newOTP)}` } },
+      );
+
       sendEmail(order.shippingAddress?.email ?? "", "orderDeliveryOTP", {
         user: {
           name: order.shippingAddress?.fullName ?? "Customer",
           email: order.shippingAddress?.email ?? "",
         },
         order: { orderId: order.orderId, _id: order._id },
-        otp: order.notes?.internal,
+        otp: newOTP,
       });
     } catch (emailError) {
       console.error("Failed to send delivery OTP email:", emailError);
@@ -956,8 +1023,7 @@ export const sendDeliveryOTP = async (
     console.error("Send Delivery OTP Error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to send delivery OTP",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Failed to send delivery OTP",           error: "Internal Server Error",
     });
   }
 };
@@ -998,8 +1064,7 @@ export const getAllOrders = async (
     console.error("Get All Orders Error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch orders",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Failed to fetch orders",           error: "Internal Server Error",
     });
   }
 };
@@ -1053,6 +1118,18 @@ export const handleWebhook = async (
       case "refund.failed":
         await handleRefundFailed(payload);
         break;
+      case "payment.captured":
+      case "order.paid":
+        // These events are handled by the client polling verifyPayment
+        // Store for audit purposes
+        console.log("Webhook received:", event, "— payment_id:", eventPayload?.payload?.payment?.entity?.id);
+        break;
+      case "payment.failed":
+        await handlePaymentFailed(eventPayload?.payload?.payment?.entity);
+        break;
+      default:
+        console.log("Unhandled webhook event:", event);
+        break;
     }
 
     res.status(200).json({ status: "ok" });
@@ -1100,6 +1177,22 @@ async function handleRefundFailed(refundData: {
     order.cancellation.refundStatus = "failed";
     order.cancellation.refundError = refundData.error_description;
     await order.save();
+  }
+}
+
+async function handlePaymentFailed(paymentEntity: { id?: string; description?: string; error_description?: string; order_id?: string } | null): Promise<void> {
+  if (!paymentEntity?.order_id) return;
+  try {
+    const order = await Order.findOne({
+      "payment.razorpay.paymentId": paymentEntity.id,
+    });
+    if (order && order.status === "pending") {
+      order.status = "payment_failed";
+      if (order.payment) order.payment.status = "failed";
+      await order.save();
+    }
+  } catch (err) {
+    console.error("Failed to handle payment.failed webhook:", err);
   }
 }
 
@@ -1152,6 +1245,31 @@ export const confirmCODOrder = async (
       return;
     }
 
+    // O3: Stock validation before confirming COD order
+    for (const item of order.items) {
+      const product = item.productId as unknown as {
+        _id: string;
+        name: string;
+        stock: number;
+      } | null;
+
+      if (!product) {
+        res.status(400).json({
+          success: false,
+          message: "Product in order not found",
+        });
+        return;
+      }
+
+      if (product.stock < item.quantity) {
+        res.status(400).json({
+          success: false,
+          message: `Insufficient stock for "${product.name}". Available: ${product.stock}, requested: ${item.quantity}`,
+        });
+        return;
+      }
+    }
+
     if (!order.payment) {
       order.payment = {
         method: "cod",
@@ -1177,7 +1295,9 @@ export const confirmCODOrder = async (
     if (!order.notes) {
       order.notes = {};
     }
-    order.notes.internal = `Delivery OTP: ${deliveryOTP}`;
+    // P18: Store OTP hash — not plaintext
+    const { hashOtp: hash2 } = await import("../../lib/jwt.js");
+    order.notes.internal = `Delivery OTP hash: ${hash2(deliveryOTP)}`;
     const packageId = generatePackageId();
     order.packageId = packageId;
 
@@ -1252,8 +1372,7 @@ export const confirmCODOrder = async (
     console.error("COD Order Confirmation Error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to confirm COD order",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Failed to confirm COD order",           error: "Internal Server Error",
     });
   }
 };
@@ -1273,9 +1392,21 @@ export const cancelOrderByAdmin = async (
     if (order.payment?.status !== "pending") {
       const refundAmount = order.pricing?.total ?? 0;
 
+      // O12: Validate refundAmount > 0 before calling Razorpay
+      if (refundAmount <= 0) {
+        console.warn("Admin cancel: refund skipped — amount is 0 for order", order.orderId);
+      } else {
       try {
+        // O9: Check payment state on Razorpay before issuing refund
+        const paymentId = order.payment?.razorpay?.paymentId;
+        if (paymentId) {
+          try {
+            const rzpPayment = await razorpay.payments.fetch(paymentId) as { status?: string };
+            if (rzpPayment.status !== "captured") {
+              console.warn("Admin cancel: refund skipped — payment not captured for order", order.orderId);
+            } else {
         const refundResponse = await razorpay.payments.refund(
-          order.payment?.razorpay?.paymentId ?? "",
+          paymentId,
           {
             amount: refundAmount * 100,
             notes: { orderId: order.orderId, reason: reason ?? null },
@@ -1289,6 +1420,11 @@ export const cancelOrderByAdmin = async (
           refundId: refundResult.id,
           refundAmount,
         };
+            }
+          } catch (rzpError) {
+            console.error("Razorpay payment fetch failed:", rzpError);
+          }
+        }
       } catch (error) {
         console.error("Refund initiation failed:", error);
         order.cancellation = {
@@ -1297,7 +1433,7 @@ export const cancelOrderByAdmin = async (
           refundError: error instanceof Error ? error.message : "Unknown error",
         };
       }
-    }
+      }
 
     order.status = "cancelled";
     order.cancellation = {
@@ -1335,8 +1471,7 @@ export const cancelOrderByAdmin = async (
     console.error("Cancel Order Error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to cancel order",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Failed to cancel order",           error: "Internal Server Error",
     });
   }
 };

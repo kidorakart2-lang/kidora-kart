@@ -32,6 +32,7 @@ import { InputPassword } from "@/components/ui/input-password";
 import { logout } from "@/redux/features/auth";
 import { useDispatch } from "react-redux";
 import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -85,11 +86,12 @@ function PasswordFormSheet({ open, onOpenChange, type = "change" }: { open: bool
     setIsLoading(true);
     // Handle password change logic here
     try {
-      const token = Cookies.get("user");
+      const token = getAuthToken();
       const response = await fetch(
         process.env.NEXT_PUBLIC_API_URL + "api/website/user/change-password",
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             authorization: `Bearer ${token}`,
@@ -201,11 +203,12 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
     if (type === "email") {
       setLoading(true)
       try {
-        const token = Cookies.get("user");
+        const token = getAuthToken();
         const response = await fetch(
           process.env.NEXT_PUBLIC_API_URL + "api/website/user/verify-user",
           {
             method: "POST",
+            credentials: "include",
             headers: {
               "Content-Type": "application/json",
               authorization: `Bearer ${token}`,
@@ -244,6 +247,15 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
 
   // Handle logout
   const handleLogout = async () => {
+    try {
+      await fetch(process.env.NEXT_PUBLIC_API_URL + "api/website/user/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {
+      // Silently handle - cookie will be stale but harmless
+    }
+    Cookies.remove("userToken", { path: "/" });
     dispatch(logout());
     router.push("/");
   };

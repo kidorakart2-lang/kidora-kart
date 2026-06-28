@@ -1,15 +1,27 @@
+import dynamic from "next/dynamic";
 import Banner from "./(sections)/Banner";
-import RoundCategorySlider from "./(sections)/RoundCategorySlider";
 import MenWomen from "./(sections)/MenWomen";
 import ShopByPrice from "./(sections)/ShopbyPrice";
 import TabProducts from "./(sections)/TabProducts";
-import Slider from "./(sections)/Slider";
 import WhyChooseUs from "./(sections)/WhyChooseUs";
-import Testimonial from "./(sections)/Testimonial";
-import FullVideoSection from "./(sections)/video";
 import { siteConfig } from "@/lib/utils";
 import { cache } from "react";
 import ProductsTab from "./(sections)/ProductsTab";
+import DynamicSections, { getHomeSections } from "./(sections)/DynamicSections";
+import type { HomeSection } from "./(sections)/DynamicSections";
+
+const RoundCategorySlider = dynamic(() => import("./(sections)/RoundCategorySlider"), {
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg mx-4 my-6" />,
+});
+const Slider = dynamic(() => import("./(sections)/Slider"), {
+  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg mx-4 my-8" />,
+});
+const Testimonial = dynamic(() => import("./(sections)/Testimonial"), {
+  loading: () => <div className="h-80 bg-gray-100 animate-pulse rounded-lg mx-4 my-8" />,
+});
+const FullVideoSection = dynamic(() => import("./(sections)/video"), {
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg mx-4 my-8" />,
+});
 
 export const metadata = {
   title: `Jewellery Walla in Jodhpur | Best Gold & Silver Jewellery Shop | ${siteConfig.name}`,
@@ -44,14 +56,14 @@ export const metadata = {
     locale: "en_IN",
     type: "website",
     address: {
-      streetAddress: "Your Store Address",
-      addressLocality: "Jodhpur",
-      addressRegion: "Rajasthan",
-      postalCode: "342005",
+      streetAddress: siteConfig.address.street,
+      addressLocality: siteConfig.address.city,
+      addressRegion: siteConfig.address.state,
+      postalCode: siteConfig.address.postalCode,
       addressCountry: "IN",
     },
-    phone: `+91-${process.env.NEXT_PUBLIC_BUSINESS_PHONE}`,
-    email: `${process.env.NEXT_PUBLIC_BUSINESS_EMAIL}`,
+    phone: siteConfig.contact.phone,
+    email: siteConfig.contact.email,
   },
   twitter: {
     card: "summary_large_image",
@@ -74,7 +86,7 @@ export const metadata = {
     },
   },
   verification: {
-    google: "YOUR_GOOGLE_VERIFICATION_CODE",
+    google: "4jBIp_u1ex8ub0zCeOXN-UnbczFciy1aAO90vr7yhH8",
     yandex: "YANDEX_VERIFICATION_CODE",
   },
 };
@@ -87,13 +99,13 @@ const jsonLd = {
   image: `${siteConfig.url}/og-image.jpg`,
   description: `Best Jewellery Walla in Jodhpur offering Gold, Silver, Diamond & Polki jewellery. Visit our store in Jodhpur for traditional & modern designs.`,
   url: siteConfig.url,
-  telephone: `+91-${process.env.NEXT_PUBLIC_BUSINESS_PHONE}`,
+  telephone: siteConfig.contact.phone,
   address: {
     "@type": "PostalAddress",
-    streetAddress: "Your Store Address",
-    addressLocality: "Jodhpur",
-    addressRegion: "Rajasthan",
-    postalCode: "342005",
+    streetAddress: siteConfig.address.street,
+    addressLocality: siteConfig.address.city,
+    addressRegion: siteConfig.address.state,
+    postalCode: siteConfig.address.postalCode,
     addressCountry: "IN",
   },
   geo: {
@@ -115,15 +127,14 @@ const jsonLd = {
     opens: "10:00",
     closes: "21:00",
   },
-  priceRange: "₹200 - ₹50000",
+  priceRange: siteConfig.business.priceRange,
   sameAs: [
-    "https://www.facebook.com/jewellery__wala_?igsh=MTBqdHI5cjYyMjZsMA==",
-    "https://www.instagram.com/jewellery__wala_?igsh=MTBqdHI5cjYyMjZsMA==",
-    "https://maps.app.goo.gl/ohKdTgWQicv8Xjf89",
+    siteConfig.social.facebook,
+    siteConfig.social.instagram,
+    siteConfig.address.googleMapsUrl,
   ],
 };
 
-// import TraditionalJewellery from "./(sections)/Traditional";
 const GetTestimonials = cache(async () => {
   try {
     const response = await fetch(
@@ -192,6 +203,7 @@ const getBestSellers = cache(async () => {
     return [];
   }
 });
+
 const getTrendingProducts = cache(async () => {
   try {
     const response = await fetch(
@@ -210,7 +222,27 @@ const getTrendingProducts = cache(async () => {
 });
 
 export default async function Home() {
-  const [testimonials, tabsData, newArrivals, trendingProducts , bestSellersProducts] =
+  // Check if there are any dynamic sections configured
+  const homeSections: HomeSection[] = await getHomeSections();
+  const hasDynamicSections = homeSections.some((s) => !s.config?.hidden);
+
+  if (hasDynamicSections) {
+    // Dynamic layout from admin panel - render sections in order
+    // Banner is always first (enforced by backend + admin panel)
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <DynamicSections />
+      </>
+    );
+  }
+
+  // ── DEFAULT FALLBACK LAYOUT ──
+  // When no dynamic sections are configured, show the original hardcoded layout
+  const [testimonials, tabsData, newArrivals, trendingProducts, bestSellersProducts] =
     await Promise.all([
       GetTestimonials(),
       getTabsData(),
@@ -230,7 +262,6 @@ export default async function Home() {
       <Banner />
       <RoundCategorySlider />
       <MenWomen />
-      {/* <TraditionalJewellery/> */}
       <ShopByPrice bg="bg-[#f8f8f8]" />
       <TabProducts data={tabsData} />
       <WhyChooseUs bg="bg-[#f8f8f8]" />
@@ -242,9 +273,8 @@ export default async function Home() {
       <Slider
         data={trendingProducts}
         heading="Trending Products"
-       
       />
-      <Testimonial data={testimonials}  bg="bg-[#f8f8f8]/50" />
+      <Testimonial data={testimonials} bg="bg-[#f8f8f8]/50" />
     </>
   );
 }

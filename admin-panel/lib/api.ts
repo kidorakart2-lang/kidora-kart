@@ -1,99 +1,93 @@
 /**
- * Mock API functions with simulated delays
+ * Centralized API client for the admin panel.
+ *
+ * Usage:
+ *   import { api } from "@/lib/api";
+ *   const users = await api.get("/api/admin/user/findAllUser");
+ *   const created = await api.post("/api/admin/user/create", { name: "..." });
+ *   const updated = await api.put("/api/admin/category/update/123", formData);
+ *   await api.del("/api/admin/user/delete/123");
+ *
+ * All requests:
+ * - Include `credentials: "include"` automatically
+ * - Parse `_status` and throw on failure with `_message`
+ * - Return `_data` when present, otherwise the full response JSON
+ * - Accept both JSON objects and FormData (auto-detected)
+ * - Gracefully handle non-JSON responses (e.g. 500 HTML error pages)
  */
 
-const delay = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
-
-type AnyData = Record<string, unknown>;
-
-interface LoginResponse {
-  success: boolean;
-  token: string;
-  user: {
-    id: number;
-    name: string;
-    email: string;
-    role: string;
-  };
+export class ApiClientError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public body?: unknown,
+  ) {
+    super(message);
+    this.name = "ApiClientError";
+  }
 }
 
-export async function fetchData(endpoint: string): Promise<unknown[]> {
-  await delay(500);
+async function request<T = unknown>(
+  method: string,
+  url: string,
+  body?: unknown,
+): Promise<T> {
+  const isFormData = body instanceof FormData;
 
-  const mockModules: Record<string, unknown> = await import("./mock-data");
-  const mockUsers = mockModules.mockUsers as unknown[];
-  const mockProducts = mockModules.mockProducts as unknown[];
-  const mockOrders = mockModules.mockOrders as unknown[];
-  const mockCategories = mockModules.mockCategories as unknown[];
-  const mockBanners = mockModules.mockBanners as unknown[];
-  const mockTestimonials = mockModules.mockTestimonials as unknown[];
-  const mockFAQs = mockModules.mockFAQs as unknown[];
-  const mockWhyChooseUs = mockModules.mockWhyChooseUs as unknown[];
-  const mockMaterials = mockModules.mockMaterials as unknown[];
-  const mockColors = mockModules.mockColors as unknown[];
-  const mockStats = mockModules.mockStats as unknown[];
+  const res = await fetch(url, {
+    method,
+    headers: isFormData ? undefined : { "Content-Type": "application/json" },
+    credentials: "include",
+    body: isFormData
+      ? (body as FormData)
+      : body !== undefined
+        ? JSON.stringify(body)
+        : undefined,
+  });
 
-  const data: Record<string, unknown[]> = {
-    users: mockUsers,
-    products: mockProducts,
-    orders: mockOrders,
-    categories: mockCategories,
-    banners: mockBanners,
-    testimonials: mockTestimonials,
-    faqs: mockFAQs,
-    whyChooseUs: mockWhyChooseUs,
-    materials: mockMaterials,
-    colors: mockColors,
-    stats: mockStats,
-  };
-
-  return data[endpoint] || [];
-}
-
-export async function createItem(
-  _endpoint: string,
-  item: AnyData,
-): Promise<AnyData> {
-  await delay(300);
-  return { ...item, id: Date.now() };
-}
-
-export async function updateItem(
-  _endpoint: string,
-  id: number,
-  updates: AnyData,
-): Promise<AnyData> {
-  await delay(300);
-  return { id, ...updates };
-}
-
-export async function deleteItem(
-  _endpoint: string,
-  id: number,
-): Promise<{ success: boolean; id: number }> {
-  await delay(300);
-  return { success: true, id };
-}
-
-export async function login(
-  email: string,
-  password: string,
-): Promise<LoginResponse> {
-  await delay(500);
-
-  if (email === "admin@example.com" && password === "admin123") {
-    return {
-      success: true,
-      token: "mock-jwt-token",
-      user: { id: 1, name: "Admin User", email, role: "admin" },
-    };
+  // Handle non-JSON responses gracefully
+  const text = await res.text();
+  let json: Record<string, unknown>;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new ApiClientError(
+      `Unexpected response (status ${res.status})`,
+      res.status,
+      text.slice(0, 500),
+    );
   }
 
-  throw new Error("Invalid credentials");
+  if (res.ok === false || json._status === false) {
+    throw new ApiClientError(
+      (json._message as string) ?? `Request failed with status ${res.status}`,
+      res.status,
+      json,
+    );
+  }
+
+  // Return _data if present, otherwise the full response
+  if (json._data !== undefined) {
+    return json._data as T;
+  }
+
+  return json as T;
 }
 
-export async function logout(): Promise<{ success: boolean }> {
-  await delay(200);
-  return { success: true };
-}
+export const api = {
+  get<T = unknown>(url: string): Promise<T> {
+    return request<T>("GET", url);
+  },
+
+  post<T = unknown>(url: string, body?: unknown): Promise<T> {
+    return request<T>("POST", url, body);
+  },
+
+  put<T = unknown>(url: string, body?: unknown): Promise<T> {
+    return request<T>("PUT", url, body);
+  },
+
+  del<T = unknown>(url: string): Promise<T> {
+    return request<T>("DELETE", url);
+  },
+};

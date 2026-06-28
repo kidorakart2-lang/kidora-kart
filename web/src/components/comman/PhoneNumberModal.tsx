@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Phone, Loader2 } from "lucide-react";
 import axios from "axios";
-import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 import { toast } from "sonner";
 
 export default function PhoneNumberModal() {
@@ -65,7 +65,7 @@ export default function PhoneNumberModal() {
     setLoading(true);
 
     try {
-      const token = Cookies.get("user");
+      const token = getAuthToken();
       const formData = new FormData();
       formData.append("mobile", phone);
 
@@ -73,6 +73,7 @@ export default function PhoneNumberModal() {
         process.env.NEXT_PUBLIC_API_URL + "api/website/user/update-profile",
         formData,
         {
+          withCredentials: true,
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,

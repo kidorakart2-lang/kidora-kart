@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
-import Cookies from "js-cookie";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -29,11 +28,12 @@ export default function LoginPage() {
 
     try {
       const response = await axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "api/admin/user/login",
+        "/api/admin/user/login",
         {
           email,
           password,
-        }
+        },
+        { withCredentials: true }
       );
 
       if (response.status !== 200) {
@@ -52,11 +52,7 @@ export default function LoginPage() {
         return;
       }
 
-      Cookies.set("adminToken", response.data._token, {
-        expires: 7,
-        path: "/",
-      });
-
+      // Backend sets httpOnly cookie — no need for js-cookie
       toast({
         title: "Login successful",
         description: "Welcome to the admin panel.",

@@ -139,11 +139,22 @@ export default function Header({ navigationData }: HeaderProps) {
     }
   };
 
+  // Fetch user on mount AND when isLoggedIn changes
+  // This handles: fresh page load with httpOnly cookie, login redirect, session restore
   useEffect(() => {
     if (pathName !== "/profile") {
       fetchUser();
     }
   }, [isLoggedIn]);
+
+  // Also try on mount in case isLoggedIn is false but the httpOnly cookie exists
+  useEffect(() => {
+    // Only run if not already logged in
+    if (!isLoggedIn && pathName !== "/profile") {
+      fetchUser();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (isLoggedIn || Cookies.get("loginModal")) {
@@ -190,7 +201,7 @@ export default function Header({ navigationData }: HeaderProps) {
 
   const renderMobileNav = () => (
     <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-80px)]">
-      {(navigationData._data as CategoryItem[]).map((cat, idx) => (
+      {(navigationData?._data as CategoryItem[])?.map((cat, idx) => (
         <div key={idx}>
           {cat.subCategories?.length == 0 ? (
             <MobileLink name={cat.name} href={urlPrfix(cat.slug)} />
@@ -499,7 +510,7 @@ export default function Header({ navigationData }: HeaderProps) {
 
         {/* Premium Navigation Bar */}
         <nav className="hidden md:flex flex-wrap justify-center items-center space-x-8 text-sm font-medium py-3.5  bg-white   border-b border-amber-100/30">
-          {(navigationData._data as CategoryItem[])?.map((cat, idx) => (
+          {(navigationData?._data as CategoryItem[])?.map((cat, idx) => (
             <div key={idx}>
               {cat.subCategories?.length == 0 ? (
                 <Link

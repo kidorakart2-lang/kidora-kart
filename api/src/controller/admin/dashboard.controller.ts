@@ -85,7 +85,7 @@ export const getDashboardStats = async (
     res.status(500).json({
       success: false,
       message: "Error retrieving dashboard statistics",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: "Internal Server Error",
     });
   }
 };
@@ -128,7 +128,7 @@ export const getRecentActivity = async (
     res.status(500).json({
       success: false,
       message: "Error retrieving recent activity",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: "Internal Server Error",
     });
   }
 };

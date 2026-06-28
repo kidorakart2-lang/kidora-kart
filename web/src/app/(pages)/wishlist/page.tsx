@@ -24,7 +24,6 @@ async function getWishlist(token: RequestCookie) {
       headers: {
         Authorization: `Bearer ${token.value}`,
       },
-      method: "post",
     }
   );
   const data = await response.json();
@@ -37,7 +36,7 @@ async function getWishlist(token: RequestCookie) {
 
 export default async function Page() {
   const cookie = await cookies();
-  const token = cookie.get("user");
+  const token = cookie.get("userToken");
 
   // If no token, show guest wishlist (which reads from Redux/localStorage)
   if (!token) {

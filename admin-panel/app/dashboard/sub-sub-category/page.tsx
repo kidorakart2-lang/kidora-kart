@@ -4,11 +4,9 @@ import SubSubCategoriesClient from "./SubSubCatClient";
 
 export const dynamic = "force-dynamic";
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
-
 async function getSubSubCategories(token: string) {
   try {
-    const response = await fetch(`${API_BASE}api/admin/subSubCategory/view`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/"}api/admin/subSubCategory/view`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -36,7 +34,7 @@ async function getSubSubCategories(token: string) {
 
 async function getSubCategories(token: string) {
   try {
-    const response = await fetch(`${API_BASE}api/admin/subCategory/view`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/"}api/admin/subCategory/view`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

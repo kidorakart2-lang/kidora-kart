@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import cors from "cors";
 import compression from "compression";
 import helmet from "helmet";
-import mongoSanitize from "express-mongo-sanitize";
 import cookieParser from "cookie-parser";
 
 import "dotenv/config";
@@ -60,6 +59,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
+      "http://localhost:3001",
       "https://adminpanel.jewellerywalla.com",
       "https://jewellerywalla.com",
     ],
@@ -70,7 +70,23 @@ app.use(
 );
 
 app.use(cookieParser());
-app.use(mongoSanitize());
+
+function sanitize(obj: unknown): unknown {
+  if (typeof obj !== "object" || obj === null) return obj;
+  if (Array.isArray(obj)) return obj.map(sanitize);
+  return Object.keys(obj as Record<string, unknown>).reduce((acc, key) => {
+    const k = key.replace(/^\$/, "").replace(/\./g, "");
+    (acc as Record<string, unknown>)[k] = sanitize((obj as Record<string, unknown>)[key]);
+    return acc;
+  }, {} as Record<string, unknown>);
+}
+
+app.use((req, _res, next) => {
+  if (req.body) req.body = sanitize(req.body) as typeof req.body;
+  const q = sanitize({ ...req.query });
+  try { Object.defineProperty(req, "query", { value: q, configurable: true }); } catch {}
+  next();
+});
 
 app.use((req, res, next) => {
   if (req.originalUrl === "/api/website/orders/webhooks/razorpay") {

@@ -17,6 +17,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
 import { useEffect, useState } from "react";
 import { InstagramIcon, FacebookIcon, WhatsAppIcon } from "../icons";
+import { siteConfig, getFullAddress } from "@/lib/utils";
 
 interface FeaturedProduct {
   _id: string;
@@ -132,18 +133,17 @@ export default function Footer() {
                 {
                   Icon: InstagramIcon,
                   label: "Instagram",
-                  href: "https://www.instagram.com/jewellery__wala_?igsh=MTBqdHI5cjYyMjZsMA==",
+                  href: siteConfig.social.instagram,
                 },
                 {
                   Icon: FacebookIcon,
                   label: "Facebook",
-                  href: "https://www.facebook.com/jewellery__wala_?igsh=MTBqdHI5cjYyMjZsMA==",
+                  href: siteConfig.social.facebook,
                 },
                 {
                   Icon: WhatsAppIcon,
                   label: "Whatsapp",
-                  href:
-                    "https://wa.me/" + process.env.NEXT_PUBLIC_BUSINESS_PHONE,
+                  href: `https://wa.me/${siteConfig.contact.whatsapp}`,
                 },
               ].map(({ Icon, label, href }) => (
                 <Button
@@ -256,29 +256,30 @@ export default function Footer() {
               <li className="flex items-start gap-2">
                 <Phone className="w-4 h-4 mt-0.5 flex-shrink-0 text-yellow-600" />
                 <a
-                  href={"tel:+91" + process.env.NEXT_PUBLIC_BUSINESS_PHONE}
+                  href={`tel:${siteConfig.contact.phone}`}
                   className="hover:text-yellow-600 transition-colors"
                 >
-                  {process.env.NEXT_PUBLIC_BUSINESS_PHONE}
+                  {siteConfig.contact.mobile}
                 </a>
               </li>
               <li className="flex items-start gap-2">
                 <WhatsAppIcon className="w-4 h-4 mt-0.5 flex-shrink-0 text-yellow-600" />
                 <a
-                  href={"mailto:" + process.env.NEXT_PUBLIC_BUSINESS_EMAIL}
+                  href={`mailto:${siteConfig.contact.email}`}
                   className="hover:text-yellow-600 transition-colors break-all"
                 >
-                  {process.env.NEXT_PUBLIC_BUSINESS_EMAIL}
+                  {siteConfig.contact.email}
                 </a>
               </li>
               <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-yellow-600" />
                 <a
-                  href={`https://maps.app.goo.gl/ohKdTgWQicv8Xjf89`}
+                  href={siteConfig.address.googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="leading-relaxed"
                 >
-                  Jhalamand circle, Guda Rd, Jhalamand, Jodhpur, Rajasthan
-                  342005
+                  {getFullAddress()}
                 </a>
               </li>
             </ul>

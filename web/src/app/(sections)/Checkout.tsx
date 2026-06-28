@@ -33,7 +33,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 import { openLoginModal } from "@/redux/features/uiSlice";
 import type { CheckoutFormData, OrderSummaryCartItem } from "@/types";
 
@@ -116,7 +116,7 @@ export default function Checkout() {
   // Load saved shipping data from sessionStorage (for guests only)
   const getInitialOrderData = (): CheckoutFormData => {
     // For guests, try to load from sessionStorage
-    if (typeof window !== "undefined" && !Cookies.get("user")) {
+    if (typeof window !== "undefined" && !getAuthToken()) {
       const savedData = sessionStorage.getItem("checkoutOrderData");
       if (savedData) {
         try {
@@ -154,7 +154,7 @@ export default function Checkout() {
 
   // Save orderData to sessionStorage whenever it changes (for guests only)
   useEffect(() => {
-    if (typeof window !== "undefined" && !Cookies.get("user")) {
+    if (typeof window !== "undefined" && !getAuthToken()) {
       sessionStorage.setItem("checkoutOrderData", JSON.stringify(orderData));
     }
   }, [orderData]);
@@ -264,7 +264,7 @@ export default function Checkout() {
   // Handle payment
   const handlePayment = async (isCodAdvance = false) => {
     try {
-      const isGuest = !isLoggedIn && !Cookies.get("user");
+      const isGuest = !isLoggedIn && !getAuthToken();
 
       if (testError(orderData, isGuest)) {
         setTimeout(() => {

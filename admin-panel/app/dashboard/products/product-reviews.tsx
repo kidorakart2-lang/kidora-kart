@@ -13,7 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -78,7 +77,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       try {
         setLoading(true);
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}api/website/review/get/${productId}`,
+          `/api/website/review/get/${productId}`,
           {
             method: "POST",
             body: JSON.stringify({
@@ -155,13 +154,13 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
     setIsSubmitting(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}api/website/review/create`,
+        `/api/website/review/create`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${Cookies.get("adminToken")}`,
           },
+          credentials: "include",
           body: JSON.stringify({
             productId,
             comment: formData.comment,
@@ -195,13 +194,13 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
     setLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}api/admin/review/delete/${reviewId}`,
+        `/api/admin/review/delete/${reviewId}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${Cookies.get("adminToken")}`,
           },
+          credentials: "include",
         }
       );
 
@@ -221,13 +220,13 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
     setLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}api/admin/review/status/${reviewId}`,
+        `/api/admin/review/status/${reviewId}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${Cookies.get("adminToken")}`,
           },
+          credentials: "include",
         }
       );
 

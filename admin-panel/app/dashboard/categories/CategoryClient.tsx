@@ -11,8 +11,10 @@ import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { Plus, Edit, Trash2, FolderTree, Loader2 } from "lucide-react";
+
+const JSON_CONTENT = { "Content-Type": "application/json" } as const;
 import { useToast } from "@/hooks/use-toast";
-import Cookies from "js-cookie";
+
 
 interface Category {
   _id: string;
@@ -26,21 +28,13 @@ interface FormState {
   image: File | null;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-const getAuthHeaders = (): Record<string, string> => ({
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
-
-const getAuthHeadersFormData = (): Record<string, string> => ({
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
 
 const fetchCategories = async (): Promise<Category[]> => {
-  const response = await fetch(`${API_BASE}api/admin/category/view`, {
+  const response = await fetch(`/api/admin/category/view`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    headers: JSON_CONTENT,
+    credentials: "include",
     body: JSON.stringify({}),
   });
   if (!response.ok) throw new Error("Error loading categories");
@@ -49,9 +43,10 @@ const fetchCategories = async (): Promise<Category[]> => {
 };
 
 const createCategory = async (formData: FormData) => {
-  const response = await fetch(`${API_BASE}api/admin/category/create`, {
+  const response = await fetch(`/api/admin/category/create`, {
     method: "POST",
-    headers: getAuthHeadersFormData(),
+
+    credentials: "include",
     body: formData,
   });
   const data = await response.json();
@@ -62,9 +57,10 @@ const createCategory = async (formData: FormData) => {
 };
 
 const updateCategory = async ({ id, formData }: { id: string; formData: FormData }) => {
-  const response = await fetch(`${API_BASE}api/admin/category/update/${id}`, {
+  const response = await fetch(`/api/admin/category/update/${id}`, {
     method: "PUT",
-    headers: getAuthHeadersFormData(),
+
+    credentials: "include",
     body: formData,
   });
   const data = await response.json();
@@ -75,9 +71,10 @@ const updateCategory = async ({ id, formData }: { id: string; formData: FormData
 };
 
 const deleteCategory = async (id: string) => {
-  const response = await fetch(`${API_BASE}api/admin/category/delete/${id}`, {
+  const response = await fetch(`/api/admin/category/delete/${id}`, {
     method: "PUT",
-    headers: getAuthHeaders(),
+    headers: JSON_CONTENT,
+    credentials: "include",
     body: JSON.stringify({ id }),
   });
   const data = await response.json();
@@ -89,10 +86,11 @@ const deleteCategory = async (id: string) => {
 
 const changeCategoryStatus = async (id: string) => {
   const response = await fetch(
-    `${API_BASE}api/admin/category/change-status/${id}`,
+    `/api/admin/category/change-status/${id}`,
     {
       method: "PUT",
-      headers: getAuthHeaders(),
+      headers: JSON_CONTENT,
+      credentials: "include",
       body: JSON.stringify({ id }),
     }
   );
@@ -116,11 +114,12 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: categories = initialCategories, isLoading } = useQuery({
+  const { data: categories = initialCategories, isLoading, error } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategories,
     initialData: initialCategories,
     staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 
   const createMutation = useMutation({
@@ -256,6 +255,27 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="p-12 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="p-3 rounded-full bg-destructive/10">
+            <FolderTree className="h-8 w-8 text-destructive" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">Failed to load categories</h3>
+            <p className="text-muted-foreground">
+              {error instanceof Error ? error.message : "An unexpected error occurred. Please try refreshing the page."}
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ["categories"] })}>
+            Retry
+          </Button>
+        </div>
+      </Card>
     );
   }
 

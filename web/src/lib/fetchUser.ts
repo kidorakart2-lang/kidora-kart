@@ -1,27 +1,30 @@
-import { logout } from "@/redux/features/auth";
-import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 
 export const getUser = async () => {
-  const token = Cookies.get("user");
+  const token = getAuthToken();
 
-  if (!token) {
-    return null;
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}api/website/user/profile`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      method: "post",
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}api/website/user/profile`,
+      {
+        headers,
+        credentials: "include",
+      }
+    );
+    if (!response.ok) {
+      return null;
     }
-  );
-  if (!response.ok) {
+    const data = await response.json();
+    if (!data._status) {
+      return null;
+    }
+    return data;
+  } catch {
     return null;
   }
-  const data = await response.json();
-  if (!response.ok || !data._status) {
-    return null;
-  }
-  return data;
 };

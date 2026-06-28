@@ -18,10 +18,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Drawer } from "@/components/drawer";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import Cookies from "js-cookie";
 import axios from "axios";
-
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface Logo {
   _id: string;
@@ -30,13 +27,7 @@ interface Logo {
   isActive?: boolean;
 }
 
-const getAuthHeaders = () => ({
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
-
-const getAuthHeadersFormData = () => ({
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
+const AXIOS_CONFIG = { withCredentials: true } as const;
 
 function isAxiosError(error: unknown): error is { response?: { data?: { _message?: string } } } {
   return typeof error === "object" && error !== null && "response" in error;
@@ -64,9 +55,9 @@ export default function LogosPage() {
     setLoading(true);
     try {
       const response = await axios.post(
-        `${API_BASE}api/admin/logo/view`,
+        `/api/admin/logo/view`,
         {},
-        { headers: getAuthHeaders() }
+        AXIOS_CONFIG
       );
       setLogos(response.data._data || []);
     } catch (error) {
@@ -111,15 +102,13 @@ export default function LogosPage() {
       setBtnLoading(true);
       if (editingLogo) {
         await axios.put(
-          `${API_BASE}api/admin/logo/update/${editingLogo._id}`,
+          `/api/admin/logo/update/${editingLogo._id}`,
           submitData,
-          { headers: getAuthHeadersFormData() }
+          AXIOS_CONFIG
         );
         toast({ title: "Logo updated successfully" });
       } else {
-        await axios.post(`${API_BASE}api/admin/logo/create`, submitData, {
-          headers: getAuthHeadersFormData(),
-        });
+        await axios.post(`/api/admin/logo/create`, submitData, AXIOS_CONFIG);
         toast({ title: "Logo added successfully" });
       }
       setDrawerOpen(false);
@@ -155,9 +144,9 @@ export default function LogosPage() {
 
     try {
       await axios.put(
-        `${API_BASE}api/admin/logo/destroy/${logoToDelete}`,
+        `/api/admin/logo/destroy/${logoToDelete}`,
         { id: logoToDelete },
-        { headers: getAuthHeaders() }
+        AXIOS_CONFIG
       );
       loadLogos();
       toast({ title: "Logo deleted successfully" });
@@ -176,9 +165,9 @@ export default function LogosPage() {
   const toggleStatus = async (logo: Logo) => {
     try {
       await axios.post(
-        `${API_BASE}api/admin/logo/change-status`,
+        `/api/admin/logo/change-status`,
         { id: logo._id },
-        { headers: getAuthHeaders() }
+        AXIOS_CONFIG
       );
       loadLogos();
       toast({

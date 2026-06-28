@@ -13,7 +13,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 import Image from "next/image";
 import { openLoginModal } from "@/redux/features/uiSlice";
 import { useDispatch } from "react-redux";
@@ -97,15 +97,6 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
         setLoading(true);
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}api/website/review/get/${productId}`,
-          {
-            method: "POST",
-            body: JSON.stringify({
-              productId,
-            }),
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
         );
         const data = (await response.json()) as ReviewResponse;
         if (response.ok) {
@@ -165,7 +156,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!Cookies.get("user")) {
+    if (!getAuthToken()) {
       dispatch(openLoginModal());
       return;
     }
@@ -182,9 +173,10 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
         `${process.env.NEXT_PUBLIC_API_URL}api/website/review/create`,
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${Cookies.get("user")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
           body: JSON.stringify({
             comment: formData.comment,

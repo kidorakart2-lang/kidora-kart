@@ -10,6 +10,7 @@ interface RateLimiters {
   verifyDeliveryOTP: RequestHandler;
   sendEmailOTP: RequestHandler;
   verifyEmail: RequestHandler;
+  refreshToken: RequestHandler;
 }
 
 const rateLimiters: RateLimiters = {
@@ -59,6 +60,12 @@ const rateLimiters: RateLimiters = {
     windowMs: 15 * 60 * 1000,
     max: 10,
     message: "Too many verification attempts, please try again later",
+  }),
+
+  refreshToken: rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: "Too many refresh attempts, please try again later",
   }),
 };
 

@@ -20,6 +20,7 @@ export async function syncGuestCartToServer(token: string, guestCartItems: CartS
         process.env.NEXT_PUBLIC_API_URL + "api/website/cart/add",
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -69,6 +70,7 @@ export async function syncGuestWishlistToServer(token: string, guestWishlistItem
         process.env.NEXT_PUBLIC_API_URL + "api/website/wishlist/add",
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,

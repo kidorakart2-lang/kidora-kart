@@ -1,17 +1,27 @@
 import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 
-const homeSectionSchema = new Schema(
-  {
-    schemaVersion: { type: Number, default: 1 },
-    type: {
-      type: String,
-      required: [true, "Section type is required"],
-    },
-    config: { type: Schema.Types.Mixed, default: {} },
-    order: { type: Number, default: 0 },
+const homeSectionSchema = new Schema({
+  schemaVersion: { type: Number, default: 1 },
+  type: {
+    type: String,
+    required: [true, "Section type is required"],
+    enum: [
+      "banner",
+      "round-categories",
+      "category-grid",
+      "product-slider",
+      "products-tab",
+      "shop-by-price",
+      "why-choose-us",
+      "testimonial",
+      "video-banner",
+      "bento-grid",
+      "custom",
+    ],
   },
-  { _id: false },
-);
+  config: { type: Schema.Types.Mixed, default: {} },
+  order: { type: Number, default: 0 },
+});
 
 const homePageSchema = new Schema(
   {

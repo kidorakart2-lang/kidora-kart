@@ -8,6 +8,7 @@ import QueryProvider from './QueryProvider'
 export const metadata: Metadata = {
   title: 'Jewellery walla admin dashboard',
   description: 'jewellery walla admin dashboard',
+  robots: { index: false, follow: false, nocache: true },
 }
 
 export default function RootLayout({

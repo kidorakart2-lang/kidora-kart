@@ -2,10 +2,17 @@
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+
+export interface Slide {
+  src: string;
+  href?: string;
+  external?: boolean;
+}
 
 interface ImagesSliderProps {
-  images: string[]
+  images?: string[]
+  slides?: Slide[]
   children?: React.ReactNode
   overlay?: boolean
   overlayClassName?: string
@@ -16,6 +23,7 @@ interface ImagesSliderProps {
 
 export const ImagesSlider = ({
   images,
+  slides,
   children,
   overlay = true,
   overlayClassName,
@@ -23,33 +31,37 @@ export const ImagesSlider = ({
   autoplay = true,
   direction = "up",
 }: ImagesSliderProps) => {
+  const resolvedSlides: Slide[] = slides ?? (images ?? []).map((src) => ({ src }));
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadedImages, setLoadedImages] = useState<string[]>([]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     setCurrentIndex((prevIndex) =>
-      prevIndex + 1 === images.length ? 0 : prevIndex + 1
+      prevIndex + 1 === resolvedSlides.length ? 0 : prevIndex + 1
     );
-  };
+  }, [resolvedSlides.length]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     setCurrentIndex((prevIndex) =>
-      prevIndex - 1 < 0 ? images.length - 1 : prevIndex - 1
+      prevIndex - 1 < 0 ? resolvedSlides.length - 1 : prevIndex - 1
     );
-  };
+  }, [resolvedSlides.length]);
 
   useEffect(() => {
     loadImages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadImages = () => {
     setLoading(true);
-    const loadPromises = images.map((image: string) => {
+    const srcs = resolvedSlides.map((s) => s.src);
+    const loadPromises = srcs.map((src: string) => {
       return new Promise<string>((resolve, reject) => {
         const img = new Image();
-        img.src = image;
-        img.onload = () => resolve(image);
+        img.src = src;
+        img.onload = () => resolve(src);
         img.onerror = reject;
       });
     });
@@ -60,7 +72,7 @@ export const ImagesSlider = ({
         setLoading(false);
       })
       .catch((_error) => {
-        
+
       });
   };
   useEffect(() => {
@@ -74,7 +86,6 @@ export const ImagesSlider = ({
 
     window.addEventListener("keydown", handleKeyDown);
 
-    // autoplay
     let interval: ReturnType<typeof setInterval> | undefined;
     if (autoplay) {
       interval = setInterval(() => {
@@ -86,7 +97,7 @@ export const ImagesSlider = ({
       window.removeEventListener("keydown", handleKeyDown);
       clearInterval(interval);
     };
-  }, []);
+  }, [handleNext, handlePrevious, autoplay]);
 
   const slideVariants = {
     initial: {
@@ -121,10 +132,16 @@ export const ImagesSlider = ({
 
   const router = useRouter();
 
-  const handleNavigate = () => {
-    router.push("/category/shop-by-category");
+  const handleSlideClick = (slide: Slide) => {
+    if (!slide.href) return;
+    if (slide.external) {
+      window.open(slide.href, "_blank", "noopener,noreferrer");
+    } else {
+      router.push(slide.href);
+    }
   };
 
+  const slide = resolvedSlides[currentIndex];
   const areImagesLoaded = loadedImages.length > 0;
   const buttonStyles = `
   absolute z-50 p-2 rounded-full bg-black/30 hover:bg-black/50 text-white
@@ -157,10 +174,11 @@ export const ImagesSlider = ({
             className="h-full w-full absolute"
           >
             <img
-              onClick={handleNavigate}
-              src={loadedImages[currentIndex]}
+              onClick={() => handleSlideClick(slide)}
+              src={slide.src}
               loading="eager"
-              alt={loadedImages[currentIndex] || "banner for jewellery wala"}
+              fetchPriority="high"
+              alt={slide.src || "banner image"}
               className="h-full w-full cursor-pointer aspect-video object-fill"
             />
           </motion.div>

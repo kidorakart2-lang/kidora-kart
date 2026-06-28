@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,7 +31,7 @@ export default function ResetPassword() {
   const [step, setStep] = useState("request");
   const [email, setEmail] = useState("");
 
-  const token = Cookies.get("user");
+  const token = getAuthToken();
   const returnTo = searchParams.get("returnTo");
 
   const handleRequestReset = async (e: React.FormEvent<HTMLFormElement>) => {

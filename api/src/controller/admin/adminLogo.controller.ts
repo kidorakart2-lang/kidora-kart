@@ -29,7 +29,7 @@ export const create = async (
   } catch (error) {
     res.status(500).json({
       _status: false,
-      _message: error instanceof Error ? error.message : "Failed to create logo",
+      _message: "Failed to create logo",
       _data: null,
     });
   }
@@ -48,7 +48,7 @@ export const view = async (_req: Request, res: Response): Promise<void> => {
   } catch (error) {
     res.status(500).json({
       _status: false,
-      _message: error instanceof Error ? error.message : "Failed to fetch logos",
+      _message: "Failed to fetch logos",
       _data: null,
     });
   }
@@ -92,7 +92,7 @@ export const update = async (
   } catch (error) {
     res.status(500).json({
       _status: false,
-      _message: error instanceof Error ? error.message : "Failed to update logo",
+      _message: "Failed to update logo",
       _data: null,
     });
   }
@@ -123,7 +123,7 @@ export const destroy = async (
   } catch (error) {
     res.status(500).json({
       _status: false,
-      _message: error instanceof Error ? error.message : "Failed to delete logo",
+      _message: "Failed to delete logo",
       _data: null,
     });
   }
@@ -147,7 +147,7 @@ export const changeStatus = async (
   } catch (error) {
     res.status(500).json({
       _status: false,
-      _message: error instanceof Error ? error.message : "Failed to change status",
+      _message: "Failed to change status",
       _data: null,
     });
   }

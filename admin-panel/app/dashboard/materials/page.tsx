@@ -14,9 +14,6 @@ import { AlertDialogUse } from "@/components/alert-dialog";
 import { Plus, Pencil, Trash2, Palette, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
-import Cookies from "js-cookie";
-
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface MaterialItem {
   _id: string;
@@ -40,35 +37,32 @@ interface MutationError {
   response?: { data?: { _message?: string } };
 }
 
-const getAuthHeaders = () => ({
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
+const AXIOS_CONFIG = { withCredentials: true } as const;
 
 // API functions
 const fetchMaterials = async (): Promise<MaterialItem[]> => {
   const response = await axios.post(
-    `${API_BASE}api/admin/material/view`,
+    `/api/admin/material/view`,
     {},
-    { headers: getAuthHeaders() }
+    AXIOS_CONFIG
   );
   return response.data._data || [];
 };
 
 const fetchColors = async (): Promise<ColorItem[]> => {
   const response = await axios.post(
-    `${API_BASE}api/admin/color/view`,
+    `/api/admin/color/view`,
     {},
-    { headers: getAuthHeaders() }
+    AXIOS_CONFIG
   );
   return response.data._data || [];
 };
 
 const createMaterial = async (data: Record<string, unknown>) => {
   const response = await axios.post(
-    `${API_BASE}api/admin/material/create`,
+    `/api/admin/material/create`,
     data,
-    { headers: getAuthHeaders() }
+    AXIOS_CONFIG
   );
   if (!response.data._status) {
     throw new Error(response.data._message || "Error creating material");
@@ -78,9 +72,9 @@ const createMaterial = async (data: Record<string, unknown>) => {
 
 const updateMaterial = async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
   const response = await axios.put(
-    `${API_BASE}api/admin/material/update/${id}`,
+    `/api/admin/material/update/${id}`,
     data,
-    { headers: getAuthHeaders() }
+    AXIOS_CONFIG
   );
   if (!response.data._status) {
     throw new Error(response.data._message || "Error updating material");
@@ -90,18 +84,18 @@ const updateMaterial = async ({ id, data }: { id: string; data: Record<string, u
 
 const deleteMaterial = async (id: string) => {
   const response = await axios.put(
-    `${API_BASE}api/admin/material/destroy`,
+    `/api/admin/material/destroy`,
     { id },
-    { headers: getAuthHeaders() }
+    AXIOS_CONFIG
   );
   return response.data;
 };
 
 const changeMaterialStatus = async (id: string) => {
   const response = await axios.post(
-    `${API_BASE}api/admin/material/change-status`,
+    `/api/admin/material/change-status`,
     { id },
-    { headers: getAuthHeaders() }
+    AXIOS_CONFIG
   );
   if (!response.data._status) {
     throw new Error(response.data._message || "Error updating material status");
@@ -110,9 +104,7 @@ const changeMaterialStatus = async (id: string) => {
 };
 
 const createColor = async (data: Record<string, unknown>) => {
-  const response = await axios.post(`${API_BASE}api/admin/color/create`, data, {
-    headers: getAuthHeaders(),
-  });
+  const response = await axios.post(`/api/admin/color/create`, data, AXIOS_CONFIG);
   if (!response.data._status) {
     throw new Error(response.data._message || "Error creating color");
   }
@@ -121,9 +113,9 @@ const createColor = async (data: Record<string, unknown>) => {
 
 const updateColor = async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
   const response = await axios.put(
-    `${API_BASE}api/admin/color/update/${id}`,
+    `/api/admin/color/update/${id}`,
     data,
-    { headers: getAuthHeaders() }
+    AXIOS_CONFIG
   );
   if (!response.data._status) {
     throw new Error(response.data._message || "Error updating color");
@@ -133,18 +125,18 @@ const updateColor = async ({ id, data }: { id: string; data: Record<string, unkn
 
 const deleteColor = async (id: string) => {
   const response = await axios.put(
-    `${API_BASE}api/admin/color/destroy`,
+    `/api/admin/color/destroy`,
     { id },
-    { headers: getAuthHeaders() }
+    AXIOS_CONFIG
   );
   return response.data;
 };
 
 const changeColorStatus = async (id: string) => {
   const response = await axios.post(
-    `${API_BASE}api/admin/color/change-status`,
+    `/api/admin/color/change-status`,
     { id },
-    { headers: getAuthHeaders() }
+    AXIOS_CONFIG
   );
   if (!response.data._status) {
     throw new Error(response.data._message || "Error updating color status");

@@ -1,12 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Instagram } from "lucide-react";
+import { siteConfig } from "@/lib/utils";
 
 const ToolBar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const whatsappNumber = process.env.NEXT_PUBLIC_BUSINESS_PHONE || "1234567890";
-  const instagram =
-    "https://www.instagram.com/jewellery__wala_?igsh=MTBqdHI5cjYyMjZsMA==";
+  const whatsappNumber = siteConfig.contact.whatsapp;
+  const instagram = siteConfig.social.instagram;
   const message = "Hello! I have a question about your products.";
 
   const handleWhatsAppClick = () => {

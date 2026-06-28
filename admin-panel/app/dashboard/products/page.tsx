@@ -5,7 +5,6 @@ import Cookies from "js-cookie";
 
 // const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 // const getAuthHeaders = async () => ({
-//   Authorization: `Bearer ${await Cookies.get("adminToken")}`,
 // });
 
 // const getCaegory = cache(async () => {

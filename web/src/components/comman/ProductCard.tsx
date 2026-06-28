@@ -6,7 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../../redux/features/cart";
 import { useSelector } from "react-redux";
@@ -26,6 +26,17 @@ export default function ProductCard({ data }: { data: ProductData }) {
       cartItem && typeof cartItem.quantity === "number" ? cartItem.quantity : 1,
     colorId: data?.colors?.[0]?._id,
     sizeId: data?.sizes?.[0]?._id || null,
+    product: {
+      _id: data?._id,
+      name: data?.name,
+      image: data?.image,
+      price: data?.price,
+      discount_price: data?.discount_price,
+      slug: data?.slug,
+      stock: data?.stock,
+      colors: data?.colors,
+      sizes: data?.sizes,
+    },
   };
 
   const [loading, setLoading] = useState(false);
@@ -62,7 +73,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
   };
 
   const handleWishlistToggle = async () => {
-    const isLoggedIn = !!Cookies.get("user");
+    const isLoggedIn = !!getAuthToken();
 
     setWishlistLoading(true);
 
@@ -76,9 +87,10 @@ export default function ProductCard({ data }: { data: ProductData }) {
               data?._id,
             {
               method: "PUT",
+              credentials: "include",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${Cookies.get("user")}`,
+                Authorization: `Bearer ${getAuthToken()}`,
               },
               body: JSON.stringify({
                 productId: data?._id,
@@ -120,9 +132,10 @@ export default function ProductCard({ data }: { data: ProductData }) {
             process.env.NEXT_PUBLIC_API_URL + "api/website/wishlist/add",
             {
               method: "POST",
+              credentials: "include",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${Cookies.get("user")}`,
+                Authorization: `Bearer ${getAuthToken()}`,
               },
               body: JSON.stringify({
                 productId: data?._id,
@@ -171,7 +184,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
-    const isLoggedIn = !!Cookies.get("user");
+    const isLoggedIn = !!getAuthToken();
 
     setLoading(true);
 
@@ -182,9 +195,10 @@ export default function ProductCard({ data }: { data: ProductData }) {
           process.env.NEXT_PUBLIC_API_URL + "api/website/cart/add",
           {
             method: "POST",
+            credentials: "include",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${Cookies.get("user")}`,
+              Authorization: `Bearer ${getAuthToken()}`,
             },
             body: JSON.stringify(cartObj),
           }

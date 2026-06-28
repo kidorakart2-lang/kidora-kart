@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   registerUser,
   loginUser,
+  refreshUserToken,
   getProfile,
   updateProfile,
   forgotPassword,
@@ -14,6 +15,7 @@ import {
   googleAuthCallback,
   googleLogin,
   reLogin,
+  logoutUser,
 } from "../../controller/web/user.controller.js";
 import protect from "../../middleware/authMiddleware.js";
 import rateLimit from "../../middleware/rateLimit.js";
@@ -23,7 +25,7 @@ const router = Router();
 
 router.post("/register", rateLimit.register, uploadNone, registerUser);
 router.post("/login", rateLimit.login, uploadNone, loginUser);
-router.post("/profile", protect, uploadNone, getProfile);
+router.get("/profile", protect, getProfile);
 
 router.put(
   "/update-profile",
@@ -69,5 +71,8 @@ router.post("/google-login", uploadNone, googleLogin);
 router.post("/google-callback", uploadNone, googleAuthCallback);
 
 router.post("/re-login", protect, uploadNone, reLogin);
+
+router.post("/refresh", rateLimit.refreshToken, uploadNone, refreshUserToken);
+router.post("/logout", uploadNone, logoutUser);
 
 export default router;

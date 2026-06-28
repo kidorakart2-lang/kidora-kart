@@ -7,7 +7,7 @@ async function getDetails() {
 
   if (!token) return null;
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}api/website/user/profile`,
+    `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/"}api/website/user/profile`,
     {
       headers: {
         Authorization: `Bearer ${token.value}`,

@@ -190,43 +190,27 @@ export const getProductByFilter = async (
   res: Response,
 ): Promise<Response> => {
   try {
-    const body = (req.body ?? {}) as {
-      isFeatured?: boolean;
-      isNewArrival?: boolean;
-      isBestSeller?: boolean;
-      isTopRated?: boolean;
-      isUpsell?: boolean;
-      isOnSale?: boolean;
-      colorIds?: string[];
-      materialIds?: string[];
-      categorySlug?: string | string[];
-      subCategorySlug?: string | string[];
-      subSubCategorySlug?: string | string[];
-      priceFrom?: number;
-      priceTo?: number;
-      searchQuery?: string;
-      limit?: number;
-      page?: number;
-    };
+    const q = req.query;
 
-    const {
-      isFeatured,
-      isNewArrival,
-      isBestSeller,
-      isTopRated,
-      isUpsell,
-      isOnSale,
-      colorIds,
-      materialIds,
-      categorySlug,
-      subCategorySlug,
-      subSubCategorySlug,
-      priceFrom,
-      priceTo,
-      searchQuery,
-      limit = 20,
-      page = 1,
-    } = body;
+    const isFeatured = q.isFeatured === "true" ? true : undefined;
+    const isNewArrival = q.isNewArrival === "true" ? true : undefined;
+    const isBestSeller = q.isBestSeller === "true" ? true : undefined;
+    const isTopRated = q.isTopRated === "true" ? true : undefined;
+    const isUpsell = q.isUpsell === "true" ? true : undefined;
+    const isOnSale = q.isOnSale === "true" ? true : undefined;
+
+    const colorIds = typeof q.colorIds === "string" ? q.colorIds.split(",").filter(Boolean) : undefined;
+    const materialIds = typeof q.materialIds === "string" ? q.materialIds.split(",").filter(Boolean) : undefined;
+
+    const categorySlug = q.categorySlug as string | undefined;
+    const subCategorySlug = q.subCategorySlug as string | undefined;
+    const subSubCategorySlug = q.subSubCategorySlug as string | undefined;
+
+    const priceFrom = q.priceFrom ? Number(q.priceFrom) : undefined;
+    const priceTo = q.priceTo ? Number(q.priceTo) : undefined;
+    const searchQuery = q.searchQuery as string | undefined;
+    const limit = q.limit ? Number(q.limit) : 20;
+    const page = q.page ? Number(q.page) : 1;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const query: Record<string, unknown> = { deletedAt: null, status: true };
@@ -418,10 +402,10 @@ export const relatedProducts = async (
   res: Response,
 ): Promise<Response> => {
   try {
-    const { subCategoryIds, subSubCategoryIds } = req.body as {
-      subCategoryIds?: string[];
-      subSubCategoryIds?: string[];
-    };
+    const subCategoryIdsRaw = typeof req.query.subCategoryIds === "string" ? (req.query.subCategoryIds as string).split(",").filter(Boolean) : undefined;
+    const subCategoryIds = subCategoryIdsRaw?.slice(0, 20);
+    const subSubCategoryIdsRaw = typeof req.query.subSubCategoryIds === "string" ? (req.query.subSubCategoryIds as string).split(",").filter(Boolean) : undefined;
+    const subSubCategoryIds = subSubCategoryIdsRaw?.slice(0, 20);
 
     let products: unknown[] = [];
 

@@ -12,7 +12,6 @@ import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { Plus, Edit, Trash2, FolderTree, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import Cookies from "js-cookie";
 import NewMultiSelect from "../../../components/NewMultiSelect";
 
 interface SubSubCategoryItem {
@@ -23,22 +22,12 @@ interface SubSubCategoryItem {
   subCategory?: any[];
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-const getAuthHeaders = () => ({
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
-
-const getAuthHeadersFormData = () => ({
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
-
 // API functions
 const fetchSubCategories = async () => {
-  const response = await fetch(`${API_BASE}api/admin/subCategory/view`, {
+  const response = await fetch(`/api/admin/subCategory/view`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({}),
   });
   if (!response.ok) throw new Error("Failed to load sub categories");
@@ -47,9 +36,10 @@ const fetchSubCategories = async () => {
 };
 
 const fetchSubSubCategories = async () => {
-  const response = await fetch(`${API_BASE}api/admin/subSubCategory/view`, {
+  const response = await fetch(`/api/admin/subSubCategory/view`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({}),
   });
   if (!response.ok) throw new Error("Failed to load sub sub categories");
@@ -62,9 +52,9 @@ const fetchSubSubCategories = async () => {
 };
 
 const createSubSubCategory = async (formData: FormData) => {
-  const response = await fetch(`${API_BASE}api/admin/subSubCategory/create`, {
+  const response = await fetch(`/api/admin/subSubCategory/create`, {
     method: "POST",
-    headers: getAuthHeadersFormData(),
+    credentials: "include",
     body: formData,
   });
   const data = await response.json();
@@ -78,10 +68,10 @@ const createSubSubCategory = async (formData: FormData) => {
 
 const updateSubSubCategory = async ({ id, formData }: { id: string; formData: FormData }) => {
   const response = await fetch(
-    `${API_BASE}api/admin/subSubCategory/update/${id}`,
+    `/api/admin/subSubCategory/update/${id}`,
     {
       method: "PUT",
-      headers: getAuthHeadersFormData(),
+      credentials: "include",
       body: formData,
     }
   );
@@ -96,10 +86,11 @@ const updateSubSubCategory = async ({ id, formData }: { id: string; formData: Fo
 
 const deleteSubSubCategory = async (id: string) => {
   const response = await fetch(
-    `${API_BASE}api/admin/subSubCategory/delete/${id}`,
+    `/api/admin/subSubCategory/delete/${id}`,
     {
       method: "PUT",
-      headers: getAuthHeaders(),
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     }
   );
@@ -112,10 +103,11 @@ const deleteSubSubCategory = async (id: string) => {
 
 const changeSubSubCategoryStatus = async (id: string) => {
   const response = await fetch(
-    `${API_BASE}api/admin/subSubCategory/change-status/${id}`,
+    `/api/admin/subSubCategory/change-status/${id}`,
     {
       method: "PUT",
-      headers: getAuthHeaders(),
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     }
   );

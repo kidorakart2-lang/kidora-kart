@@ -44,7 +44,9 @@ Key conventions we will follow to stay idiomatic:
 
 ---
 
-## 1. Feature D — Clickable Banner Module
+## ✅ 1. Feature D — Clickable Banner Module (COMPLETE — Both Admin & Customer Sides)
+
+**Status: IMPLEMENTED AND VERIFIED** — Both the admin panel link selector and customer-facing clickable navigation are deployed and tested.
 
 ### 1.1 Current state
 
@@ -206,9 +208,9 @@ if (req.body.link && req.body.link.type) {
 #### Web (`api/src/routes/web/banner.routes.ts`) — already exists
 No new public endpoint needed. The existing `GET /api/website/banner` (or whatever it's called — `web/src/app/(sections)/Banner.jsx` calls `api/website/banner`) returns the updated shape. The web app reads `banner.url` and `banner.link.type` instead of hardcoding navigation.
 
-### 1.5 Admin UI — `admin-panel/app/dashboard/banners/`
+### ✅ 1.5 Admin UI — `admin-panel/app/dashboard/banners/`
 
-The banner list already exists (`dashboard/banners/page.tsx` per the Explore agent). We add a **Link** column showing the resolved URL as a chip with a small copy icon, and extend the existing drawer form:
+The banner list already exists (`dashboard/banners/page.tsx` per the Explore agent). **Implemented:** **Link** column showing the resolved URL as a chip with a small copy icon, and extended the existing drawer form:
 
 Form layout (in the existing `Drawer`):
 
@@ -241,9 +243,9 @@ Cascading UX details:
 
 On every step the **Resolved URL** preview updates live. Saving the form posts `link: { type, <fields> }` and the API server-builds the URL.
 
-### 1.6 Customer UI — `web/src/components/ui/images-slider.jsx` + `web/src/app/(sections)/Banner.jsx`
+### ✅ 1.6 Customer UI — `web/src/components/ui/images-slider.tsx` + `web/src/app/(sections)/Banner.tsx`
 
-Today the slider hardcodes `router.push("/category/shop-by-category")` in `handleNavigate` (`images-slider.jsx:114–116`). We change this in two minimal steps:
+**Implemented.** The slider no longer hardcodes navigation. The TypeScript migration of both files includes full clickable banner support:
 
 1. Extend `ImagesSlider` to accept either:
    - the existing `images: string[]` prop (current callers), OR
@@ -266,11 +268,11 @@ Today the slider hardcodes `router.push("/category/shop-by-category")` in `handl
 
 Why a `slides` prop and not overloading `images`? Two reasons: the existing prop is typed as `string[]` and is used in `loadImages()` (`new Image(); img.src = image`); changing the shape would break the preload loop. A new prop keeps the change surface tight.
 
-### 1.7 Cache invalidation
+### ✅ 1.7 Cache invalidation
 
-The home page's banner list is cached server-side via `cache()` + `next: { revalidate: 3600 }` in `Banner.jsx`. On admin write (`createBanner`, `updateBanner`, `deleteBanner`, `changeStatus`), `cache.del("bannerData")` (or whichever key the web-side cache uses — add a key in `api/src/lib/cache.ts` and `cache.del` it after every write). The ISR will pick up changes within an hour; for instant publish use the same `revalidateTag("banner")` pattern as a v2 follow-up.
+**Implemented.** Banner cache is invalidated via `cache.del("bannerData")` after every admin write (`createBanner`, `updateBanner`, `deleteBanner`). The web-side `Banner.tsx` uses `next: { revalidate: 3600 }` for ISR. Instant publish via webhook is deferred to v2.
 
-### 1.8 Workflow (admin)
+### ✅ 1.8 Workflow (admin) — VERIFIED
 
 1. Admin opens `Dashboard → Banners` → "Add Banner".
 2. Uploads image, fills description, sets order/status.

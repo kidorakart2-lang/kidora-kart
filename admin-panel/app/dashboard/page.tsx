@@ -7,7 +7,7 @@ import { RecentOrders } from "@/components/recent-orders";
 import { ShoppingCart, Users, Package, IndianRupee } from "lucide-react";
 import RefundedOrdersAdmin from "@/components/RefundedOrdersAdmin";
 import PendingPaymentFix from "@/components/PendingPaymentFix";
-import Cookies from "js-cookie";
+
 
 interface DashboardStats {
   lastWeek?: {
@@ -49,17 +49,15 @@ interface ActivityData {
 }
 
 export default function DashboardPage() {
-  const token = Cookies.get("adminToken");
-
   const fetchDashboardStats = async (): Promise<DashboardStats> => {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}api/admin/dashboard/get-dashboard-stats`,
+      `/api/admin/dashboard/get-dashboard-stats`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
       },
     );
     if (!res.ok) throw new Error("Failed to fetch dashboard stats");
@@ -69,13 +67,13 @@ export default function DashboardPage() {
 
   const fetchRecentActivity = async (): Promise<ActivityData> => {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}api/admin/dashboard/get-recent-activity`,
+      `/api/admin/dashboard/get-recent-activity`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
       },
     );
     if (!res.ok) throw new Error("Failed to fetch activity");
@@ -91,7 +89,6 @@ export default function DashboardPage() {
     queryKey: ["dashboard-stats"],
     queryFn: fetchDashboardStats,
     staleTime: 60 * 60 * 1000,
-    enabled: !!token,
   });
 
   const {
@@ -102,7 +99,6 @@ export default function DashboardPage() {
     queryKey: ["dashboard-activity"],
     queryFn: fetchRecentActivity,
     staleTime: 60 * 60 * 1000,
-    enabled: !!token,
   });
 
   if (statsLoading || activityLoading) {

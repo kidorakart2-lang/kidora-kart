@@ -5,6 +5,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { siteConfig } from "@/lib/utils";
 
 interface FAQItem {
   _id: string;
@@ -59,10 +60,10 @@ export default function FAQPage({ data }: { data: FAQItem[] }) {
           Still have questions?
         </p>
         <a
-          href={`mailto:${process.env.NEXT_PUBLIC_BUSINESS_EMAIL}`}
+          href={`mailto:${siteConfig.contact.email}`}
           className="text-yellow-700 font-semibold hover:underline hover:text-yellow-800 transition-colors"
         >
-          Contact us at {process.env.NEXT_PUBLIC_BUSINESS_EMAIL}
+          Contact us at {siteConfig.contact.email}
         </a>
       </div>
     </section>

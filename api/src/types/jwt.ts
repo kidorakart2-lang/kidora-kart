@@ -1,8 +1,6 @@
 export interface JwtPayload {
   _id: string;
-  name?: string;
-  email?: string;
-  role?: string;
+  // No PII — role is re-read from DB on every request
 }
 
 export interface PasswordResetJwtPayload {

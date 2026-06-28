@@ -18,18 +18,11 @@ export default function RelatedProducts({ id, subCategory, subSubCategory }: { i
     const getRelatedProducts = async () => {
       const response = await fetch(
         process.env.NEXT_PUBLIC_API_URL +
-          "api/website/product/get-related-products",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id,
-            subCategoryIds: subCategory,
-            subSubCategoryIds: subSubCategory,
-          }),
-        }
+          "api/website/product/get-related-products?" +
+          new URLSearchParams({
+            subCategoryIds: subCategory.join(","),
+            subSubCategoryIds: subSubCategory.join(","),
+          })
       );
       const data = await response.json();
       setRelatedProducts(data._data);

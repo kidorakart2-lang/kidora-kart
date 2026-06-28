@@ -33,17 +33,7 @@ import axios from "axios";
 import type { WhyChooseUsItem } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
-import Cookies from "js-cookie";
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-const getAuthHeaders = () => ({
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
-
-const getAuthHeadersFormData = () => ({
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
 
 export default function WhyChooseUsPage() {
   const [btnLoading, setBtnLoading] = useState(false);
@@ -88,11 +78,10 @@ export default function WhyChooseUsPage() {
     setLoading(true);
     try {
       const response = await axios.post(
-        `${API_BASE}api/admin/whyChooseUs/view`,
+        `/api/admin/whyChooseUs/view`,
         {},
-        { headers: getAuthHeaders() }
+        { withCredentials: true }
       );
-      console.log(response);
 
       setWhyChooseUsArray(response.data._data || []);
     } catch (error: any) {
@@ -138,9 +127,9 @@ export default function WhyChooseUsPage() {
 
     try {
       const response = await axios.put(
-        `${API_BASE}api/admin/whyChooseUs/delete/${whyChooseUsToDelete}`,
+        `/api/admin/whyChooseUs/delete/${whyChooseUsToDelete}`,
         { id: whyChooseUsToDelete },
-        { headers: getAuthHeaders() }
+        { withCredentials: true }
       );
       if (!response.data._status) {
         toast({
@@ -186,9 +175,9 @@ export default function WhyChooseUsPage() {
       setBtnLoading(true);
       try {
         const response = await axios.put(
-          `${API_BASE}api/admin/whyChooseUs/update/${editingWhyChooseUs._id}`,
+          `/api/admin/whyChooseUs/update/${editingWhyChooseUs._id}`,
           submitData,
-          { headers: getAuthHeaders() }
+          { withCredentials: true }
         );
         if (!response.data._status) {
           toast({
@@ -215,15 +204,13 @@ export default function WhyChooseUsPage() {
       setBtnLoading(true);
       try {
         const response = await axios.post(
-          `${API_BASE}api/admin/whyChooseUs/create`,
+          `/api/admin/whyChooseUs/create`,
           submitData,
-          {
-            headers: getAuthHeaders(),
-          }
-        );
-        if (!response.data._status) {
-          toast({
-            title: "Error creating Why Choose Us",
+          { withCredentials: true }
+          );
+          if (!response.data._status) {
+            toast({
+              title: "Error creating Why Choose Us",
             description:
               response.data._message || "Failed to create Why Choose Us",
             variant: "destructive",
@@ -251,9 +238,9 @@ export default function WhyChooseUsPage() {
   const changeStatus = async (whyChooseUs: WhyChooseUsItem) => {
     try {
       const response = await axios.put(
-        `${API_BASE}api/admin/whyChooseUs/change-status/${whyChooseUs._id}`,
+        `/api/admin/whyChooseUs/change-status/${whyChooseUs._id}`,
         { id: whyChooseUs._id },
-        { headers: getAuthHeaders() }
+        { withCredentials: true }
       );
       if (!response.data._status) {
         toast({

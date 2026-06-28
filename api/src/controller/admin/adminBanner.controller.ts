@@ -1,7 +1,12 @@
 import type { Request, Response } from "express";
 import type { FilterQuery } from "mongoose";
 import bannerModal from "../../models/banner.js";
+import Product from "../../models/product.js";
+import Category from "../../models/category.js";
+import SubCategory from "../../models/subCategory.js";
+import SubSubCategory from "../../models/subSubCategory.js";
 import { uploadToR2 } from "../../lib/cloudflare.js";
+import { resolveBannerLink } from "../../lib/bannerUrl.js";
 import cache from "../../lib/cache.js";
 
 export const createBanner = async (
@@ -10,6 +15,18 @@ export const createBanner = async (
 ): Promise<void> => {
   try {
     const data: Record<string, unknown> = { ...req.body };
+
+    // Parse link field from body (sent as JSON string in FormData)
+    if (req.body.link) {
+      try {
+        const linkInput = typeof req.body.link === "string" ? JSON.parse(req.body.link) : req.body.link;
+        const { url, label } = await resolveBannerLink(linkInput);
+        data.link = { ...linkInput, url, label };
+      } catch {
+        // Invalid link — create banner without link
+        delete data.link;
+      }
+    }
 
     if (req.file) {
       const uploadResult = await uploadToR2(req.file, "banners");
@@ -30,7 +47,7 @@ export const createBanner = async (
   } catch (error) {
     res.status(500).json({
       _status: false,
-      _message: error instanceof Error ? error.message : "Failed to create banner",
+      _message: "Failed to create banner",
       _data: null,
     });
   }
@@ -91,8 +108,7 @@ export const getAllBanner = async (
   } catch (error) {
     res.status(500).json({
       _status: false,
-      _message:
-        error instanceof Error ? error.message : "Failed to fetch banners",
+      _message: "Failed to fetch banners",
       _data: null,
     });
   }
@@ -104,6 +120,22 @@ export const updateBanner = async (
 ): Promise<void> => {
   try {
     const data: Record<string, unknown> = { ...req.body };
+
+    // Handle link field update
+    if (req.body.link !== undefined) {
+      if (req.body.link === "null" || req.body.link === null) {
+        data.link = null;
+      } else {
+        try {
+          const linkInput = typeof req.body.link === "string" ? JSON.parse(req.body.link) : req.body.link;
+          const { url, label } = await resolveBannerLink(linkInput);
+          data.link = { ...linkInput, url, label };
+        } catch {
+          // Invalid link — keep existing link
+          delete data.link;
+        }
+      }
+    }
 
     if (req.file) {
       const uploadResult = await uploadToR2(req.file, "banners");
@@ -129,8 +161,7 @@ export const updateBanner = async (
   } catch (error) {
     res.status(500).json({
       _status: false,
-      _message:
-        error instanceof Error ? error.message : "Failed to update banner",
+      _message: "Failed to update banner",
       _data: null,
     });
   }
@@ -155,10 +186,97 @@ export const deleteBanner = async (
   } catch (error) {
     res.status(500).json({
       _status: false,
-      _message:
-        error instanceof Error ? error.message : "Failed to delete banner",
+      _message: "Failed to delete banner",
       _data: null,
     });
+  }
+};
+
+// ── Link options endpoints ────────────────────────────────────────
+
+export const linkOptionsProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const search = (req.query.search as string) || "";
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const limit = Math.min(Number(req.query.limit) || 20, 100);
+
+    const filter: Record<string, unknown> = { deletedAt: null, status: true };
+    if (search) {
+      filter.$or = [
+        { name: new RegExp(search, "i") },
+        { slug: new RegExp(search, "i") },
+      ];
+    }
+
+    const total = await Product.countDocuments(filter);
+    const products = await Product.find(filter)
+      .select("_id name slug")
+      .sort({ name: 1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+
+    res.json({
+      _status: true,
+      _data: products,
+      _total_pages: Math.ceil(total / limit),
+      _total_records: total,
+    });
+  } catch (err) {
+    res.status(500).json({ _status: false, _message: "Failed to fetch products", _data: [] });
+  }
+};
+
+export const linkOptionsCategories = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const categories = await Category.find({ deletedAt: null, status: true })
+      .select("_id name slug")
+      .sort({ name: 1 })
+      .lean();
+
+    res.json({ _status: true, _data: categories });
+  } catch (err) {
+    res.status(500).json({ _status: false, _message: "Failed to fetch categories", _data: [] });
+  }
+};
+
+export const linkOptionsSubCategories = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const categoryId = req.query.categoryId as string;
+    const filter: Record<string, unknown> = { deletedAt: null, status: true };
+    if (categoryId) filter.category = categoryId;
+
+    const subCategories = await SubCategory.find(filter)
+      .select("_id name slug category")
+      .populate("category", "slug")
+      .sort({ name: 1 })
+      .lean();
+
+    res.json({ _status: true, _data: subCategories });
+  } catch (err) {
+    res.status(500).json({ _status: false, _message: "Failed to fetch sub categories", _data: [] });
+  }
+};
+
+export const linkOptionsSubSubCategories = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const subCategoryId = req.query.subCategoryId as string;
+    const filter: Record<string, unknown> = { deletedAt: null, status: true };
+    if (subCategoryId) filter.subCategory = subCategoryId;
+
+    const subSubCategories = await SubSubCategory.find(filter)
+      .select("_id name slug subCategory")
+      .populate({
+        path: "subCategory",
+        select: "slug category",
+        populate: { path: "category", select: "slug" },
+      })
+      .sort({ name: 1 })
+      .lean();
+
+    res.json({ _status: true, _data: subSubCategories });
+  } catch (err) {
+    res.status(500).json({ _status: false, _message: "Failed to fetch sub sub categories", _data: [] });
   }
 };
 
@@ -180,8 +298,7 @@ export const changeStatus = async (
   } catch (error) {
     res.status(500).json({
       _status: false,
-      _message:
-        error instanceof Error ? error.message : "Failed to change status",
+      _message: "Failed to change status",
       _data: null,
     });
   }

@@ -36,7 +36,7 @@ export default function Profile({ details }: { details: any }) {
                   <AvatarImage src={details.avatar} alt={details.name} />
                 ) : (
                   <AvatarFallback className="text-3xl bg-gray-100">
-                   {details.name[0]}
+                   {details.name?.[0] ?? "U"}
                   </AvatarFallback>
                 )}
               </Avatar>

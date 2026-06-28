@@ -140,7 +140,7 @@ export const getRefundedOrdersForAdmin = async (
     res.status(500).json({
       success: false,
       message: "Failed to fetch refunded orders",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: "Internal Server Error",
     });
   }
 };
@@ -226,7 +226,7 @@ export const verifyRefundStatus = async (
     res.status(500).json({
       success: false,
       message: "Failed to verify refund status",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: "Internal Server Error",
     });
   }
 };
@@ -361,7 +361,7 @@ export const updateRefundStatus = async (
     res.status(500).json({
       success: false,
       message: "Failed to update refund status",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: "Internal Server Error",
     });
   }
 };
@@ -442,7 +442,7 @@ export const syncRefundStatusesFromRazorpay = async (
       } catch (error) {
         results.failed.push({
           orderId: order.orderId,
-          error: error instanceof Error ? error.message : "Unknown error",
+          error: "Internal Server Error",
         });
       }
     }
@@ -457,7 +457,7 @@ export const syncRefundStatusesFromRazorpay = async (
     res.status(500).json({
       success: false,
       message: "Failed to sync refund statuses",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: "Internal Server Error",
     });
   }
 };
@@ -517,7 +517,7 @@ export const bulkUpdateRefundStatus = async (
     res.status(500).json({
       success: false,
       message: "Failed to bulk update refund status",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: "Internal Server Error",
     });
   }
 };
@@ -568,7 +568,7 @@ export const delieverOrder = async (
     res.status(500).json({
       success: false,
       message: "Failed to mark order as delivered",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: "Internal Server Error",
     });
   }
 };
@@ -649,7 +649,7 @@ export const verifyPendingPayments = async (
     res.status(500).json({
       success: false,
       message: "Failed to verify pending payments",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: "Internal Server Error",
     });
   }
 };
@@ -745,7 +745,7 @@ export const confirmPendingPayment = async (
     res.status(500).json({
       success: false,
       message: "Failed to confirm payment",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: "Internal Server Error",
     });
   }
 };

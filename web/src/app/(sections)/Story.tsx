@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { Sparkles, Users, Award, Package, MapPin, Heart } from "lucide-react";
+import { siteConfig, getFullAddress } from "@/lib/utils";
 
 export default function Story() {
   const milestones = [
@@ -248,7 +249,7 @@ export default function Story() {
             <p className="text-gray-700 mb-2">
               <span className="font-semibold">Jewellery Walla</span>
             </p>
-            <p className="text-gray-600">Jhalamand, Jodhpur, Rajasthan</p>
+            <p className="text-gray-600">{getFullAddress()}</p>
             <p className="text-gray-500 text-sm mt-3">
               From our roots in Bhati Circle, Ratanada to serving customers
               across India - we're here to make your special moments sparkle.

@@ -39,7 +39,7 @@ export function RecentActivity({ activity }: RecentActivityProps) {
                   src={item.avatar || "/placeholder.svg"}
                   alt={item.name}
                 />
-                <AvatarFallback>{item.name[0]}</AvatarFallback>
+                <AvatarFallback>{item.name?.[0] ?? "?"}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">

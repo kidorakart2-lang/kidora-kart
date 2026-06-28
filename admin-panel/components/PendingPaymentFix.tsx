@@ -20,7 +20,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, CheckCircle, RefreshCcw, AlertTriangle } from "lucide-react";
 import axios from "axios";
-import Cookies from "js-cookie";
+
 
 interface MismatchedOrder {
   orderId: string;
@@ -44,19 +44,15 @@ export default function PendingPaymentFix() {
   );
   const [searched, setSearched] = useState(false);
   const { toast } = useToast();
-  const BACKEND_URL =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/";
-
   const checkPendingPayments = async () => {
     try {
       setLoading(true);
       setSearched(false);
-      const token = Cookies.get("adminToken");
       const response = await axios.post(
-        `${BACKEND_URL}api/admin/orders/verify-pending-payments`,
+        `/api/admin/orders/verify-pending-payments`,
         { time: 48 },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
         },
       );
 
@@ -94,16 +90,15 @@ export default function PendingPaymentFix() {
   const fixOrder = async (order: MismatchedOrder) => {
     try {
       setVerifying(true);
-      const token = Cookies.get("adminToken");
       const response = await axios.post(
-        `${BACKEND_URL}api/admin/orders/confirm-pending-payment`,
+        `/api/admin/orders/confirm-pending-payment`,
         {
           orderId: order.orderId,
           paymentId: order.razorpay.paymentId,
           paymentDate: order.razorpay.createdAt,
         },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
         },
       );
 

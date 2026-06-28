@@ -2,20 +2,20 @@ import { Lato } from "next/font/google";
 import "./globals.css";
 import { Client } from "@/redux/provider/Client";
 import { Toaster } from "sonner";
-import Header from "@/components/comman/Header";
-import Footer from "@/components/comman/Footer";
+import MainLayout from "@/components/comman/MainLayout";
 import { siteConfig, defaultMetadata, getStructuredAddress } from "@/lib/utils";
 import { cache } from "react";
 import ScrollToTop from "@/components/ui/scroll-to-top";
 import RequirementModal from "@/components/comman/RequirementModal";
 import LoginModal from "@/components/comman/LoginModal";
 import PhoneNumberModal from "@/components/comman/PhoneNumberModal";
-import { BottomTabNavigation } from "@/components/ui/BottomTabNavigation";
-import ToolBar from "@/components/comman/ToolBar";
+import { MotionConfig } from "framer-motion";
 
 const lato = Lato({
   subsets: ["latin"],
   weight: ["400", "700"],
+  display: "swap",
+  adjustFontFallback: true,
   variable: "--font-lato",
 });
 
@@ -159,7 +159,7 @@ const getNavigation = cache(async () => {
           revalidate: 3600,
           tags: ["navigation"],
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -178,7 +178,11 @@ const getNavigation = cache(async () => {
   }
 });
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [navigation] = await Promise.all([getNavigation()]);
 
   console.clear();
@@ -199,27 +203,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="icon" href="/logo.ico" />
         <meta name="theme-color" content="#F58E00" />
         <meta name="msapplication-TileColor" content="#F58E00" />
-        {/* Google Login script */}
-        <script
-          src="https://accounts.google.com/gsi/client"
-          async
-          defer
-        ></script>
       </head>
       <body
         className={`pt-0 !mr-0 bg-background antialiased flex flex-col ${lato.variable} pb-12 md:pb-0`}
       >
         <Client>
-          <Header navigationData={navigation} />
-          <main className="flex-1 ">{children}</main>
-          <Footer />
+          <MotionConfig reducedMotion="user">
+          <MainLayout navigationData={navigation}>
+            {children}
+          </MainLayout>
           <ScrollToTop />
           <Toaster richColors closeButton position="top-right" />
           <LoginModal />
           <RequirementModal />
           <PhoneNumberModal />
-          <BottomTabNavigation />
-          <ToolBar />
+          </MotionConfig>
         </Client>
       </body>
     </html>

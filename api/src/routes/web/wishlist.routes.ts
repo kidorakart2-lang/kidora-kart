@@ -10,7 +10,7 @@ import protect from "../../middleware/authMiddleware.js";
 
 const router = Router();
 
-router.post("/view", protect, getWishlist);
+router.get("/view", protect, getWishlist);
 
 router.post("/add", protect, uploadNone, addToWishlist);
 

@@ -14,7 +14,7 @@ export const metadata = {
 
 async function getCart() {
   const cookie = await cookies();
-  const token = cookie.get("user");
+  const token = cookie.get("userToken");
 
   if (!token) return null;
 
@@ -24,7 +24,6 @@ async function getCart() {
       headers: {
         Authorization: `Bearer ${token.value}`,
       },
-      method: "post",
     }
   );
 

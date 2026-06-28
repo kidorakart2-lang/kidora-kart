@@ -3,52 +3,56 @@
 import { updateFullCart } from "@/redux/features/cart";
 import { setWishlist } from "@/redux/features/wishlist";
 import type { AppDispatch } from "@/redux/store/store";
-import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 
 async function getCart() {
-  const token = Cookies.get("user");
+  const token = getAuthToken();
 
-  if (!token) return null;
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}api/website/cart/view`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      method: "post",
-    }
-  );
-  if (!response.ok) {
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}api/website/cart/view`,
+      {
+        headers,
+        credentials: "include",
+      }
+    );
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (!data._status) return null;
+    return data;
+  } catch {
     return null;
   }
-  const data = await response.json();
-  if (!response.ok || !data._status) {
-    return null;
-  }
-  return data;
 }
 
 async function getWishlist() {
-  const token = Cookies.get("user");
+  const token = getAuthToken();
 
-  if (!token) return null;
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}api/website/wishlist/view`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      method: "post",
-    }
-  );
-  if (!response.ok) {
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}api/website/wishlist/view`,
+      {
+        headers,
+        credentials: "include",
+      }
+    );
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (!data._status) return null;
+    return data;
+  } catch {
     return null;
   }
-  const data = await response.json();
-  if (!response.ok || !data._status) {
-    return null;
-  }
-  return data;
 }
 
 

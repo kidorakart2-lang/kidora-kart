@@ -13,7 +13,6 @@ import { AlertDialogUse } from "@/components/alert-dialog";
 import { Cloud, IndianRupee, Plus, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import NewMultiSelect from "../../../components/NewMultiSelect";
-import Cookies from "js-cookie";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -99,17 +98,12 @@ const INITIAL_FORM_STATE: ProductFormData = {
   additionalImagePreviews: ["", "", "", "", ""],
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-const getAuthHeaders = () => ({
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
-
 // API functions
 const fetchColors = async () => {
-  const response = await fetch(`${API_BASE}api/admin/color/view`, {
+  const response = await fetch(`/api/admin/color/view`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({}),
   });
   if (response.ok) {
@@ -120,9 +114,10 @@ const fetchColors = async () => {
 };
 
 const fetchMaterials = async () => {
-  const response = await fetch(`${API_BASE}api/admin/material/view`, {
+  const response = await fetch(`/api/admin/material/view`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({}),
   });
   if (response.ok) {
@@ -133,9 +128,10 @@ const fetchMaterials = async () => {
 };
 
 const fetchSizes = async () => {
-  const response = await fetch(`${API_BASE}api/admin/size/view`, {
+  const response = await fetch(`/api/admin/size/view`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({}),
   });
   if (response.ok) {
@@ -146,9 +142,10 @@ const fetchSizes = async () => {
 };
 
 const fetchCategories = async () => {
-  const response = await fetch(`${API_BASE}api/admin/category/view`, {
+  const response = await fetch(`/api/admin/category/view`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({}),
   });
   if (response.ok) {
@@ -159,9 +156,10 @@ const fetchCategories = async () => {
 };
 
 const fetchSubCategories = async () => {
-  const response = await fetch(`${API_BASE}api/admin/subCategory/view`, {
+  const response = await fetch(`/api/admin/subCategory/view`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({}),
   });
   if (response.ok) {
@@ -172,9 +170,10 @@ const fetchSubCategories = async () => {
 };
 
 const fetchSubSubCategories = async () => {
-  const response = await fetch(`${API_BASE}api/admin/subSubCategory/view`, {
+  const response = await fetch(`/api/admin/subSubCategory/view`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({}),
   });
   if (response.ok) {
@@ -186,10 +185,11 @@ const fetchSubSubCategories = async () => {
 
 const fetchProducts = async () => {
   const response = await fetch(
-    `${API_BASE}api/admin/product/view?showDeleted=true`,
+    `/api/admin/product/view?showDeleted=true`,
     {
       method: "POST",
-      headers: getAuthHeaders(),
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     }
   );
@@ -198,9 +198,10 @@ const fetchProducts = async () => {
 };
 
 const deleteProduct = async (id: string) => {
-  const response = await fetch(`${API_BASE}api/admin/product/delete/${id}`, {
+  const response = await fetch(`/api/admin/product/delete/${id}`, {
     method: "PUT",
-    headers: getAuthHeaders(),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id }),
   });
   if (!response.ok) {
@@ -212,26 +213,26 @@ const deleteProduct = async (id: string) => {
   return response.json();
 };
 
-const changeProductStatus = async (id: string) => {
-  const response = await fetch(
-    `${API_BASE}api/admin/product/change-status/${id}`,
-    {
-      method: "PUT",
-      headers: getAuthHeaders(),
-    }
-  );
+const   changeProductStatus = async (id: string) => {
+    const response = await fetch(
+      `/api/admin/product/change-status/${id}`,
+      {
+        method: "PUT",
+        credentials: "include",
+      }
+    );
   if (!response.ok) throw new Error("Failed to update status");
   return response.json();
 };
 
 const saveProduct = async ({ formData, editingProduct }: { formData: FormData; editingProduct: Product | null }) => {
   const url = editingProduct
-    ? `${API_BASE}api/admin/product/update/${editingProduct._id}`
-    : `${API_BASE}api/admin/product/create`;
+    ? `/api/admin/product/update/${editingProduct._id}`
+    : `/api/admin/product/create`;
 
   const response = await fetch(url, {
     method: editingProduct ? "PUT" : "POST",
-    headers: getAuthHeaders(),
+    credentials: "include",
     body: formData,
   });
 

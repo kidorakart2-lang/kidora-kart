@@ -69,7 +69,7 @@ export const navController = async (
   } catch (error) {
     return fail(
       res,
-      error instanceof Error ? error.message : "Server error",
+      "Server error",
       500,
     );
   }

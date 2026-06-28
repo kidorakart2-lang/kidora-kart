@@ -17,23 +17,23 @@ import { uploadNone } from "../../middleware/uploadMiddleware.js";
 const router = Router();
 
 // Category routes
-router.post("/details/:slug", uploadNone, getOne);
+router.get("/details/:slug", getOne);
 router.post(
   "/get-by-category/:categorySlug/:subCategorySlug/:subSubCategorySlug",
   uploadNone,
   getByCategory,
 );
-router.post("/get-by-filter", uploadNone, getProductByFilter);
-router.get("/get-by-search", uploadNone, getBySearch);
-router.post("/get-related-products", uploadNone, relatedProducts);
+router.get("/get-by-filter", getProductByFilter);
+router.get("/get-by-search", getBySearch);
+router.get("/get-related-products", relatedProducts);
 // tab products
-router.get("/tab-products", uploadNone, tabProducts);
-router.get("/new-arrivals", uploadNone, newArrivals);
-router.get("/trending-products", uploadNone, trendingProducts);
-router.get("/best-sellers", uploadNone, bestSellers);
-router.get("/featured-for-footer", uploadNone, featuredForFooter);
+router.get("/tab-products", tabProducts);
+router.get("/new-arrivals", newArrivals);
+router.get("/trending-products", trendingProducts);
+router.get("/best-sellers", bestSellers);
+router.get("/featured-for-footer", featuredForFooter);
 
 // sitemap products
-router.post("/all", uploadNone, getAll);
+router.get("/all", getAll);
 
 export default router;

@@ -10,5 +10,8 @@
     "build:web": "pnpm --filter web run build",
     "typecheck": "pnpm --filter api run typecheck && pnpm --filter admin-panel run typecheck",
     "lint": "pnpm --filter api run lint && pnpm --filter admin-panel run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
   }
 }

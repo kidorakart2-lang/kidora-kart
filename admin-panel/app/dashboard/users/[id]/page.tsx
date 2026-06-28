@@ -1,16 +1,13 @@
 "use client";
 import React from "react";
 import { useParams } from "next/navigation";
-import Cookies from "js-cookie";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 export default function page() {
   const { id } = useParams();
-  const apiBase = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-  const {
+    const {
     data: user,
     isLoading,
     error,
@@ -18,12 +15,10 @@ export default function page() {
     queryKey: ["user", id],
     queryFn: async () => {
       const { data } = await axios.post(
-        `${apiBase}api/admin/user/get-full-details/${id}`,
+        `/api/admin/user/get-full-details/${id}`,
         {},
         {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("adminToken")}`,
-          },
+          withCredentials: true,
         }
       );
       return data;

@@ -1,9 +1,21 @@
-import { ImagesSlider } from "@/components/ui/images-slider";
+import type { Slide } from "@/components/ui/images-slider";
+import dynamic from "next/dynamic";
 import React, { cache, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const ImagesSlider = dynamic(() => import("@/components/ui/images-slider").then((m) => ({ default: m.ImagesSlider })), {
+  loading: () => <Skeleton className="h-full w-full" />,
+});
+
+interface BannerLink {
+  url?: string | null;
+  externalUrl?: string | null;
+  type?: string;
+}
+
 interface BannerItem {
   image: string;
+  link?: BannerLink;
 }
 
 const GetBanners = cache(async () => {
@@ -15,7 +27,7 @@ const GetBanners = cache(async () => {
       }
     );
     const data = await response.json();
-    return data._data as BannerItem[];
+    return (data._data as BannerItem[]) ?? [];
   } catch {
     return [];
   }
@@ -23,9 +35,13 @@ const GetBanners = cache(async () => {
 
 async function BannerContent() {
   const banners: BannerItem[] = await GetBanners();
-  const images = banners.map((item: BannerItem) => item.image);
+  const slides: Slide[] = banners.map((item) => {
+    const href = item.link?.url || undefined;
+    const external = item.link?.type === "external";
+    return { src: item.image, href, external };
+  });
 
-  return <ImagesSlider className="" images={images} />;
+  return <ImagesSlider className="" slides={slides} />;
 }
 
 // Main component wraps with Suspense

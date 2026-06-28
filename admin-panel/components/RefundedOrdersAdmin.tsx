@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   AlertCircle,
   CheckCircle,
@@ -6,7 +6,8 @@ import {
   XCircle,
   RefreshCw,
 } from "lucide-react";
-import Cookies from "js-cookie";
+import { AlertDialogUse } from "@/components/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface OrderUser {
   name?: string;
@@ -72,28 +73,39 @@ const RefundedOrdersAdmin = () => {
   const [activeTab, setActiveTab] = useState("mismatched");
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const BACKEND_URL =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/";
-  const BASE_URL = `${BACKEND_URL}api/admin/orders`;
+  const { toast } = useToast();
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    confirmText?: string;
+    resolve?: (value: boolean) => void;
+  }>({ open: false, title: "", description: "" });
+
+  const confirm = useCallback(
+    (title: string, description: string, confirmText?: string): Promise<boolean> => {
+      return new Promise((resolve) => {
+        setConfirmDialog({ open: true, title, description, confirmText, resolve });
+      });
+    },
+    [],
+  );
+
+  const BASE_URL = "/api/admin/orders";
 
   const syncAllFromRazorpay = async () => {
-    if (
-      !window.confirm(
-        "This will sync all pending/initiated refund statuses from Razorpay. Continue?",
-      )
-    ) {
-      return;
-    }
+    const confirmed = await confirm(
+      "Sync Refund Statuses",
+      "This will sync all pending/initiated refund statuses from Razorpay. Continue?",
+      "Sync",
+    );
+    if (!confirmed) return;
 
     try {
       setSyncing(true);
-      const token = Cookies.get("adminToken");
-
       const response = await fetch(`${BASE_URL}/admin/refund/sync`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       const result = await response.json();
@@ -105,22 +117,28 @@ const RefundedOrdersAdmin = () => {
           alreadyUpToDate?: number;
           failed?: unknown[];
         };
-        alert(
-          `✅ Sync Completed!\n\n` +
-            `Total Orders Checked: ${syncData?.total}\n` +
-            `Updated: ${syncData?.updated}\n` +
-            `Already Up to Date: ${syncData?.alreadyUpToDate}\n` +
-            `Failed: ${syncData?.failed?.length}`,
-        );
+        toast({
+          title: "✅ Sync Completed",
+          description:
+            `Total: ${syncData?.total ?? 0} | ` +
+            `Updated: ${syncData?.updated ?? 0} | ` +
+            `Already up-to-date: ${syncData?.alreadyUpToDate ?? 0} | ` +
+            `Failed: ${syncData?.failed?.length ?? 0}`,
+        });
         await fetchRefundedOrders();
       } else {
-        alert("❌ Sync failed: " + result.message);
+        toast({
+          title: "❌ Sync failed",
+          description: result.message || "Unknown error",
+          variant: "destructive",
+        });
       }
     } catch (err: unknown) {
-      alert(
-        "❌ Error during sync: " +
-          (err instanceof Error ? err.message : "Unknown error"),
-      );
+      toast({
+        title: "❌ Error during sync",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
     } finally {
       setSyncing(false);
     }
@@ -134,13 +152,9 @@ const RefundedOrdersAdmin = () => {
     try {
       setLoading(true);
       setError(null);
-      const token = Cookies.get("adminToken");
-
       const response = await fetch(`${BASE_URL}/admin/refunded`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       const result = await response.json();
@@ -171,25 +185,24 @@ const RefundedOrdersAdmin = () => {
     try {
       const statusToUse = suggestedStatus || _newStatus || "completed";
       setUpdating((prev) => ({ ...prev, [orderId]: true }));
-      const token = Cookies.get("adminToken");
 
       // Step 1: Verify with Razorpay first
       const verifyResponse = await fetch(
         `${BASE_URL}/admin/refund/verify/${orderId}`,
         {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         },
       );
 
       const verifyResult = await verifyResponse.json();
 
       if (!verifyResult.success) {
-        const skipVerification = window.confirm(
+        const skipVerification = await confirm(
+          "Razorpay Verification Failed",
           `⚠️ Unable to verify with Razorpay:\n${verifyResult.error || verifyResult.message}\n\n` +
             `Do you want to proceed WITHOUT Razorpay verification?`,
+          "Skip Verification",
         );
 
         if (!skipVerification) {
@@ -208,25 +221,26 @@ const RefundedOrdersAdmin = () => {
         amount?: number;
         refundId?: string;
       };
-      const isMatched = verifyResult.data.isMatched as boolean;
 
-      let confirmMessage = `Razorpay Verification Results:\n\n`;
-      confirmMessage += `Order ID: ${order?.orderId || orderId}\n`;
-      confirmMessage += `Current DB Status: ${order?.cancellation?.refundStatus || "Unknown"}\n`;
-      confirmMessage += `Razorpay Status: ${razorpayStatus.status} (${razorpayStatus.mappedStatus})\n`;
-      confirmMessage += `Refund Amount: ₹${razorpayStatus.amount}\n`;
-      confirmMessage += `Refund ID: ${razorpayStatus.refundId}\n\n`;
+      let confirmDescription = `Current DB Status: ${order?.cancellation?.refundStatus || "Unknown"}\n`;
+      confirmDescription += `Razorpay Status: ${razorpayStatus.status} (${razorpayStatus.mappedStatus})\n`;
+      confirmDescription += `Refund Amount: ₹${razorpayStatus.amount}\n`;
+      confirmDescription += `Refund ID: ${razorpayStatus.refundId}\n\n`;
+
+      let confirmTitle = "Razorpay Verification Results";
+      let confirmText = `Update to ${statusToUse}`;
 
       if (razorpayStatus.mappedStatus !== statusToUse) {
-        confirmMessage += `⚠️ WARNING: You're trying to update to "${statusToUse}" but Razorpay shows "${razorpayStatus.mappedStatus}"!\n\n`;
-        confirmMessage += `Recommended: Update to "${razorpayStatus.mappedStatus}" instead.\n\n`;
-        confirmMessage += `Do you want to proceed with "${statusToUse}" anyway?`;
+        confirmTitle += " — Status Mismatch!";
+        confirmText = `Proceed anyway to ${statusToUse}`;
+        confirmDescription += `⚠️ WARNING: You're trying to update to "${statusToUse}" but Razorpay shows "${razorpayStatus.mappedStatus}"!\n\n`;
+        confirmDescription += `Recommended: Update to "${razorpayStatus.mappedStatus}" instead.\n\n`;
+        confirmDescription += `Do you want to proceed with "${statusToUse}" anyway?`;
       } else {
-        confirmMessage += `✅ Status matches Razorpay records.\n\n`;
-        confirmMessage += `Proceed with updating to "${statusToUse}"?`;
+        confirmDescription += `✅ Status matches Razorpay records. Proceed with updating?`;
       }
 
-      const isConfirmed = window.confirm(confirmMessage);
+      const isConfirmed = await confirm(confirmTitle, confirmDescription, confirmText);
 
       if (!isConfirmed) {
         setUpdating((prev) => ({ ...prev, [orderId]: false }));
@@ -236,10 +250,11 @@ const RefundedOrdersAdmin = () => {
       // Step 3: Update the status
       await updateRefundStatusDirectly(orderId, statusToUse, order, false);
     } catch (err: unknown) {
-      alert(
-        "❌ Error during verification: " +
-          (err instanceof Error ? err.message : "Unknown error"),
-      );
+      toast({
+        title: "❌ Error during verification",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
       console.error("Error verifying refund status:", err);
       setUpdating((prev) => ({ ...prev, [orderId]: false }));
     }
@@ -252,12 +267,10 @@ const RefundedOrdersAdmin = () => {
     skipVerification = false,
   ) => {
     try {
-      const token = Cookies.get("adminToken");
-
       const response = await fetch(`${BASE_URL}/admin/refund/${orderId}`, {
         method: "PATCH",
+        credentials: "include",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -271,22 +284,24 @@ const RefundedOrdersAdmin = () => {
 
       if (result.success) {
         await fetchRefundedOrders();
-        alert(
-          result.verified
+        toast({
+          title: result.verified
             ? "✅ Refund status updated and verified with Razorpay!"
             : "✅ Refund status updated (verification skipped)",
-        );
+        });
       } else {
-        alert(
-          "❌ Failed to update: " +
-            (result.data?.suggestion || result.message),
-        );
+        toast({
+          title: "❌ Failed to update",
+          description: result.data?.suggestion || result.message || "Unknown error",
+          variant: "destructive",
+        });
       }
     } catch (err: unknown) {
-      alert(
-        "❌ Error updating status: " +
-          (err instanceof Error ? err.message : "Unknown error"),
-      );
+      toast({
+        title: "❌ Error updating status",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
       console.error("Error updating refund status:", err);
     } finally {
       setUpdating((prev) => ({ ...prev, [orderId]: false }));
@@ -562,6 +577,21 @@ const RefundedOrdersAdmin = () => {
           </div>
         )}
       </div>
+
+      <AlertDialogUse
+        isOpen={confirmDialog.open}
+        onClose={() => {
+          confirmDialog.resolve?.(false);
+          setConfirmDialog({ open: false, title: "", description: "", resolve: undefined });
+        }}
+        onConfirm={() => {
+          confirmDialog.resolve?.(true);
+          setConfirmDialog({ open: false, title: "", description: "", resolve: undefined });
+        }}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmText={confirmDialog.confirmText ?? "Confirm"}
+      />
     </div>
   );
 };

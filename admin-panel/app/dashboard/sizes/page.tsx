@@ -13,7 +13,6 @@ import { AlertDialogUse } from "@/components/alert-dialog";
 import { Plus, Pencil, Trash2, Ruler } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import axios, { AxiosError } from "axios";
-import Cookies from "js-cookie";
 
 interface SizeItem {
   _id: string;
@@ -22,27 +21,20 @@ interface SizeItem {
   status: boolean;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-const getAuthHeaders = () => ({
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
+const AXIOS_CONFIG = { withCredentials: true } as const;
 
 // API functions
 const fetchSizes = async () => {
   const response = await axios.post(
-    `${API_BASE}api/admin/size/view`,
+    `/api/admin/size/view`,
     {},
-    { headers: getAuthHeaders() }
+    AXIOS_CONFIG
   );
   return response.data._data || [];
 };
 
 const createSize = async (data: { name: string; order: number }) => {
-  const response = await axios.post(`${API_BASE}api/admin/size/create`, data, {
-    headers: getAuthHeaders(),
-  });
+  const response = await axios.post(`/api/admin/size/create`, data, AXIOS_CONFIG);
   if (!response.data._status) {
     throw new Error(response.data._message || "Error creating size");
   }
@@ -51,9 +43,9 @@ const createSize = async (data: { name: string; order: number }) => {
 
 const updateSize = async ({ id, data }: { id: string; data: { name: string; order: number } }) => {
   const response = await axios.put(
-    `${API_BASE}api/admin/size/update/${id}`,
+    `/api/admin/size/update/${id}`,
     data,
-    { headers: getAuthHeaders() }
+    AXIOS_CONFIG
   );
   if (!response.data._status) {
     throw new Error(response.data._message || "Error updating size");
@@ -63,18 +55,18 @@ const updateSize = async ({ id, data }: { id: string; data: { name: string; orde
 
 const deleteSize = async (id: string) => {
   const response = await axios.put(
-    `${API_BASE}api/admin/size/destroy`,
+    `/api/admin/size/destroy`,
     { id },
-    { headers: getAuthHeaders() }
+    AXIOS_CONFIG
   );
   return response.data;
 };
 
 const changeSizeStatus = async (id: string) => {
   const response = await axios.post(
-    `${API_BASE}api/admin/size/change-status`,
+    `/api/admin/size/change-status`,
     { id },
-    { headers: getAuthHeaders() }
+    AXIOS_CONFIG
   );
   if (!response.data._status) {
     throw new Error(response.data._message || "Error updating size status");

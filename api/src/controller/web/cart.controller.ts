@@ -149,7 +149,7 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
     await session.abortTransaction();
     console.error("Error in addToCart:", error);
     if (error instanceof Error && error.name === "ValidationError") {
-      return fail(res, error.message, 400);
+      return fail(res, "Validation failed", 400);
     }
     return fail(
       res,
@@ -230,7 +230,6 @@ export const updateCartItem = asyncHandler(
         res,
         "Failed to update cart",
         500,
-        error instanceof Error ? error.message : error,
       );
     } finally {
       session.endSession();
@@ -285,7 +284,6 @@ export const removeFromCart = asyncHandler(
         res,
         "Failed to remove item from cart",
         500,
-        error instanceof Error ? error.message : error,
       );
     } finally {
       session.endSession();
@@ -316,13 +314,11 @@ export const clearCart = asyncHandler(async (req: Request, res: Response) => {
     return success(res, null, "Cart cleared successfully");
   } catch (error) {
     await session.abortTransaction();
-    console.error("Error in clearCart:", error);
-    return fail(
-      res,
-      "Failed to clear cart",
-      500,
-      error instanceof Error ? error.message : error,
-    );
+    console.error("Error in clearCart:", error);      return fail(
+        res,
+        "Failed to clear cart",
+        500,
+      );
   } finally {
     session.endSession();
   }

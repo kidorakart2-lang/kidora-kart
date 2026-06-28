@@ -9,12 +9,19 @@ import {
   verifyPendingPayments,
   confirmPendingPayment,
 } from "../../controller/admin/adminOrder.controller.js";
-import { getAllOrders } from "../../controller/web/order.controller.js";
+import {
+  getAllOrders,
+  markToShipped,
+  cancelOrderByAdmin,
+} from "../../controller/web/order.controller.js";
 import protect, { adminOnly } from "../../middleware/authMiddleware.js";
+import { uploadNone } from "../../middleware/uploadMiddleware.js";
 
 const router = Router();
 
 router.post("/all", protect, adminOnly, getAllOrders);
+router.post("/mark-to-shipped", protect, adminOnly, uploadNone, markToShipped);
+router.post("/cancel-by-admin", protect, adminOnly, uploadNone, cancelOrderByAdmin);
 
 // Get all refunded orders (admin only)
 router.get("/admin/refunded", protect, adminOnly, getRefundedOrdersForAdmin);

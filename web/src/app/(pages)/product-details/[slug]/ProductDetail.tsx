@@ -17,7 +17,7 @@ import { motion } from "framer-motion";
 
 import ProductReviews from "@/components/product/product-reviews";
 import ImageSlider from "@/components/product/image-slider";
-import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 import { useDispatch } from "react-redux";
 import { addToCart, setBuyNowItem } from "@/redux/features/cart";
 import { toast } from "sonner";
@@ -29,6 +29,78 @@ import Breadcrumb from "./Breadcrumb";
 import Personalized from "@/components/product/Personalized";
 import { addToWishlist, removeFromWishlist } from "@/redux/features/wishlist";
 import type { RootState } from "@/redux/store/store";
+
+interface ProductFaqItem {
+  _id: string;
+  question: string;
+  answer: string;
+  product: string;
+}
+
+function ProductFaqSection({ productId }: { productId: string }) {
+  const [faqs, setFaqs] = useState<ProductFaqItem[]>([]);
+
+  useEffect(() => {
+    fetch(process.env.NEXT_PUBLIC_API_URL + "api/website/product-faq")
+      .then((r) => r.json())
+      .then((data) => {
+        const all: ProductFaqItem[] = data._data ?? [];
+        setFaqs(all.filter((f) => f.product === productId));
+      })
+      .catch(() => {});
+  }, [productId]);
+
+  if (faqs.length === 0) return null;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: { "@type": "Answer", text: f.answer },
+    })),
+  };
+
+  return (
+    <section className="mb-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="bg-white/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-12 border border-white/80">
+        <h2 className="text-3xl font-light text-gray-900 tracking-tight mb-8">
+          Frequently Asked Questions
+        </h2>
+        <div className="space-y-4">
+          {faqs.map((faq) => (
+            <details
+              key={faq._id}
+              className="group border border-gray-200 rounded-lg overflow-hidden"
+            >
+              <summary className="flex items-center justify-between px-5 py-4 cursor-pointer text-gray-800 font-[450] text-base hover:bg-gray-50 transition-colors list-none [&::-webkit-details-marker]:hidden">
+                {faq.question}
+                <svg
+                  className="w-4 h-4 text-gray-500 shrink-0 group-open:rotate-180 transition-transform"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </summary>
+              <div className="px-5 pb-4 text-gray-600 text-base font-[350] leading-relaxed">
+                {faq.answer}
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 interface ColorItem {
   _id: string;
@@ -153,7 +225,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
   );
 
   const handleWishlist = async () => {
-    const isLoggedIn = !!Cookies.get("user");
+    const isLoggedIn = !!getAuthToken();
 
     setWishlistLoading(true);
 
@@ -168,7 +240,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${Cookies.get("user")}`,
+                Authorization: `Bearer ${getAuthToken()}`,
               },
               body: JSON.stringify({
                 productId: product?._id,
@@ -211,7 +283,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${Cookies.get("user")}`,
+                Authorization: `Bearer ${getAuthToken()}`,
               },
               body: JSON.stringify({
                 productId: product?._id,
@@ -330,11 +402,22 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
     quantity: quantity,
     colorId: selectedColor,
     sizeId: selectedSize,
+    product: {
+      _id: product._id,
+      name: product.name,
+      image: product.image,
+      price: product.price,
+      discount_price: product.discount_price,
+      slug: product.slug,
+      stock: product.stock,
+      colors: product.colors,
+      sizes: product.sizes,
+    },
   };
 
   const handleAddToCart = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isLoggedIn = !!Cookies.get("user");
+    const isLoggedIn = !!getAuthToken();
 
     setLoading(true);
 
@@ -346,7 +429,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${Cookies.get("user")}`,
+              Authorization: `Bearer ${getAuthToken()}`,
             },
             body: JSON.stringify(cartObj),
           }
@@ -742,6 +825,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
           </div>
         </motion.div>
 
+        <ProductFaqSection productId={product._id} />
         <RelatedProducts
           id={product._id}
           subCategory={(product.subCategory ?? []).map((c) => c.slug ?? c.name)}

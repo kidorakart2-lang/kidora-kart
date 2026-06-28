@@ -11,7 +11,6 @@ export default function GoogleLoginBtn() {
     try {
       // Store the current path in localStorage for redirect after login
       const currentPath = window.location.pathname + window.location.search;
-      
 
       const isAuthPage = ["/login", "/register"].includes(
         window.location.pathname
@@ -21,36 +20,22 @@ export default function GoogleLoginBtn() {
         localStorage.setItem("googleLoginReturnTo", currentPath);
       }
 
-      // Get CSRF state from backend
+      // Get full Google OAuth URL from backend (constructed server-side)
       const stateRes = await fetch(
         process.env.NEXT_PUBLIC_API_URL + "api/website/user/google-auth-init",
         { method: "POST" }
       );
       const stateData = await stateRes.json();
-      if (!stateData._status || !stateData._state) {
+      if (!stateData._status || !stateData._url) {
         toast.error("Failed to initialize Google sign-in");
         return;
       }
-      const state = stateData._state;
-
-      // Redirect to Google's full OAuth page
-      const redirectUri = `${window.location.origin}/auth/google/callback`;
-
-      const googleAuthUrl =
-        `https://accounts.google.com/o/oauth2/v2/auth?` +
-        `client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}&` +
-        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-        `response_type=code&` +
-        `scope=email profile&` +
-        `access_type=offline&` +
-        `state=${encodeURIComponent(state)}&` +
-        `prompt=select_account`; // This forces the account selection page
 
       // Close modal before redirect
       dispatch(closeLoginModal());
 
-      // Redirect to Google
-      window.location.href = googleAuthUrl;
+      // Redirect to Google using the server-constructed URL
+      window.location.href = stateData._url;
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong");
     }

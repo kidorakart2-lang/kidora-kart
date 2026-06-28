@@ -90,7 +90,7 @@ export default function ProductDetails({ product }: { product: ProductData }) {
           </div>
 
           <div className="grid grid-cols-4 gap-2">
-            {[product.image, ...product.images]
+            {[product.image, ...(product.images ?? [])]
               .slice(0, 4)
               .map((img, index) => (
                 <button

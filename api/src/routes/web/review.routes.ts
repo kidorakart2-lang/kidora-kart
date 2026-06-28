@@ -6,6 +6,6 @@ import protect from "../../middleware/authMiddleware.js";
 const router = Router();
 
 router.post("/create", uploadNone, protect, createReview);
-router.post("/get/:productId", uploadNone, getReviewsByProduct);
+router.get("/get/:productId", getReviewsByProduct);
 
 export default router;

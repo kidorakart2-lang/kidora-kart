@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { initializeGuestCart } from "@/redux/features/cart";
 import { initializeGuestWishlist } from "@/redux/features/wishlist";
-import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 
 /**
  * This component initializes guest cart and wishlist from localStorage
@@ -17,7 +17,7 @@ export default function GuestDataInitializer({ children }: { children: React.Rea
 
   useEffect(() => {
     // Only initialize guest data if not logged in
-    if (!isLogin && !Cookies.get("user")) {
+    if (!isLogin && !getAuthToken()) {
       dispatch(initializeGuestCart());
       dispatch(initializeGuestWishlist());
     }

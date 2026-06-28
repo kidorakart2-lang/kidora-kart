@@ -11,6 +11,7 @@ import {
   Video,
 } from "lucide-react";
 import Link from "next/link";
+import { siteConfig, getFullAddress } from "@/lib/utils";
 
 export default function About() {
   const founders = [
@@ -251,13 +252,13 @@ export default function About() {
               </div>
               <p className="text-gray-700 mb-2 font-semibold">Jewellery Wala</p>
               <p className="text-gray-600 mb-4">
-                Jhalamand Circle, Jodhpur, Rajasthan
+                {getFullAddress()}
               </p>
 
               {/* Google Map */}
               <div className="liquid-card rounded-2xl overflow-hidden">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3579.0519319886844!2d73.03910947406595!3d26.22750208920371!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39418b779b15f17f%3A0xdd3cdd6bd6778a08!2sJEWELLERY%20WALA!5e0!3m2!1sen!2sin!4v1762241579048!5m2!1sen!2sin"
+                  src={siteConfig.address.googleMapsEmbedUrl}
                   width="100%"
                   height="300"
                   style={{ border: 0 }}

@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { Drawer } from "@/components/drawer";
 import { useToast } from "@/hooks/use-toast";
-import Cookies from "js-cookie";
 import Image from "next/image";
 import axios from "axios";
 interface OrderItem {
@@ -68,14 +67,13 @@ export default function Orders() {
 
   const loadOrders = async () => {
     setLoading(true);
-    const token = Cookies.get("adminToken");
     const data = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + "api/admin/orders/all",
+      "/api/admin/orders/all",
       {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({}),
       }
@@ -107,15 +105,13 @@ export default function Orders() {
 
   const handleMarkToShipped = async (order: OrderData) => {
     try {
-      const token = Cookies.get("adminToken");
       const data = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-          "api/website/orders/mark-to-shipped",
+        "/api/admin/orders/mark-to-shipped",
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ orderId: order.orderId }),
         }
@@ -141,14 +137,11 @@ export default function Orders() {
 
   const handleMarkToDelivered = async (order: OrderData) => {
     try {
-      const token = Cookies.get("adminToken");
       const { data } = await axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "api/admin/orders/deliever/order",
+        "/api/admin/orders/deliever/order",
         { orderId: order.orderId },
         {
-          headers: {
-            authorization: `Bearer ${token}`,
-          },
+          withCredentials: true,
         }
       );
 
@@ -235,10 +228,8 @@ export default function Orders() {
       return;
     }
     try {
-      const token = Cookies.get("adminToken");
       const { data: responseData } = await axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-          "api/website/orders/cancel-by-admin",
+        "/api/admin/orders/cancel-by-admin",
         {
           orderId: cancelOrder.orderId,
           reason,
@@ -246,8 +237,8 @@ export default function Orders() {
         {
           headers: {
             "Content-Type": "application/json",
-            authorization: `Bearer ${token}`,
           },
+          withCredentials: true,
         }
       );
       if (responseData.success) {
@@ -304,7 +295,7 @@ export default function Orders() {
       render: (item: OrderData) => (
         <span className="font-semibold flex items-center">
           <IndianRupee size={12} />
-          {item.pricing?.total.toFixed(2)}
+          {item.pricing?.total?.toFixed(2) ?? "0.00"}
         </span>
       ),
     },
@@ -538,7 +529,7 @@ export default function Orders() {
               <div className="border-t pt-2">
                 <p className="font-medium">Total:</p>
                 <p className="text-muted-foreground">
-                  {selectedOrder?.pricing?.total.toFixed(2)}
+                  {selectedOrder?.pricing?.total?.toFixed(2) ?? "0.00"}
                 </p>
               </div>
               <div className="border-t pt-2">
@@ -551,7 +542,6 @@ export default function Orders() {
                 {selectedOrder?.items?.map((item) => (
                   <div key={item.productId} className="flex ">
                     <Image
-                      onClick={() => console.log(selectedOrder)}
                       src={item.images[0]}
                       alt={item.name}
                       width={100}

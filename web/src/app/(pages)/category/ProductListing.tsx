@@ -93,15 +93,29 @@ export default function ProductListing() {
         searchQuery : search
       };
 
+      const toStr = (v: string | string[] | undefined) =>
+        v === undefined ? undefined : Array.isArray(v) ? v.join(",") : v;
+
+      const params = new URLSearchParams();
+      if (requestBody.categorySlug) params.set("categorySlug", requestBody.categorySlug);
+      const sCat = toStr(requestBody.subCategorySlug);
+      if (sCat) params.set("subCategorySlug", sCat);
+      const ssCat = toStr(requestBody.subSubCategorySlug);
+      if (ssCat) params.set("subSubCategorySlug", ssCat);
+      if (requestBody.colorIds.length > 0) params.set("colorIds", requestBody.colorIds.join(","));
+      if (requestBody.materialIds.length > 0) params.set("materialIds", requestBody.materialIds.join(","));
+      if (requestBody.priceFrom !== null && requestBody.priceFrom !== undefined) params.set("priceFrom", String(requestBody.priceFrom));
+      if (requestBody.priceTo !== null && requestBody.priceTo !== undefined) params.set("priceTo", String(requestBody.priceTo));
+      params.set("page", String(requestBody.page));
+      params.set("limit", String(requestBody.limit));
+      if (requestBody.isFeatured) params.set("isFeatured", "true");
+      if (requestBody.isNewArrival) params.set("isNewArrival", "true");
+      if (requestBody.isBestSeller) params.set("isBestSeller", "true");
+      if (requestBody.isTopRated) params.set("isTopRated", "true");
+      if (requestBody.searchQuery) params.set("searchQuery", requestBody.searchQuery);
+
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}api/website/product/get-by-filter`,
-        {
-          method: "post",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        }
+        `${process.env.NEXT_PUBLIC_API_URL}api/website/product/get-by-filter?${params.toString()}`,
       );
 
       const data = await response.json();

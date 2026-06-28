@@ -17,9 +17,9 @@ import { DataTable } from "@/components/data-table";
 import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
@@ -42,29 +42,27 @@ export default function UsersPage() {
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [btnLoading, setBtnLoading] = useState(false);
   const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
     role: "user",
   });
   const { toast } = useToast();
-  const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
-
   useEffect(() => {
     loadUsers();
   }, []);
 
-  const getAuthHeaders = () => ({
-    Authorization: `Bearer ${Cookies.get("adminToken")}`,
-  });
-
   const loadUsers = async () => {
     setLoading(true);
-    const data = await fetch(`${API_BASE}api/admin/user/findAllUser`, {
+    const data = await fetch(`/api/admin/user/findAllUser`, {
       method: "POST",
-      headers: getAuthHeaders(),
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     });
     const response = await data.json();
-    console.log(response);
     setUsers(response._data || []);
     setLoading(false);
   };
@@ -72,6 +70,9 @@ export default function UsersPage() {
   const handleEdit = (user: AdminUser) => {
     setEditingUser(user);
     setFormData({
+      name: user.name,
+      email: user.email,
+      password: "",
       role: user.role ?? "",
     });
     setDrawerOpen(true);
@@ -84,19 +85,17 @@ export default function UsersPage() {
 
   const confirmDelete = async () => {
     if (!userToDelete) return;
-    console.log(userToDelete);
     try {
-      const res = await axios.post(
-        `${API_BASE}api/admin/user/delete/${userToDelete}`,
-        {},
-        { headers: getAuthHeaders() }
+      const res = await axios.delete(
+        `/api/admin/user/delete/${userToDelete}`,
+        { withCredentials: true }
       );
-      console.log(res);
       if (res.data._status === true) {
         toast({
           title: res.data._message || "User deleted successfully",
           description: "",
         });
+        loadUsers();
       } else {
         toast({
           title: res.data._message || "Something went wrong",
@@ -116,54 +115,74 @@ export default function UsersPage() {
         variant: "destructive",
       });
     }
-    loadUsers();
     setDeleteDialogOpen(false);
     setUserToDelete(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setBtnLoading(true);
 
-    if (editingUser) {
-      try {
+    try {
+      if (editingUser) {
         const res = await axios.post(
-          `${API_BASE}api/admin/user/${editingUser._id}/change-role`,
+          `/api/admin/user/${editingUser._id}/change-role`,
           { role: formData.role },
-          { headers: getAuthHeaders() }
+          { withCredentials: true }
         );
         if (res.data._status === true) {
-          toast({
-            title: res.data._message || "User Role Changed",
-            description: "",
-          });
+          toast({ title: res.data._message || "User role changed" });
+          loadUsers();
         } else {
           toast({
             title: res.data._message || "Something went wrong",
-            description: "",
             variant: "destructive",
           });
         }
-      } catch (error: unknown) {
-        toast({
-          title: "Error updating user",
-          description:
-            error instanceof Object && error !== null
-              ? (error as { response?: { data?: { _message?: string } } })
-                    .response?.data?._message || "Operation failed"
-              : "Operation failed",
-          variant: "destructive",
-        });
+      } else {
+        if (!formData.name || !formData.email || !formData.password) {
+          toast({ title: "Name, email, and password are required", variant: "destructive" });
+          setBtnLoading(false);
+          return;
+        }
+        const res = await axios.post(
+          `/api/admin/user/create`,
+          {
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            role: formData.role,
+          },
+          { withCredentials: true }
+        );
+        if (res.data._status === true) {
+          toast({ title: "User created successfully" });
+          loadUsers();
+          setDrawerOpen(false);
+          setEditingUser(null);
+          setFormData({ name: "", email: "", password: "", role: "user" });
+        } else {
+          toast({
+            title: res.data._message || "Failed to create user",
+            variant: "destructive",
+          });
+        }
       }
-      loadUsers();
-    } else {
-      // await createItem(`${API_BASE}api/admin/user/create`, formData);
-      // loadUsers();
-      // toast({ title: "User created successfully" });
+    } catch (error: unknown) {
+      const msg =
+        error instanceof Object && error !== null
+          ? (error as { response?: { data?: { _message?: string } } })
+              .response?.data?._message || "Operation failed"
+          : "Operation failed";
+      toast({ title: msg, variant: "destructive" });
+    } finally {
+      setBtnLoading(false);
     }
 
+    if (!editingUser) return; // drawer already closed in create branch above
     setDrawerOpen(false);
     setEditingUser(null);
-    setFormData({ role: "user" });
+    setFormData({ name: "", email: "", password: "", role: "user" });
   };
   const router = useRouter();
   const columns: Column<AdminUser>[] = [
@@ -177,7 +196,7 @@ export default function UsersPage() {
         >
           <Avatar className="h-10 w-10 border-2 border-border">
             <AvatarImage src={item.avatar || ""} alt={item.name} />
-            <AvatarFallback>{item.name[0]}</AvatarFallback>
+            <AvatarFallback>{item.name?.[0] ?? "?"}</AvatarFallback>
           </Avatar>
           <div>
             <p className="font-medium">{item.name}</p>
@@ -253,7 +272,7 @@ export default function UsersPage() {
           <Button
             onClick={() => {
               setEditingUser(null);
-              setFormData({ role: "user" });
+              setFormData({ name: "", email: "", password: "", role: "user" });
               setDrawerOpen(true);
             }}
             className="transition-all duration-200 hover:scale-105"
@@ -278,32 +297,106 @@ export default function UsersPage() {
         title={editingUser ? "Edit User" : "Add User"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <h4>You Can Change User Role</h4>
-
-          <div className="space-y-2 animate-in slide-in-from-right duration-300 delay-100">
-            <Label htmlFor="role">Role</Label>
-            <Select
-              value={formData.role}
-              onValueChange={(value) =>
-                setFormData({ ...formData, role: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="user">User</SelectItem>
-                <SelectItem value="delivery">Delivery</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {editingUser ? (
+            <>
+              <h4 className="text-sm font-medium">Change Role for {editingUser.name}</h4>
+              <p className="text-xs text-muted-foreground">
+                {editingUser.email}
+              </p>
+              <div className="space-y-2 animate-in slide-in-from-right duration-300 delay-100">
+                <Label htmlFor="role">Role</Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, role: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="delivery">Delivery</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="space-y-2 animate-in slide-in-from-right duration-300">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  required
+                  placeholder="John Doe"
+                />
+              </div>
+              <div className="space-y-2 animate-in slide-in-from-right duration-300 delay-50">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  required
+                  placeholder="john@example.com"
+                />
+              </div>
+              <div className="space-y-2 animate-in slide-in-from-right duration-300 delay-75">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  required
+                  placeholder="Min. 6 characters"
+                />
+              </div>
+              <div className="space-y-2 animate-in slide-in-from-right duration-300 delay-100">
+                <Label htmlFor="role">Role</Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, role: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="delivery">Delivery</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
 
           <Button
             type="submit"
+            disabled={btnLoading}
             className="w-full animate-in slide-in-from-bottom duration-300 delay-150"
           >
-            {editingUser ? "Update User" : "Create User"}
+            {btnLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
+              </>
+            ) : editingUser ? (
+              "Update Role"
+            ) : (
+              "Create User"
+            )}
           </Button>
         </form>
       </Drawer>

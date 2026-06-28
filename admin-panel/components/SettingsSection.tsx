@@ -97,15 +97,13 @@ function PasswordFormSheet({
     e.preventDefault();
     setIsLoading(true);
     try {
-      const token = Cookies.get("adminToken");
       const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-          "api/website/user/change-password",
+        "/api/website/user/change-password",
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             oldPassword: currentPassword,
@@ -221,15 +219,13 @@ export default function SettingsSection({ data }: { data?: SettingsData }) {
     if (type === "email") {
       try {
         setLoading(true);
-        const token = Cookies.get("adminToken");
         const response = await fetch(
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-            "api/website/user/verify-user",
+          "/api/website/user/verify-user",
           {
             method: "POST",
+            credentials: "include",
             headers: {
               "Content-Type": "application/json",
-              authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
               email: data?.email,

@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import Cookies from "js-cookie";
 import type { UserDetails } from "@/types";
 
 const initialState: {
@@ -7,8 +6,8 @@ const initialState: {
   isLogin: boolean;
   details: UserDetails;
 } = {
-  user: Cookies.get("user") || null,
-  isLogin: !!Cookies.get("user"),
+  user: null,
+  isLogin: false,
   details: {},
 };
 
@@ -19,39 +18,15 @@ export const authSlice = createSlice({
   reducers: {
     login: (state, action) => {
       state.user = action.payload;
-      Cookies.set("user", action.payload, {
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        expires: 7,
-      });
-      Cookies.set("expires", String(Date.now() + 6 * 24 * 60 * 60 * 1000), {
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-      });
       state.isLogin = true;
     },
     logout: (state) => {
       state.user = null;
       state.details = {};
-      Cookies.remove("user");
-      Cookies.remove("expires");
       state.isLogin = false;
     },
     register: (state, action) => {
       state.user = action.payload;
-      Cookies.set("user", action.payload, {
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        expires: 7,
-      });
-      Cookies.set("expires", String(Date.now() + 7 * 24 * 60 * 60 * 1000), {
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-      });
       state.isLogin = true;
     },
     setProfile: (state, action) => {

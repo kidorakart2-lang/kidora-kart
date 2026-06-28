@@ -43,7 +43,7 @@ export const buildCacheListController =
     } catch (error) {
       return fail(
         res,
-        error instanceof Error ? error.message : "Server error",
+        "Server error",
         500,
       );
     }

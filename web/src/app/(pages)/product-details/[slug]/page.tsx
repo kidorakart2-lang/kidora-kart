@@ -1,4 +1,5 @@
 import { siteConfig, defaultMetadata } from "@/lib/utils";
+import { notFound } from "next/navigation";
 import ProductDetailsPage from "./ProductDetail";
 
 interface ProductDetail {
@@ -123,7 +124,34 @@ export async function generateProductSchema(product: ProductDetail, productUrl: 
       ? "https://schema.org/InStock"
       : "https://schema.org/OutOfStock";
 
+  // Build breadcrumb items from product's category hierarchy
+  const breadcrumbItems = [
+    { "@type": "ListItem", position: 1, name: "Home", item: siteConfig.url },
+  ];
+
+  const catName = product.category?.[0]?.name;
+  if (catName) {
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      position: 2,
+      name: catName,
+      item: `${siteConfig.url}/category/${catName.toLowerCase().replace(/\s+/g, "-")}`,
+    });
+  }
+
+  breadcrumbItems.push({
+    "@type": "ListItem",
+    position: breadcrumbItems.length + 1,
+    name: product.name,
+    item: productUrl,
+  });
+
   const schemas = [
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: breadcrumbItems,
+    },
     {
       "@context": "https://schema.org/",
       "@type": "Product",
@@ -156,11 +184,11 @@ export async function generateProductSchema(product: ProductDetail, productUrl: 
           url: siteConfig.url,
         },
       },
-      aggregateRating: product.rating
+      aggregateRating: product.rating && product.reviewCount && product.reviewCount >= 3
         ? {
             "@type": "AggregateRating",
             ratingValue: product.rating,
-            reviewCount: product.reviewCount || 1,
+            reviewCount: product.reviewCount,
             bestRating: 5,
             worstRating: 1,
           }
@@ -217,9 +245,6 @@ export async function generateProductSchema(product: ProductDetail, productUrl: 
 async function getProducts(slug: string) {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}api/website/product/details/${slug}`,
-    {
-      method: "post",
-    }
   );
 
   if (!response.ok) {
@@ -236,17 +261,7 @@ export default async function Page({ params }: ProductDetailsPageProps) {
   const product = await getProducts(slug);
 
   if (!product) {
-    return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">
-          Product Not Found
-        </h1>
-        <p className="text-gray-600">
-          The requested product could not be found. Browse our collection of
-          authentic Jodhpur jewellery.
-        </p>
-      </div>
-    );
+    notFound();
   }
 
   const productUrl = `${siteConfig.url}/product-details/${slug}`;

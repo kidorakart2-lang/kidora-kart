@@ -15,7 +15,6 @@ import {
 import { useRouter } from "next/navigation";
 import { AlertDialogUse } from "./alert-dialog";
 import { useState } from "react";
-import Cookies from "js-cookie";
 import Link from "next/link";
 
 interface MenuItem {
@@ -68,7 +67,7 @@ export function Header() {
   };
 
   const handleLogout = async () => {
-    Cookies.remove("adminToken");
+    // Cookie cleared by backend on logout
     router.push("/");
   };
   return (

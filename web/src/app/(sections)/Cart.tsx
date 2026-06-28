@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
 import {
   ShoppingCart,
@@ -15,12 +15,17 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useDispatch } from "react-redux";
-import { updateFullCart } from "@/redux/features/cart";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  updateFullCart,
+  updateQuantity as updateCartQuantity,
+  removeFromCart,
+} from "@/redux/features/cart";
 import type { ProductData } from "@/types";
+import type { RootState } from "@/redux/store/store";
 
 interface CartApiItem {
   _id: string;
@@ -44,19 +49,127 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const dispatch = useDispatch();
+  const reduxCartItems = useSelector(
+    (state: RootState) => state.cart.cartItems
+  );
+  const [fetchedCart, setFetchedCart] = useState<CartApiResponse | null>(null);
+  const fetchKey = useRef(false);
+
+  useEffect(() => {
+    if (effectiveCart?._data?.items?.length) {
+      setFetchedCart(null);
+      fetchKey.current = false;
+      dispatch(updateFullCart(cart!._data!));
+      return;
+    }
+
+    if (fetchKey.current) return;
+    fetchKey.current = true;
+
+    const token = getAuthToken();
+    if (!token) return;
+
+    fetch(process.env.NEXT_PUBLIC_API_URL + "api/website/cart/view", {
+      credentials: "include",
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?._data?.items?.length) {
+          setFetchedCart(data);
+          dispatch(updateFullCart(data._data));
+        }
+      })
+      .catch(() => {});
+  }, [cart, dispatch]);
+
+  const effectiveCart: CartApiResponse | null = useMemo(() => {
+    if (cart?._data?.items?.length) return cart;
+    if (fetchedCart?._data?.items?.length) return fetchedCart;
+
+    if (reduxCartItems.length === 0) return null;
+
+    return {
+      _data: {
+        items: reduxCartItems.map((item) => {
+          const p = (item.product ?? {}) as Record<string, unknown>;
+          const colors = (p.colors ?? []) as Array<{
+            _id: string;
+            name: string;
+            code: string;
+          }>;
+          const sizes = (p.sizes ?? []) as Array<{
+            _id: string;
+            name: string;
+          }>;
+          const color = colors.find((c) => c._id === item.colorId);
+          const size = sizes.find((s) => s._id === item.sizeId);
+          return {
+            _id: `${item.productId}_${item.colorId ?? ""}_${item.sizeId ?? ""}`,
+            product: {
+              _id: item.productId,
+              name: String(p.name ?? ""),
+              image: String(p.image ?? ""),
+              price: Number(p.price ?? 0),
+              discount_price: p.discount_price
+                ? Number(p.discount_price)
+                : undefined,
+              slug: String(p.slug ?? ""),
+              stock: Number(p.stock ?? 0),
+              colors,
+              sizes,
+            } as ProductData,
+            quantity: item.quantity,
+            color: {
+              _id: item.colorId ?? "",
+              code: color?.code ?? "#000",
+              name: color?.name ?? "",
+            },
+            size: size ? { _id: size._id, name: size.name } : undefined,
+          } as CartApiItem;
+        }),
+        totalPrice: 0,
+        totalItems: reduxCartItems.reduce(
+          (sum, i) => sum + i.quantity,
+          0
+        ),
+      },
+    };
+  }, [cart, fetchedCart, reduxCartItems]);
+
+  const hasServerData = !!(
+    cart?._data?.items?.length || fetchedCart?._data?.items?.length
+  );
+
+  const isGuestView = !hasServerData && reduxCartItems.length > 0;
 
   const updateQuantity = async (id: string, newQuantity: number) => {
     if (newQuantity < 1) return;
+
+    if (isGuestView) {
+      const [productId, colorId, sizeId] = id.split("_");
+      dispatch(
+        updateCartQuantity({
+          productId,
+          quantity: newQuantity,
+          colorId: colorId || null,
+          sizeId: sizeId || null,
+        })
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch(
         process.env.NEXT_PUBLIC_API_URL + `api/website/cart/items/update/${id}`,
         {
+          credentials: "include",
           body: JSON.stringify({
             quantity: newQuantity,
           }),
           headers: {
-            Authorization: `Bearer ${Cookies.get("user")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           method: "put",
@@ -75,14 +188,27 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
   };
 
   const removeItem = async (id: string) => {
+    if (isGuestView) {
+      const [productId, colorId, sizeId] = id.split("_");
+      dispatch(
+        removeFromCart({
+          productId,
+          colorId: colorId || null,
+          sizeId: sizeId || null,
+        })
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch(
         process.env.NEXT_PUBLIC_API_URL + `api/website/cart/items/remove/${id}`,
         {
+          credentials: "include",
           body: JSON.stringify({ itemId: id }),
           headers: {
-            Authorization: `Bearer ${Cookies.get("user")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           method: "put",
@@ -100,19 +226,13 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     }
   };
 
-  const subtotal = cart?._data?.totalPrice || 0;
+  const subtotal = effectiveCart?._data?.totalPrice || 0;
   const discountAmount = subtotal * 0;
   const finalSubtotal = subtotal - discountAmount;
   const shipping = finalSubtotal > 1000 ? 0 : 50;
   const estimatedTotal = finalSubtotal + shipping;
 
-  useEffect(() => {
-    if (cart?._data) {
-      dispatch(updateFullCart(cart._data));
-    }
-  }, [cart, dispatch]);
-
-  if (cart === null || (cart?._data?.items?.length ?? 0) === 0) {
+  if (!effectiveCart) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center py-16">
         <div className="text-center space-y-8 max-w-md px-4">
@@ -176,16 +296,16 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
             </div>
 
             <p className="text-slate-600 text-base">
-              {cart?._data?.totalItems || 0}{" "}
-              {cart?._data?.totalItems === 1 ? "item" : "items"} in your cart
+              {effectiveCart?._data?.totalItems || 0}{" "}
+              {effectiveCart?._data?.totalItems === 1 ? "item" : "items"} in your cart
             </p>
           </div>
 
-          {(cart?._data?.items?.length ?? 0) > 0 && (
+          {(effectiveCart?._data?.items?.length ?? 0) > 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Cart Items */}
               <div className="lg:col-span-2 space-y-4">
-                {cart?._data?.items.map((item) => (
+                {effectiveCart?._data?.items.map((item) => (
                   <div
                     key={item._id}
                     className="group bg-white rounded-2xl p-5 sm:p-6 shadow-md hover:shadow-xl 

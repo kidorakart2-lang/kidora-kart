@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import Cookies from "js-cookie";
 import { useDispatch } from "react-redux";
 import { login, setProfile } from "@/redux/features/auth";
 import { clearGuestCart } from "@/redux/features/cart";
@@ -68,13 +67,6 @@ export default function Page() {
         const data = await res.json();
 
         if (data._status) {
-          // Save token in cookie
-          Cookies.set("user", data._data.token, {
-            expires: 7,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-          });
-
           toast.success(data._message || "Login successful!");
           dispatch(login(data._data.token));
           dispatch(setProfile(data._data.user));

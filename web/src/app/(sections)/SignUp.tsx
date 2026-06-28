@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { register, setProfile } from "@/redux/features/auth";
 import { clearGuestCart } from "@/redux/features/cart";
+import Cookies from "js-cookie";
 import { clearGuestWishlist } from "@/redux/features/wishlist";
 import {
   syncGuestCartToServer,
@@ -17,9 +18,9 @@ import {
 } from "@/lib/fetchCartWislist";
 import Link from "next/link";
 import GoogleLoginBtn from "@/components/comman/GoogleLoginBtn";
-import { Button } from "@/components/ui/button";
+import StrongPasswordInput from "@/components/comman/StrongPasswordInput";
 import { Label } from "@/components/ui/label";
-import { Lock, Mail, User } from "lucide-react";
+import { Mail, User } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -70,6 +71,7 @@ const SignUpPage = () => {
 
       dispatch(register(data._token));
       dispatch(setProfile(data._data));
+      Cookies.set("userToken", data._token, { expires: 7, path: "/", sameSite: "lax" });
 
       // Sync guest cart and wishlist to server
       const guestCart = getGuestCartFromStorage();
@@ -182,34 +184,13 @@ const SignUpPage = () => {
               </div>
 
               {/* Password */}
-              <div>
-                <Label
-                  htmlFor="password"
-                  className="block text-gray-700 mb-2 font-medium text-sm"
-                >
-                  Password
-                </Label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock size={18} className="text-black z-10" />
-                  </div>
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="********"
-                    className="w-full pl-10 pr-4 py-3 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md"
-                    required
-                    aria-required="true"
-                    aria-describedby="password-description"
-                  />
-                </div>
-                <span id="password-description" className="sr-only">
-                  Enter a secure password
-                </span>
-              </div>
+              <StrongPasswordInput
+                value={formData.password}
+                onChange={(val) => {
+                  setError("");
+                  setFormData((prev) => ({ ...prev, password: val }));
+                }}
+              />
 
               {/* Error Message */}
               {error && (

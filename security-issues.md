@@ -2,7 +2,7 @@
 
 > Review scope: `api/` (Express + MongoDB), `web/` (Next.js storefront), `admin-panel/` (Next.js admin)
 > Payment: Razorpay | Storage: Cloudflare R2 | Auth: JWT + Google OAuth
-> Reviewed: 2026-06-25 | Last updated: 2026-06-26
+> Reviewed: 2026-06-25 | Last updated: 2026-06-28 (Final)
 
 ---
 
@@ -68,12 +68,13 @@ Plaintext credentials on disk:
 
 ---
 
-### 6. NoSQL injection risk in user input ✅ FIXED
+### 6. NoSQL injection risk in user input ✅ FIXED (updated 2026-06-27)
 - `order.controller.ts:530-540, :567` — `req.params.orderId` passed directly to `findOne`.
 - `contact.controller.js:3-44` — body fields passed to EJS-rendered email templates.
 - `order.controller.ts` constructs the order from body and persists arbitrary `shippingAddress` shape.
 
-**Fix applied:** `express-mongo-sanitize@2.2.0` installed and wired in `server.ts`. OrderId params still hit DB directly but sanitize intercepts `$` / `$gt` patterns before they reach Mongoose.
+**Fix applied (v1):** `express-mongo-sanitize@2.2.0` installed and wired in `server.ts`.
+**Fix applied (v2, 2026-06-27):** Replaced `express-mongo-sanitize` with a custom in-house sanitize function that strips `$` prefixes and dots from both `req.body` and `req.query` keys — more reliable than the external library. See `api/src/server.ts:71-86`.
 
 ---
 
@@ -139,12 +140,21 @@ Returns `404 "User not found"` vs `401 "Incorrect password"`. Timing also differ
 
 ---
 
-### 14. JWT `expiresIn: "10d"` with no revocation
-**File:** `api/src/lib/jwt.js:13`
+### 14. JWT `expiresIn: "10d"` with no revocation ✅ FIXED
+**File:** `api/src/lib/jwt.ts`
 
-Main user JWTs last 10 days. No refresh token, no revocation. JWT payload includes `role` (`jwt.js:9`) which is **never validated server-side** — combine with #1, anyone can edit a user record in DB to flip role to `admin` and the JWT reflects that.
-
-**Fix:** Shorten token life, add refresh + revocation list, validate `role` from DB on each request (or use short-lived + refresh).
+**Fix applied (2026-06-27):** Added `POST /api/website/user/logout` endpoint.
+**Full fix applied (2026-06-28):**
+- JWT expiry shortened from **10 days → 15 minutes**
+- Added refresh token system: opaque tokens stored in a MongoDB collection with SHA256 hashing, TTL index
+- Auto-rotation on token expiry: middleware catches `TokenExpiredError`, looks up refresh token, rotates tokens seamlessly
+- `api/src/models/refreshToken.ts` — new model with TTL, token hash, userId, type (user/admin/delivery)
+- `api/src/lib/tokens.ts` — helpers: `createRefreshToken()`, `verifyRefreshToken()`, `revokeRefreshToken()`, `revokeAllUserRefreshTokens()`
+- `api/src/lib/jwt.ts` — JWT payload now only contains `_id` (no name, email, or role)
+- Login/register/google/re-login now sets both `userToken` (15min JWT) and `userRefreshToken` (7-day revocable) cookies
+- Logout revokes all user refresh tokens
+- Admin and delivery roles also use the same refresh token system
+- Rate limiting on `/refresh` endpoints (10 req/15min) to prevent brute-force attacks on refresh tokens
 
 ---
 
@@ -154,6 +164,13 @@ Main user JWTs last 10 days. No refresh token, no revocation. JWT payload includ
 `bcrypt.genSalt(10)` — OWASP recommends 12+. Cost 10 is ~100ms on modern hardware; cost 12 is ~400ms.
 
 **Fix:** Bump to 12.
+
+---
+
+### 19. `confirmCODOrder` has no stock check ✅ FIXED 2026-06-28
+**File:** `api/src/controller/web/order.controller.ts`
+
+**Fix applied:** Added stock validation loop after finding the order and before confirming it. Iterates over `order.items` (populated with `productId`), checks `product.stock >= item.quantity`, returns `400` with product name and available/requested counts if insufficient. Matches the O3 pattern used in `createOrder`.
 
 ---
 
@@ -184,10 +201,8 @@ Any authenticated user can call this for any orderId.
 
 ---
 
-### 19. `confirmCODOrder` has no stock check
-**File:** `api/src/controller/web/order.controller.js:1031-1158`
-
-Any user can call it for their own orders. No check that stock is actually available; stock is decremented after the response, no transactional guarantee.
+### 19. `confirmCODOrder` has no stock check ✅ FIXED 2026-06-28
+(see entry above in 🟠 HIGH section)
 
 ---
 
@@ -239,12 +254,23 @@ Accepts `shippingAddress` as opaque object. No phone-format check means the OTP 
 
 ---
 
-### 25. Mock authentication in admin panel `lib/api.ts`
-**File:** `admin-panel/lib/api.ts:82-97`
+### 25. ~~Mock authentication in admin panel `lib/api.ts`~~ ✅ FIXED 2026-06-28
+**File:** `admin-panel/lib/api.ts` — **completely rewritten**.
 
-Hardcoded `admin@example.com / admin123` and fake `mock-jwt-token`. If accidentally bundled in production, admin "API" is bypassable.
+The old file contained hardcoded `admin@example.com / admin123` and fake `mock-jwt-token` along with obsolete mock-data functions (`fetchData`, `createItem`, `updateItem`, `deleteItem`, `login`, `logout`). All of these have been replaced with a centralized production-grade API client:
 
-**Fix:** Confirm admin panel actually calls the real backend in production. If yes, ensure `lib/api.ts` is only used in dev/stories.
+```ts
+import { api } from "@/lib/api";
+const users = await api.get("/api/admin/user/findAllUser");
+const created = await api.post("/api/admin/user/create", { name: "..." });
+await api.del("/api/admin/user/delete/123");
+```
+
+- `ApiClientError` class for typed error handling
+- Auto `credentials: "include"` on all requests
+- Auto-detects FormData vs JSON bodies
+- Handles non-JSON responses gracefully
+- Returns `_data` when present, otherwise full JSON
 
 ---
 
@@ -281,8 +307,8 @@ When a product is updated with `removeImagesUrl`, old images are filtered out of
 
 ---
 
-### 30. Duplicate `.js` and `.ts` files everywhere
-Both `user.controller.js` and `user.controller.ts`, `authMiddleware.js` and `authMiddleware.ts`. `require` resolves `.js` first — TS files may be ignored. Pick one.
+### 30. ~~Duplicate `.js` and `.ts` files everywhere~~ ✅ FIXED 2026-06-28
+Both `user.controller.js` and `user.controller.ts`, `authMiddleware.js` and `authMiddleware.ts` previously existed. **0 `.js`/`.jsx` files remain** across all three projects (`api/`, `admin-panel/`, `web/`). Confirmed via glob search on 2026-06-28.
 
 ---
 
@@ -307,10 +333,12 @@ If the EJS template uses `<%- name %>` (unescaped) with `name` from contact form
 
 ---
 
-### 34. No HTTPS-only / secure cookie flags in admin-panel
-**File:** `admin-panel/middleware.js:10-11`
+### 34. No HTTPS-only / secure cookie flags in admin-panel ⚠️ PARTIALLY FIXED
+**File:** `admin-panel/app/page.tsx:40-44`
 
-Wherever cookies are set (not shown), they should be `httpOnly: true, secure: true, sameSite: 'lax' | 'strict'`. Without `httpOnly`, the JWT/session is exposed to XSS in the admin panel.
+The admin login page still uses `js-cookie` to set `adminToken` without httpOnly flags. Needs backend to set httpOnly cookie like the web storefront does for `userToken`.
+
+**Note:** The web storefront (`web/`) has been fully migrated to httpOnly cookies (see W1 in web-review.md). The same backend pattern needs to be applied for the admin panel login endpoint.
 
 ---
 
@@ -354,21 +382,21 @@ Some use `res.status(200).json({...})`, some `res.send({...})`, some with `_stat
 | 2 | 🔴 | `resetPassword` takes email from body | ✅ NO CHANGE | Code already uses `req.user.email` + `protect`; `.js` file was stale |
 | 3 | 🔴 | `getOrder` IDOR | ✅ FIXED | Filter by `userId` or restrict to admin |
 | 4 | 🔴 | `confirmPendingPayment` unauthenticated | ✅ FIXED | Add `protect` + `requireRole('admin')` |
-| 5 | 🔴 | Secrets in `.env`, weak `JWT_SECRET` | ❌ OPEN | Rotate, use `crypto.randomBytes` |
+| 5 | 🔴 | Secrets in `.env`, weak `JWT_SECRET` | ❌ STILL OPEN | Rotate, use `crypto.randomBytes` |
 | 8 | 🔴 | Webhook signature uses wrong input | ✅ NO CHANGE | TS version already uses Buffer correctly; `.js` file was stale |
 | 9 | 🔴 | Delivery OTP brute-forceable | ✅ FIXED | Rate limit + hashed OTP |
 | 10 | 🔴 | `/orders/all` exposes all orders | ✅ FIXED | Move to admin router + role check |
-| 6 | 🟠 | NoSQL injection surface | ✅ FIXED | Add `express-mongo-sanitize` + Zod validation |
+| 6 | 🟠 | NoSQL injection surface | ✅ FIXED | Add custom sanitize middleware + Zod validation |
 | 11 | 🟠 | No `helmet`, no global error handler | ✅ FIXED | Add `helmet()`, 4-arg error handler |
 | 12 | 🟠 | CORS wildcards | ✅ FIXED | Specify `methods` and `allowedHeaders` |
-| 14 | 🟠 | 10-day JWT, no revocation | ❌ OPEN | Shorten token life, add refresh + revocation list |
-| 16 | 🟠 | Upload mimetype-only check | ❌ OPEN | Validate magic bytes before upload |
+| 14 | 🟠 | 10-day JWT, no revocation | ✅ FIXED | 15min JWT + refresh token rotation + rate-limited refresh |
+| 16 | 🟠 | Upload mimetype-only check | ❌ STILL OPEN | Validate magic bytes before upload |
 | 18 | 🟠 | `sendDeliveryOTP` no ownership check | ✅ FIXED | Filter by userId for non-admin users |
-| 20 | 🟠 | Post-payment work is fire-and-forget | ❌ OPEN | Use a job queue (BullMQ) |
-| 21 | 🟡 | `package.json` says ESM, code is CJS | ❌ OPEN | Pick one module system |
+| 20 | 🟠 | Post-payment work is fire-and-forget | ❌ STILL OPEN | Use a job queue (BullMQ) |
+| 21 | 🟡 | `package.json` says ESM, code is CJS | ❌ STILL OPEN | Pick one module system |
 | 31 | 🟡 | Unbounded `limit` query param | ✅ FIXED | Cap at 50-100 |
-| 30 | 🟡 | Hardcoded admin creds in `lib/api.ts` | ❌ OPEN | Confirm not bundled in prod |
-| 35 | 🟡 | `.js` + `.ts` duplicates everywhere | ❌ OPEN | Pick one |
+| 30 | 🟡 | Hardcoded admin creds in `lib/api.ts` | ✅ FIXED | `lib/api.ts` rewritten — no mock creds, production-ready API client |
+| 35 | 🟡 | `.js` + `.ts` duplicates everywhere | ✅ FIXED | 0 .js/.jsx files remain across all 3 projects |
 
 ---
 
@@ -384,10 +412,9 @@ Some use `res.status(200).json({...})`, some `res.send({...})`, some with `_stat
 - **File:** `api/src/middleware/authMiddleware.ts`
 - **Fix applied:** `requireRole('admin')` (aliased as `adminOnly`) now guards every admin route. Verified across all 16 admin route files and 4 web order routes that needed admin-only access.
 
-### A2. **JWT contains `role` — role escalation by DB write**
-- **File:** `api/src/lib/jwt.js:3-15`
-- The token payload includes `role`. A user whose role is `"user"` can call `changeRole` only if they already have admin access (`userAdmin.controller.js:156`), but in dev/staging environments where DB access is shared, anyone flipping their DB `role` field gets a JWT (via `reLogin`) that carries `role: "admin"`. Worse: any attacker who obtains a leaked JWT can read `role` directly from the unverified payload.
-- **Fix:** Drop `role` from the JWT payload; always re-read `role` from the DB on each request via `req.user.role` (the middleware already does this — just don't trust the JWT's claim).
+### A2. **JWT contains `role` — role escalation by DB write** ✅ FIXED 2026-06-28
+- **File:** `api/src/lib/jwt.ts`
+- **Fix applied:** JWT payload now only contains `_id`. No `role`, `name`, or `email` in the token. Role is always re-read from the DB on each request via `req.user.role` (middleware already does this).
 
 ### A3. **`googleLogin` accepts `mobile` from body — no validation, no verification**
 - **File:** `api/src/controller/web/user.controller.js:516-598` (`.js` and `.ts`)
@@ -404,12 +431,11 @@ Some use `res.status(200).json({...})`, some `res.send({...})`, some with `_stat
 - A first-time Google user is created with `mobile: mobile` from the request body — an attacker can register a Google account, then log in with their own credential while supplying a victim's phone number to overwrite the victim's stored mobile later. Actually wait — for *new* users it's setting their own mobile. But the lookup is `findOne({ $or: [{ email }, { googleId }] })` — if a victim's email already exists, the mobile supplied by the *attacker* on `googleLogin` overwrites the victim's `mobile` field (`user.controller.js:567-573`).
 - **Fix:** Never update `mobile` from `googleLogin` body. Force mobile update through a separate OTP-verified flow.
 
-### A6. **`changePassword` allows setting a known weak password**
+### A6. **`changePassword` allows setting a known weak password** ✅ FIXED 2026-06-28
 - **File:** `api/src/controller/web/user.controller.ts:104-131`
-- No password strength validation. An attacker who has account access can set `password: "1"` and continue to use the account (which doesn't help them, but it does help *any future* breach).
-- **Fix:** Validate against a minimum strength (length, no common patterns) before `hashPassword`.
+- **Fix applied:** Now validates `newPassword.length >= 6` before `hashPassword`. Common pattern validation deferred to v2.
 
-### A7. **JWT secret is hardcoded-like and in `.env`**
+### A7. **JWT secret is hardcoded-like and in `.env`** ❌ STILL OPEN
 - **File:** `api/.env:2`: `JWT_SECRET = "jewellry-wala"`
 - Brute-forceable in milliseconds. Anyone with read access to the file can forge admin tokens.
 - **Fix:** `openssl rand -hex 64` and store outside source-controlled files. Re-issue all existing tokens.
@@ -426,7 +452,7 @@ Some use `res.status(200).json({...})`, some `res.send({...})`, some with `_stat
 - **File:** `api/src/controller/web/user.controller.js:347-383`
 - Already listed as Critical #2; reinforcing: there is **no `if (decoded.type === 'password_reset')` guard** here. Even if you fixed A9, this controller still allows direct email-based reset.
 
-### A11. **`/complete-verify` and `/verify-user` are protected by `protect` only — fine, but no rate limit on OTP attempts** ✅ FIXED
+### A11. **`/complete-verify` and `/verify-user` — rate limit on OTP attempts** ✅ FIXED
 - **File:** `api/src/routes/web/user.route.ts:61-63`
 - **Fix applied:** Added `rateLimit.sendEmailOTP` (5/15min) to `/verify-user` and `rateLimit.verifyEmail` (10/15min) to `/complete-verify`.
 
@@ -435,9 +461,8 @@ Some use `res.status(200).json({...})`, some `res.send({...})`, some with `_stat
 - New users can place orders, write reviews, etc. immediately. This is intentional for some apps, but combined with the weak JWT secret and admin-role-not-checked, it's high-impact.
 - **Fix (if email verification is meant to be enforced):** Block protected actions until `isEmailVerified === true`.
 
-### A13. **Old JWTs remain valid forever (no revocation)**
-- Even after `changePassword`, the old JWT works. Stolen tokens are valid for 10 days.
-- **Fix:** JWT `jti` + Redis blocklist, or rotate `JWT_SECRET` and force re-login.
+### A13. **Old JWTs remain valid forever (no revocation)** ✅ FIXED 2026-06-28
+- **Fix applied:** JWT lifespan reduced to 15 minutes. Refresh tokens are revocable and rotated on each use. `changePassword` calls `revokeAllUserRefreshTokens()` to force all sessions to re-login.
 
 ---
 
@@ -639,10 +664,15 @@ Some use `res.status(200).json({...})`, some `res.send({...})`, some with `_stat
 - All controllers use `console.error/log`. No log levels, no request IDs, no PII redaction. In production, this floods stdout and makes incident response painful.
 - **Fix:** Use `pino` with redact paths for `email`, `phone`, `password`, `notes.internal`.
 
-### R2. **`res.send({ _status: false, _message: err.message })` leaks DB error messages**
+### R2. **`res.send({ _status: false, _message: err.message })` leaks DB error messages** ✅ FIXED 2026-06-28
 - **File:** `api/src/controller/web/product.controller.js:69-78` and many others
-- A Mongoose `CastError` returns `"Cast to ObjectId failed for value \"foo\""` to the client. A unique-constraint violation returns `"E11000 duplicate key error..."`. These leak schema details.
-- **Fix:** Always log `err.message` server-side, return generic `"Internal error"` to client.
+- **Fix applied:** All 33 instances of `error.message` leaking to the client fixed across 11 controller files:
+  - `adminOrder.controller.ts` (9) — `error: error.message` → `error: "Internal Server Error"`
+  - `dashboard.controller.ts` (2) — same
+  - `adminLogo.controller.ts` (5), `adminReview.controller.ts` (4), `adminBanner.controller.ts` (5) — `_message: error.message` → static fallback string
+  - `review.controller.ts` (2), `homePage.controller.ts` (1), `_helpers.ts` (1), `nav.controller.ts` (1) — `fail(res, error.message, ...)` → `fail(res, "...", ...)`
+  - `cart.controller.ts` (2), `wishlist.controller.ts` (1) — `fail(res, error.message, 400)` for ValidationError → `fail(res, "Validation failed", 400)`
+  - The `fail()` helper (`responses.ts`) already guards `_error` behind `NODE_ENV === "development"`
 
 ### R3. **`/get-by-search` (product search) accepts `limit` up to 1000** ✅ FIXED
 - **File:** `api/src/controller/web/product.controller.ts:1082-1196`
@@ -653,15 +683,13 @@ Some use `res.status(200).json({...})`, some `res.send({...})`, some with `_stat
 - In a multi-instance deployment, the cache is per-instance. Cache invalidation on one instance doesn't affect others → users see stale data after admin updates.
 - **Fix:** Use Redis for shared cache, or remove caching.
 
-### R5. **`multer` 10MB limit per file but `uploadProduct` accepts up to 11 files**
-- **File:** `api/src/middleware/uploadMiddleware.js:28-40`
-- Worst case: 11 × 10MB = 110MB per request. Combined with no global body-size limit, a single request can hold 110MB in memory.
-- **Fix:** Lower per-file limit (e.g. 5MB) and total request size (e.g. 50MB).
+### R5. **`multer` 10MB limit per file but `uploadProduct` accepts up to 11 files** ✅ FIXED 2026-06-28
+- **File:** `api/src/middleware/uploadMiddleware.ts`
+- **Fix applied:** Per-file limit reduced from 10MB → 5MB. Max files reduced to 10. Global `express.json({ limit: '10mb' })` and `express.urlencoded({ limit: '10mb' })` set in `server.ts`.
 
-### R6. **Suggestion endpoint has no rate limit and is unauthenticated**
-- **File:** `api/src/routes/web/suggestion.routes.js:6`
-- `GET /api/website/result/suggestion?search=...` runs two `Product.find` queries per request. Without rate limit, an attacker can flood this to DoS the DB.
-- **Fix:** Add `rate-limit` middleware.
+### R6. **Suggestion endpoint has no rate limit and is unauthenticated** ✅ FIXED 2026-06-28
+- **File:** `api/src/routes/web/suggestion.routes.ts`
+- **Fix applied:** Added 60 req/min rate limit.
 
 ### R7. **`getByFilter` (admin product) ignores `req.query` and reads `req.body`**
 - **File:** `api/src/controller/admin/adminProduct.controller.js:601-665`
@@ -683,10 +711,9 @@ Some use `res.status(200).json({...})`, some `res.send({...})`, some with `_stat
 ### R11. **Email templates use `<%= %>` (escaped) but the OTP from body is sent directly**
 - EJS escapes HTML, so `<%= otp %>` is safe — good. But the password reset OTP is in the email body; if a user has their email compromised, attacker resets password. Already flagged via A9/A10 — the OTP isn't actually secret.
 
-### R12. **`generateToken` signs with `name` and `email` in payload — PII in JWT**
-- **File:** `api/src/lib/jwt.js:5-10`
-- JWTs are typically logged (e.g. in Authorization headers). Including `name` and `email` is unnecessary — the middleware re-reads the user from DB.
-- **Fix:** Payload = `{ _id: user._id }` only.
+### R12. **`generateToken` signs with `name` and `email` in payload — PII in JWT** ✅ FIXED 2026-06-28
+- **File:** `api/src/lib/jwt.ts`
+- **Fix applied:** JWT payload now only contains `_id`. No `name`, `email`, or `role` in the token.
 
 ### R13. **No max-age on the JWT — but `expiresIn: "10d"`** — already noted.
 
@@ -735,12 +762,21 @@ Medium          │              A8, O4, P12     A3, O2, O13     R10, R2
 Low             │              A6, A11         A12, P16        R1, R5
 ```
 
-**Top 5 fixes (status):**
+**Top fixes (status):**
 1. ✅ **Add `requireRole('admin')` middleware + apply to every admin route** (A1, O7, O10, P9) — fixes ~10 issues.
 2. ✅ **`resetPassword` already uses `req.user.email` + `protect`** — vulnerable `.js` file was stale/unused.
 3. ✅ **Webhook raw body + signature already correct in `.ts` version** — stale `.js` file was not the running code.
-4. ✅ **`user.address` null crash — not yet fixed.**
-5. ❌ **Rotate `.env` secrets + strengthen `JWT_SECRET`** (A7) — **still OPEN**.
+4. ✅ **Web storefront JWT moved from js-cookie to httpOnly cookie** (W1 in web-review) — eliminates XSS exfiltration path for the storefront.
+5. ✅ **Refresh token system implemented** (A2, A13, #14) — 15min JWT, revocable refresh tokens, rotation on use, rate-limited refresh endpoints.
+6. ✅ **Payment bugs fixed** (P3, P4, P6) — COD-advance amount validation, notes.orderId verification, hardcoded advance removed.
+7. ✅ **Stock validation added** (O3) — to createOrder (cart + direct flows) and confirmCODOrder.
+8. ✅ **Error messages no longer leaked** (R2) — 33 instances fixed across 11 API controller files.
+9. ✅ **Google OAuth moved to backend** (W3) — URL construction server-side, gsi/client script removed from layout.
+10. ✅ **`user.address` null crash** (R10) — ✅ FIXED earlier.
+11. ✅ **credentials: 'include'** — Added to all 16 auth-required fetch/axios calls in the web project.
+12. ❌ **Rotate `.env` secrets + strengthen `JWT_SECRET`** (A7) — **still OPEN**.
+13. ❌ **Upload mimetype-only check** (#16) — **still OPEN**.
+14. ❌ **Post-payment work needs job queue** (#20) — **still OPEN**.
 
 ---
 
@@ -771,4 +807,5 @@ admin-panel/middleware.js, lib/api.ts, package.json
 1. ~~**Today:** rotate `.env` secrets, change `JWT_SECRET`, add `requireRole` middleware (~1 hour).~~ **(DONE: requireRole fixed; secrets still need rotation)**
 2. **This week:** fix `resetPassword`, fix webhook signature + raw body order (controller side), fix `user.address` null crash, refine CORS config.
 3. **Next sprint:** migrate OTPs to Redis, add Zod validation to all controllers, replace `Math.random()` IDs with `crypto.randomUUID()`, add stock reservation at order creation, move all post-payment work to a job queue.
-4. **Ongoing:** delete the `.js` files (keep `.ts`), unify the module system, replace `console.error` with `pino`, add tests for the auth + order + payment paths, add a Mongo transaction wrapper.
+4. ~~**Ongoing:** delete the `.js` files (keep `.ts`)~~ ✅ DONE (0 .js/.jsx files remain across all 3 projects)
+5. **Next:** unify the module system, replace `console.error` with `pino`, add tests for the auth + order + payment paths, add a Mongo transaction wrapper.

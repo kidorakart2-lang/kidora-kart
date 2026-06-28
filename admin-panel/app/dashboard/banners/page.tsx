@@ -16,12 +16,20 @@ import {
 import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
+  ExternalLink,
+  Link as LinkIcon,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
-import Cookies from "js-cookie";
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
+const AXIOS_CONFIG = { withCredentials: true } as const;
 
 interface Banner {
   _id: string;
@@ -29,17 +37,24 @@ interface Banner {
   image: string;
   status: boolean;
   order?: number;
+  link?: {
+    type: string;
+    target?: string;
+    externalUrl?: string;
+    url?: string;
+    label?: string;
+  } | null;
 }
 
-const getAuthHeaders = () => ({
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
+interface LinkOption {
+  _id: string;
+  name: string;
+  slug: string;
+}
 
-const getAuthHeadersFormData = () => ({
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
-
-function isAxiosError(error: unknown): error is { response?: { data?: { _message?: string } } } {
+function isAxiosError(
+  error: unknown,
+): error is { response?: { data?: { _message?: string } } } {
   return typeof error === "object" && error !== null && "response" in error;
 }
 
@@ -51,32 +66,99 @@ export default function BannersPage() {
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bannerToDelete, setBannerToDelete] = useState<string | null>(null);
+  const [productSearch, setProductSearch] = useState("");
+  const [linkOptions, setLinkOptions] = useState<{
+    products: LinkOption[];
+    categories: LinkOption[];
+    subCategories: LinkOption[];
+    subSubCategories: LinkOption[];
+  }>({ products: [], categories: [], subCategories: [], subSubCategories: [] });
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState("");
   const [formData, setFormData] = useState<{
     description: string;
     image: string | File;
+    linkType: string;
+    linkTarget: string;
+    linkExternalUrl: string;
   }>({
     description: "",
     image: "",
+    linkType: "",
+    linkTarget: "",
+    linkExternalUrl: "",
   });
   const { toast } = useToast();
 
   useEffect(() => {
     loadBanners();
+    loadLinkOptions();
   }, []);
+
+  const loadLinkOptions = async () => {
+    try {
+      const [catRes, prodRes] = await Promise.all([
+        axios.get(`/api/admin/banner/link-options/categories`, AXIOS_CONFIG),
+        axios.get(
+          `/api/admin/banner/link-options/products?limit=100`,
+          AXIOS_CONFIG,
+        ),
+      ]);
+      setLinkOptions((prev) => ({
+        ...prev,
+        categories: catRes.data._data || [],
+        products: prodRes.data._data || [],
+      }));
+    } catch {
+      // silently fail
+    }
+  };
+
+  const loadSubCategories = async (categoryId: string) => {
+    try {
+      const res = await axios.get(
+        `/api/admin/banner/link-options/sub-categories?categoryId=${categoryId}`,
+        AXIOS_CONFIG,
+      );
+      setLinkOptions((prev) => ({
+        ...prev,
+        subCategories: res.data._data || [],
+      }));
+    } catch {
+      // silently fail
+    }
+  };
+
+  const loadSubSubCategories = async (subCategoryId: string) => {
+    try {
+      const res = await axios.get(
+        `/api/admin/banner/link-options/sub-sub-categories?subCategoryId=${subCategoryId}`,
+        AXIOS_CONFIG,
+      );
+      setLinkOptions((prev) => ({
+        ...prev,
+        subSubCategories: res.data._data || [],
+      }));
+    } catch {
+      // silently fail
+    }
+  };
 
   const loadBanners = async () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        `${API_BASE}api/admin/banner/view`,
+        `/api/admin/banner/view`,
         {},
-        { headers: getAuthHeaders() }
+        AXIOS_CONFIG,
       );
       setBanners(response.data._data || []);
     } catch (error) {
       toast({
         title: "Error loading banners",
-        description: isAxiosError(error) ? error.response?.data?._message || "Failed to load banners" : "Failed to load banners",
+        description: isAxiosError(error)
+          ? error.response?.data?._message || "Failed to load banners"
+          : "Failed to load banners",
         variant: "destructive",
       });
     } finally {
@@ -88,8 +170,10 @@ export default function BannersPage() {
     setEditingBanner(banner);
     setFormData({
       description: banner.description,
-
       image: banner.image,
+      linkType: banner.link?.type || "",
+      linkTarget: banner.link?.target || "",
+      linkExternalUrl: banner.link?.externalUrl || "",
     });
     setDrawerOpen(true);
   };
@@ -104,16 +188,18 @@ export default function BannersPage() {
 
     try {
       await axios.put(
-        `${API_BASE}api/admin/banner/delete/${bannerToDelete}`,
+        `/api/admin/banner/delete/${bannerToDelete}`,
         { id: bannerToDelete },
-        { headers: getAuthHeaders() }
+        AXIOS_CONFIG,
       );
       loadBanners();
       toast({ title: "Banner deleted successfully" });
     } catch (error) {
       toast({
         title: "Error deleting banner",
-        description: isAxiosError(error) ? error.response?.data?._message || "Failed to delete banner" : "Failed to delete banner",
+        description: isAxiosError(error)
+          ? error.response?.data?._message || "Failed to delete banner"
+          : "Failed to delete banner",
         variant: "destructive",
       });
     } finally {
@@ -128,20 +214,33 @@ export default function BannersPage() {
     formDataToSend.append("description", formData.description);
     formDataToSend.append("image", formData.image);
 
+    // Append link data as JSON string
+    if (formData.linkType) {
+      const linkData: Record<string, unknown> = { type: formData.linkType };
+      if (formData.linkType === "external") {
+        linkData.externalUrl = formData.linkExternalUrl;
+      } else if (formData.linkTarget) {
+        linkData.target = formData.linkTarget;
+      }
+      formDataToSend.append("link", JSON.stringify(linkData));
+    }
+
     if (editingBanner) {
       setBtnLoading(true);
       try {
         await axios.put(
-          `${API_BASE}api/admin/banner/update/${editingBanner._id}`,
+          `/api/admin/banner/update/${editingBanner._id}`,
           formDataToSend,
-          { headers: getAuthHeaders() }
+          AXIOS_CONFIG,
         );
         loadBanners();
         toast({ title: "Banner updated successfully" });
       } catch (error) {
         toast({
           title: "Error updating banner",
-          description: isAxiosError(error) ? error.response?.data?._message || "Failed to update banner" : "Failed to update banner",
+          description: isAxiosError(error)
+            ? error.response?.data?._message || "Failed to update banner"
+            : "Failed to update banner",
           variant: "destructive",
         });
       } finally {
@@ -150,15 +249,19 @@ export default function BannersPage() {
     } else {
       setBtnLoading(true);
       try {
-        await axios.post(`${API_BASE}api/admin/banner/create`, formDataToSend, {
-          headers: getAuthHeaders(),
-        });
+        await axios.post(
+          `/api/admin/banner/create`,
+          formDataToSend,
+          AXIOS_CONFIG,
+        );
         loadBanners();
         toast({ title: "Banner created successfully" });
       } catch (error) {
         toast({
           title: "Error creating banner",
-          description: isAxiosError(error) ? error.response?.data?._message || "Failed to create banner" : "Failed to create banner",
+          description: isAxiosError(error)
+            ? error.response?.data?._message || "Failed to create banner"
+            : "Failed to create banner",
           variant: "destructive",
         });
       } finally {
@@ -168,24 +271,28 @@ export default function BannersPage() {
 
     setDrawerOpen(false);
     setEditingBanner(null);
+    setProductSearch("");
+    setSelectedCategoryId("");
+    setSelectedSubCategoryId("");
     setFormData({
       description: "",
       image: "",
+      linkType: "",
+      linkTarget: "",
+      linkExternalUrl: "",
     });
   };
 
   const handleStatusChange = async (id: string) => {
     try {
-      await axios.post(
-        `${API_BASE}api/admin/banner/change-status`,
-        { id },
-        { headers: getAuthHeaders() }
-      );
+      await axios.post(`/api/admin/banner/change-status`, { id }, AXIOS_CONFIG);
       loadBanners();
     } catch (error) {
       toast({
         title: "Error changing status",
-        description: isAxiosError(error) ? error.response?.data?._message || "Failed to change status" : "Failed to change status",
+        description: isAxiosError(error)
+          ? error.response?.data?._message || "Failed to change status"
+          : "Failed to change status",
         variant: "destructive",
       });
     }
@@ -216,13 +323,22 @@ export default function BannersPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <ExportButtons data={banners as unknown as Record<string, unknown>[]} filename="banners" />
+          <ExportButtons
+            data={banners as unknown as Record<string, unknown>[]}
+            filename="banners"
+          />
           <Button
             onClick={() => {
               setEditingBanner(null);
+              setProductSearch("");
+              setSelectedCategoryId("");
+              setSelectedSubCategoryId("");
               setFormData({
                 description: "",
                 image: "",
+                linkType: "",
+                linkTarget: "",
+                linkExternalUrl: "",
               });
               setDrawerOpen(true);
             }}
@@ -264,6 +380,27 @@ export default function BannersPage() {
                   {banner.description}
                 </p>
               </div>
+              {banner.link?.url && (
+                <div className="flex items-center gap-1.5">
+                  <Badge
+                    variant="outline"
+                    className="text-xs font-mono truncate max-w-full gap-1"
+                  >
+                    <LinkIcon className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{banner.link.url}</span>
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs shrink-0">
+                    {banner.link.type === "external" ? (
+                      <>
+                        <ExternalLink className="h-3 w-3 mr-0.5" />
+                        external
+                      </>
+                    ) : (
+                      banner.link.type
+                    )}
+                  </Badge>
+                </div>
+              )}
               <div className="flex gap-2 pt-2">
                 <Button
                   variant="outline"
@@ -291,8 +428,17 @@ export default function BannersPage() {
                   onClick={() => handleStatusChange(banner._id)}
                   className="flex-1 transition-all duration-200 hover:scale-105 w-full"
                 >
-                  <Pencil className="h-3 w-3 mr-1" />
-                  {banner.status ? "Active" : "Inactive"}
+                  {banner.status ? (
+                    <>
+                      <Eye className="h-3.5 w-3.5 mr-1.5" />
+                      Active
+                    </>
+                  ) : (
+                    <>
+                      <EyeOff className="h-3.5 w-3.5 mr-1.5" />
+                      Inactive
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
@@ -305,7 +451,10 @@ export default function BannersPage() {
         onClose={() => setDrawerOpen(false)}
         title={editingBanner ? "Edit Banner" : "Add Banner"}
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 overflow-y-auto h-full pb-20"
+        >
           <div className="space-y-2 animate-in slide-in-from-right duration-300">
             <Label htmlFor="description">Description</Label>
             <Input
@@ -331,7 +480,9 @@ export default function BannersPage() {
                       src={
                         typeof formData.image === "string"
                           ? formData.image
-                          : formData.image instanceof File ? URL.createObjectURL(formData.image) : ""
+                          : formData.image instanceof File
+                            ? URL.createObjectURL(formData.image)
+                            : ""
                       }
                       alt="Preview"
                       className="w-full h-full object-contain rounded"
@@ -394,6 +545,295 @@ export default function BannersPage() {
                 />
               </label>
             </div>
+          </div>
+
+          {/* ── Link target section ── */}
+          <div className="space-y-3 animate-in slide-in-from-right duration-300 delay-50 border rounded-lg p-4 bg-muted/30">
+            <Label className="text-sm font-semibold">
+              Link Target (optional)
+            </Label>
+
+            <Select
+              value={formData.linkType}
+              onValueChange={(value) => {
+                setFormData({
+                  ...formData,
+                  linkType: value,
+                  linkTarget: "",
+                  linkExternalUrl: "",
+                });
+                setSelectedCategoryId("");
+                setSelectedSubCategoryId("");
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="No link" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="No Link">No link</SelectItem>
+                <SelectItem value="product">Product</SelectItem>
+                <SelectItem value="category">Category</SelectItem>
+                <SelectItem value="subCategory">Sub Category</SelectItem>
+                <SelectItem value="subSubCategory">Sub Sub Category</SelectItem>
+                <SelectItem value="external">External URL</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Product picker */}
+            {formData.linkType === "product" && (
+              <div className="space-y-2">
+                <Label>Select Product</Label>
+                <Input
+                  placeholder="Search products..."
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                />
+                <div className="max-h-36 overflow-y-auto border rounded-md p-1 space-y-0.5">
+                  {linkOptions.products
+                    .filter((p) => {
+                      const q = productSearch.toLowerCase();
+                      return (
+                        !q ||
+                        p.name.toLowerCase().includes(q) ||
+                        p.slug.toLowerCase().includes(q)
+                      );
+                    })
+                    .slice(0, 30)
+                    .map((p) => (
+                      <label
+                        key={p._id}
+                        className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-sm transition-colors ${
+                          formData.linkTarget === p._id
+                            ? "bg-primary/10 text-primary"
+                            : "hover:bg-muted"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="linkTarget"
+                          checked={formData.linkTarget === p._id}
+                          onChange={() =>
+                            setFormData({ ...formData, linkTarget: p._id })
+                          }
+                          className="accent-primary"
+                        />
+                        <span className="truncate">{p.name}</span>
+                        <span className="text-xs text-muted-foreground ml-auto">
+                          /{p.slug}
+                        </span>
+                      </label>
+                    ))}
+                  {linkOptions.products.filter((p) => {
+                    const q = productSearch.toLowerCase();
+                    return (
+                      !q ||
+                      p.name.toLowerCase().includes(q) ||
+                      p.slug.toLowerCase().includes(q)
+                    );
+                  }).length === 0 && (
+                    <p className="text-sm text-muted-foreground p-2">
+                      No products found
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Category picker */}
+            {formData.linkType === "category" && (
+              <div className="space-y-2">
+                <Label>Select Category</Label>
+                <div className="max-h-36 overflow-y-auto border rounded-md p-1 space-y-0.5">
+                  {linkOptions.categories.map((c) => (
+                    <label
+                      key={c._id}
+                      className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-sm transition-colors ${
+                        formData.linkTarget === c._id
+                          ? "bg-primary/10 text-primary"
+                          : "hover:bg-muted"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="linkTarget"
+                        checked={formData.linkTarget === c._id}
+                        onChange={() =>
+                          setFormData({ ...formData, linkTarget: c._id })
+                        }
+                        className="accent-primary"
+                      />
+                      <span className="truncate">{c.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sub Category picker (cascading: pick category first) */}
+            {formData.linkType === "subCategory" && (
+              <div className="space-y-2">
+                <Label>Select Category</Label>
+                <Select
+                  value={selectedCategoryId}
+                  onValueChange={(value) => {
+                    setSelectedCategoryId(value);
+                    setFormData({ ...formData, linkTarget: "" });
+                    setSelectedSubCategoryId("");
+                    loadSubCategories(value);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {linkOptions.categories.map((c) => (
+                      <SelectItem key={c._id} value={c._id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {selectedCategoryId && (
+                  <>
+                    <Label>Select Sub Category</Label>
+                    <div className="max-h-36 overflow-y-auto border rounded-md p-1 space-y-0.5">
+                      {linkOptions.subCategories.map((sc) => (
+                        <label
+                          key={sc._id}
+                          className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-sm transition-colors ${
+                            formData.linkTarget === sc._id
+                              ? "bg-primary/10 text-primary"
+                              : "hover:bg-muted"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="linkTarget"
+                            checked={formData.linkTarget === sc._id}
+                            onChange={() =>
+                              setFormData({ ...formData, linkTarget: sc._id })
+                            }
+                            className="accent-primary"
+                          />
+                          <span className="truncate">{sc.name}</span>
+                        </label>
+                      ))}
+                      {linkOptions.subCategories.length === 0 && (
+                        <p className="text-sm text-muted-foreground p-2">
+                          No sub categories
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Sub Sub Category picker (cascading: category → sub → sub-sub) */}
+            {formData.linkType === "subSubCategory" && (
+              <div className="space-y-2">
+                <Label>Select Category</Label>
+                <Select
+                  value={selectedCategoryId}
+                  onValueChange={(value) => {
+                    setSelectedCategoryId(value);
+                    setFormData({ ...formData, linkTarget: "" });
+                    setSelectedSubCategoryId("");
+                    loadSubCategories(value);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {linkOptions.categories.map((c) => (
+                      <SelectItem key={c._id} value={c._id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {selectedCategoryId && (
+                  <>
+                    <Label>Select Sub Category</Label>
+                    <Select
+                      value={selectedSubCategoryId}
+                      onValueChange={(value) => {
+                        setSelectedSubCategoryId(value);
+                        setFormData({ ...formData, linkTarget: "" });
+                        loadSubSubCategories(value);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a sub category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {linkOptions.subCategories.map((sc) => (
+                          <SelectItem key={sc._id} value={sc._id}>
+                            {sc.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
+
+                {selectedSubCategoryId && (
+                  <>
+                    <Label>Select Sub Sub Category</Label>
+                    <div className="max-h-36 overflow-y-auto border rounded-md p-1 space-y-0.5">
+                      {linkOptions.subSubCategories.map((ssc) => (
+                        <label
+                          key={ssc._id}
+                          className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-sm transition-colors ${
+                            formData.linkTarget === ssc._id
+                              ? "bg-primary/10 text-primary"
+                              : "hover:bg-muted"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="linkTarget"
+                            checked={formData.linkTarget === ssc._id}
+                            onChange={() =>
+                              setFormData({ ...formData, linkTarget: ssc._id })
+                            }
+                            className="accent-primary"
+                          />
+                          <span className="truncate">{ssc.name}</span>
+                        </label>
+                      ))}
+                      {linkOptions.subSubCategories.length === 0 && (
+                        <p className="text-sm text-muted-foreground p-2">
+                          No sub sub categories
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* External URL */}
+            {formData.linkType === "external" && (
+              <div className="space-y-2">
+                <Label htmlFor="externalUrl">External URL</Label>
+                <Input
+                  id="externalUrl"
+                  type="url"
+                  placeholder="https://example.com"
+                  value={formData.linkExternalUrl}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      linkExternalUrl: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            )}
           </div>
 
           <Button

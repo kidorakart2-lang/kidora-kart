@@ -3,8 +3,6 @@ import ProductDetails from "../ProductDetails";
 import { toast } from "@/hooks/use-toast";
 import { cookies } from "next/headers";
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
-
 interface PageParams {
   params: Promise<{ id: string }>;
 }
@@ -14,7 +12,7 @@ export default async function page({ params }: PageParams) {
   const cookiesStore = await cookies();
 
   try {
-    const response = await fetch(`${API_BASE}api/admin/product/details/${id}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/"}api/admin/product/details/${id}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${cookiesStore.get("adminToken")?.value}`,

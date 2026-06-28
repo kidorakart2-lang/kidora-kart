@@ -42,7 +42,7 @@ export const createReview = async (req: Request, res: Response): Promise<Respons
   } catch (error) {
     return fail(
       res,
-      error instanceof Error ? error.message : "Failed to create review",
+      "Failed to create review",
       500,
     );
   }
@@ -75,7 +75,7 @@ export const getReviewsByProduct = async (
   } catch (error) {
     return fail(
       res,
-      error instanceof Error ? error.message : "Failed to fetch reviews",
+      "Failed to fetch reviews",
       500,
       [],
     );

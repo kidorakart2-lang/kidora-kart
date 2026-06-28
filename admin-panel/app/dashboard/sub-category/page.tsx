@@ -4,12 +4,10 @@ import SubCategoriesClient from "./SubCategoryClient";
 
 export const dynamic = "force-dynamic";
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
-
 async function getSubCategories() {
   try {
     const token = (await cookies()).get("adminToken")?.value;
-    const response = await fetch(`${API_BASE}api/admin/subCategory/view`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/"}api/admin/subCategory/view`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -38,7 +36,7 @@ async function getSubCategories() {
 async function getCategories() {
   try {
     const token = (await cookies()).get("adminToken")?.value;
-    const response = await fetch(`${API_BASE}api/admin/category/view`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/"}api/admin/category/view`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

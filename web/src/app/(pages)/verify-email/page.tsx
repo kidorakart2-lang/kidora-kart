@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/getAuthToken";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -51,7 +52,7 @@ export default function VerifyEmailPage() {
 
     setIsLoading(true);
     try {
-      const token = Cookies.get("user");
+      const token = getAuthToken();
       const response = await fetch(
         process.env.NEXT_PUBLIC_API_URL + "api/website/user/complete-verify",
         {
@@ -92,7 +93,7 @@ export default function VerifyEmailPage() {
 
     setIsResending(true);
     try {
-      const token = Cookies.get("user");
+      const token = getAuthToken();
       const response = await fetch(
         process.env.NEXT_PUBLIC_API_URL + "api/website/user/verify-user",
         {

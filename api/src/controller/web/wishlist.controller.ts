@@ -89,14 +89,14 @@ export const addToWishlist = asyncHandler(
       await session.abortTransaction();
       console.error("Error in addToWishlist:", error);
       if (error instanceof Error && error.name === "ValidationError") {
-        return fail(res, error.message, 400);
-      }
-      return fail(
-        res,
-        "Failed to add product to wishlist",
-        500,
-        error instanceof Error ? error.message : error,
-      );
+      return fail(res, "Validation failed", 400);
+    }
+    return fail(
+      res,
+      "Failed to add product to wishlist",
+      500,
+      error instanceof Error ? error.message : error,
+    );
     } finally {
       session.endSession();
     }
@@ -154,7 +154,6 @@ export const removeFromWishlist = asyncHandler(
         res,
         "Failed to remove product from wishlist",
         500,
-        error instanceof Error ? error.message : error,
       );
     } finally {
       session.endSession();

@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Cookies from "js-cookie"
 import axios from "axios"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,8 +14,6 @@ import { AlertDialogUse } from "@/components/alert-dialog"
 import { Plus, Pencil, Trash2, Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL
-
 interface FAQ {
   _id: string;
   question: string;
@@ -25,10 +22,7 @@ interface FAQ {
   status: boolean;
 }
 
-const getAuthHeaders = () => ({
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-})
+const AXIOS_CONFIG = { withCredentials: true } as const
 
 function isAxiosError(error: unknown): error is { response?: { data?: { _message?: string } }; message?: string } {
   return typeof error === "object" && error !== null && ("response" in error || "message" in error);
@@ -56,11 +50,9 @@ export default function FAQsPage() {
     setLoading(true)
     try {
       const response = await axios.post(
-        `${API_BASE}api/admin/faq/view`,
+        `/api/admin/faq/view`,
         {},
-        {
-          headers: getAuthHeaders(),
-        }
+        AXIOS_CONFIG
       )
       setFaqs(response.data._data || [])
     } catch (error) {
@@ -94,9 +86,9 @@ export default function FAQsPage() {
 
     try {
       await axios.put(
-        `${API_BASE}api/admin/faq/destroy`,
+        `/api/admin/faq/destroy`,
         { id: faqToDelete },
-        { headers: getAuthHeaders() }
+        AXIOS_CONFIG
       )
       loadFaqs()
       toast({ title: "FAQ deleted successfully" })
@@ -115,9 +107,9 @@ export default function FAQsPage() {
   const handleChangeStatus = async (faq: FAQ) => {
     try {
       const response = await axios.post(
-        `${API_BASE}api/admin/faq/change-status`,
+        `/api/admin/faq/change-status`,
         { id: faq._id },
-        { headers: getAuthHeaders() }
+        AXIOS_CONFIG
       )
 
       if (response.data._status) {
@@ -144,9 +136,9 @@ export default function FAQsPage() {
     try {
       if (editingFaq) {
         const response = await axios.put(
-          `${API_BASE}api/admin/faq/update/${editingFaq._id}`,
+          `/api/admin/faq/update/${editingFaq._id}`,
           formData,
-          { headers: getAuthHeaders() }
+          AXIOS_CONFIG
         )
 
         if (response.data._status) {
@@ -161,9 +153,9 @@ export default function FAQsPage() {
         }
       } else {
         const response = await axios.post(
-          `${API_BASE}api/admin/faq/create`,
+          `/api/admin/faq/create`,
           formData,
-          { headers: getAuthHeaders() }
+          AXIOS_CONFIG
         )
 
         if (response.data._status) {

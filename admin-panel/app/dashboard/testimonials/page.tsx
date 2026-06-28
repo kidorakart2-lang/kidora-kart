@@ -31,17 +31,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Cookies from "js-cookie";
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-const getAuthHeaders = () => ({
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
-
-const getAuthHeadersFormData = () => ({
-  Authorization: `Bearer ${Cookies.get("adminToken")}`,
-});
+const AXIOS_CONFIG = { withCredentials: true } as const;
 
 export default function TestimonialsPage() {
   const [btnLoading, setBtnLoading] = useState(false);
@@ -88,12 +79,10 @@ export default function TestimonialsPage() {
     setLoading(true);
     try {
       const response = await axios.post(
-        `${API_BASE}api/admin/testimonial/view`,
+        `/api/admin/testimonial/view`,
         {},
-        { headers: getAuthHeaders() }
+        AXIOS_CONFIG
       );
-      console.log(response);
-
       setTestimonials(response.data._data || []);
     } catch (error: unknown) {
       toast({
@@ -129,9 +118,9 @@ export default function TestimonialsPage() {
 
     try {
       await axios.put(
-        `${API_BASE}api/admin/testimonial/delete/${testimonialToDelete}`,
+        `/api/admin/testimonial/delete/${testimonialToDelete}`,
         { id: testimonialToDelete },
-        { headers: getAuthHeaders() }
+        AXIOS_CONFIG
       );
       loadTestimonials();
       toast({ title: "Testimonial deleted successfully" });
@@ -150,6 +139,7 @@ export default function TestimonialsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setBtnLoading(true);
     const submitData = new FormData();
     submitData.append("title", formData.title);
     submitData.append("description", formData.description);
@@ -157,63 +147,52 @@ export default function TestimonialsPage() {
     submitData.append("image", formData.image);
     submitData.append("address", formData.address);
 
-    if (editingTestimonial) {
-      setBtnLoading(true);
-      try {
+    try {
+      if (editingTestimonial) {
         await axios.put(
-          `${API_BASE}api/admin/testimonial/update/${editingTestimonial._id}`,
+          `/api/admin/testimonial/update/${editingTestimonial._id}`,
           submitData,
-          { headers: getAuthHeaders() }
+          AXIOS_CONFIG
         );
         loadTestimonials();
         toast({ title: "Testimonial updated successfully" });
-    } catch (error: unknown) {
-      toast({
-        title: "Error updating testimonial",
-        description:
-          (error as any).response?.data?._message || "Failed to update testimonial",
-        variant: "destructive",
-      });
-    }
-    } else {
-      setBtnLoading(true);
-      try {
+      } else {
         await axios.post(
-          `${API_BASE}api/admin/testimonial/create`,
+          `/api/admin/testimonial/create`,
           submitData,
-          {
-            headers: getAuthHeaders(),
-          }
+          AXIOS_CONFIG
         );
         toast({ title: "Testimonial created successfully" });
         loadTestimonials();
+      }
+
+      setDrawerOpen(false);
+      setEditingTestimonial(null);
+      setFormData({
+        title: "",
+        description: "",
+        rating: 5,
+        image: "",
+        address: "",
+      });
     } catch (error: unknown) {
       toast({
-        title: "Error creating testimonial",
+        title: editingTestimonial ? "Error updating testimonial" : "Error creating testimonial",
         description:
-          (error as any).response?.data?._message || "Failed to create testimonial",
+          (error as any).response?.data?._message || "Operation failed",
         variant: "destructive",
       });
+    } finally {
+      setBtnLoading(false);
     }
-    }
-
-    setDrawerOpen(false);
-    setEditingTestimonial(null);
-    setFormData({
-      title: "",
-      description: "",
-      rating: 5,
-      image: "",
-      address: "",
-    });
   };
 
   const changeStatus = async (testimonial: Testimonial) => {
     try {
       await axios.put(
-        `${API_BASE}api/admin/testimonial/change-status/${testimonial._id}`,
+        `/api/admin/testimonial/change-status/${testimonial._id}`,
         { id: testimonial._id },
-        { headers: getAuthHeaders() }
+        AXIOS_CONFIG
       );
       loadTestimonials();
       toast({

@@ -86,8 +86,59 @@ export default async function page({ params, searchParams }: CategoryPageProps) 
   const color = await getColor();
   const material = await getMaterial();
 
+  // Build BreadcrumbList JSON-LD from URL hierarchy
+  const breadcrumbItems = [
+    { "@type": "ListItem", position: 1, name: "Home", item: siteConfig.url },
+  ];
+
+  if (categorySlug) {
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      position: 2,
+      name: categorySlug
+        .replace(/[-0-9]/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase()),
+      item: `${siteConfig.url}/category/${categorySlug}`,
+    });
+  }
+
+  if (subCategorySlug) {
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      position: 3,
+      name: subCategorySlug
+        .replace(/[-0-9]/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase()),
+      item: `${siteConfig.url}/category/${categorySlug}/${subCategorySlug}`,
+    });
+  }
+
+  if (subSubCategorySlug) {
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      position: 4,
+      name: subSubCategorySlug
+        .replace(/[-0-9]/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase()),
+      item: `${siteConfig.url}/category/${categorySlug}/${subCategorySlug}/${subSubCategorySlug}`,
+    });
+  }
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: breadcrumbItems,
+  };
+
   return (
-    <div className="min-h-screen ">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
+      <div className="min-h-screen ">
       <div className="max-w-[100%] mx-auto px-2 md:px-4">
         {/* Premium Version 1: Clean & Elegant */}
         <div className="relative py-5 md:py-10 animate-fadeIn">
@@ -168,5 +219,6 @@ export default async function page({ params, searchParams }: CategoryPageProps) 
         </div>
       </div>
     </div>
+    </>
   );
 }

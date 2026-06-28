@@ -50,14 +50,13 @@ export default function VerifyEmail() {
 
     setIsLoading(true);
     try {
-      const token = Cookies.get("adminToken");
       const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "api/website/user/complete-verify",
+        "/api/website/user/complete-verify",
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             otp,
@@ -91,14 +90,13 @@ export default function VerifyEmail() {
 
     setIsResending(true);
     try {
-      const token = Cookies.get("adminToken");
       const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "api/website/user/verify-user",
+        "/api/website/user/verify-user",
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ email }),
         }
