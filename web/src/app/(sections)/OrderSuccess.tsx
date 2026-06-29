@@ -28,6 +28,7 @@ export default function OrderSuccess() {
   const deliveryOTP = searchParams.get("otp");
   const packageId = searchParams.get("packageId");
   const [order, setOrder] = useState<OrderData | null>(null);
+  const [playAudio, setPlayAudio] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -36,39 +37,44 @@ export default function OrderSuccess() {
     }
   }, [orderId]);
 
-  // Handle audio playback
+  // Handle audio playback — play only after order data resolves (P18)
   useEffect(() => {
-    if (audioRef.current) {
-      // Some browsers require user interaction before playing audio
-      const playAudio = async () => {
-        try {
-          await audioRef.current?.play();
-        } catch (err) {
-        }
-      };
-
-      // Try to play immediately
-      playAudio();
-
-      // Some browsers require user interaction first
-      const handleFirstInteraction = () => {
-        playAudio();
-        window.removeEventListener("click", handleFirstInteraction);
-        window.removeEventListener("keydown", handleFirstInteraction);
-        window.removeEventListener("touchstart", handleFirstInteraction);
-      };
-
-      window.addEventListener("click", handleFirstInteraction);
-      window.addEventListener("keydown", handleFirstInteraction);
-      window.addEventListener("touchstart", handleFirstInteraction);
-
-      return () => {
-        window.removeEventListener("click", handleFirstInteraction);
-        window.removeEventListener("keydown", handleFirstInteraction);
-        window.removeEventListener("touchstart", handleFirstInteraction);
-      };
+    if (order) {
+      setPlayAudio(true);
     }
-  }, []);
+  }, [order]);
+
+  useEffect(() => {
+    if (!audioRef.current) return;
+    // Some browsers require user interaction before playing audio
+    const playAudioNow = async () => {
+      try {
+        await audioRef.current?.play();
+      } catch (err) {
+      }
+    };
+
+    // Try to play immediately
+    playAudioNow();
+
+    // Some browsers require user interaction first
+    const handleFirstInteraction = () => {
+      playAudioNow();
+      window.removeEventListener("click", handleFirstInteraction);
+      window.removeEventListener("keydown", handleFirstInteraction);
+      window.removeEventListener("touchstart", handleFirstInteraction);
+    };
+
+    window.addEventListener("click", handleFirstInteraction);
+    window.addEventListener("keydown", handleFirstInteraction);
+    window.addEventListener("touchstart", handleFirstInteraction);
+
+    return () => {
+      window.removeEventListener("click", handleFirstInteraction);
+      window.removeEventListener("keydown", handleFirstInteraction);
+      window.removeEventListener("touchstart", handleFirstInteraction);
+    };
+  }, [playAudio]);
 
   const loadOrder = async (id: string) => {
     try {
@@ -80,16 +86,18 @@ export default function OrderSuccess() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-b from-green-600 via-white to-gray-50">
-      {/* audio */}
-      <audio
-        ref={audioRef}
-        autoPlay
-        loop={false}
-        onEnded={() => audioRef.current?.pause()}
-      >
-        <source src="/order.mp3" type="audio/mp3" />
-        Your browser does not support the audio element.
-      </audio>
+      {/* audio: lazy loaded (P18) */}
+      {playAudio && (
+        <audio
+          ref={audioRef}
+          autoPlay
+          loop={false}
+          onEnded={() => audioRef.current?.pause()}
+        >
+          <source src="/order.mp3" type="audio/mp3" />
+          Your browser does not support the audio element.
+        </audio>
+      )}
       {/* Top Green Section with Pattern */}
       <div className="absolute top-0 left-0 right-0 h-80 bg-gradient-to-b from-green-600 to-green-500 overflow-hidden">
         <div className="absolute inset-0 opacity-10">

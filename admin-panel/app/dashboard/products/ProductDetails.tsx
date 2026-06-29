@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import ProductReviews from "./product-reviews";
 
-interface ProductData {
+export interface ProductData {
   _id: string;
   name: string;
   image: string;

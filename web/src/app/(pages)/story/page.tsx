@@ -3,26 +3,13 @@ import React from "react";
 import { Sparkles, Users, Award, Package, } from "lucide-react";
 import { defaultMetadata, siteConfig } from "@/lib/utils";
 
-const pageTitle = "Our Journey - The Story of Jewellery Walla";
-const pageDescription = "Discover the inspiring journey of Jewellery Walla - from humble beginnings to becoming Jodhpur's trusted name in exquisite jewelry. Explore our story of passion, craftsmanship, and commitment to quality.";
-
-const keywords = [
-  ...siteConfig.keywords,
-  "jewellery walla story",
-  "jewellery shop journey",
-  "jodhpur jewellery history",
-  "jewellery business success story",
-  "traditional jewellery makers jodhpur",
-  "jewellery walla about us",
-  "jewellery walla journey",
-  "jewellery walla history"
-];
+const pageTitle = `Our Journey - The Story of ${siteConfig.name}`;
+const pageDescription = `Discover the inspiring journey of ${siteConfig.name} - from humble beginnings to becoming ${siteConfig.address.city}'s trusted name in exquisite jewelry. Explore our story of passion, craftsmanship, and commitment to quality.`;
 
 export const metadata = {
   ...defaultMetadata,
   title: pageTitle,
   description: pageDescription,
-  keywords: keywords,
   alternates: {
     canonical: `${siteConfig.url}/story`,
   },
@@ -100,7 +87,7 @@ const milestones = [
   },
   {
     year: "Present",
-    title: "Jewellery Walla Born",
+    title: `${siteConfig.name} Born`,
     description:
       "With 10 years of jewellery expertise, we opened our store in Jhalamand, combining retail, manufacturing, and customization.",
     icon: Sparkles,

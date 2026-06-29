@@ -353,6 +353,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
         href={`/product-details/${data.slug}`}
         aria-label={`View details for ${data.name}`}
         title={data.name}
+        prefetch={false}
       >
         <div
           className="relative h-64 sm:h-72 bg-gradient-to-br from-amber-50 to-slate-50 overflow-hidden"
@@ -424,7 +425,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
         )}
 
         {/* Product Name */}
-        <Link href={`/product-details/${data.slug}`}>
+        <Link href={`/product-details/${data.slug}`} prefetch={false}>
           <motion.h3
             className="text-base sm:text-lg font-semibold text-slate-900 mb-3 line-clamp-2 
                      group-hover:text-amber-700 transition-colors cursor-pointer leading-tight"

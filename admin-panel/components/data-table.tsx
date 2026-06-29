@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, Suspense, type ReactNode } from "react";
+import { useEffect, useState, useCallback, Suspense, lazy, type ReactNode } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import {
   Table,
@@ -28,13 +28,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { subMonths } from "date-fns";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+
+const CalendarComponent = lazy(() =>
+  import("@/components/ui/calendar").then((m) => ({ default: m.Calendar })),
+);
 
 export type BaseItem = {
   _id?: number | string;
@@ -237,23 +240,25 @@ function DataTableContent<T extends BaseItem>({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <CalendarComponent
-                    mode="single"
-                    selected={new Date(dateFilter.year, dateFilter.month)}
-                    onSelect={(date: Date | undefined) => {
-                      if (date) {
-                        setDateFilter((prev) => ({
-                          ...prev,
-                          month: date.getMonth(),
-                          year: date.getFullYear(),
-                        }));
-                      }
-                    }}
-                    initialFocus
-                    defaultMonth={new Date(dateFilter.year, dateFilter.month)}
-                    toMonth={new Date()}
-                    className="rounded-md border"
-                  />
+                  <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Loading calendar...</div>}>
+                    <CalendarComponent
+                      mode="single"
+                      selected={new Date(dateFilter.year, dateFilter.month)}
+                      onSelect={(date: Date | undefined) => {
+                        if (date) {
+                          setDateFilter((prev) => ({
+                            ...prev,
+                            month: date.getMonth(),
+                            year: date.getFullYear(),
+                          }));
+                        }
+                      }}
+                      initialFocus
+                      defaultMonth={new Date(dateFilter.year, dateFilter.month)}
+                      toMonth={new Date()}
+                      className="rounded-md border"
+                    />
+                  </Suspense>
                 </PopoverContent>
               </Popover>
             )}

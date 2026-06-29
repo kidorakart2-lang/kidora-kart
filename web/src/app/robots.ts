@@ -1,6 +1,7 @@
+import { siteConfig } from "@/lib/utils";
+
 export default function robots() {
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://jewellerywalla.com";
+  const siteUrl = siteConfig.url;
 
   return {
     rules: [
@@ -9,7 +10,6 @@ export default function robots() {
         allow: "/",
         disallow: ["/admin/", "/api/"],
       },
-      // Block AI training bots
       {
         userAgent: "Amazonbot",
         disallow: "/",
@@ -42,8 +42,20 @@ export default function robots() {
         userAgent: "meta-externalagent",
         disallow: "/",
       },
+      {
+        userAgent: "ImagesiftBot",
+        disallow: "/",
+      },
+      {
+        userAgent: "OAI-SearchBot",
+        disallow: "/",
+      },
+      {
+        userAgent: "PerplexityBot",
+        disallow: "/",
+      },
     ],
-    sitemap: `https://jewellerywalla.com/sitemap.xml`,
+    sitemap: `${siteUrl}/sitemap.xml`,
     host: siteUrl.replace(/\/$/, ""),
   };
 }

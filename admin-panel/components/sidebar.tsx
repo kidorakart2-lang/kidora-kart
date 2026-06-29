@@ -22,6 +22,7 @@ import {
   Menu,
   Bot,
   House,
+  History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -38,6 +39,7 @@ const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Package, label: "Products", href: "/dashboard/products" },
   { icon: Users, label: "Users", href: "/dashboard/users" },
+  { icon: History, label: "Audit Log", href: "/dashboard/audit-log" },
   { icon: ImageIcon, label: "Logos", href: "/dashboard/logos" },
   { icon: ShoppingCart, label: "Orders", href: "/dashboard/orders" },
   { icon: FolderTree, label: "Categories", href: "/dashboard/categories" },

@@ -90,7 +90,7 @@ export const view = async (
     response.send({
       _status: false,
       _message: "Something Went Wrong",
-      _data: err instanceof Error ? err.message : err,
+      _data: null,
     });
   }
 };
@@ -114,7 +114,7 @@ export const destroy = async (
     response.send({
       _status: false,
       _message: "No Data Deleted",
-      _data: err instanceof Error ? err.message : null,
+      _data: null,
     });
   }
 };
@@ -134,7 +134,7 @@ export const details = async (
     response.send({
       _status: false,
       _message: "No Data Found",
-      _data: err instanceof Error ? err.message : null,
+      _data: null,
     });
   }
 };
@@ -176,7 +176,7 @@ export const update = async (
     response.send({
       _status: false,
       _message: "No Data Updated",
-      _data: err instanceof Error ? err.message : null,
+      _data: null,
     });
   }
 };
@@ -201,7 +201,7 @@ export const changeStatus = async (
     response.send({
       _status: false,
       _message: "Status Not Changed",
-      _data: err instanceof Error ? err.message : null,
+      _data: null,
     });
   }
 };

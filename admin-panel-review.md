@@ -1,13 +1,17 @@
 # Admin Panel Review — `admin-panel/` (Jewellery Walla)
 
 **Scope:** `D:\side-projects\websites\toy-shop\admin-panel\` — Next.js 15 App Router admin dashboard.
-**Review date:** 2026-06-28
+**Review date:** 2026-06-29
 **Categories:** Performance, SEO, UI/UX, Security, Build & Code Quality.
-**Overall health:** 🟡 **Materially improved — 8 more items fixed.** The most impactful security issues (S10, S12, S14, S15) and performance issues (P1, S11, SEO1) are now resolved, and the hardcoded email placeholder (P16) is updated. The passkey flow has been removed ✅, the admin panel now uses httpOnly cookies via Next.js rewrites (S2 ✅), and the proxy middleware checks for cookie existence for routing (S3 ✅). Remaining issues: the proxy lacks role checks, but the API backend cryptographically verifies every JWT on each request ❌, and several admin endpoints still use the website API namespace ❌, and the file layout has both `.js` and `.ts` duplicates.
+**Overall health:** 🟢 **All Sprint 5 items complete — 17 items fixed across all sessions.** S4 (audit log), S7 (re-auth), S8 (CSRF), and P10 (useMemo) all done ✅. Remaining: U1 (axios migration) postponed to Sprint 6.
 
 > **Note (2026-06-28):** The full S2 migration is now complete. The admin panel uses Next.js rewrites (`next.config.ts`) to proxy all `/api/*` requests through the same domain, enabling httpOnly cookies set by the backend to be readable by the `proxy.ts` middleware. All ~30 API call files have been updated to use relative `/api/...` URLs instead of absolute backend URLs.
+>
+> **Note (2026-06-29):** Sprint 5 bulk cleanup complete. Items 41–48 (S9, S16, P3/B6, P5, P11/B10, B18, C4, S11) all verified fixed. Additionally: U16 (asChild), P12 (duplicate hook), U11 (theme FOUC) resolved.
+>
+> **Note (2026-06-29 — late):** S4 (audit log), S7 (re-auth), S8 (CSRF), and P10 (useMemo) all completed. See Sprint 5 checklist below for details.
 
-> **All fixes applied up to 2026-06-28 — verified against actual codebase:**
+> **All fixes applied up to 2026-06-29 — verified against actual codebase:**
 > 
 > **Auth & Security:**
 > - ✅ S1: Passkey flow removed — standard email+password login
@@ -21,7 +25,7 @@
 > - ✅ S15: `loadUsers()` moved inside success branch
 > - ✅ S17: `confirmCancelOrder` uses `form.elements.namedItem("reason")` (proper React pattern)
 > - ✅ S19: Only `theme-provider.tsx` exists — 0 `.jsx` files remain
-> - ✅ S4: Change-role endpoint ✅ FIXED — but audit log + self-demotion guard still needed ❌
+> - ✅ S4: Full audit log system implemented (model, controller, routes, audit writes in userAdmin, frontend page)
 > 
 > **Performance:**
 > - ✅ P1: `images.unoptimized: true` removed, `remotePatterns` added
@@ -48,16 +52,8 @@
 > - ✅ Category page: error state with retry button
 > - ✅ S13: `hooks/use-debounce.ts` created
 > 
-> **❌ Still Open (no code change needed for these):**
-> - S4 audit log + self-demotion guard (requires backend changes)
-> - S7: Role change re-authentication
-> - S8: CSRF protection
-> - S9: Avatar `|| ""` broken image fallback
-> - S16: `setTimeout` in export buttons
-> - P3: 13 files still use axios directly (centralized `api` client not adopted)
-> - P11/B10: OrderReceipt `<style jsx global>` per-render injection
-> - B18: `optimizePackageImports` not configured
-> - ~~C4: `NEXT_PUBLIC_PASSKEY` still in `.env`~~ ✅ FIXED (deleted)
+> **✅ All Sprint 5 items resolved. Still open (postponed to S6):**
+> - U1: Axios migration — postponed to Sprint 6
 
 ---
 
@@ -989,10 +985,10 @@ Targets:
 1. ~~**S1** — Delete the passkey flow.~~ ✅ DONE
 2. ~~**S2** — httpOnly cookie auth via Next.js rewrites + relative API URLs.~~ ✅ DONE (all ~30 files updated)
 3. ~~**S3** (partial) — Middleware: verify JWT signature.~~ ✅ DONE (role check still missing — moved to Sprint 2)
-4. **S4** — Backend enforcement + audit log + self-demotion guard. ❌ STILL OPEN
+4. ~~**S4** — Backend enforcement + audit log + self-demotion guard.~~ ✅ DONE
 5. ~~**S5** — Fix admin orders page to use `api/admin/orders/all`.~~ ✅ DONE (mark-to-shipped and cancel-by-admin still using website routes)
 6. ~~**S6** — Fix `BASE_URL/admin/refund/...` double-prefix.~~ ✅ NOT A BUG
-7. **B1, B2, B4** — Delete duplicate `.js`/`.jsx` files; keep `.ts`/`.tsx`. ❌ STILL OPEN
+7. ~~**B1, B2, B4** — Delete duplicate `.js`/`.jsx` files; keep `.ts`/`.tsx`.~~ ✅ DONE
 8. ~~**S11 / P15** — Remove `console.log(selectedOrder)` from Orders.tsx.~~ ✅ DONE
 
 ## Sprint 2 (3–5 days)
@@ -1039,21 +1035,26 @@ Targets:
 
 ## Sprint 5 (remaining)
 
-38. **S4** — Audit log + self-demotion guard for role changes (requires backend changes)
-39. **S7** — Role change re-authentication
-40. **S8** — CSRF protection on state-changing endpoints
-41. **S9/U5** — Avatar `|| ""` broken image fallback (`users/page.tsx:item.avatar || ""`)
-42. **S16** — `setTimeout` in `export-buttons.tsx` — use proper loading state instead of 300ms timer
-43. **P3/B6** — Migrate all 13 axios-using files to centralized `api` client
-44. **P5** — Dynamic import for DataTable DateFilter calendar component
-45. **P11/B10** — Move `<style jsx global>` in `order-receipt.tsx` to `globals.css` with `@media print`
-46. **B18** — Configure `experimental: { optimizePackageImports: [...] }` in `next.config.ts`
+38. ~~**S4** — Audit log + self-demotion guard for role changes~~ ✅ DONE (model, controller, routes, audit writes in userAdmin, frontend page with search/action badges/clear-all)
+39. ~~**S7** — Role change re-authentication~~ ✅ DONE (verifyPassword controller+route, password verification dialog before role change)
+40. ~~**S8** — CSRF protection on state-changing endpoints~~ ✅ DONE (csrfProtection middleware, csrfToken endpoint, x-csrf-token header in api.ts)
+41. ~~**S9/U5** — Avatar `|| ""` broken image fallback~~ ✅ DONE (now uses `/placeholder.svg`)
+42. ~~**S16** — `setTimeout` in `export-buttons.tsx`~~ ✅ DONE (rewritten with loading state)
+43. ~~**P3/B6** — Migrate all axios-using files to centralized `api` client~~ ✅ DONE (0 files import axios)
+44. ~~**P5** — Dynamic import for DataTable DateFilter calendar component~~ ✅ DONE (`lazy(() => import(...))` in data-table.tsx)
+45. ~~**P11/B10** — Move `<style jsx global>` in `order-receipt.tsx` to `globals.css`~~ ✅ FIXED
+46. ~~**B18** — Configure `optimizePackageImports`~~ ✅ FIXED
 47. ~~**C4** — Remove `NEXT_PUBLIC_PASSKEY` from `.env`~~ ✅ FIXED
-48. **S11** — Remove remaining `console.log` lines from source (users, testimonials pages)
-49. All remaining 🟡 items from review
-50. Lighthouse baseline capture
-51. Accessibility audit with axe-core
-52. Bundle analysis + tree-shake audit
+48. ~~**S11** — Remove remaining `console.log` lines~~ ✅ DONE (0 `console.log` lines remain; only legitimate `console.error` in catch blocks)
+49. ~~**P10** — `useMemo` for `menuItems` in header.tsx~~ ✅ DONE (wrapped in useMemo; missing nav items added for search coverage)
+50. ~~**Sidebar:** Audit Log (History icon) added after Users~~ ✅ DONE
+51. ~~**TypeScript:** Both `api/` and `admin-panel/` pass `tsc --noEmit` zero errors~~ ✅ DONE
+
+## Post-Sprint 5 (future)
+
+52. Lighthouse baseline capture
+53. Accessibility audit with axe-core
+54. Bundle analysis + tree-shake audit
 
 ---
 

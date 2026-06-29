@@ -48,6 +48,10 @@ export interface Product {
   status: string;
   createdAt?: string;
   date?: string;
+  image?: string;
+  images?: string[];
+  price?: number;
+  discount_price?: number;
 }
 
 export interface Category {
@@ -73,18 +77,21 @@ export interface SubSubCategory {
 }
 
 export interface MaterialItem {
-  _id?: string;
+  _id: string;
   name: string;
+  order: number;
+  status: boolean;
   description?: string;
-  status: string;
+  slug?: string;
   createdAt?: string;
 }
 
 export interface ColorItem {
-  _id?: string;
+  _id: string;
   name: string;
-  status: string;
-  code?: string;
+  code: string;
+  order: number;
+  status: boolean;
   createdAt?: string;
 }
 
@@ -94,7 +101,7 @@ export interface Testimonial {
   description: string;
   rating: number;
   image?: string;
-  status: string;
+  status: boolean;
   address?: string;
   createdAt?: string;
 }
@@ -105,33 +112,64 @@ export interface WhyChooseUsItem {
   image?: string;
   title: string;
   description: string;
-  status: string;
+  status: boolean;
   createdAt?: string;
 }
 
 export interface Logo {
-  _id?: string;
-  name?: string;
-  image?: string;
-  status: string;
+  _id: string;
+  logo: string;
+  status: boolean;
+  isActive?: boolean;
   createdAt?: string;
 }
 
 export interface Banner {
-  _id?: string;
-  name: string;
-  link?: string;
-  image?: string;
-  status: string;
+  _id: string;
+  description: string;
+  image: string;
+  status: boolean;
+  order?: number;
+  link?: {
+    type: string;
+    target?: string;
+    externalUrl?: string;
+    url?: string;
+    label?: string;
+  } | null;
   createdAt?: string;
 }
 
 export interface FAQ {
-  _id?: string;
+  _id: string;
   question: string;
   answer: string;
-  status: string;
+  order: number;
+  status: boolean;
   createdAt?: string;
+}
+
+export interface SizeItem {
+  _id: string;
+  name: string;
+  order: number;
+  status: boolean;
+}
+
+export interface ProductFAQ {
+  _id: string;
+  productId: string;
+  productName?: string;
+  question: string;
+  answer: string;
+  order: number;
+  status: boolean;
+}
+
+export interface LinkOption {
+  _id: string;
+  name: string;
+  slug: string;
 }
 
 export interface Review {

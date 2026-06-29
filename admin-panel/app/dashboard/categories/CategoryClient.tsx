@@ -12,8 +12,8 @@ import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { Plus, Edit, Trash2, FolderTree, Loader2 } from "lucide-react";
 
-const JSON_CONTENT = { "Content-Type": "application/json" } as const;
 import { useToast } from "@/hooks/use-toast";
+import { api, ApiClientError } from "@/lib/api";
 
 
 interface Category {
@@ -31,74 +31,23 @@ interface FormState {
 
 
 const fetchCategories = async (): Promise<Category[]> => {
-  const response = await fetch(`/api/admin/category/view`, {
-    method: "POST",
-    headers: JSON_CONTENT,
-    credentials: "include",
-    body: JSON.stringify({}),
-  });
-  if (!response.ok) throw new Error("Error loading categories");
-  const data = await response.json();
-  return data._data || data;
+  return api.post<Category[]>("/api/admin/category/view", {});
 };
 
 const createCategory = async (formData: FormData) => {
-  const response = await fetch(`/api/admin/category/create`, {
-    method: "POST",
-
-    credentials: "include",
-    body: formData,
-  });
-  const data = await response.json();
-  if (!response.ok || data._status === false) {
-    throw new Error(data._message || data.message || "Error creating category");
-  }
-  return data;
+  return api.post("/api/admin/category/create", formData);
 };
 
 const updateCategory = async ({ id, formData }: { id: string; formData: FormData }) => {
-  const response = await fetch(`/api/admin/category/update/${id}`, {
-    method: "PUT",
-
-    credentials: "include",
-    body: formData,
-  });
-  const data = await response.json();
-  if (!response.ok || data._status === false) {
-    throw new Error(data._message || data.message || "Error updating category");
-  }
-  return data;
+  return api.put("/api/admin/category/update/" + id, formData);
 };
 
 const deleteCategory = async (id: string) => {
-  const response = await fetch(`/api/admin/category/delete/${id}`, {
-    method: "PUT",
-    headers: JSON_CONTENT,
-    credentials: "include",
-    body: JSON.stringify({ id }),
-  });
-  const data = await response.json();
-  if (!response.ok && !data._status) {
-    throw new Error(data._message || "Error deleting category");
-  }
-  return data;
+  return api.del("/api/admin/category/delete/" + id);
 };
 
 const changeCategoryStatus = async (id: string) => {
-  const response = await fetch(
-    `/api/admin/category/change-status/${id}`,
-    {
-      method: "PUT",
-      headers: JSON_CONTENT,
-      credentials: "include",
-      body: JSON.stringify({ id }),
-    }
-  );
-  const data = await response.json();
-  if (!response.ok || data._status === false) {
-    throw new Error(data._message || "Error changing status");
-  }
-  return data;
+  return api.put("/api/admin/category/change-status/" + id);
 };
 
 export default function CategoriesClient({ initialCategories = [] }: { initialCategories?: Category[] }) {

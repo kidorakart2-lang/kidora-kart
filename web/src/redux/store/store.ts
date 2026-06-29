@@ -27,7 +27,7 @@ export type RootState = ReturnType<typeof rootReducer>;
 const persistConfig: PersistConfig<RootState> = {
   key: "root",
   storage: storageSession,
-  whitelist: ["auth", "cart", "wishlist", "filters"],
+  whitelist: ["cart"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

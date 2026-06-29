@@ -18,20 +18,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Drawer } from "@/components/drawer";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import axios from "axios";
+import { api, ApiClientError } from "@/lib/api";
+import type { Logo } from "@/lib/types";
 
-interface Logo {
-  _id: string;
-  logo: string;
-  status: boolean;
-  isActive?: boolean;
-}
-
-const AXIOS_CONFIG = { withCredentials: true } as const;
-
-function isAxiosError(error: unknown): error is { response?: { data?: { _message?: string } } } {
-  return typeof error === "object" && error !== null && "response" in error;
-}
 
 export default function LogosPage() {
   const [btnLoading, setBtnLoading] = useState(false);
@@ -54,16 +43,12 @@ export default function LogosPage() {
   const loadLogos = async () => {
     setLoading(true);
     try {
-      const response = await axios.post(
-        `/api/admin/logo/view`,
-        {},
-        AXIOS_CONFIG
-      );
-      setLogos(response.data._data || []);
+      const data = await api.post<Logo[]>("/api/admin/logo/view", {});
+      setLogos(data ?? []);
     } catch (error) {
       toast({
         title: "Error loading logos",
-        description: isAxiosError(error) ? error.response?.data?._message || "Failed to load logos" : "Failed to load logos",
+        description: error instanceof ApiClientError ? error.message : "Failed to load logos",
         variant: "destructive",
       });
     } finally {
@@ -101,14 +86,10 @@ export default function LogosPage() {
     try {
       setBtnLoading(true);
       if (editingLogo) {
-        await axios.put(
-          `/api/admin/logo/update/${editingLogo._id}`,
-          submitData,
-          AXIOS_CONFIG
-        );
+        await api.put(`/api/admin/logo/update/${editingLogo._id}`, submitData);
         toast({ title: "Logo updated successfully" });
       } else {
-        await axios.post(`/api/admin/logo/create`, submitData, AXIOS_CONFIG);
+        await api.post("/api/admin/logo/create", submitData);
         toast({ title: "Logo added successfully" });
       }
       setDrawerOpen(false);
@@ -117,7 +98,7 @@ export default function LogosPage() {
     } catch (error) {
       toast({
         title: `Error ${editingLogo ? "updating" : "adding"} logo`,
-        description: isAxiosError(error) ? error.response?.data?._message || "An error occurred" : "An error occurred",
+        description: error instanceof ApiClientError ? error.message : "An error occurred",
         variant: "destructive",
       });
     } finally {
@@ -143,17 +124,13 @@ export default function LogosPage() {
     if (!logoToDelete) return;
 
     try {
-      await axios.put(
-        `/api/admin/logo/destroy/${logoToDelete}`,
-        { id: logoToDelete },
-        AXIOS_CONFIG
-      );
+      await api.put(`/api/admin/logo/destroy/${logoToDelete}`, { id: logoToDelete });
       loadLogos();
       toast({ title: "Logo deleted successfully" });
     } catch (error) {
       toast({
         title: "Error deleting logo",
-        description: isAxiosError(error) ? error.response?.data?._message || "Failed to delete logo" : "Failed to delete logo",
+        description: error instanceof ApiClientError ? error.message : "Failed to delete logo",
         variant: "destructive",
       });
     } finally {
@@ -164,11 +141,7 @@ export default function LogosPage() {
 
   const toggleStatus = async (logo: Logo) => {
     try {
-      await axios.post(
-        `/api/admin/logo/change-status`,
-        { id: logo._id },
-        AXIOS_CONFIG
-      );
+      await api.post("/api/admin/logo/change-status", { id: logo._id });
       loadLogos();
       toast({
         title: `Logo ${
@@ -178,7 +151,7 @@ export default function LogosPage() {
     } catch (error) {
       toast({
         title: "Error updating logo status",
-        description: isAxiosError(error) ? error.response?.data?._message || "Failed to update status" : "Failed to update status",
+        description: error instanceof ApiClientError ? error.message : "Failed to update status",
         variant: "destructive",
       });
     }

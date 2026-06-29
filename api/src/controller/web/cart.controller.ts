@@ -118,10 +118,19 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
       return productMatch && sizeA === sizeB;
     });
 
+    const newQty = existingItemIndex > -1
+      ? (cart.items[existingItemIndex]?.quantity ?? 0) + (quantity ?? 1)
+      : (quantity ?? 1);
+
+    if (product.stock < newQty) {
+      await session.abortTransaction();
+      return fail(res, "Insufficient stock", 400, { availableStock: product.stock });
+    }
+
     if (existingItemIndex > -1) {
       const existingItem = cart.items[existingItemIndex];
       if (existingItem) {
-        existingItem.quantity = (existingItem.quantity ?? 0) + (quantity ?? 1);
+        existingItem.quantity = newQty;
       }
     } else {
       cart.items.push({

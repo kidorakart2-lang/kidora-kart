@@ -12,66 +12,29 @@ import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { Plus, Pencil, Trash2, Ruler } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import axios, { AxiosError } from "axios";
-
-interface SizeItem {
-  _id: string;
-  name: string;
-  order: number;
-  status: boolean;
-}
-
-const AXIOS_CONFIG = { withCredentials: true } as const;
+import { api, ApiClientError } from "@/lib/api";
+import type { SizeItem } from "@/lib/types";
 
 // API functions
-const fetchSizes = async () => {
-  const response = await axios.post(
-    `/api/admin/size/view`,
-    {},
-    AXIOS_CONFIG
-  );
-  return response.data._data || [];
+const fetchSizes = async (): Promise<SizeItem[]> => {
+  const data = await api.post<SizeItem[]>("/api/admin/size/view", {});
+  return data ?? [];
 };
 
 const createSize = async (data: { name: string; order: number }) => {
-  const response = await axios.post(`/api/admin/size/create`, data, AXIOS_CONFIG);
-  if (!response.data._status) {
-    throw new Error(response.data._message || "Error creating size");
-  }
-  return response.data;
+  return api.post("/api/admin/size/create", data);
 };
 
 const updateSize = async ({ id, data }: { id: string; data: { name: string; order: number } }) => {
-  const response = await axios.put(
-    `/api/admin/size/update/${id}`,
-    data,
-    AXIOS_CONFIG
-  );
-  if (!response.data._status) {
-    throw new Error(response.data._message || "Error updating size");
-  }
-  return response.data;
+  return api.put(`/api/admin/size/update/${id}`, data);
 };
 
 const deleteSize = async (id: string) => {
-  const response = await axios.put(
-    `/api/admin/size/destroy`,
-    { id },
-    AXIOS_CONFIG
-  );
-  return response.data;
+  return api.put("/api/admin/size/destroy", { id });
 };
 
 const changeSizeStatus = async (id: string) => {
-  const response = await axios.post(
-    `/api/admin/size/change-status`,
-    { id },
-    AXIOS_CONFIG
-  );
-  if (!response.data._status) {
-    throw new Error(response.data._message || "Error updating size status");
-  }
-  return response.data;
+  return api.post("/api/admin/size/change-status", { id });
 };
 
 export default function SizesPage() {
@@ -139,10 +102,9 @@ export default function SizesPage() {
       setItemToDelete(null);
     },
     onError: (err: Error) => {
-      const axiosError = err as AxiosError<{ _message?: string }>;
       toast({
         title: "Error deleting size",
-        description: axiosError.response?.data?._message || "Failed to delete",
+        description: err instanceof ApiClientError ? err.message : "Failed to delete",
         variant: "destructive",
       });
     },

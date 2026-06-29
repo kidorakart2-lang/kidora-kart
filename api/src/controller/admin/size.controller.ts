@@ -20,6 +20,7 @@ export const create = async (
   try {
     const data = new size(request.body);
     const ress = await data.save();
+    cache.del("sizeData");
 
     response.status(201).json({
       _status: true,
@@ -36,7 +37,6 @@ export const create = async (
       });
       return;
     }
-    cache.del("sizeData");
     response.status(500).json({
       _status: false,
       _message: "Internal Server Error",
@@ -56,11 +56,9 @@ export const view = async (
     const filter: Record<string, unknown> = {};
     if (andCondition.length > 0) filter.$and = andCondition;
 
-    if (request.body != undefined) {
-      if (request.body.name != undefined) {
-        const name = new RegExp(request.body.name, "i");
-        orCondition.push({ name });
-      }
+    if (request.query.name != undefined) {
+      const name = new RegExp(request.query.name as string, "i");
+      orCondition.push({ name });
     }
     if (orCondition.length > 0) filter.$or = orCondition;
 
@@ -75,7 +73,7 @@ export const view = async (
     response.status(500).json({
       _status: false,
       _message: "Something Went Wrong",
-      _data: err instanceof Error ? err.message : err,
+      _data: null,
     });
   }
 };
@@ -116,7 +114,7 @@ export const destroy = async (
     response.status(500).json({
       _status: false,
       _message: "Failed to delete data",
-      _data: err instanceof Error ? err.message : null,
+      _data: null,
     });
   }
 };
@@ -154,7 +152,7 @@ export const details = async (
     response.status(500).json({
       _status: false,
       _message: "Failed to fetch data",
-      _data: err instanceof Error ? err.message : null,
+      _data: null,
     });
   }
 };
@@ -202,7 +200,7 @@ export const update = async (
     response.status(500).json({
       _status: false,
       _message: "Failed to update data",
-      _data: err instanceof Error ? err.message : null,
+      _data: null,
     });
   }
 };
@@ -243,7 +241,7 @@ export const changeStatus = async (
     response.status(500).json({
       _status: false,
       _message: "Failed to change status",
-      _data: err instanceof Error ? err.message : null,
+      _data: null,
     });
   }
 };

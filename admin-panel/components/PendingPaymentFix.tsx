@@ -17,10 +17,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle, RefreshCcw, AlertTriangle } from "lucide-react";
-import axios from "axios";
-
+import { api, ApiClientError } from "@/lib/api";
 
 interface MismatchedOrder {
   orderId: string;
@@ -48,38 +47,31 @@ export default function PendingPaymentFix() {
     try {
       setLoading(true);
       setSearched(false);
-      const response = await axios.post(
-        `/api/admin/orders/verify-pending-payments`,
+      const data = await api.post<{ mismatches: MismatchedOrder[] }>(
+        "/api/admin/orders/verify-pending-payments",
         { time: 48 },
-        {
-          withCredentials: true,
-        },
       );
 
-      if (response.data.success) {
-        setMismatchedOrders(response.data.data?.mismatches || []);
-        setSearched(true);
-        if (response.data.data?.mismatches?.length === 0) {
-          toast({
-            title: "All Good",
-            description:
-              "No mismatched pending payments found in the last 48 hours.",
-          });
-        } else {
-          toast({
-            title: "Issues Found",
-            description: `Found ${response.data.data?.mismatches?.length || 0} orders with payment issues.`,
-            variant: "destructive",
-          });
-        }
+      setMismatchedOrders(data.mismatches || []);
+      setSearched(true);
+      if (data.mismatches?.length === 0) {
+        toast({
+          title: "All Good",
+          description:
+            "No mismatched pending payments found in the last 48 hours.",
+        });
+      } else {
+        toast({
+          title: "Issues Found",
+          description: `Found ${data.mismatches?.length || 0} orders with payment issues.`,
+          variant: "destructive",
+        });
       }
     } catch (error: unknown) {
-      console.error("Error checking payments:", error);
-      const axiosError = error as { response?: { data?: { message?: string } } };
       toast({
         title: "Error",
         description:
-          axiosError.response?.data?.message || "Failed to check pending payments",
+          error instanceof ApiClientError ? error.message : "Failed to check pending payments",
         variant: "destructive",
       });
     } finally {
@@ -90,34 +82,24 @@ export default function PendingPaymentFix() {
   const fixOrder = async (order: MismatchedOrder) => {
     try {
       setVerifying(true);
-      const response = await axios.post(
-        `/api/admin/orders/confirm-pending-payment`,
-        {
-          orderId: order.orderId,
-          paymentId: order.razorpay.paymentId,
-          paymentDate: order.razorpay.createdAt,
-        },
-        {
-          withCredentials: true,
-        },
-      );
+      await api.post("/api/admin/orders/confirm-pending-payment", {
+        orderId: order.orderId,
+        paymentId: order.razorpay.paymentId,
+        paymentDate: order.razorpay.createdAt,
+      });
 
-      if (response.data.success) {
-        toast({
-          title: "Success",
-          description: `Order ${order.orderId} fixed and confirmed! Email sent to user.`,
-        });
-        setMismatchedOrders((prev) =>
-          prev.filter((o) => o.orderId !== order.orderId),
-        );
-      }
+      toast({
+        title: "Success",
+        description: `Order ${order.orderId} fixed and confirmed! Email sent to user.`,
+      });
+      setMismatchedOrders((prev) =>
+        prev.filter((o) => o.orderId !== order.orderId),
+      );
     } catch (error: unknown) {
-      console.error("Error fixing order:", error);
-      const axiosError = error as { response?: { data?: { message?: string } } };
       toast({
         title: "Failed to Fix",
         description:
-          axiosError.response?.data?.message || "Could not update order status",
+          error instanceof ApiClientError ? error.message : "Could not update order status",
         variant: "destructive",
       });
     } finally {

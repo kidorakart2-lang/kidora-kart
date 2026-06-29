@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Star,
   Heart,
@@ -29,6 +29,7 @@ import Breadcrumb from "./Breadcrumb";
 import Personalized from "@/components/product/Personalized";
 import { addToWishlist, removeFromWishlist } from "@/redux/features/wishlist";
 import type { RootState } from "@/redux/store/store";
+import type { ColorItem } from "@/types";
 
 interface ProductFaqItem {
   _id: string;
@@ -62,11 +63,13 @@ function ProductFaqSection({ productId }: { productId: string }) {
     })),
   };
 
+  const jsonLdString = useMemo(() => JSON.stringify(jsonLd), [jsonLd]);
+
   return (
     <section className="mb-12">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdString }}
       />
       <div className="bg-white/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-12 border border-white/80">
         <h2 className="text-3xl font-light text-gray-900 tracking-tight mb-8">
@@ -102,18 +105,8 @@ function ProductFaqSection({ productId }: { productId: string }) {
   );
 }
 
-interface ColorItem {
-  _id: string;
-  name: string;
-  code: string;
-}
-
 interface SizeItem {
   _id: string;
-  name: string;
-}
-
-interface MaterialItem {
   name: string;
 }
 
@@ -135,7 +128,7 @@ interface ProductDetailData {
   short_description?: string;
   rating?: number;
   reviewCount?: number;
-  material?: MaterialItem[];
+  material?: { name: string }[];
   colors?: ColorItem[];
   sizes?: SizeItem[];
   category?: CategoryItem[];

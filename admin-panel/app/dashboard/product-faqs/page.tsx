@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import axios from "axios"
+import { api, ApiClientError } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,16 +14,7 @@ import { ExportButtons } from "@/components/export-buttons"
 import { AlertDialogUse } from "@/components/alert-dialog"
 import { Plus, Pencil, Trash2, Eye, EyeOff, CopyPlus, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-
-interface ProductFAQ {
-  _id: string;
-  productId: string;
-  productName?: string;
-  question: string;
-  answer: string;
-  order: number;
-  status: boolean;
-}
+import type { ProductFAQ } from "@/lib/types"
 
 interface Product {
   _id: string;
@@ -33,11 +24,6 @@ interface Product {
   slug?: string;
 }
 
-const AXIOS_CONFIG = { withCredentials: true } as const
-
-function isAxiosError(error: unknown): error is { response?: { data?: { _message?: string } }; message?: string } {
-  return typeof error === "object" && error !== null && ("response" in error || "message" in error);
-}
 
 export default function ProductFAQsPage() {
   const [faqs, setFaqs] = useState<ProductFAQ[]>([])
@@ -68,16 +54,12 @@ export default function ProductFAQsPage() {
   const loadFaqs = async () => {
     setLoading(true)
     try {
-      const response = await axios.post(
-        `/api/admin/product-faq/view`,
-        {},
-        AXIOS_CONFIG
-      )
-      setFaqs(response.data._data || [])
+      const data = await api.post<ProductFAQ[]>("/api/admin/product-faq/view", {})
+      setFaqs(data ?? [])
     } catch (error) {
       toast({
         title: "Error loading product FAQs",
-        description: isAxiosError(error) ? error.response?.data?._message || "Failed to load" : "Failed to load",
+        description: error instanceof ApiClientError ? error.message : "Failed to load",
         variant: "destructive",
       })
     } finally {
@@ -87,12 +69,8 @@ export default function ProductFAQsPage() {
 
   const loadProducts = async () => {
     try {
-      const response = await axios.post(
-        `/api/admin/product/view`,
-        {},
-        AXIOS_CONFIG
-      )
-      setProducts(response.data._data || [])
+      const data = await api.post<Product[]>("/api/admin/product/view", {})
+      setProducts(data ?? [])
     } catch {
       // silently fail
     }
@@ -136,17 +114,13 @@ export default function ProductFAQsPage() {
     if (!faqToDelete) return
 
     try {
-      await axios.put(
-        `/api/admin/product-faq/destroy`,
-        { id: faqToDelete },
-        AXIOS_CONFIG
-      )
+      await api.put("/api/admin/product-faq/destroy", { id: faqToDelete })
       loadFaqs()
       toast({ title: "Product FAQ deleted successfully" })
     } catch (error) {
       toast({
         title: "Error deleting product FAQ",
-        description: isAxiosError(error) ? error.response?.data?._message || "Failed to delete" : "Failed to delete",
+        description: error instanceof ApiClientError ? error.message : "Failed to delete",
         variant: "destructive",
       })
     } finally {
@@ -157,25 +131,13 @@ export default function ProductFAQsPage() {
 
   const handleChangeStatus = async (faq: ProductFAQ) => {
     try {
-      const response = await axios.post(
-        `/api/admin/product-faq/change-status`,
-        { id: faq._id },
-        AXIOS_CONFIG
-      )
-
-      if (response.data._status) {
-        loadFaqs()
-        toast({ title: "Product FAQ status updated successfully" })
-      } else {
-        toast({
-          title: response.data._message || "Error updating status",
-          variant: "destructive",
-        })
-      }
+      await api.post("/api/admin/product-faq/change-status", { id: faq._id })
+      loadFaqs()
+      toast({ title: "Product FAQ status updated successfully" })
     } catch (error) {
       toast({
         title: "Error updating product FAQ status",
-        description: isAxiosError(error) ? error.response?.data?._message || "Operation failed" : "Operation failed",
+        description: error instanceof ApiClientError ? error.message : "Operation failed",
         variant: "destructive",
       })
     }
@@ -186,22 +148,9 @@ export default function ProductFAQsPage() {
 
     try {
       if (editingFaq) {
-        const response = await axios.put(
-          `/api/admin/product-faq/update/${editingFaq._id}`,
-          formData,
-          AXIOS_CONFIG
-        )
-
-        if (response.data._status) {
-          loadFaqs()
-          toast({ title: "Product FAQ updated successfully" })
-        } else {
-          toast({
-            title: response.data._message || "Error updating",
-            variant: "destructive",
-          })
-          return
-        }
+        await api.put(`/api/admin/product-faq/update/${editingFaq._id}`, formData)
+        loadFaqs()
+        toast({ title: "Product FAQ updated successfully" })
       } else {
         if (selectedProductIds.length === 0) {
           toast({
@@ -223,52 +172,26 @@ export default function ProductFAQsPage() {
 
         if (entries.length === 1) {
           // Single FAQ — use existing bulk-create endpoint
-          const response = await axios.post(
-            `/api/admin/product-faq/bulk-create`,
-            {
-              productIds: selectedProductIds,
-              question: entries[0].question,
-              answer: entries[0].answer,
-              order: entries[0].order,
-            },
-            AXIOS_CONFIG
-          )
-
-          if (response.data._status) {
-            loadFaqs()
-            toast({ title: `${selectedProductIds.length} FAQ(s) created successfully` })
-          } else {
-            toast({
-              title: response.data._message || "Error creating",
-              variant: "destructive",
-            })
-            return
-          }
+          await api.post("/api/admin/product-faq/bulk-create", {
+            productIds: selectedProductIds,
+            question: entries[0].question,
+            answer: entries[0].answer,
+            order: entries[0].order,
+          })
+          loadFaqs()
+          toast({ title: `${selectedProductIds.length} FAQ(s) created successfully` })
         } else {
           // Multiple FAQs — use bulk-create-faqs endpoint
-          const response = await axios.post(
-            `/api/admin/product-faq/bulk-create-faqs`,
-            {
-              productIds: selectedProductIds,
-              faqs: entries.map((e) => ({
-                question: e.question,
-                answer: e.answer,
-                order: e.order,
-              })),
-            },
-            AXIOS_CONFIG
-          )
-
-          if (response.data._status) {
-            loadFaqs()
-            toast({ title: `${response.data._data.length} FAQs created (${entries.length} entries × ${selectedProductIds.length} products)` })
-          } else {
-            toast({
-              title: response.data._message || "Error creating",
-              variant: "destructive",
-            })
-            return
-          }
+          const result = await api.post<any[]>("/api/admin/product-faq/bulk-create-faqs", {
+            productIds: selectedProductIds,
+            faqs: entries.map((e) => ({
+              question: e.question,
+              answer: e.answer,
+              order: e.order,
+            })),
+          })
+          loadFaqs()
+          toast({ title: `${(result || []).length} FAQs created (${entries.length} entries × ${selectedProductIds.length} products)` })
         }
       }
 
@@ -280,7 +203,7 @@ export default function ProductFAQsPage() {
     } catch (error) {
       toast({
         title: `Error ${editingFaq ? "updating" : "creating"} product FAQ`,
-        description: isAxiosError(error) ? error.response?.data?._message || "Operation failed" : "Operation failed",
+        description: error instanceof ApiClientError ? error.message : "Operation failed",
         variant: "destructive",
       })
     }

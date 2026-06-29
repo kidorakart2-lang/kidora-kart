@@ -9,13 +9,14 @@ import {
   Ruler,
   Sparkles,
 } from "lucide-react";
+import { siteConfig } from "@/lib/utils";
 
 const OurPolicy = () => {
   const policies = [
     {
       title: "Quality Assurance",
       description:
-        "At Jewellery Wala, we are committed to providing our customers with the highest quality jewelry. Each piece is carefully crafted and inspected to ensure it meets our strict quality standards before reaching you.",
+        `At ${siteConfig.name}, we are committed to providing our customers with the highest quality jewelry. Each piece is carefully crafted and inspected to ensure it meets our strict quality standards before reaching you.`,
       icon: Shield,
     },
     {
@@ -47,7 +48,7 @@ const OurPolicy = () => {
           </h1>
           <div className="w-16 h-0.5 bg-amber-600 mb-4"></div>
           <p className="text-slate-600 text-base leading-relaxed">
-            At Jewellery Wala, we are committed to providing you with an
+            At {siteConfig.name}, we are committed to providing you with an
             exceptional shopping experience. Here's how we ensure your
             satisfaction at every step.
           </p>

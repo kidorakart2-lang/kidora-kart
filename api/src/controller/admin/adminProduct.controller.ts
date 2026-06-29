@@ -3,9 +3,10 @@ import Product from "../../models/product.js";
 import mongoose from "mongoose";
 import Category from "../../models/category.js";
 import SubCategory from "../../models/subCategory.js";
+import { logger } from "../../lib/logger.js";
 import SubSubCategory from "../../models/subSubCategory.js";
 import Size from "../../models/size.js";
-import { uploadToR2 } from "../../lib/cloudflare.js";
+import { uploadToR2, deleteFromR2 } from "../../lib/cloudflare.js";
 import { generateUniqueSlug } from "../../lib/slugFunc.js";
 import cache from "../../lib/cache.js";
 
@@ -190,7 +191,7 @@ export const view = async (
   } catch (err) {
     response.send({
       _status: false,
-      _message: err instanceof Error ? err.message : "Something went wrong",
+      _message: "Something went wrong",
       _data: [],
     });
   }
@@ -222,7 +223,12 @@ export const getOne = async (
     }
 
     if (!product) {
-      throw new Error("Product not found");
+      response.status(404).send({
+        _status: false,
+        _message: "Product not found",
+        _data: null,
+      });
+      return;
     }
 
     response.send({
@@ -231,9 +237,9 @@ export const getOne = async (
       _data: product,
     });
   } catch (err) {
-    response.send({
+    response.status(500).send({
       _status: false,
-      _message: err instanceof Error ? err.message : "Something went wrong",
+      _message: "Something went wrong",
       _data: null,
     });
   }
@@ -248,9 +254,22 @@ export const update = async (
     const updateData: Record<string, unknown> = { ...request.body };
     const removeImagesUrl: string[] = (updateData.removeImagesUrl as string[]) ?? [];
 
-    const existingProduct = await Product.findById(id);
+    const existingProduct = await Product.findOne({ _id: id, deletedAt: null });
     if (!existingProduct) {
       throw new Error("Product not found");
+    }
+
+    // #29: Delete removed images from Cloudflare R2
+    const R2_CDN_BASE = "https://cdn.jewellerywalla.com/";
+    if (removeImagesUrl.length > 0) {
+      for (const imageUrl of removeImagesUrl) {
+        if (typeof imageUrl === "string" && imageUrl.startsWith(R2_CDN_BASE)) {
+          const fileName = imageUrl.slice(R2_CDN_BASE.length);
+          deleteFromR2(fileName).catch((err) =>
+            logger.error({ err, fileName }, "Failed to delete R2 image"),
+          );
+        }
+      }
     }
 
     const filesObj = request.files as unknown as Record<string, Express.Multer.File[]> | undefined;
@@ -439,7 +458,7 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
   } catch (err) {
     res.send({
       _status: false,
-      _message: err instanceof Error ? err.message : "Something went wrong",
+      _message: "Something went wrong",
       _data: null,
     });
   }
@@ -452,29 +471,30 @@ export const changeStatus = async (
   try {
     const { id } = req.params;
 
-    const product = await Product.updateMany(
-      { _id: id },
-      [{ $set: { status: { $not: "$status" } } }],
-    );
-
+    const product = await Product.findById(id);
     if (!product) {
-      res.send({
+      res.status(404).json({
         _status: false,
         _message: "Product not found",
         _data: null,
       });
       return;
     }
+
+    // Toggle the boolean status field
+    product.status = !product.status;
+    await product.save();
+
     invalidateProductCaches();
-    res.send({
+    res.status(200).json({
       _status: true,
       _message: "Product status changed successfully",
       _data: product,
     });
   } catch (err) {
-    res.send({
+    res.status(500).json({
       _status: false,
-      _message: err instanceof Error ? err.message : "Something went wrong",
+      _message: "Internal Server Error",
       _data: null,
     });
   }
@@ -539,7 +559,7 @@ export const getByCategory = async (
   } catch (err) {
     response.send({
       _status: false,
-      _message: err instanceof Error ? err.message : "Something went wrong",
+      _message: "Something went wrong",
       _data: [],
     });
   }
@@ -603,7 +623,7 @@ export const getProductByFilter = async (
   } catch (err) {
     response.send({
       _status: false,
-      _message: err instanceof Error ? err.message : "Something went wrong",
+      _message: "Something went wrong",
       _data: [],
     });
   }
@@ -634,7 +654,7 @@ export const updateStock = async (
   } catch (err) {
     response.send({
       _status: false,
-      _message: err instanceof Error ? err.message : "Something went wrong",
+      _message: "Something went wrong",
       _data: null,
     });
   }

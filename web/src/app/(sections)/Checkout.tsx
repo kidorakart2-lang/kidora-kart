@@ -37,44 +37,7 @@ import { getAuthToken } from "@/lib/getAuthToken";
 import { openLoginModal } from "@/redux/features/uiSlice";
 import type { CheckoutFormData, OrderSummaryCartItem } from "@/types";
 
-const INDIAN_STATES = [
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chhattisgarh",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
-  "Tamil Nadu",
-  "Telangana",
-  "Tripura",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
-  "Andaman and Nicobar Islands",
-  "Chandigarh",
-  "Dadra and Nagar Haveli and Daman and Diu",
-  "Delhi",
-  "Jammu and Kashmir",
-  "Ladakh",
-  "Lakshadweep",
-  "Puducherry",
-];
+import { INDIAN_STATES, siteConfig } from "@/lib/utils";
 
 export default function Checkout() {
   const searchParams = useSearchParams();
@@ -255,6 +218,8 @@ export default function Checkout() {
     return new Promise((resolve) => {
       const script = document.createElement("script");
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.integrity = "sha256-L9w8qlNCXlkRrlUpJyTgpXeVuSZh/NP6l4R1liGYkYs=";
+      script.crossOrigin = "anonymous";
       script.onload = () => resolve(true);
       script.onerror = () => resolve(false);
       document.body.appendChild(script);
@@ -488,7 +453,7 @@ export default function Checkout() {
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <span className="text-gray-500 text-sm">+91</span>
+                      <span className="text-gray-500 text-sm">{siteConfig.contact.countryCode}</span>
                     </div>
                     <input
                       type="tel"

@@ -29,7 +29,7 @@ import {
   Gift,
   Sparkle,
 } from "lucide-react";
-import axios from "axios";
+import { api, ApiClientError } from "@/lib/api";
 import type { WhyChooseUsItem } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -77,18 +77,12 @@ export default function WhyChooseUsPage() {
   const loadWhyChooseUs = async () => {
     setLoading(true);
     try {
-      const response = await axios.post(
-        `/api/admin/whyChooseUs/view`,
-        {},
-        { withCredentials: true }
-      );
-
-      setWhyChooseUsArray(response.data._data || []);
-    } catch (error: any) {
+      const data = await api.post<WhyChooseUsItem[]>("/api/admin/whyChooseUs/view", {});
+      setWhyChooseUsArray(data ?? []);
+    } catch (error) {
       toast({
         title: "Error loading Why Choose Us",
-        description:
-          error.response?.data?._message || "Failed to load Why Choose Us",
+        description: error instanceof ApiClientError ? error.message : "Failed to load Why Choose Us",
         variant: "destructive",
       });
     } finally {
@@ -126,27 +120,13 @@ export default function WhyChooseUsPage() {
     if (!whyChooseUsToDelete) return;
 
     try {
-      const response = await axios.put(
-        `/api/admin/whyChooseUs/delete/${whyChooseUsToDelete}`,
-        { id: whyChooseUsToDelete },
-        { withCredentials: true }
-      );
-      if (!response.data._status) {
-        toast({
-          title: "Error deleting Why Choose Us",
-          description:
-            response.data._message || "Failed to delete Why Choose Us",
-          variant: "destructive",
-        });
-        return;
-      }
+      await api.put(`/api/admin/whyChooseUs/delete/${whyChooseUsToDelete}`, { id: whyChooseUsToDelete });
       loadWhyChooseUs();
       toast({ title: "Why Choose Us deleted successfully" });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error deleting Why Choose Us",
-        description:
-          error.response?.data?._message || "Failed to delete Why Choose Us",
+        description: error instanceof ApiClientError ? error.message : "Failed to delete Why Choose Us",
         variant: "destructive",
       });
     } finally {
@@ -174,27 +154,13 @@ export default function WhyChooseUsPage() {
     if (editingWhyChooseUs) {
       setBtnLoading(true);
       try {
-        const response = await axios.put(
-          `/api/admin/whyChooseUs/update/${editingWhyChooseUs._id}`,
-          submitData,
-          { withCredentials: true }
-        );
-        if (!response.data._status) {
-          toast({
-            title: "Error updating Why Choose Us",
-            description:
-              response.data._message || "Failed to update Why Choose Us",
-            variant: "destructive",
-          });
-          return;
-        }
+        await api.put(`/api/admin/whyChooseUs/update/${editingWhyChooseUs._id}`, submitData);
         loadWhyChooseUs();
         toast({ title: "Why Choose Us updated successfully" });
-      } catch (error: any) {
+      } catch (error) {
         toast({
           title: "Error updating Why Choose Us",
-          description:
-            error.response?.data?._message || "Failed to update Why Choose Us",
+          description: error instanceof ApiClientError ? error.message : "Failed to update Why Choose Us",
           variant: "destructive",
         });
       } finally {
@@ -203,27 +169,13 @@ export default function WhyChooseUsPage() {
     } else {
       setBtnLoading(true);
       try {
-        const response = await axios.post(
-          `/api/admin/whyChooseUs/create`,
-          submitData,
-          { withCredentials: true }
-          );
-          if (!response.data._status) {
-            toast({
-              title: "Error creating Why Choose Us",
-            description:
-              response.data._message || "Failed to create Why Choose Us",
-            variant: "destructive",
-          });
-          return;
-        }
+        await api.post("/api/admin/whyChooseUs/create", submitData);
         toast({ title: "Why Choose Us created successfully" });
         loadWhyChooseUs();
-      } catch (error: any) {
+      } catch (error) {
         toast({
           title: "Error creating Why Choose Us",
-          description:
-            error.response?.data?._message || "Failed to create Why Choose Us",
+          description: error instanceof ApiClientError ? error.message : "Failed to create Why Choose Us",
           variant: "destructive",
         });
       } finally {
@@ -237,31 +189,17 @@ export default function WhyChooseUsPage() {
 
   const changeStatus = async (whyChooseUs: WhyChooseUsItem) => {
     try {
-      const response = await axios.put(
-        `/api/admin/whyChooseUs/change-status/${whyChooseUs._id}`,
-        { id: whyChooseUs._id },
-        { withCredentials: true }
-      );
-      if (!response.data._status) {
-        toast({
-          title: "Error updating Why Choose Us status",
-          description:
-            response.data._message || "Failed to update status",
-          variant: "destructive",
-        });
-        return;
-      }
+      await api.put(`/api/admin/whyChooseUs/change-status/${whyChooseUs._id}`, { id: whyChooseUs._id });
       loadWhyChooseUs();
       toast({
         title: `why Choose Us ${
           whyChooseUs.status ? "deactivated" : "activated"
         } successfully`,
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error updating Why Choose Us status",
-        description:
-          error.response?.data?._message || "Failed to update status",
+        description: error instanceof ApiClientError ? error.message : "Failed to update status",
         variant: "destructive",
       });
     }

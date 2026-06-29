@@ -4,9 +4,7 @@
 body[data-scroll-locked] {
   margin-right: 0px !important;
 }
-html {
-  scroll-behavior: smooth;
-}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -276,6 +274,15 @@ img {
   user-select: none;
 }
 
+@media print {
+  header, footer, .no-print { display: none !important; }
+  body { color: #000; background: #fff; font-size: 12pt; }
+  a[href]:after { content: " (" attr(href) ")"; font-size: 10pt; }
+  a[href^="#"]:after, a[href^="javascript:"]:after { content: ""; }
+  img { max-width: 100% !important; page-break-inside: avoid; }
+  h1, h2, h3 { page-break-after: avoid; }
+}
+
 ::selection {
   background-color: gold; /* Use the color name 'gold' or a specific hex code like #FFD700 */
   color: #000000; /* Optional: Set the text color to black for high contrast */
@@ -367,3 +374,197 @@ body[data-scroll-lock="true"] {
   }
 }
 /* /////////////// */
+
+/* Slider animations — moved from Slider.tsx inline <style jsx> (P9) */
+@keyframes sliderFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slider-fadeIn {
+  animation: sliderFadeIn 0.8s ease-out forwards;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.jewelry-swiper {
+  padding: 20px 0;
+}
+
+.delay-700 {
+  animation-delay: 700ms;
+}
+
+/* Contact.tsx — moved from <style jsx> (P9) */
+@keyframes anim-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes anim-slide-left {
+  from { transform: translateX(-20px); }
+  to { transform: translateX(0); }
+}
+
+@keyframes anim-slide-right {
+  from { transform: translateX(20px); }
+  to { transform: translateX(0); }
+}
+
+@keyframes anim-slide-top {
+  from { transform: translateY(-10px); }
+  to { transform: translateY(0); }
+}
+
+.anim-fill-both {
+  animation-fill-mode: both;
+}
+
+.anim-name-fade-in {
+  animation-name: anim-fade-in;
+}
+
+.anim-name-slide-left {
+  animation-name: anim-slide-left, anim-fade-in;
+}
+
+.anim-name-slide-right {
+  animation-name: anim-slide-right, anim-fade-in;
+}
+
+.anim-name-slide-top {
+  animation-name: anim-slide-top, anim-fade-in;
+}
+
+.anim-duration-500 {
+  animation-duration: 500ms;
+}
+
+.anim-duration-700 {
+  animation-duration: 700ms;
+}
+
+/* Profile.tsx — moved from <style jsx> (P9) */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+/* About.tsx & Story.tsx — moved from <style jsx> (P9) */
+@keyframes shimmer-diagonal {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.8) 50%, transparent 70%);
+  animation: shimmer-diagonal 3s infinite;
+}
+
+.liquid-glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+}
+
+.liquid-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 1);
+}
+
+.glass-icon {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(240, 240, 255, 0.9));
+  box-shadow: 0 4px 16px rgba(31, 38, 135, 0.2), inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+/* PhoneNumberModal.tsx — moved from <style jsx> (P9) */
+@keyframes phone-modal-in {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes phone-modal-out {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100%); }
+}
+
+.animate-phone-modal-in {
+  animation: phone-modal-in 0.3s ease-out forwards;
+}
+
+.animate-phone-modal-out {
+  animation: phone-modal-out 0.3s ease-out forwards;
+}
+
+/* FilterSidebar.tsx — moved from <style jsx global> (P9) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: linear-gradient(to bottom, #fef3c7, #fde68a);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #d97706, #f59e0b, #fbbf24);
+  border-radius: 10px;
+  border: 2px solid #fef3c7;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #b45309, #d97706, #f59e0b);
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #f59e0b #fef3c7;
+}

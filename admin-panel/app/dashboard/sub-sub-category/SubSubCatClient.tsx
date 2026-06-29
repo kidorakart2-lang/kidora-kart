@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api, ApiClientError } from "@/lib/api";
+import type { Category } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +16,7 @@ import { Plus, Edit, Trash2, FolderTree, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import NewMultiSelect from "../../../components/NewMultiSelect";
 
-interface SubSubCategoryItem {
+export interface SubSubCategoryItem {
   _id: string;
   name?: string;
   image?: string;
@@ -23,99 +25,29 @@ interface SubSubCategoryItem {
 }
 
 // API functions
-const fetchSubCategories = async () => {
-  const response = await fetch(`/api/admin/subCategory/view`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
-  });
-  if (!response.ok) throw new Error("Failed to load sub categories");
-  const data = await response.json();
-  return data._data || data;
+const fetchSubCategories = async (): Promise<Category[]> => {
+  return api.post<Category[]>("/api/admin/subCategory/view", {});
 };
 
 const fetchSubSubCategories = async () => {
-  const response = await fetch(`/api/admin/subSubCategory/view`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
-  });
-  if (!response.ok) throw new Error("Failed to load sub sub categories");
-  const data = await response.json();
-  return Array.isArray(data?._data)
-    ? data._data
-    : Array.isArray(data)
-    ? data
-    : [];
+  const data = await api.post("/api/admin/subSubCategory/view", {});
+  return Array.isArray(data) ? data : [];
 };
 
 const createSubSubCategory = async (formData: FormData) => {
-  const response = await fetch(`/api/admin/subSubCategory/create`, {
-    method: "POST",
-    credentials: "include",
-    body: formData,
-  });
-  const data = await response.json();
-  if (!response.ok || data._status === false) {
-    throw new Error(
-      data._message || data.message || "Error creating sub sub category"
-    );
-  }
-  return data;
+  return api.post("/api/admin/subSubCategory/create", formData);
 };
 
 const updateSubSubCategory = async ({ id, formData }: { id: string; formData: FormData }) => {
-  const response = await fetch(
-    `/api/admin/subSubCategory/update/${id}`,
-    {
-      method: "PUT",
-      credentials: "include",
-      body: formData,
-    }
-  );
-  const data = await response.json();
-  if (!response.ok || data._status === false) {
-    throw new Error(
-      data._message || data.message || "Error updating sub sub category"
-    );
-  }
-  return data;
+  return api.put(`/api/admin/subSubCategory/update/${id}`, formData);
 };
 
 const deleteSubSubCategory = async (id: string) => {
-  const response = await fetch(
-    `/api/admin/subSubCategory/delete/${id}`,
-    {
-      method: "PUT",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    }
-  );
-  const data = await response.json();
-  if (!response.ok || data._status === false) {
-    throw new Error(data._message || "Error deleting sub sub category");
-  }
-  return data;
+  return api.put(`/api/admin/subSubCategory/delete/${id}`, { id });
 };
 
 const changeSubSubCategoryStatus = async (id: string) => {
-  const response = await fetch(
-    `/api/admin/subSubCategory/change-status/${id}`,
-    {
-      method: "PUT",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    }
-  );
-  const data = await response.json();
-  if (!response.ok || data._status === false) {
-    throw new Error(data._message || "Error changing status");
-  }
-  return data;
+  return api.put(`/api/admin/subSubCategory/change-status/${id}`, { id });
 };
 
 export default function SubSubCategoriesClient({

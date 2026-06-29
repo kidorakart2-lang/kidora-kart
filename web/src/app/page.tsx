@@ -24,25 +24,11 @@ const FullVideoSection = dynamic(() => import("./(sections)/video"), {
 });
 
 export const metadata = {
-  title: `Jewellery Walla in Jodhpur | Best Gold & Silver Jewellery Shop | ${siteConfig.name}`,
-  description: `Best Jewellery Walla in Jodhpur - ${siteConfig.name} offers exquisite collection of Gold, Silver, Diamond & Polki jewellery. Visit our store in Jodhpur for traditional & modern designs. Free Shipping & Lifetime Exchange.`,
-  keywords: [
-    "jewelry vala",
-    "Jewellery Walla Jodhpur",
-    "Best Jewellery Shop in Jodhpur",
-    "Gold Jewellery Jodhpur",
-    "Silver Jewellery Jodhpur",
-    "Diamond Jewellery Jodhpur",
-    "Traditional Jewellery Jodhpur",
-    "Jewellery Store Near Me",
-    "Jodhpur Jewellery Market",
-    "Jewellery Wholesale Jodhpur",
-    "Bridal Jewellery Jodhpur",
-    ...siteConfig.keywords,
-  ].join(", "),
+  title: `${siteConfig.name} in ${siteConfig.address.city} | Best Gold & Silver Jewellery Shop | ${siteConfig.name}`,
+  description: `Best ${siteConfig.name} in ${siteConfig.address.city} - ${siteConfig.name} offers exquisite collection of Gold, Silver, Diamond & Polki jewellery. Visit our store in ${siteConfig.address.city} for traditional & modern designs. Free Shipping & Lifetime Exchange.`,
   openGraph: {
-    title: `Jewellery Walla in Jodhpur | Best Gold & Silver Jewellery | ${siteConfig.name}`,
-    description: `Discover the finest collection of traditional and contemporary jewellery at ${siteConfig.name}, the leading Jewellery Walla in Jodhpur. Best prices on Gold, Silver, Diamond & Polki jewellery.`,
+    title: `${siteConfig.name} in ${siteConfig.address.city} | Best Gold & Silver Jewellery | ${siteConfig.name}`,
+    description: `Discover the finest collection of traditional and contemporary jewellery at ${siteConfig.name}, the leading ${siteConfig.name} in ${siteConfig.address.city}. Best prices on Gold, Silver, Diamond & Polki jewellery.`,
     url: siteConfig.url,
     siteName: siteConfig.name,
     images: [
@@ -67,8 +53,8 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `Jewellery Walla in Jodhpur | ${siteConfig.name} | Best Jewellery Store`,
-    description: `Explore our exclusive collection of Gold, Silver & Diamond jewellery in Jodhpur. Best prices & latest designs at ${siteConfig.name}. Visit us today!`,
+    title: `${siteConfig.name} in ${siteConfig.address.city} | ${siteConfig.name} | Best Jewellery Store`,
+    description: `Explore our exclusive collection of Gold, Silver & Diamond jewellery in ${siteConfig.address.city}. Best prices & latest designs at ${siteConfig.name}. Visit us today!`,
     images: [`${siteConfig.url}/og-image.jpg`],
   },
   alternates: {
@@ -97,7 +83,7 @@ const jsonLd = {
   "@type": "JewelryStore",
   name: siteConfig.name,
   image: `${siteConfig.url}/og-image.jpg`,
-  description: `Best Jewellery Walla in Jodhpur offering Gold, Silver, Diamond & Polki jewellery. Visit our store in Jodhpur for traditional & modern designs.`,
+  description: `Best ${siteConfig.name} in ${siteConfig.address.city} offering Gold, Silver, Diamond & Polki jewellery. Visit our store in ${siteConfig.address.city} for traditional & modern designs.`,
   url: siteConfig.url,
   telephone: siteConfig.contact.phone,
   address: {

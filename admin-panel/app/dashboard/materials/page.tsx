@@ -13,135 +13,50 @@ import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { Plus, Pencil, Trash2, Palette, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import axios from "axios";
-
-interface MaterialItem {
-  _id: string;
-  name: string;
-  order: number;
-  status: boolean;
-  description?: string;
-  slug?: string;
-}
-
-interface ColorItem {
-  _id: string;
-  name: string;
-  code: string;
-  order: number;
-  status: boolean;
-}
-
-interface MutationError {
-  message: string;
-  response?: { data?: { _message?: string } };
-}
-
-const AXIOS_CONFIG = { withCredentials: true } as const;
+import { api, ApiClientError } from "@/lib/api";
+import type { MaterialItem, ColorItem } from "@/lib/types";
 
 // API functions
 const fetchMaterials = async (): Promise<MaterialItem[]> => {
-  const response = await axios.post(
-    `/api/admin/material/view`,
-    {},
-    AXIOS_CONFIG
-  );
-  return response.data._data || [];
+  const data = await api.post<MaterialItem[]>("/api/admin/material/view", {});
+  return data ?? [];
 };
 
 const fetchColors = async (): Promise<ColorItem[]> => {
-  const response = await axios.post(
-    `/api/admin/color/view`,
-    {},
-    AXIOS_CONFIG
-  );
-  return response.data._data || [];
+  const data = await api.post<ColorItem[]>("/api/admin/color/view", {});
+  return data ?? [];
 };
 
 const createMaterial = async (data: Record<string, unknown>) => {
-  const response = await axios.post(
-    `/api/admin/material/create`,
-    data,
-    AXIOS_CONFIG
-  );
-  if (!response.data._status) {
-    throw new Error(response.data._message || "Error creating material");
-  }
-  return response.data;
+  return api.post("/api/admin/material/create", data);
 };
 
 const updateMaterial = async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
-  const response = await axios.put(
-    `/api/admin/material/update/${id}`,
-    data,
-    AXIOS_CONFIG
-  );
-  if (!response.data._status) {
-    throw new Error(response.data._message || "Error updating material");
-  }
-  return response.data;
+  return api.put(`/api/admin/material/update/${id}`, data);
 };
 
 const deleteMaterial = async (id: string) => {
-  const response = await axios.put(
-    `/api/admin/material/destroy`,
-    { id },
-    AXIOS_CONFIG
-  );
-  return response.data;
+  return api.put("/api/admin/material/destroy", { id });
 };
 
 const changeMaterialStatus = async (id: string) => {
-  const response = await axios.post(
-    `/api/admin/material/change-status`,
-    { id },
-    AXIOS_CONFIG
-  );
-  if (!response.data._status) {
-    throw new Error(response.data._message || "Error updating material status");
-  }
-  return response.data;
+  return api.post("/api/admin/material/change-status", { id });
 };
 
 const createColor = async (data: Record<string, unknown>) => {
-  const response = await axios.post(`/api/admin/color/create`, data, AXIOS_CONFIG);
-  if (!response.data._status) {
-    throw new Error(response.data._message || "Error creating color");
-  }
-  return response.data;
+  return api.post("/api/admin/color/create", data);
 };
 
 const updateColor = async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
-  const response = await axios.put(
-    `/api/admin/color/update/${id}`,
-    data,
-    AXIOS_CONFIG
-  );
-  if (!response.data._status) {
-    throw new Error(response.data._message || "Error updating color");
-  }
-  return response.data;
+  return api.put(`/api/admin/color/update/${id}`, data);
 };
 
 const deleteColor = async (id: string) => {
-  const response = await axios.put(
-    `/api/admin/color/destroy`,
-    { id },
-    AXIOS_CONFIG
-  );
-  return response.data;
+  return api.put("/api/admin/color/destroy", { id });
 };
 
 const changeColorStatus = async (id: string) => {
-  const response = await axios.post(
-    `/api/admin/color/change-status`,
-    { id },
-    AXIOS_CONFIG
-  );
-  if (!response.data._status) {
-    throw new Error(response.data._message || "Error updating color status");
-  }
-  return response.data;
+  return api.post("/api/admin/color/change-status", { id });
 };
 
 export default function MaterialsColorsPage() {
@@ -212,10 +127,10 @@ export default function MaterialsColorsPage() {
       setDeleteDialogOpen(false);
       setItemToDelete(null);
     },
-    onError: (error: MutationError) => {
+    onError: (error: Error) => {
       toast({
         title: "Error deleting material",
-        description: error.response?.data?._message || "Failed to delete",
+        description: error instanceof ApiClientError ? error.message : "Failed to delete",
         variant: "destructive",
       });
     },
@@ -268,10 +183,10 @@ export default function MaterialsColorsPage() {
       setDeleteDialogOpen(false);
       setItemToDelete(null);
     },
-    onError: (error: MutationError) => {
+    onError: (error: Error) => {
       toast({
         title: "Error deleting color",
-        description: error.response?.data?._message || "Failed to delete",
+        description: error instanceof ApiClientError ? error.message : "Failed to delete",
         variant: "destructive",
       });
     },

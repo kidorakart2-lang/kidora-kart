@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import Razorpay from "razorpay";
 import { env } from "../../config/env.js";
 import { sendEmail } from "../../lib/nodemailer.js";
+import { logger } from "../../lib/logger.js";
 
 const razorpay = new Razorpay({
   key_id: env.RAZORPAY_KEY_ID,
@@ -55,7 +56,7 @@ const fetchRazorpayRefundStatus = async (
 
     return { error: "No refunds found for this payment" };
   } catch (error) {
-    console.error("Razorpay refund fetch error:", error);
+    logger.error(error, "Razorpay refund fetch error");
     const rzpErr = error as { error?: { description?: string } };
     return {
       error:
@@ -136,7 +137,7 @@ export const getRefundedOrdersForAdmin = async (
       },
     });
   } catch (error) {
-    console.error("Error fetching refunded orders:", error);
+    logger.error(error, "Error fetching refunded orders");
     res.status(500).json({
       success: false,
       message: "Failed to fetch refunded orders",
@@ -222,7 +223,7 @@ export const verifyRefundStatus = async (
       },
     });
   } catch (error) {
-    console.error("Error verifying refund status:", error);
+    logger.error(error, "Error verifying refund status");
     res.status(500).json({
       success: false,
       message: "Failed to verify refund status",
@@ -308,7 +309,7 @@ export const updateRefundStatus = async (
           resolvedRefundAmount = razorpayStatus.amount;
         }
       } else {
-        console.warn("Razorpay verification failed:", razorpayStatus.error);
+        logger.warn({ error: razorpayStatus.error }, "Razorpay verification failed");
       }
     }
 
@@ -357,7 +358,7 @@ export const updateRefundStatus = async (
       verified: !skipVerification,
     });
   } catch (error) {
-    console.error("Error updating refund status:", error);
+    logger.error(error, "Error updating refund status");
     res.status(500).json({
       success: false,
       message: "Failed to update refund status",
@@ -453,7 +454,7 @@ export const syncRefundStatusesFromRazorpay = async (
       data: results,
     });
   } catch (error) {
-    console.error("Error syncing refund statuses:", error);
+    logger.error(error, "Error syncing refund statuses");
     res.status(500).json({
       success: false,
       message: "Failed to sync refund statuses",
@@ -489,20 +490,94 @@ export const bulkUpdateRefundStatus = async (
       return;
     }
 
-    const bulkUpdate: Record<string, unknown> = {
-      "cancellation.refundStatus": refundStatus,
+    const updateAll = async () => {
+      const bulkUpdate: Record<string, unknown> = {
+        "cancellation.refundStatus": refundStatus,
+      };
+
+      if (refundStatus === "completed") {
+        bulkUpdate["cancellation.refundedAt"] = new Date();
+        bulkUpdate["status"] = "refunded";
+        bulkUpdate["payment.status"] = "refunded";
+      }
+
+      return Order.updateMany(
+        { _id: { $in: orderIds } },
+        { $set: bulkUpdate },
+      );
     };
 
     if (refundStatus === "completed") {
-      bulkUpdate["cancellation.refundedAt"] = new Date();
-      bulkUpdate["status"] = "refunded";
-      bulkUpdate["payment.status"] = "refunded";
+      const orders = await Order.find({
+        _id: { $in: orderIds },
+      }).lean();
+
+      const updatedIds: string[] = [];
+      const verifiedOrders: typeof orders = [];
+
+      for (const order of orders) {
+        const o = order as unknown as {
+          _id: string;
+          payment?: { razorpay?: { paymentId?: string } };
+          cancellation?: { refundId?: string };
+        };
+        const paymentId = o.payment?.razorpay?.paymentId;
+        const refundId = o.cancellation?.refundId;
+
+        const rzpStatus = await fetchRazorpayRefundStatus(paymentId, refundId);
+
+        if (!rzpStatus.error && rzpStatus.status && mapRazorpayStatus(rzpStatus.status) === "completed") {
+          verifiedOrders.push(order);
+          updatedIds.push(o._id.toString());
+        } else {
+          logger.warn(
+            {
+              orderId: (order as Record<string, unknown>).orderId,
+              paymentId,
+              refundId,
+              razorpayError: rzpStatus.error,
+              razorpayStatus: rzpStatus.status,
+            },
+            "Refund verification failed for order — skipping",
+          );
+        }
+      }
+
+      if (updatedIds.length === 0) {
+        res.status(200).json({
+          success: true,
+          message: "No orders verified — none had matching Razorpay refunds",
+          data: { matched: 0, modified: 0, skipped: orders.length, verified: 0 },
+        });
+        return;
+      }
+
+      const result = await Order.updateMany(
+        { _id: { $in: updatedIds } },
+        {
+          $set: {
+            "cancellation.refundStatus": "completed",
+            "cancellation.refundedAt": new Date(),
+            status: "refunded",
+            "payment.status": "refunded",
+          },
+        },
+      );
+
+      res.status(200).json({
+        success: true,
+        message: `Verified ${verifiedOrders.length}/${orders.length} orders, updated ${result.modifiedCount}`,
+        data: {
+          matched: result.matchedCount,
+          modified: result.modifiedCount,
+          skipped: orders.length - verifiedOrders.length,
+          verified: verifiedOrders.length,
+        },
+      });
+      return;
     }
 
-    const result = await Order.updateMany(
-      { _id: { $in: orderIds } },
-      { $set: bulkUpdate },
-    );
+    const result = await updateAll();
 
     res.status(200).json({
       success: true,
@@ -513,7 +588,7 @@ export const bulkUpdateRefundStatus = async (
       },
     });
   } catch (error) {
-    console.error("Error in bulk update:", error);
+    logger.error(error, "Error in bulk update");
     res.status(500).json({
       success: false,
       message: "Failed to bulk update refund status",
@@ -564,7 +639,7 @@ export const delieverOrder = async (
       data: order,
     });
   } catch (error) {
-    console.error("Error marking order as delivered:", error);
+    logger.error(error, "Error marking order as delivered");
     res.status(500).json({
       success: false,
       message: "Failed to mark order as delivered",
@@ -628,9 +703,9 @@ export const verifyPendingPayments = async (
           }
         }
       } catch (rzpError) {
-        console.error(
-          `Error fetching Razorpay payments for order ${(order as { orderId: string }).orderId}:`,
-          rzpError instanceof Error ? rzpError.message : rzpError,
+        logger.error(
+          { orderId: (order as { orderId: string }).orderId, error: rzpError instanceof Error ? rzpError.message : rzpError },
+          "Error fetching Razorpay payments for order",
         );
       }
     }
@@ -645,7 +720,7 @@ export const verifyPendingPayments = async (
       },
     });
   } catch (error) {
-    console.error("Error verifying pending payments:", error);
+    logger.error(error, "Error verifying pending payments");
     res.status(500).json({
       success: false,
       message: "Failed to verify pending payments",
@@ -693,6 +768,33 @@ export const confirmPendingPayment = async (
       return;
     }
 
+    // Verify payment actually exists on Razorpay before confirming
+    if (order.payment?.razorpay?.paymentId) {
+      try {
+        const payment = await razorpay.payments.fetch(order.payment.razorpay.paymentId);
+        if (payment.status !== "captured") {
+          res.status(400).json({
+            success: false,
+            message: `Payment is not captured (status: ${payment.status}). Cannot confirm order.`,
+          });
+          return;
+        }
+      } catch (razorpayError) {
+        logger.error(razorpayError, "Razorpay verification failed for confirmPendingPayment");
+        res.status(502).json({
+          success: false,
+          message: "Failed to verify payment with Razorpay",
+        });
+        return;
+      }
+    } else if (!paymentId) {
+      res.status(400).json({
+        success: false,
+        message: "Payment ID is required when no Razorpay payment exists on the order",
+      });
+      return;
+    }
+
     order.status = "confirmed";
     if (!order.payment) {
       order.payment = {
@@ -732,7 +834,7 @@ export const confirmPendingPayment = async (
         });
       }
     } catch (emailError) {
-      console.error("Failed to send order confirmation email:", emailError);
+      logger.error(emailError, "Failed to send order confirmation email");
     }
 
     res.status(200).json({
@@ -741,7 +843,7 @@ export const confirmPendingPayment = async (
       data: order,
     });
   } catch (error) {
-    console.error("Error confirming pending payment:", error);
+    logger.error(error, "Error confirming pending payment");
     res.status(500).json({
       success: false,
       message: "Failed to confirm payment",

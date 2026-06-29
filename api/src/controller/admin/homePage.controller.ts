@@ -13,7 +13,7 @@ export const get = async (_req: Request, res: Response): Promise<void> => {
     }
     success(res, page, "Home page fetched");
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Server error", 500);
+    fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -36,7 +36,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
     cache.del(CACHE_KEY);
     success(res, page, "Home page updated");
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Failed to update", 500);
+    fail(res, "Failed to update home page", 500);
   }
 };
 
@@ -59,7 +59,7 @@ export const addSection = async (req: Request, res: Response): Promise<void> => 
     const added = page!.sections[page!.sections.length - 1];
     success(res, { section: added, page }, "Section added");
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Failed to add section", 500);
+    fail(res, "Failed to add section", 500);
   }
 };
 
@@ -83,7 +83,7 @@ export const updateSection = async (req: Request, res: Response): Promise<void> 
     cache.del(CACHE_KEY);
     success(res, page, "Section updated");
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Failed to update section", 500);
+    fail(res, "Failed to update section", 500);
   }
 };
 
@@ -102,6 +102,6 @@ export const removeSection = async (req: Request, res: Response): Promise<void> 
     cache.del(CACHE_KEY);
     success(res, page, "Section removed");
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Failed to remove section", 500);
+    fail(res, "Failed to remove section", 500);
   }
 };

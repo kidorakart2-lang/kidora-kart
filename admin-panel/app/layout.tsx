@@ -4,6 +4,7 @@ import { GeistMono } from 'geist/font/mono'
 import { Toaster } from "@/components/ui/toaster"
 import './globals.css'
 import QueryProvider from './QueryProvider'
+import { ThemeProvider } from '@/components/theme-provider'
 
 export const metadata: Metadata = {
   title: 'Jewellery walla admin dashboard',
@@ -17,9 +18,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <QueryProvider>{children}</QueryProvider>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          <QueryProvider>{children}</QueryProvider>
+        </ThemeProvider>
         <Toaster />
       </body>
     </html>

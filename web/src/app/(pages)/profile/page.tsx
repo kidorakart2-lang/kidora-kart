@@ -4,7 +4,7 @@ import { siteConfig, defaultMetadata } from "@/lib/utils";
 
 export function generateMetadata() {
   const baseTitle = "My Account";
-  const baseDescription = "Manage your jewellery preferences, orders, and personal information at Jewellery Wala.";
+  const baseDescription = `Manage your jewellery preferences, orders, and personal information at ${siteConfig.name}.`;
 
   return {
     ...defaultMetadata,
@@ -13,24 +13,6 @@ export function generateMetadata() {
       template: `%s | ${siteConfig.name}`,
     },
     description: baseDescription,
-    keywords: [
-      ...siteConfig.keywords,
-      "jewellery wala",
-      "my account",
-      "account settings",
-      "order history",
-      "jewellery preferences",
-      "wishlist",
-      "address book",
-      "profile management",
-      "jewellery account",
-      "personal information",
-      "account security",
-      "login",
-      "sign in",
-      "jewellery collection",
-      "favorite items"
-    ],
     openGraph: {
       ...defaultMetadata.openGraph,
       title: `${baseTitle} | ${siteConfig.name}`,

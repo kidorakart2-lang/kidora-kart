@@ -7,6 +7,16 @@ const config = {
   exclude: ["/server-sitemap.xml", "/admin/*", "/api/*"],
   generateIndexSitemap: true,
   outDir: "public",
+  additionalPaths: async () => [
+    { loc: "/about-us", changefreq: "monthly", priority: 0.6 },
+    { loc: "/contact-us", changefreq: "monthly", priority: 0.6 },
+    { loc: "/faq", changefreq: "weekly", priority: 0.7 },
+    { loc: "/story", changefreq: "monthly", priority: 0.5 },
+    { loc: "/our-policy", changefreq: "monthly", priority: 0.5 },
+    { loc: "/order-track", changefreq: "weekly", priority: 0.5 },
+    { loc: "/cart", changefreq: "never", priority: 0.3 },
+    { loc: "/checkout", changefreq: "never", priority: 0.3 },
+  ],
 };
 
 module.exports = config;

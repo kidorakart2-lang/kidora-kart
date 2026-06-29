@@ -25,6 +25,8 @@ export type {
   DirectPurchaseItem,
   OrderSummaryCartItem,
   NavigationData,
+  ColorItem,
+  MaterialItem,
 } from "./product";
 
 export type {

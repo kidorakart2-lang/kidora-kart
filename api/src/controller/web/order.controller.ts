@@ -6,7 +6,10 @@ import Product from "../../models/product.js";
 import Cart from "../../models/cart.js";
 import User from "../../models/user.js";
 import { sendEmail } from "../../lib/nodemailer.js";
+import { hashOtp } from "../../lib/jwt.js";
 import { env } from "../../config/env.js";
+import { logger } from "../../lib/logger.js";
+import { enqueue } from "../../lib/jobQueue.js";
 
 interface RefundResponse {
   id: string;
@@ -26,7 +29,7 @@ const razorpay = new Razorpay({
 
 // Generate 6-digit OTP (cryptographically secure)
 const generateOTP = (): string => {
-  return String(crypto.randomInt(100000, 999999));
+  return String(crypto.randomInt(100000, 1000000));
 };
 
 const generatePackageId = (): string => {
@@ -101,18 +104,11 @@ export const createOrder = async (
       return;
     }
 
-    if (idempotencyKey) {
-      const existingOrder = await Order.findOne({ idempotencyKey, userId });
-      if (existingOrder) {
-        res.status(200).json({
-          success: true,
-          message: "Order already created",
-          order: {
-            orderId: existingOrder.orderId,
-            _id: existingOrder._id,
-            total: existingOrder.pricing?.total,
-          },
-        });
+    // Validate shipping address
+    const requiredAddressFields = ["fullName", "phone", "email", "area", "street", "city", "state", "pincode"];
+    for (const field of requiredAddressFields) {
+      if (!shippingAddress || !shippingAddress[field as keyof typeof shippingAddress]) {
+        res.status(400).json({ success: false, message: `Shipping address "${field}" is required` });
         return;
       }
     }
@@ -231,10 +227,35 @@ export const createOrder = async (
       ? Math.max(100, Math.round(subtotal * 0.1))
       : 0;
 
+    let orderHash: string | undefined;
+    if (idempotencyKey) {
+      const cartItemsString = JSON.stringify(orderItems.map(i => ({ product: String(i.productId), quantity: i.quantity })));
+      orderHash = crypto.createHash("sha256").update(cartItemsString).digest("hex");
+
+      const existingOrder = await Order.findOne({ idempotencyKey, userId });
+      if (existingOrder) {
+        if (existingOrder.idempotencyHash && existingOrder.idempotencyHash !== orderHash) {
+          res.status(409).json({ success: false, message: "Cart contents have changed since idempotency key was created" });
+          return;
+        }
+        res.status(200).json({
+          success: true,
+          message: "Order already created",
+          order: {
+            orderId: existingOrder.orderId,
+            _id: existingOrder._id,
+            total: existingOrder.pricing?.total,
+          },
+        });
+        return;
+      }
+    }
+
     const order = new Order({
       userId,
       purchaseType,
       idempotencyKey,
+      idempotencyHash: orderHash,
       items: orderItems,
       pricing: {
         subtotal,
@@ -295,7 +316,7 @@ export const createOrder = async (
       },
     });
 
-    setImmediate(async () => {
+    enqueue(async () => {
       try {
         const user = await User.findById(userId);
         if (!user) return;
@@ -322,11 +343,11 @@ export const createOrder = async (
         if (!user.address.area) user.address.area = shippingAddress.area;
         await user.save();
       } catch (error) {
-        console.error("Error updating user details:", error);
+        logger.error(error, "Error updating user details");
       }
     });
   } catch (error) {
-    console.error("Create Order Error:", error);
+    logger.error(error, "Create Order Error");
     res.status(500).json({
       success: false,
       message: "Failed to create order",           error: "Internal Server Error",
@@ -363,6 +384,17 @@ export const createRazorpayOrder = async (
       return;
     }
 
+    if (order.payment?.razorpay?.orderId) {
+      res.status(200).json({
+        success: true,
+        razorpayOrderId: order.payment.razorpay.orderId,
+        amount: order.pricing?.total,
+        currency: "INR",
+        keyId: env.RAZORPAY_KEY_ID,
+      });
+      return;
+    }
+
     const options = {
       amount: isCodAdvance
         ? (order.pricing?.advance ?? 0) * 100
@@ -396,7 +428,7 @@ export const createRazorpayOrder = async (
       keyId: env.RAZORPAY_KEY_ID,
     });
   } catch (error) {
-    console.error("Create Razorpay Order Error:", error);
+    logger.error(error, "Create Razorpay Order Error");
     res.status(500).json({
       success: false,
       message: "Failed to create Razorpay order",           error: "Internal Server Error",
@@ -454,7 +486,7 @@ export const verifyPayment = async (
         orderTotal: `₹${order.pricing?.total}`,
         contactEmail: env.MY_GMAIL,
       }).catch((err) =>
-        console.error("Failed to send payment failure email:", err),
+        logger.error(err, "Failed to send payment failure email"),
       );
 
       res.status(400).json({
@@ -472,6 +504,7 @@ export const verifyPayment = async (
       ) as { status: string };
     } catch {
       // If fetch fails, continue with normal flow — the signature check already passed
+      logger.warn({ razorpay_payment_id }, "Razorpay payment fetch failed, continuing with signature verification only");
     }
     if (razorpayPaymentState && razorpayPaymentState.status !== "captured" && razorpayPaymentState.status !== "authorized") {
       res.status(400).json({ success: false, message: "Payment not captured" });
@@ -516,13 +549,47 @@ export const verifyPayment = async (
       order.notes = {};
     }
     // P18: Store OTP hash — not plaintext
-    const { hashOtp: hashOtpFn } = await import("../../lib/jwt.js");
-    order.notes.internal = `Delivery OTP hash: ${hashOtpFn(deliveryOTP)}`;
+    order.notes.internal = `Delivery OTP hash: ${hashOtp(deliveryOTP)}`;
 
     const packageId = generatePackageId();
     order.packageId = packageId;
 
     await order.save();
+
+    const stockResults = await Promise.all(
+      order.items.map((item) =>
+        Product.findOneAndUpdate(
+          { _id: item.productId, stock: { $gte: item.quantity } },
+          { $inc: { stock: -item.quantity } },
+          { new: true, projection: { _id: 1 } },
+        ),
+      ),
+    );
+
+    const failedIndex = stockResults.findIndex((r) => !r);
+    if (failedIndex !== -1) {
+      const restorePromises = stockResults
+        .slice(0, failedIndex)
+        .map((_, i) =>
+          Product.findByIdAndUpdate(order.items[i]!.productId, {
+            $inc: { stock: order.items[i]!.quantity },
+          }),
+        );
+      await Promise.all(restorePromises);
+
+      res.status(409).json({
+        success: false,
+        message: `Insufficient stock for item: ${order.items[failedIndex]!.name}`,
+      });
+      return;
+    }
+
+    if (order.purchaseType === "cart") {
+      await Cart.findOneAndUpdate(
+        { user: userId },
+        { $set: { items: [] } },
+      );
+    }
 
     res.status(200).json({
       success: true,
@@ -535,62 +602,34 @@ export const verifyPayment = async (
       },
     });
 
-    setImmediate(async () => {
-      try {
-        const stockUpdatePromises = order.items.map((item) =>
-          Product.findByIdAndUpdate(item.productId, {
-            $inc: { stock: -item.quantity },
-          }).catch((err) =>
-            console.error(
-              `Failed to update stock for product ${item.productId}:`,
-              err,
-            ),
-          ),
-        );
-
-        let cartClearPromise: Promise<unknown> = Promise.resolve();
-        if (order.purchaseType === "cart") {
-          cartClearPromise = Cart.findOneAndUpdate(
-            { user: userId },
-            { $set: { items: [] } },
-          ).catch((err) => console.error("Failed to clear cart:", err));
-        }
-
-        const emailPromise = sendEmail(
-          order.shippingAddress?.email ?? "",
-          "orderConfirmed",
-          {
-            orderId: order.orderId,
-            packageId,
-            orderDate: new Date().toLocaleString(),
-            customerName: order.shippingAddress?.fullName || "Customer",
-            orderTotal: order.pricing?.total,
-            subtotal: order.pricing?.subtotal,
-            discount: order.pricing?.discount?.amount || 0,
-            shipping: order.pricing?.shipping,
-            total: order.pricing?.total,
-            deliveryOTP,
-            contactEmail: env.MY_GMAIL,
-            items: order.items,
-            shippingAddress: order.shippingAddress,
-            billingAddress: order.billingAddress || order.shippingAddress,
-            paymentMethod: "Online Payment",
-          },
-        ).catch((err) =>
-          console.error("Failed to send order confirmation email:", err),
-        );
-
-        await Promise.all([
-          ...stockUpdatePromises,
-          cartClearPromise,
-          emailPromise,
-        ]);
-      } catch (error) {
-        console.error("Error in post-payment operations:", error);
+    enqueue(async () => {
+      const emailResult = await sendEmail(
+        order.shippingAddress?.email ?? "",
+        "orderConfirmed",
+        {
+          orderId: order.orderId,
+          packageId,
+          orderDate: new Date().toLocaleString(),
+          customerName: order.shippingAddress?.fullName || "Customer",
+          orderTotal: order.pricing?.total,
+          subtotal: order.pricing?.subtotal,
+          discount: order.pricing?.discount?.amount || 0,
+          shipping: order.pricing?.shipping,
+          total: order.pricing?.total,
+          deliveryOTP,
+          contactEmail: env.MY_GMAIL,
+          items: order.items,
+          shippingAddress: order.shippingAddress,
+          billingAddress: order.billingAddress || order.shippingAddress,
+          paymentMethod: "Online Payment",
+        },
+      );
+      if (!emailResult) {
+        logger.warn("Failed to send order confirmation email");
       }
     });
   } catch (error) {
-    console.error("Verify Payment Error:", error);
+    logger.error(error, "Verify Payment Error");
     res.status(500).json({
       success: false,
       message: "Payment verification failed",           error: "Internal Server Error",
@@ -640,7 +679,7 @@ export const getUserOrders = async (
       totalOrders: count,
     });
   } catch (error) {
-    console.error("Get User Orders Error:", error);
+    logger.error(error, "Get User Orders Error");
     res.status(500).json({
       success: false,
       message: "Failed to fetch orders",           error: "Internal Server Error",
@@ -675,7 +714,7 @@ export const getOrderById = async (
 
     res.status(200).json({ success: true, order });
   } catch (error) {
-    console.error("Get Order Error:", error);
+    logger.error(error, "Get Order Error");
     res.status(500).json({
       success: false,
       message: "Failed to fetch order",           error: "Internal Server Error",
@@ -710,7 +749,7 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
     }
     res.status(200).json({ success: true, order });
   } catch (error) {
-    console.error("Get Order Error:", error);
+    logger.error(error, "Get Order Error");
     res.status(500).json({
       success: false,
       message: "Failed to fetch order",           error: "Internal Server Error",
@@ -723,6 +762,10 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
   try {
     const { orderId } = req.params;
     const { reason } = req.body as { reason?: string };
+    if (!orderId) {
+      res.status(400).json({ success: false, message: "Order ID is required" });
+      return;
+    }
     const userId = req.user?._id;
     if (!userId) {
       res.status(401).json({ success: false, message: "Unauthorized" });
@@ -732,6 +775,11 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
     const order = await Order.findOne({ orderId, userId });
     if (!order) {
       res.status(404).json({ success: false, message: "Order not found" });
+      return;
+    }
+
+    if (order.status !== "pending") {
+      res.status(400).json({ success: false, message: "Order cannot be cancelled in its current state" });
       return;
     }
 
@@ -765,7 +813,7 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
 
       // O12: Validate refundAmount > 0 before calling Razorpay
       if (refundAmount <= 0) {
-        console.warn("Refund skipped — amount is 0 or negative for order", order.orderId);
+        logger.warn({ orderId: order.orderId }, "Refund skipped — amount is 0 or negative");
       } else {
       try {
         // O9: Fetch Razorpay payment state before issuing refund
@@ -774,7 +822,7 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
           try {
             const rzpPayment = await razorpay.payments.fetch(paymentId) as { status?: string };
             if (rzpPayment.status !== "captured") {
-              console.warn("Refund skipped — payment not captured for order", order.orderId);
+              logger.warn({ orderId: order.orderId }, "Refund skipped — payment not captured");
             } else {
         const refundResponse = await razorpay.payments.refund(
           order.payment?.razorpay?.paymentId ?? "",
@@ -793,11 +841,11 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
         };
             }
           } catch (rzpError) {
-            console.error("Razorpay payment fetch failed:", rzpError);
+            logger.error(rzpError, "Razorpay payment fetch failed");
           }
         }
       } catch (error) {
-        console.error("Refund initiation failed:", error);
+        logger.error(error, "Refund initiation failed");
         order.cancellation = {
           ...order.cancellation,
           refundStatus: "failed",
@@ -805,7 +853,7 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
         };
       }
       }
-      }
+    }
 
     await order.save();
 
@@ -823,7 +871,7 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
           });
         }
       } catch (stockError) {
-        console.error("Failed to restore stock:", stockError);
+        logger.error(stockError, "Failed to restore stock");
       }
     })();
 
@@ -842,10 +890,10 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
         pendingStatus: !!order.payment?.status,
       },
     }).catch((emailError) => {
-      console.error("Failed to send cancellation email:", emailError);
+      logger.error(emailError, "Failed to send cancellation email");
     });
   } catch (error) {
-    console.error("Cancel Order Error:", error);
+    logger.error(error, "Cancel Order Error");
     res.status(500).json({
       success: false,
       message: "Failed to cancel order",           error: "Internal Server Error",
@@ -874,7 +922,6 @@ export const verifyDeliveryOTP = async (
       return;
     }
 
-    const { hashOtp } = await import("../../lib/jwt.js");
     const storedHash =
       order.notes?.internal?.match(/Delivery OTP hash: ([a-f0-9]{64})/)?.[1];
 
@@ -913,10 +960,10 @@ export const verifyDeliveryOTP = async (
         totalAmount: order.pricing?.total,
       },
     }).catch((emailError) => {
-      console.error("Failed to send delivery confirmation email:", emailError);
+      logger.error(emailError, "Failed to send delivery confirmation email");
     });
   } catch (error) {
-    console.error("Verify OTP Error:", error);
+    logger.error(error, "Verify OTP Error");
     res.status(500).json({
       success: false,
       message: "Failed to verify OTP",           error: "Internal Server Error",
@@ -958,10 +1005,10 @@ export const markToShipped = async (
       },
       order: { _id: order._id, orderId: order.orderId },
     }).catch((emailError) => {
-      console.error("Failed to send shipping email:", emailError);
+      logger.error(emailError, "Failed to send shipping email");
     });
   } catch (error) {
-    console.error("Mark to Shipped Error:", error);
+    logger.error(error, "Mark to Shipped Error");
     res.status(500).json({
       success: false,
       message: "Failed to mark order as shipped",           error: "Internal Server Error",
@@ -994,13 +1041,12 @@ export const sendDeliveryOTP = async (
 
     // sendDeliveryOTP generates a fresh OTP so it works with our hashed storage
     const newOTP = generateOTP();
-    const { hashOtp: sendHash } = await import("../../lib/jwt.js");
 
     try {
       // Update the stored hash (replaces old one — the old OTP is no longer valid)
       await Order.updateOne(
         { orderId },
-        { $set: { "notes.internal": `Delivery OTP hash: ${sendHash(newOTP)}` } },
+        { $set: { "notes.internal": `Delivery OTP hash: ${hashOtp(newOTP)}` } },
       );
 
       sendEmail(order.shippingAddress?.email ?? "", "orderDeliveryOTP", {
@@ -1012,7 +1058,7 @@ export const sendDeliveryOTP = async (
         otp: newOTP,
       });
     } catch (emailError) {
-      console.error("Failed to send delivery OTP email:", emailError);
+      logger.error(emailError, "Failed to send delivery OTP email");
     }
 
     res.status(200).json({
@@ -1020,7 +1066,7 @@ export const sendDeliveryOTP = async (
       message: "Delivery OTP sent successfully",
     });
   } catch (error) {
-    console.error("Send Delivery OTP Error:", error);
+    logger.error(error, "Send Delivery OTP Error");
     res.status(500).json({
       success: false,
       message: "Failed to send delivery OTP",           error: "Internal Server Error",
@@ -1061,7 +1107,7 @@ export const getAllOrders = async (
       data: orders,
     });
   } catch (error) {
-    console.error("Get All Orders Error:", error);
+    logger.error(error, "Get All Orders Error");
     res.status(500).json({
       success: false,
       message: "Failed to fetch orders",           error: "Internal Server Error",
@@ -1122,19 +1168,19 @@ export const handleWebhook = async (
       case "order.paid":
         // These events are handled by the client polling verifyPayment
         // Store for audit purposes
-        console.log("Webhook received:", event, "— payment_id:", eventPayload?.payload?.payment?.entity?.id);
+        logger.info({ event, paymentId: eventPayload?.payload?.payment?.entity?.id }, "Webhook received");
         break;
       case "payment.failed":
         await handlePaymentFailed(eventPayload?.payload?.payment?.entity);
         break;
       default:
-        console.log("Unhandled webhook event:", event);
+        logger.info({ event }, "Unhandled webhook event");
         break;
     }
 
     res.status(200).json({ status: "ok" });
   } catch (error) {
-    console.error("Webhook Error:", error);
+    logger.error(error, "Webhook Error");
     res.status(500).json({ error: "Webhook processing failed" });
   }
 };
@@ -1192,7 +1238,7 @@ async function handlePaymentFailed(paymentEntity: { id?: string; description?: s
       await order.save();
     }
   } catch (err) {
-    console.error("Failed to handle payment.failed webhook:", err);
+    logger.error(err, "Failed to handle payment.failed webhook");
   }
 }
 
@@ -1220,7 +1266,7 @@ async function handleRefundCreated(refundData: { id: string }): Promise<void> {
         paymentRefundStatus: order.cancellation.refundStatus,
       },
     }).catch((emailError) => {
-      console.error("Failed to send cancellation email:", emailError);
+      logger.error(emailError, "Failed to send cancellation email");
     });
   }
 }
@@ -1296,12 +1342,46 @@ export const confirmCODOrder = async (
       order.notes = {};
     }
     // P18: Store OTP hash — not plaintext
-    const { hashOtp: hash2 } = await import("../../lib/jwt.js");
-    order.notes.internal = `Delivery OTP hash: ${hash2(deliveryOTP)}`;
+    order.notes.internal = `Delivery OTP hash: ${hashOtp(deliveryOTP)}`;
     const packageId = generatePackageId();
     order.packageId = packageId;
 
     await order.save();
+
+    const stockResults = await Promise.all(
+      order.items.map((item) =>
+        Product.findOneAndUpdate(
+          { _id: item.productId, stock: { $gte: item.quantity } },
+          { $inc: { stock: -item.quantity } },
+          { new: true, projection: { _id: 1 } },
+        ),
+      ),
+    );
+
+    const failedIndex = stockResults.findIndex((r) => !r);
+    if (failedIndex !== -1) {
+      const restorePromises = stockResults
+        .slice(0, failedIndex)
+        .map((_, i) =>
+          Product.findByIdAndUpdate(order.items[i]!.productId, {
+            $inc: { stock: order.items[i]!.quantity },
+          }),
+        );
+      await Promise.all(restorePromises);
+
+      res.status(409).json({
+        success: false,
+        message: `Insufficient stock for item: ${order.items[failedIndex]!.name}`,
+      });
+      return;
+    }
+
+    if (order.purchaseType === "cart") {
+      await Cart.findOneAndUpdate(
+        { user: userId },
+        { $set: { items: [] } },
+      );
+    }
 
     res.status(200).json({
       success: true,
@@ -1314,62 +1394,34 @@ export const confirmCODOrder = async (
       },
     });
 
-    setImmediate(async () => {
-      try {
-        const stockUpdatePromises = order.items.map((item) =>
-          Product.findByIdAndUpdate(item.productId, {
-            $inc: { stock: -item.quantity },
-          }).catch((err) =>
-            console.error(
-              `Failed to update stock for product ${item.productId}:`,
-              err,
-            ),
-          ),
-        );
-
-        let cartClearPromise: Promise<unknown> = Promise.resolve();
-        if (order.purchaseType === "cart") {
-          cartClearPromise = Cart.findOneAndUpdate(
-            { user: userId },
-            { $set: { items: [] } },
-          ).catch((err) => console.error("Failed to clear cart:", err));
-        }
-
-        const emailPromise = sendEmail(
-          order.shippingAddress?.email ?? "",
-          "orderConfirmed",
-          {
-            orderId: order.orderId,
-            packageId,
-            orderDate: new Date().toLocaleString(),
-            customerName: order.shippingAddress?.fullName || "Customer",
-            orderTotal: order.pricing?.total,
-            subtotal: order.pricing?.subtotal,
-            discount: order.pricing?.discount?.amount || 0,
-            shipping: order.pricing?.shipping,
-            total: order.pricing?.total,
-            deliveryOTP,
-            contactEmail: env.MY_GMAIL,
-            items: order.items,
-            shippingAddress: order.shippingAddress,
-            billingAddress: order.billingAddress || order.shippingAddress,
-            paymentMethod: "Cash on Delivery (COD)",
-          },
-        ).catch((err) =>
-          console.error("Failed to send order confirmation email:", err),
-        );
-
-        await Promise.all([
-          ...stockUpdatePromises,
-          cartClearPromise,
-          emailPromise,
-        ]);
-      } catch (error) {
-        console.error("Error in post-COD confirmation operations:", error);
+    enqueue(async () => {
+      const emailResult = await sendEmail(
+        order.shippingAddress?.email ?? "",
+        "orderConfirmed",
+        {
+          orderId: order.orderId,
+          packageId,
+          orderDate: new Date().toLocaleString(),
+          customerName: order.shippingAddress?.fullName || "Customer",
+          orderTotal: order.pricing?.total,
+          subtotal: order.pricing?.subtotal,
+          discount: order.pricing?.discount?.amount || 0,
+          shipping: order.pricing?.shipping,
+          total: order.pricing?.total,
+          deliveryOTP,
+          contactEmail: env.MY_GMAIL,
+          items: order.items,
+          shippingAddress: order.shippingAddress,
+          billingAddress: order.billingAddress || order.shippingAddress,
+          paymentMethod: "Cash on Delivery (COD)",
+        },
+      );
+      if (!emailResult) {
+        logger.warn("Failed to send COD confirmation email");
       }
     });
   } catch (error) {
-    console.error("COD Order Confirmation Error:", error);
+    logger.error(error, "COD Order Confirmation Error");
     res.status(500).json({
       success: false,
       message: "Failed to confirm COD order",           error: "Internal Server Error",
@@ -1394,7 +1446,7 @@ export const cancelOrderByAdmin = async (
 
       // O12: Validate refundAmount > 0 before calling Razorpay
       if (refundAmount <= 0) {
-        console.warn("Admin cancel: refund skipped — amount is 0 for order", order.orderId);
+        logger.warn({ orderId: order.orderId }, "Admin cancel: refund skipped — amount is 0");
       } else {
       try {
         // O9: Check payment state on Razorpay before issuing refund
@@ -1403,7 +1455,7 @@ export const cancelOrderByAdmin = async (
           try {
             const rzpPayment = await razorpay.payments.fetch(paymentId) as { status?: string };
             if (rzpPayment.status !== "captured") {
-              console.warn("Admin cancel: refund skipped — payment not captured for order", order.orderId);
+              logger.warn({ orderId: order.orderId }, "Admin cancel: refund skipped — payment not captured");
             } else {
         const refundResponse = await razorpay.payments.refund(
           paymentId,
@@ -1422,11 +1474,11 @@ export const cancelOrderByAdmin = async (
         };
             }
           } catch (rzpError) {
-            console.error("Razorpay payment fetch failed:", rzpError);
+            logger.error(rzpError, "Razorpay payment fetch failed");
           }
         }
       } catch (error) {
-        console.error("Refund initiation failed:", error);
+        logger.error(error, "Refund initiation failed");
         order.cancellation = {
           ...(order.cancellation ?? {}),
           refundStatus: "failed",
@@ -1434,6 +1486,7 @@ export const cancelOrderByAdmin = async (
         };
       }
       }
+    }
 
     order.status = "cancelled";
     order.cancellation = {
@@ -1465,10 +1518,10 @@ export const cancelOrderByAdmin = async (
         adminReason: reason,
       },
     }).catch((emailError) => {
-      console.error("Failed to send cancellation email:", emailError);
+      logger.error(emailError, "Failed to send cancellation email");
     });
   } catch (error) {
-    console.error("Cancel Order Error:", error);
+    logger.error(error, "Cancel Order Error");
     res.status(500).json({
       success: false,
       message: "Failed to cancel order",           error: "Internal Server Error",

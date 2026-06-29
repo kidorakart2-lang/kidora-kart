@@ -21,7 +21,7 @@ const Slider = ({ data, heading, bg }: { data: any[]; heading: string; bg?: stri
       <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white/50 to-transparent z-20 pointer-events-none hidden md:block"></div>
       <div className="max-w-7xl w-full overflow-x-hidden mx-auto px-4 relative z-10">
         {/* Enhanced Section Heading */}
-        <div className="text-center mb-14 animate-fadeIn">
+        <div            className="text-center mb-14 animate-slider-fadeIn">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Sparkles className="w-5 h-5 text-[#8B4513] animate-pulse" />
             <h2 className="text-4xl md:text-5xl font-serif text-[#8B4513] tracking-wide">
@@ -105,46 +105,7 @@ const Slider = ({ data, heading, bg }: { data: any[]; heading: string; bg?: stri
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
 
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.8s ease-out forwards;
-        }
-
-        .animate-slideUp {
-          animation: slideUp 0.6s ease-out forwards;
-          opacity: 0;
-        }
-
-        .jewelry-swiper {
-          padding: 20px 0;
-        }
-
-        .delay-700 {
-          animation-delay: 700ms;
-        }
-      `}</style>
     </section>
   );
 };

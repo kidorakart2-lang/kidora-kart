@@ -18,17 +18,7 @@ import { Input } from "@/components/ui/input";
 import { closeSidebar } from "@/redux/features/uiSlice";
 import { usePathname } from "next/navigation";
 import type { RootState } from "@/redux/store/store";
-
-interface ColorItem {
-  _id: string;
-  name: string;
-  code: string;
-}
-
-interface MaterialItem {
-  _id: string;
-  name: string;
-}
+import type { ColorItem, MaterialItem } from "@/types";
 
 interface FilterSidebarProps {
   color: ColorItem[];
@@ -108,32 +98,6 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
 
   return (
     <>
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: linear-gradient(to bottom, #fef3c7, #fde68a);
-          border-radius: 10px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #d97706, #f59e0b, #fbbf24);
-          border-radius: 10px;
-          border: 2px solid #fef3c7;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #b45309, #d97706, #f59e0b);
-        }
-
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #f59e0b #fef3c7;
-        }
-      `}</style>
-
       {/* Mobile Overlay */}
       <div
         className={`lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[1500] transition-opacity duration-300 ${

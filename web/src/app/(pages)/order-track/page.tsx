@@ -3,7 +3,7 @@ import { siteConfig } from "@/lib/utils";
 
 const pageTitle = "Track Your Order";
 const pageDescription =
-  "Track your jewelry order with Jewellery Wala. Check the status of your precious jewelry purchase and get real-time updates.";
+  `Track your jewelry order with ${siteConfig.name}. Check the status of your precious jewelry purchase and get real-time updates.`;
 
 export const metadata = {
   title: `${pageTitle} | ${siteConfig.name}`,
@@ -21,15 +21,6 @@ export const metadata = {
     title: `${pageTitle} | ${siteConfig.name}`,
     description: pageDescription,
   },
-  keywords: [
-    ...siteConfig.keywords.filter(
-      (k) => k.toLowerCase() !== "track your order"
-    ),
-    "order status",
-    "order tracking",
-    "jewelry order status",
-    "track jewelry order",
-  ].join(", "),
 };
 
 export default async function Page() {

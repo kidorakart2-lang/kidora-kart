@@ -157,6 +157,8 @@ export default function ImageSlider({
                   }}
                   whileHover={{ scale: 1, y: -5 }}
                   whileTap={{ scale: 0.95 }}
+                  aria-label={`View ${productName} image ${index + 1}`}
+                  tabIndex={0}
                   className={`flex-shrink-0 size-20 md:size-28 overflow-hidden border-3 transition-all rounded-md ${
                     currentImage === index
                       ? "border-amber-500 shadow-lg ring-2 ring-amber-200"

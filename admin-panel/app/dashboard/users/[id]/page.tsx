@@ -3,7 +3,7 @@ import React from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { api } from "@/lib/api";
 
 export default function page() {
   const { id } = useParams();
@@ -14,14 +14,7 @@ export default function page() {
   } = useQuery({
     queryKey: ["user", id],
     queryFn: async () => {
-      const { data } = await axios.post(
-        `/api/admin/user/get-full-details/${id}`,
-        {},
-        {
-          withCredentials: true,
-        }
-      );
-      return data;
+      return api.post<any>(`/api/admin/user/get-full-details/${id}`, {});
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000, // 5 minutes

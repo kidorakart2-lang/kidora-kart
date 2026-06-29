@@ -1,10 +1,12 @@
 import type { Request, Response } from "express";
 import { generateToken } from "../../lib/jwt.js";
 import userModel from "../../models/user.js";
+import { logger } from "../../lib/logger.js";
 import Cart from "../../models/cart.js";
 import Order from "../../models/order.js";
 import Wishlist from "../../models/wishlist.js";
 import Reviews from "../../models/review.js";
+import auditLogModel from "../../models/auditLog.js";
 import { comparePassword, hashPassword } from "../../lib/bcrypt.js";
 import {
   createRefreshToken,
@@ -69,7 +71,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       _message: "Admin logged in successfully",
     });
   } catch (error) {
-    console.error("Admin login error:", error);
+    logger.error({ err: error }, "Admin login error");
     res.status(500).json({ _status: false, _message: "Internal Server Error" });
   }
 };
@@ -102,7 +104,7 @@ export const refreshAdminToken = async (req: Request, res: Response): Promise<vo
 
     res.status(200).json({ _status: true, _message: "Token refreshed successfully" });
   } catch (error) {
-    console.error("Admin refresh error:", error);
+    logger.error({ err: error }, "Admin refresh error");
     clearSessionCookiesAdmin(res);
     res.status(401).json({ _status: false, _message: "Session expired" });
   }
@@ -136,7 +138,7 @@ export const refreshDeliveryToken = async (req: Request, res: Response): Promise
 
     res.status(200).json({ _status: true, _message: "Token refreshed successfully" });
   } catch (error) {
-    console.error("Delivery refresh error:", error);
+    logger.error({ err: error }, "Delivery refresh error");
     clearSessionCookiesAdmin(res);
     res.status(401).json({ _status: false, _message: "Session expired" });
   }
@@ -154,7 +156,7 @@ export const findAllUser = async (
       _data: users,
     });
   } catch (error) {
-    console.error("findAllUser error:", error);
+    logger.error({ err: error }, "findAllUser error");
     res.status(500).json({ _status: false, _message: "Internal Server Error" });
   }
 };
@@ -189,9 +191,20 @@ export const getFullDetails = async (
       _reviews: reviews,
     });
   } catch (error) {
-    console.error("getFullDetails error:", error);
+    logger.error({ err: error }, "getFullDetails error");
     res.status(500).json({ _status: false, _message: "Internal Server Error" });
   }
+};
+
+export const logout = async (
+  _req: Request,
+  res: Response,
+): Promise<void> => {
+  clearSessionCookiesAdmin(res);
+  res.status(200).json({
+    _status: true,
+    _message: "Admin logged out successfully",
+  });
 };
 
 export const delieveryLogin = async (
@@ -223,7 +236,7 @@ export const delieveryLogin = async (
       _message: "Delivery logged in successfully",
     });
   } catch (error) {
-    console.error("Delivery login error:", error);
+    logger.error({ err: error }, "Delivery login error");
     res.status(500).json({ _status: false, _message: "Internal Server Error" });
   }
 };
@@ -258,9 +271,20 @@ export const changeRole = async (
       return;
     }
 
-    console.log(
-      `[AUDIT] Admin ${requestingUser.email} changed user ${user.email} role to ${role}`,
+    logger.info(
+      { action: "role_change", admin: requestingUser.email, target: user.email, newRole: role },
+      "Admin changed user role",
     );
+
+    await auditLogModel.create({
+      action: "role_change",
+      adminId: requestingUser._id,
+      adminEmail: requestingUser.email,
+      targetId: user._id,
+      targetEmail: user.email,
+      details: { roleBefore: user.role, roleAfter: role },
+      ip: req.ip,
+    });
 
     res.status(200).json({
       _status: true,
@@ -273,8 +297,56 @@ export const changeRole = async (
       },
     });
   } catch (error) {
-    console.error("Error in changeRole:", error);
+    logger.error({ err: error }, "Error in changeRole");
     res.status(500).json({ _status: false, _message: "Error updating user role" });
+  }
+};
+
+export const verifyPassword = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { password } = req.body as { password?: string };
+    const requestingUser = req.user;
+
+    if (!requestingUser) {
+      res.status(401).json({ _status: false, _message: "Not authorized" });
+      return;
+    }
+
+    if (!password) {
+      res.status(400).json({ _status: false, _message: "Password is required" });
+      return;
+    }
+
+    const user = await userModel.findById(requestingUser._id).select("password");
+    if (!user) {
+      res.status(404).json({ _status: false, _message: "User not found" });
+      return;
+    }
+
+    const isMatch = await comparePassword(password, user.password);
+    if (!isMatch) {
+      res.status(403).json({ _status: false, _message: "Incorrect password" });
+      return;
+    }
+
+    await auditLogModel.create({
+      action: "login",
+      adminId: requestingUser._id,
+      adminEmail: requestingUser.email,
+      details: { purpose: "role_change_verification" },
+      ip: req.ip,
+    });
+
+    res.status(200).json({
+      _status: true,
+      _message: "Password verified successfully",
+    });
+  } catch (error) {
+    logger.error({ err: error }, "Error in verifyPassword");
+    res.status(500).json({ _status: false, _message: "Error verifying password" });
   }
 };
 
@@ -320,7 +392,7 @@ export const createUser = async (
       },
     });
   } catch (error) {
-    console.error("Error in createUser:", error);
+    logger.error({ err: error }, "Error in createUser");
     res.status(500).json({ _status: false, _message: "Error creating user" });
   }
 };
@@ -345,9 +417,23 @@ export const userDelete = async (
     }
 
     await userModel.findByIdAndDelete(userId);
+
+    const requestingUser = req.user;
+    if (requestingUser) {
+      await auditLogModel.create({
+        action: "user_delete",
+        adminId: requestingUser._id,
+        adminEmail: requestingUser.email,
+        targetId: user._id,
+        targetEmail: user.email,
+        details: { role: user.role },
+        ip: req.ip,
+      });
+    }
+
     res.status(200).json({ _status: true, _message: "User permanently deleted successfully" });
   } catch (error) {
-    console.error("Error in userDelete:", error);
+    logger.error({ err: error }, "Error in userDelete");
     res.status(500).json({ _status: false, _message: "Error deleting user" });
   }
 };

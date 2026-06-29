@@ -26,9 +26,10 @@ interface SitemapCategory {
   subCategories?: SitemapSubCategory[];
 }
 
+import { siteConfig } from "@/lib/utils";
+
 export default async function sitemap() {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://jewellerywalla.com";
+  const baseUrl = siteConfig.url;
 
   let products: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
   try {
@@ -52,20 +53,23 @@ export default async function sitemap() {
   } catch (error) {
   }
 
-  const staticRoutes = [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: "daily" as const,
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}terms-and-condition`,
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.8,
-    },
+  const staticRouteConfigs: { path: string; priority: number; changeFreq?: string }[] = [
+    { path: "", priority: 1, changeFreq: "daily" },
+    { path: "about", priority: 0.7 },
+    { path: "contact-us", priority: 0.7 },
+    { path: "faq", priority: 0.6 },
+    { path: "story", priority: 0.6 },
+    { path: "our-policy", priority: 0.5 },
+    { path: "order-track", priority: 0.5 },
+    { path: "terms-and-condition", priority: 0.8 },
   ];
+
+  const staticRoutes = staticRouteConfigs.map((route) => ({
+    url: `${baseUrl}${route.path}`,
+    lastModified: new Date(),
+    changeFrequency: (route.changeFreq || "monthly") as "daily" | "weekly" | "monthly",
+    priority: route.priority,
+  }));
 
   let categoryUrls: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
   const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}api/website/nav`;

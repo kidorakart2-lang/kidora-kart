@@ -1,7 +1,8 @@
 {
-  "name": "Jewelry Wala",
-  "short_name": "Jewelry",
+  "name": "Jewellery Wala",
+  "short_name": "Jewellery",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#d4af37",

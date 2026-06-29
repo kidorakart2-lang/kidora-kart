@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import type { Category } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +16,7 @@ import { Plus, Edit, Trash2, FolderTree, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import NewMultiSelect from "../../../components/NewMultiSelect";
 
-interface SubCategoryItem {
+export interface SubCategoryItem {
   _id: string;
   name?: string;
   image?: string;
@@ -22,102 +24,30 @@ interface SubCategoryItem {
   category?: any[];
 }
 
-const CREDENTIALS = { credentials: "include" as const };
-
 // API functions
-const fetchCategories = async () => {
-  const response = await fetch(`/api/admin/category/view`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
-  });
-  if (!response.ok) throw new Error("Failed to load categories");
-  const data = await response.json();
-  return data._data || data;
+const fetchCategories = async (): Promise<Category[]> => {
+  return api.post<Category[]>("/api/admin/category/view", {});
 };
 
 const fetchSubCategories = async () => {
-  const response = await fetch(`/api/admin/subCategory/view`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
-  });
-  if (!response.ok) throw new Error("Failed to load sub categories");
-  const data = await response.json();
-  return Array.isArray(data?._data)
-    ? data._data
-    : Array.isArray(data)
-    ? data
-    : [];
+  const data = await api.post("/api/admin/subCategory/view", {});
+  return Array.isArray(data) ? data : [];
 };
 
 const createSubCategory = async (formData: FormData) => {
-  const response = await fetch(`/api/admin/subCategory/create`, {
-    method: "POST",
-    credentials: "include",
-    body: formData,
-  });
-  const data = await response.json();
-  if (!response.ok || data._status === false) {
-    throw new Error(
-      data._message || data.message || "Error creating sub category"
-    );
-  }
-  return data;
+  return api.post("/api/admin/subCategory/create", formData);
 };
 
 const updateSubCategory = async ({ id, formData }: { id: string; formData: FormData }) => {
-  const response = await fetch(
-    `/api/admin/subCategory/update/${id}`,
-    {
-      method: "PUT",
-      credentials: "include",
-      body: formData,
-    }
-  );
-  const data = await response.json();
-  if (!response.ok || data._status === false) {
-    throw new Error(
-      data._message || data.message || "Error updating sub category"
-    );
-  }
-  return data;
+  return api.put(`/api/admin/subCategory/update/${id}`, formData);
 };
 
 const deleteSubCategory = async (id: string) => {
-  const response = await fetch(
-    `/api/admin/subCategory/delete/${id}`,
-    {
-      method: "PUT",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    }
-  );
-  const data = await response.json();
-  if (!response.ok || data._status === false) {
-    throw new Error(data._message || "Error deleting sub category");
-  }
-  return data;
+  return api.put(`/api/admin/subCategory/delete/${id}`, { id });
 };
 
 const changeSubCategoryStatus = async (id: string) => {
-  const response = await fetch(
-    `/api/admin/subCategory/change-status/${id}`,
-    {
-      method: "PUT",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    }
-  );
-  const data = await response.json();
-  if (!response.ok || data._status === false) {
-    throw new Error(data._message || "Error changing status");
-  }
-  return data;
+  return api.put(`/api/admin/subCategory/change-status/${id}`, { id });
 };
 
 export default function SubCategoriesClient({

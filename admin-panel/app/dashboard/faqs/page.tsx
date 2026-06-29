@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import axios from "axios"
+import { api, ApiClientError } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,20 +13,8 @@ import { ExportButtons } from "@/components/export-buttons"
 import { AlertDialogUse } from "@/components/alert-dialog"
 import { Plus, Pencil, Trash2, Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import type { FAQ } from "@/lib/types";
 
-interface FAQ {
-  _id: string;
-  question: string;
-  answer: string;
-  order: number;
-  status: boolean;
-}
-
-const AXIOS_CONFIG = { withCredentials: true } as const
-
-function isAxiosError(error: unknown): error is { response?: { data?: { _message?: string } }; message?: string } {
-  return typeof error === "object" && error !== null && ("response" in error || "message" in error);
-}
 
 export default function FAQsPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([])
@@ -49,16 +37,12 @@ export default function FAQsPage() {
   const loadFaqs = async () => {
     setLoading(true)
     try {
-      const response = await axios.post(
-        `/api/admin/faq/view`,
-        {},
-        AXIOS_CONFIG
-      )
-      setFaqs(response.data._data || [])
+      const data = await api.post<FAQ[]>("/api/admin/faq/view", {})
+      setFaqs(data ?? [])
     } catch (error) {
       toast({
         title: "Error loading FAQs",
-        description: isAxiosError(error) ? error.response?.data?._message || "Failed to load FAQs" : "Failed to load FAQs",
+        description: error instanceof ApiClientError ? error.message : "Failed to load FAQs",
         variant: "destructive",
       })
     } finally {
@@ -85,17 +69,13 @@ export default function FAQsPage() {
     if (!faqToDelete) return
 
     try {
-      await axios.put(
-        `/api/admin/faq/destroy`,
-        { id: faqToDelete },
-        AXIOS_CONFIG
-      )
+      await api.put("/api/admin/faq/destroy", { id: faqToDelete })
       loadFaqs()
       toast({ title: "FAQ deleted successfully" })
     } catch (error) {
       toast({
         title: "Error deleting FAQ",
-        description: isAxiosError(error) ? error.response?.data?._message || "Failed to delete FAQ" : "Failed to delete FAQ",
+        description: error instanceof ApiClientError ? error.message : "Failed to delete FAQ",
         variant: "destructive",
       })
     } finally {
@@ -106,25 +86,13 @@ export default function FAQsPage() {
 
   const handleChangeStatus = async (faq: FAQ) => {
     try {
-      const response = await axios.post(
-        `/api/admin/faq/change-status`,
-        { id: faq._id },
-        AXIOS_CONFIG
-      )
-
-      if (response.data._status) {
-        loadFaqs()
-        toast({ title: "FAQ status updated successfully" })
-      } else {
-        toast({
-          title: response.data._message || "Error updating FAQ status",
-          variant: "destructive",
-        })
-      }
+      await api.post("/api/admin/faq/change-status", { id: faq._id })
+      loadFaqs()
+      toast({ title: "FAQ status updated successfully" })
     } catch (error) {
       toast({
         title: "Error updating FAQ status",
-        description: isAxiosError(error) ? error.response?.data?._message || "Operation failed" : "Operation failed",
+        description: error instanceof ApiClientError ? error.message : "Operation failed",
         variant: "destructive",
       })
     }
@@ -135,39 +103,13 @@ export default function FAQsPage() {
 
     try {
       if (editingFaq) {
-        const response = await axios.put(
-          `/api/admin/faq/update/${editingFaq._id}`,
-          formData,
-          AXIOS_CONFIG
-        )
-
-        if (response.data._status) {
-          loadFaqs()
-          toast({ title: "FAQ updated successfully" })
-        } else {
-          toast({
-            title: response.data._message || "Error updating FAQ",
-            variant: "destructive",
-          })
-          return
-        }
+        await api.put(`/api/admin/faq/update/${editingFaq._id}`, formData)
+        loadFaqs()
+        toast({ title: "FAQ updated successfully" })
       } else {
-        const response = await axios.post(
-          `/api/admin/faq/create`,
-          formData,
-          AXIOS_CONFIG
-        )
-
-        if (response.data._status) {
-          loadFaqs()
-          toast({ title: "FAQ created successfully" })
-        } else {
-          toast({
-            title: response.data._message || "Error creating FAQ",
-            variant: "destructive",
-          })
-          return
-        }
+        await api.post("/api/admin/faq/create", formData)
+        loadFaqs()
+        toast({ title: "FAQ created successfully" })
       }
 
       setDrawerOpen(false)
@@ -176,7 +118,7 @@ export default function FAQsPage() {
     } catch (error) {
       toast({
         title: `Error ${editingFaq ? "updating" : "creating"} FAQ`,
-        description: isAxiosError(error) ? error.response?.data?._message || "Operation failed" : "Operation failed",
+        description: error instanceof ApiClientError ? error.message : "Operation failed",
         variant: "destructive",
       })
     }

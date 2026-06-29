@@ -51,11 +51,11 @@ import {
 } from "@/lib/fetchCartWislist";
 import { usePathname, useRouter } from "next/navigation";
 import { openLoginModal, setNavigation } from "@/redux/features/uiSlice";
-import type { NavigationData } from "@/redux/features/uiSlice";
+import type { UiNavigationData } from "@/redux/features/uiSlice";
 import Cookies from "js-cookie";
 import { getUser } from "@/lib/fetchUser";
 import { logout, setProfile } from "@/redux/features/auth";
-import axios from "axios";
+import { siteConfig } from "@/lib/utils";
 
 interface SubSubCategory {
   _id: string;
@@ -99,7 +99,7 @@ interface SearchBarProps {
 }
 
 interface HeaderProps {
-  navigationData: NavigationData;
+  navigationData: UiNavigationData;
 }
 
 const userMenuItems = [
@@ -259,6 +259,15 @@ export default function Header({ navigationData }: HeaderProps) {
           )}
         </div>
       ))}
+      <div className="border-t border-amber-100/50 pt-3 mt-3">
+        <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider px-4 mb-2">Quick Links</p>
+        <MobileLink name="About Us" href="/about" />
+        <MobileLink name="Contact Us" href="/contact-us" />
+        <MobileLink name="FAQ" href="/faq" />
+        <MobileLink name="Our Story" href="/story" />
+        <MobileLink name="Track Order" href="/order-track" />
+        <MobileLink name="Our Policy" href="/our-policy" />
+      </div>
     </nav>
   );
 
@@ -326,7 +335,7 @@ export default function Header({ navigationData }: HeaderProps) {
             <Link href="/" className="group">
               <Image
                 src={logo || "/images/logo.webp"}
-                alt="Jewellery Wala"
+                alt={siteConfig.name}
                 width={100}
                 height={100}
                 className={`w-auto cursor-pointer object-cover transition-all duration-500 group-hover:scale-105 ${
@@ -579,6 +588,49 @@ export default function Header({ navigationData }: HeaderProps) {
               )}
             </div>
           ))}
+          <span className="w-px h-5 bg-amber-200/70 mx-2"></span>
+          <Link
+            href="/about"
+            className="relative hover:text-amber-700 transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-slate-700 group font-medium"
+          >
+            About Us
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full shadow-sm"></span>
+          </Link>
+          <Link
+            href="/contact-us"
+            className="relative hover:text-amber-700 transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-slate-700 group font-medium"
+          >
+            Contact Us
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full shadow-sm"></span>
+          </Link>
+          <Link
+            href="/faq"
+            className="relative hover:text-amber-700 transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-slate-700 group font-medium"
+          >
+            FAQ
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full shadow-sm"></span>
+          </Link>
+          <Link
+            href="/story"
+            className="relative hover:text-amber-700 transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-slate-700 group font-medium"
+          >
+            Our Story
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full shadow-sm"></span>
+          </Link>
+          <Link
+            href="/order-track"
+            className="relative hover:text-amber-700 transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-slate-700 group font-medium"
+          >
+            Track Order
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full shadow-sm"></span>
+          </Link>
+          <Link
+            href="/our-policy"
+            className="relative hover:text-amber-700 transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-slate-700 group font-medium"
+          >
+            Our Policy
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full shadow-sm"></span>
+          </Link>
         </nav>
       </header>
 
@@ -644,10 +696,11 @@ const SearchBar = ({ className }: SearchBarProps) => {
       if (value.trim().length > 1) {
         // Only fetch if more than 1 character
         try {
-          const res = await axios.get(
+          const res = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}api/website/result/suggestion?search=${value}`
           );
-          setSuggestions(res.data._data as SuggestionData);
+          const resData = await res.json();
+          setSuggestions(resData._data as SuggestionData);
           setIsSuggestionsOpen(true);
         } catch {
           setSuggestions({});

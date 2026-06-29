@@ -7,7 +7,7 @@ import {
   clearGuestCartStorage,
 } from "@/lib/syncGuestData";
 
-export interface CartItem {
+export interface CartSliceItem {
   productId: string;
   product?: Record<string, unknown> | null;
   quantity: number;
@@ -17,7 +17,7 @@ export interface CartItem {
 }
 
 export interface CartState {
-  cartItems: CartItem[];
+  cartItems: CartSliceItem[];
   totalPrice: number;
   totalQuantity: number;
   buyNowItem: {
@@ -31,12 +31,12 @@ export interface CartState {
 
 // Load initial state from localStorage for guest users
 const loadInitialState = (): CartState => {
-  const guestCart: CartItem[] = getGuestCartFromStorage() as CartItem[];
+  const guestCart: CartSliceItem[] = getGuestCartFromStorage() as CartSliceItem[];
   return {
     cartItems: guestCart,
     totalPrice: 0,
     totalQuantity: guestCart.reduce(
-      (total: number, item: CartItem) => total + (item.quantity || 1),
+      (total: number, item: CartSliceItem) => total + (item.quantity || 1),
       0
     ),
     buyNowItem: {

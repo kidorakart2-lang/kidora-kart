@@ -14,19 +14,17 @@ export function ExportButtons({ data, filename = "export" }: ExportButtonsProps)
   const [exporting, setExporting] = useState(false);
 
   const handleExportJSON = () => {
+    if (exporting) return;
     setExporting(true);
-    setTimeout(() => {
-      exportToJSON(data, `${filename}.json`);
-      setExporting(false);
-    }, 300);
+    exportToJSON(data, `${filename}.json`);
+    setExporting(false);
   };
 
   const handleExportCSV = () => {
+    if (exporting) return;
     setExporting(true);
-    setTimeout(() => {
-      exportToCSV(data, `${filename}.csv`);
-      setExporting(false);
-    }, 300);
+    exportToCSV(data, `${filename}.csv`);
+    setExporting(false);
   };
 
   return (

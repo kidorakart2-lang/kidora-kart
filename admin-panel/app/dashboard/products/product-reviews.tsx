@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { api, ApiClientError } from "@/lib/api";
 
 interface StarRatingProps {
   rating: number;
@@ -76,23 +77,9 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
     const fetchReviews = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `/api/website/review/get/${productId}`,
-          {
-            method: "POST",
-            body: JSON.stringify({
-              productId,
-            }),
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        const data = await response.json();
-        if (response.ok) {
-          setReviews(data._data || []);
-          setAverageRating(data._rating || 0);
-        }
+        const data = await api.postRaw<{ _data?: Review[]; _rating?: number }>("/api/website/review/get/" + productId, { productId });
+        setReviews(data._data || []);
+        setAverageRating(data._rating || 0);
     } catch (error) {
       console.error("Error fetching reviews:", error instanceof Error ? error.message : error);
       } finally {
@@ -153,34 +140,19 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(
-        `/api/website/review/create`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            productId,
-            comment: formData.comment,
-            rating: formData.rating,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        setSubmitSuccess(true);
-        // Refresh reviews
-        router.refresh();
-        setFormData({ comment: "", rating: 0 });
-        setFormErrors({});
-        // Close modal after 2 seconds
-        setTimeout(() => {
-          setIsModalOpen(false);
-          setSubmitSuccess(false);
-        }, 2000);
-      }
+      await api.post("/api/website/review/create", {
+        productId,
+        comment: formData.comment,
+        rating: formData.rating,
+      });
+      setSubmitSuccess(true);
+      router.refresh();
+      setFormData({ comment: "", rating: 0 });
+      setFormErrors({});
+      setTimeout(() => {
+        setIsModalOpen(false);
+        setSubmitSuccess(false);
+      }, 2000);
     } catch (error) {
       const errMsg = error instanceof Error && "response" in error ? (error as { response: { data: { _message: string } } }).response.data._message : "Failed to submit review";
       toast.error(errMsg);
@@ -193,21 +165,9 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
   const handleDeleteReview = async (reviewId: string) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `/api/admin/review/delete/${reviewId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        }
-      );
-
-      if (response.ok) {
-        toast.success("Review deleted successfully");
-        router.refresh();
-      }
+      await api.put("/api/admin/review/delete/" + reviewId);
+      toast.success("Review deleted successfully");
+      router.refresh();
     } catch (error) {
       const errMsg = error instanceof Error && "response" in error ? (error as { response: { data: { _message: string } } }).response.data._message : "Failed to delete review";
       toast.error(errMsg);
@@ -219,21 +179,9 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
   const handleStatusChange = async (reviewId: string) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `/api/admin/review/status/${reviewId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        }
-      );
-
-      if (response.ok) {
-        toast.success("Review status changed successfully");
-        router.refresh();
-      }
+      await api.put("/api/admin/review/status/" + reviewId);
+      toast.success("Review status changed successfully");
+      router.refresh();
     } catch (error) {
       const errMsg = error instanceof Error && "response" in error ? (error as { response: { data: { _message: string } } }).response.data._message : "Failed to change review status";
       toast.error(errMsg);

@@ -325,7 +325,7 @@ export default function Footer() {
       <div className="border-t border-gray-200 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-xs text-gray-500 text-center ">
-            © {new Date().getFullYear()} Jewellery Wala. All rights reserved.
+            © {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
           </p>
         </div>
       </div>

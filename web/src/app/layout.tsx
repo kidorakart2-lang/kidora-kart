@@ -9,6 +9,8 @@ import ScrollToTop from "@/components/ui/scroll-to-top";
 import RequirementModal from "@/components/comman/RequirementModal";
 import LoginModal from "@/components/comman/LoginModal";
 import PhoneNumberModal from "@/components/comman/PhoneNumberModal";
+import CookieConsent from "@/components/comman/CookieConsent";
+import AxeAccessibility from "@/components/comman/AxeAccessibility";
 import { MotionConfig } from "framer-motion";
 
 const lato = Lato({
@@ -22,11 +24,10 @@ const lato = Lato({
 export const metadata = {
   ...defaultMetadata,
   title: {
-    default: `${siteConfig.name} - Premium Jewellery Store in Jodhpur | Gold, Silver & Diamond Jewellery`,
+    default: `${siteConfig.name} - Premium Jewellery Store in ${siteConfig.address.city} | Gold, Silver & Diamond Jewellery`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
-  keywords: siteConfig.keywords.join(", "),
   alternates: {
     canonical: siteConfig.url,
   },
@@ -53,8 +54,8 @@ function OrganizationSchema() {
     address: getStructuredAddress(),
     geo: {
       "@type": "GeoCoordinates",
-      latitude: "26.2389",
-      longitude: "73.0243",
+      latitude: String(siteConfig.address.geo.lat),
+      longitude: String(siteConfig.address.geo.lng),
     },
     openingHoursSpecification: [
       {
@@ -79,13 +80,13 @@ function OrganizationSchema() {
     ],
     areaServed: {
       "@type": "City",
-      name: "Jodhpur",
+      name: siteConfig.address.city,
       containedIn: {
         "@type": "State",
-        name: "Rajasthan",
+        name: siteConfig.address.state,
         containedIn: {
           "@type": "Country",
-          name: "India",
+          name: siteConfig.address.country,
         },
       },
     },
@@ -191,22 +192,27 @@ export default async function RootLayout({
       <head>
         <OrganizationSchema />
         <WebsiteSchema />
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL} />
+        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL} />
         <link rel="canonical" href={siteConfig.url} />
         <meta
           name="google-site-verification"
           content="4jBIp_u1ex8ub0zCeOXN-UnbczFciy1aAO90vr7yhH8"
         />
-        <meta name="geo.region" content="IN-RJ" />
-        <meta name="geo.placename" content="Jodhpur" />
-        <meta name="geo.position" content="26.2389;73.0243" />
-        <meta name="ICBM" content="26.2389, 73.0243" />
+        <meta name="geo.region" content={siteConfig.address.regionCode} />
+        <meta name="geo.placename" content={siteConfig.address.city} />
+        <meta name="geo.position" content={`${siteConfig.address.geo.lat};${siteConfig.address.geo.lng}`} />
+        <meta name="ICBM" content={`${siteConfig.address.geo.lat}, ${siteConfig.address.geo.lng}`} />
         <link rel="icon" href="/logo.ico" />
-        <meta name="theme-color" content="#F58E00" />
+        <meta name="theme-color" content={siteConfig.themeColor} />
         <meta name="msapplication-TileColor" content="#F58E00" />
       </head>
       <body
         className={`pt-0 !mr-0 bg-background antialiased flex flex-col ${lato.variable} pb-12 md:pb-0`}
       >
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-amber-600 focus:text-white focus:rounded-lg focus:shadow-lg">
+          Skip to main content
+        </a>
         <Client>
           <MotionConfig reducedMotion="user">
           <MainLayout navigationData={navigation}>
@@ -217,6 +223,8 @@ export default async function RootLayout({
           <LoginModal />
           <RequirementModal />
           <PhoneNumberModal />
+          <CookieConsent />
+          <AxeAccessibility />
           </MotionConfig>
         </Client>
       </body>

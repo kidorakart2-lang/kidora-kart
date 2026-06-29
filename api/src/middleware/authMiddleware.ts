@@ -192,6 +192,26 @@ export const requireRole = (...roles: string[]) => {
   };
 };
 
+export const csrfProtection = (req: Request, res: Response, next: NextFunction): void => {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+    next();
+    return;
+  }
+
+  const csrfCookie = req.cookies?.csrfToken;
+  const csrfHeader = req.headers["x-csrf-token"] as string | undefined;
+
+  if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+    res.status(403).json({
+      _status: false,
+      _message: "Invalid CSRF token",
+    });
+    return;
+  }
+
+  next();
+};
+
 export const adminOnly = (req: Request, res: Response, next: NextFunction): void => {
   const user = req.user;
   if (!user) {

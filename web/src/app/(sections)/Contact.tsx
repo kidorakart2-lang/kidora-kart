@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useSelector } from "react-redux";
-import axios from "axios";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -32,24 +31,24 @@ export default function ContactPage() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
+      const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}api/website/contact`,
-        formData
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
       );
-      if (response.data._status) {
-        toast.success(response?.data?._message || "Message sent successfully");
+      const data = await response.json();
+      if (data._status) {
+        toast.success(data?._message || "Message sent successfully");
         setIsSubmitted(true);
         setIsLoading(false);
         setFormData({ name: "", email: "", message: "" });
         setTimeout(() => setIsSubmitted(false), 3000);
       }
-    } catch (error) {
-      const err = error as { response?: { data?: { _message?: string } }; message?: string };
-      toast.error(
-        err.response?.data?._message ||
-          err.message ||
-          "Something went wrong"
-      );
+    } catch {
+      toast.error("Something went wrong");
       setIsLoading(false);
     } finally {
       setIsLoading(false);
@@ -102,7 +101,7 @@ export default function ContactPage() {
         </p>
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16">
           {/* Left Column - Contact Info */}
-          <div className="animate-in fade-in slide-in-from-left duration-700">
+          <div className="anim-fill-both anim-name-fade-in anim-name-slide-left anim-duration-700">
             <div
               className="space-y-3"
               role="list"
@@ -152,11 +151,11 @@ export default function ContactPage() {
           </div>
 
           {/* Right Column - Contact Form */}
-          <div className="animate-in fade-in slide-in-from-right duration-700">
+          <div className="anim-fill-both anim-name-fade-in anim-name-slide-right anim-duration-700">
             <Card className="border-gray-200 shadow-lg">
               <CardContent className="p-8">
                 {isSubmitted && (
-                  <Alert className="mb-6 bg-green-50 border-green-200 animate-in fade-in slide-in-from-top duration-500">
+                  <Alert className="mb-6 bg-green-50 border-green-200 anim-fill-both anim-name-fade-in anim-name-slide-top anim-duration-500">
                     <CheckCircle2 className="h-4 w-4 text-green-600" />
                     <AlertDescription className="text-green-800">
                       Thank you! Your message has been sent successfully. We'll
@@ -251,72 +250,6 @@ export default function ContactPage() {
           </div>
         </div>
       </main>
-
-      <style jsx>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes slide-in-from-left {
-          from {
-            transform: translateX(-20px);
-          }
-          to {
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes slide-in-from-right {
-          from {
-            transform: translateX(20px);
-          }
-          to {
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes slide-in-from-top {
-          from {
-            transform: translateY(-10px);
-          }
-          to {
-            transform: translateY(0);
-          }
-        }
-
-        .animate-in {
-          animation-fill-mode: both;
-        }
-
-        .fade-in {
-          animation-name: fade-in;
-        }
-
-        .slide-in-from-left {
-          animation-name: slide-in-from-left, fade-in;
-        }
-
-        .slide-in-from-right {
-          animation-name: slide-in-from-right, fade-in;
-        }
-
-        .slide-in-from-top {
-          animation-name: slide-in-from-top, fade-in;
-        }
-
-        .duration-500 {
-          animation-duration: 500ms;
-        }
-
-        .duration-700 {
-          animation-duration: 700ms;
-        }
-      `}</style>
     </div>
   );
 }

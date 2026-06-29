@@ -23,6 +23,15 @@ const nextConfig: NextConfig = {
     deviceSizes: [360, 640, 750, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
   },
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "date-fns",
+      "recharts",
+      "sonner",
+      "cmdk",
+    ],
+  },
   compiler: {
     removeConsole: { exclude: ["error"] },
   },

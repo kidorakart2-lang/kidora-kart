@@ -22,72 +22,6 @@ export default function About() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      <style jsx>{`
-        .liquid-glass {
-          background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.9),
-            rgba(255, 255, 255, 0.7)
-          );
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.8);
-          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15),
-            inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
-        }
-
-        .liquid-card {
-          background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.95),
-            rgba(255, 255, 255, 0.85)
-          );
-          backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.9);
-          box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.1),
-            inset 0 1px 0 0 rgba(255, 255, 255, 1);
-        }
-
-        .shimmer {
-          position: relative;
-          overflow: hidden;
-        }
-
-        .shimmer::before {
-          content: "";
-          position: absolute;
-          top: -50%;
-          left: -50%;
-          width: 200%;
-          height: 200%;
-          background: linear-gradient(
-            45deg,
-            transparent 30%,
-            rgba(255, 255, 255, 0.8) 50%,
-            transparent 70%
-          );
-          animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-          0% {
-            transform: translateX(-100%) translateY(-100%) rotate(45deg);
-          }
-          100% {
-            transform: translateX(100%) translateY(100%) rotate(45deg);
-          }
-        }
-
-        .glass-icon {
-          background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 1),
-            rgba(240, 240, 255, 0.9)
-          );
-          box-shadow: 0 4px 16px rgba(31, 38, 135, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 1);
-        }
-      `}</style>
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
@@ -160,8 +94,8 @@ export default function About() {
                 <span className="font-semibold text-gray-800">
                   Kuldeep Deora
                 </span>{" "}
-                – Jewellery Wala is your trusted destination for gold and silver
-                jewellery in Jodhpur.
+                – {siteConfig.name} is your trusted destination for gold and silver
+                jewellery in {siteConfig.address.city}.
               </p>
 
               <p className="text-gray-700 leading-relaxed">
@@ -250,7 +184,7 @@ export default function About() {
                   Visit Our Store
                 </h3>
               </div>
-              <p className="text-gray-700 mb-2 font-semibold">Jewellery Wala</p>
+               <p className="text-gray-700 mb-2 font-semibold">{siteConfig.name}</p>
               <p className="text-gray-600 mb-4">
                 {getFullAddress()}
               </p>

@@ -12,7 +12,7 @@ Next.js 16 customer-facing storefront for the Jewellery Walla e-commerce platfor
 | UI | Tailwind CSS v4 + shadcn/ui (Radix primitives) |
 | Icons | lucide-react |
 | Animations | framer-motion / motion |
-| HTTP | axios (+ fetch for some calls) |
+| HTTP | native fetch |
 | Carousel | swiper |
 | Notifications | sonner |
 | Auth | JWT (httpOnly cookie) + Google OAuth (backend) |
@@ -68,6 +68,13 @@ web/src/
 | `pnpm build` | Production build (includes sitemap generation) |
 | `pnpm start` | Start production server |
 | `pnpm typecheck` | TypeScript check (`tsc --noEmit`) |
+| `pnpm lighthouse` | Run Lighthouse CI baseline (requires `pnpm build && pnpm start` first) |
+| `pnpm lint` | Run TypeScript check |
+
+## Quality Tooling
+
+- **Lighthouse CI** (`lighthouserc.js`) — Performance, accessibility, SEO, and best-practice budgets on desktop preset. Reports saved to `lhci_reports/`.
+- **axe-core** (`@axe-core/react`) — Development-time accessibility audit. Violations logged to browser console on every interaction. Disabled in production builds.
 
 ## Auth Flow
 
@@ -109,5 +116,9 @@ The following `.agents/skills/` are relevant to this project:
 - ✅ Dynamic imports for heavy packages (Swiper, motion)
 - ✅ Sitemap generated at build time
 - ✅ BreadcrumbList + aggregateRating JSON-LD
+- ✅ Scroll restoration — no global `scroll-behavior: smooth` (Next.js handles natively)
+- ✅ GDPR cookie consent banner added
+- ✅ axe-core dev-time a11y audit wired in
+- ✅ Lighthouse CI config with budgets
 - ⏳ Real business phone/email/postal code needed in utils.ts
 - ⏳ OG image verification needed (files exist, verify correctness)

@@ -1,5 +1,6 @@
 "use client";
 
+import { api, ApiClientError } from "@/lib/api";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -100,129 +101,65 @@ const INITIAL_FORM_STATE: ProductFormData = {
 
 // API functions
 const fetchColors = async () => {
-  const response = await fetch(`/api/admin/color/view`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
-  });
-  if (response.ok) {
-    const data = await response.json();
-    return data._data || [];
+  try {
+    return (await api.post<{ _id: string; name: string; code: string }[]>("/api/admin/color/view", {})) || [];
+  } catch {
+    return [];
   }
-  return [];
 };
 
 const fetchMaterials = async () => {
-  const response = await fetch(`/api/admin/material/view`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
-  });
-  if (response.ok) {
-    const data = await response.json();
-    return data._data || [];
+  try {
+    return (await api.post<{ _id: string; name: string }[]>("/api/admin/material/view", {})) || [];
+  } catch {
+    return [];
   }
-  return [];
 };
 
 const fetchSizes = async () => {
-  const response = await fetch(`/api/admin/size/view`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
-  });
-  if (response.ok) {
-    const data = await response.json();
-    return data._data || [];
+  try {
+    return (await api.post<{ _id: string; name: string }[]>("/api/admin/size/view", {})) || [];
+  } catch {
+    return [];
   }
-  return [];
 };
 
 const fetchCategories = async () => {
-  const response = await fetch(`/api/admin/category/view`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
-  });
-  if (response.ok) {
-    const data = await response.json();
-    return data._data || [];
+  try {
+    return (await api.post<{ _id: string; name: string }[]>("/api/admin/category/view", {})) || [];
+  } catch {
+    return [];
   }
-  return [];
 };
 
 const fetchSubCategories = async () => {
-  const response = await fetch(`/api/admin/subCategory/view`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
-  });
-  if (response.ok) {
-    const data = await response.json();
-    return data._data || [];
+  try {
+    return (await api.post<{ _id: string; name: string }[]>("/api/admin/subCategory/view", {})) || [];
+  } catch {
+    return [];
   }
-  return [];
 };
 
 const fetchSubSubCategories = async () => {
-  const response = await fetch(`/api/admin/subSubCategory/view`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
-  });
-  if (response.ok) {
-    const data = await response.json();
-    return Array.isArray(data?._data) ? data._data : [];
+  try {
+    const data = await api.post<{ _id: string; name: string }[]>("/api/admin/subSubCategory/view", {});
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
   }
-  return [];
 };
 
 const fetchProducts = async () => {
-  const response = await fetch(
-    `/api/admin/product/view?showDeleted=true`,
-    {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    }
-  );
-  const data = await response.json();
-  return data._data || [];
+  const data = await api.post<Product[]>("/api/admin/product/view?showDeleted=true", {});
+  return data || [];
 };
 
 const deleteProduct = async (id: string) => {
-  const response = await fetch(`/api/admin/product/delete/${id}`, {
-    method: "PUT",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id }),
-  });
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.message || errorData.error || "Failed to delete product"
-    );
-  }
-  return response.json();
+  return api.put("/api/admin/product/delete/" + id, { id });
 };
 
-const   changeProductStatus = async (id: string) => {
-    const response = await fetch(
-      `/api/admin/product/change-status/${id}`,
-      {
-        method: "PUT",
-        credentials: "include",
-      }
-    );
-  if (!response.ok) throw new Error("Failed to update status");
-  return response.json();
+const changeProductStatus = async (id: string) => {
+  return api.put("/api/admin/product/change-status/" + id);
 };
 
 const saveProduct = async ({ formData, editingProduct }: { formData: FormData; editingProduct: Product | null }) => {
@@ -230,21 +167,7 @@ const saveProduct = async ({ formData, editingProduct }: { formData: FormData; e
     ? `/api/admin/product/update/${editingProduct._id}`
     : `/api/admin/product/create`;
 
-  const response = await fetch(url, {
-    method: editingProduct ? "PUT" : "POST",
-    credentials: "include",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.message ||
-        errorData.error ||
-        `Failed to ${editingProduct ? "update" : "create"} product`
-    );
-  }
-  return response.json();
+  return editingProduct ? api.put(url, formData) : api.post(url, formData);
 };
 
 export default function ProductsPage() {

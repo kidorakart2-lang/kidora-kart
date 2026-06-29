@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import axios from "axios"
+import { api, ApiClientError } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -26,11 +26,6 @@ interface AIHelperConfig {
   systemPrompt?: string;
 }
 
-const AXIOS_CONFIG = { withCredentials: true } as const
-
-function isAxiosError(error: unknown): error is { response?: { data?: { _message?: string } }; message?: string } {
-  return typeof error === "object" && error !== null && ("response" in error || "message" in error);
-}
 
 const GEMINI_MODELS = [
   { value: "gemini-pro", label: "Gemini Pro" },
@@ -60,12 +55,7 @@ export default function AIHelpersPage() {
   const loadConfig = async () => {
     setLoading(true)
     try {
-      const response = await axios.post(
-        `/api/admin/ai-helpers/view`,
-        {},
-        AXIOS_CONFIG
-      )
-      const data = response.data._data
+      const data = (await api.post("/api/admin/ai-helpers/view", {})) as Record<string, any> | null
       if (data) {
         setConfig({
           geminiApiKey: data.geminiApiKey || "",
@@ -95,24 +85,12 @@ export default function AIHelpersPage() {
         systemPrompt: config.systemPrompt,
       }
 
-      const response = await axios.post(
-        `/api/admin/ai-helpers/create-or-update`,
-        payload,
-        AXIOS_CONFIG
-      )
-
-      if (response.data._status) {
-        toast({ title: "AI Helper settings saved successfully" })
-      } else {
-        toast({
-          title: response.data._message || "Error saving settings",
-          variant: "destructive",
-        })
-      }
+      await api.post("/api/admin/ai-helpers/create-or-update", payload)
+      toast({ title: "AI Helper settings saved successfully" })
     } catch (error) {
       toast({
         title: "Error saving AI Helper settings",
-        description: isAxiosError(error) ? error.response?.data?._message || "Operation failed" : "Operation failed",
+        description: error instanceof ApiClientError ? error.message : "Operation failed",
         variant: "destructive",
       })
     } finally {

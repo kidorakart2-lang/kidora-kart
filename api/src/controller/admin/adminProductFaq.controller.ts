@@ -63,7 +63,7 @@ export const view = async (req: Request, res: Response): Promise<void> => {
       _current_page: Number(pageValue),
     });
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Server error", 500);
+    fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -75,7 +75,7 @@ export const details = async (req: Request, res: Response): Promise<void> => {
       .populate("category", "name slug");
     success(res, result, result ? "FAQ Found" : "No FAQ Found");
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Server error", 500);
+    fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -89,7 +89,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
     invalidateCache();
     success(res, result, result ? "FAQ Updated" : "FAQ Not Found");
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Failed to update", 500);
+    fail(res, "Failed to update product FAQ", 500);
   }
 };
 
@@ -103,7 +103,7 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
     invalidateCache();
     success(res, result, result ? "FAQ Deleted" : "FAQ Not Found");
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Failed to delete", 500);
+    fail(res, "Failed to delete product FAQ", 500);
   }
 };
 
@@ -180,7 +180,7 @@ export const bulkCreateFaqs = async (req: Request, res: Response): Promise<void>
     invalidateCache();
     success(res, docs, `${docs.length} FAQs created (${faqs.length} entries × ${productIds.length} products)`, 201);
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Failed to create FAQs", 500);
+    fail(res, "Failed to create FAQs", 500);
   }
 };
 
@@ -193,6 +193,6 @@ export const changeStatus = async (req: Request, res: Response): Promise<void> =
     invalidateCache();
     success(res, result, "Status Changed");
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Status Not Changed", 500);
+    fail(res, "Failed to change status", 500);
   }
 };

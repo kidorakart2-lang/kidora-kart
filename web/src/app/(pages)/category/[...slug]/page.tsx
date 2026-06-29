@@ -4,17 +4,7 @@ import React, { cache } from "react";
 import { siteConfig } from "@/lib/utils";
 import FilterSidebar from "../FilterSidebar";
 import { ChevronRight } from "lucide-react";
-
-interface ColorItem {
-  _id: string;
-  name: string;
-  code: string;
-}
-
-interface MaterialItem {
-  _id: string;
-  name: string;
-}
+import type { ColorItem, MaterialItem } from "@/types";
 
 interface CategoryPageProps {
   params: Promise<{ slug: string[] }>;
@@ -130,12 +120,32 @@ export default async function page({ params, searchParams }: CategoryPageProps) 
     itemListElement: breadcrumbItems,
   };
 
+  // S12: CollectionPage schema for category pages
+  const collectionPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: subSubCategorySlug
+      ? subSubCategorySlug.replace(/[-0-9]/g, " ")
+      : subCategorySlug
+      ? subCategorySlug.replace(/[-0-9]/g, " ")
+      : categorySlug.replace(/[-0-9]/g, " "),
+    description: `Shop ${subSubCategorySlug || subCategorySlug || categorySlug} jewellery collection at ${siteConfig.name}. Browse our curated selection of premium jewellery pieces.`,
+    url: `${siteConfig.url}/category/${slug.join("/")}`,
+    breadcrumb: { "@type": "BreadcrumbList", itemListElement: breadcrumbItems },
+    mainEntity: {
+      "@type": "ItemList",
+      name: "Products",
+    },
+  };
+
+  const schemas = [breadcrumbSchema, collectionPageSchema];
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbSchema),
+          __html: JSON.stringify(schemas),
         }}
       />
       <div className="min-h-screen ">

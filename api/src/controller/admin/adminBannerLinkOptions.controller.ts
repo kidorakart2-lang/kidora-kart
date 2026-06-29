@@ -14,7 +14,7 @@ export const getProducts = async (_req: Request, res: Response): Promise<void> =
       .lean();
     success(res, data, "Products fetched");
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Server error", 500);
+    fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -27,7 +27,7 @@ export const getCategories = async (_req: Request, res: Response): Promise<void>
       .lean();
     success(res, data, "Categories fetched");
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Server error", 500);
+    fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -40,7 +40,7 @@ export const getSubCategories = async (_req: Request, res: Response): Promise<vo
       .lean();
     success(res, data, "Sub-categories fetched");
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Server error", 500);
+    fail(res, "Internal Server Error", 500);
   }
 };
 
@@ -53,6 +53,6 @@ export const getSubSubCategories = async (_req: Request, res: Response): Promise
       .lean();
     success(res, data, "Sub-sub-categories fetched");
   } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Server error", 500);
+    fail(res, "Internal Server Error", 500);
   }
 };

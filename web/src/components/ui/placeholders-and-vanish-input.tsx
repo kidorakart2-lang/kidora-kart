@@ -3,7 +3,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
 import { setSearchValue } from "@/redux/features/uiSlice";

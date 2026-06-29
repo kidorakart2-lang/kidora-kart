@@ -185,7 +185,7 @@ const LoginPage = () => {
                 />
               </div>
               {formState.errors.email && (
-                <p id="email-error" className="text-red-500 text-xs mt-1">
+                <p id="email-error" className="text-red-500 text-xs mt-1" role="alert" aria-live="polite">
                   {formState.errors.email}
                 </p>
               )}
@@ -207,7 +207,7 @@ const LoginPage = () => {
               />
             </div>
             {formState.errors.password && (
-              <p id="password-error" className="text-red-500 text-xs mt-1">
+              <p id="password-error" className="text-red-500 text-xs mt-1" role="alert" aria-live="polite">
                 {formState.errors.password}
               </p>
             )}

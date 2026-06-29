@@ -9,12 +9,60 @@
  *   await api.del("/api/admin/user/delete/123");
  *
  * All requests:
+ * - Use `NEXT_PUBLIC_BACKEND_URL` as base URL (no reliance on Next.js rewrites)
  * - Include `credentials: "include"` automatically
+ * - Read `adminToken` from cookies and send as `Authorization` header
  * - Parse `_status` and throw on failure with `_message`
  * - Return `_data` when present, otherwise the full response JSON
  * - Accept both JSON objects and FormData (auto-detected)
  * - Gracefully handle non-JSON responses (e.g. 500 HTML error pages)
  */
+
+const BASE_URL =
+  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_BACKEND_URL) ||
+  "http://localhost:5000/";
+
+function resolveUrl(url: string): string {
+  if (url.startsWith("http")) return url;
+  const base = BASE_URL.endsWith("/") ? BASE_URL : BASE_URL + "/";
+  const path = url.startsWith("/") ? url.slice(1) : url;
+  return base + path;
+}
+
+function getTokenFromCookie(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|;\s*)adminToken=([^;]*)/);
+  return match ? match[1] : null;
+}
+
+let csrfTokenPromise: Promise<string | null> | null = null;
+
+async function fetchCsrfToken(): Promise<string | null> {
+  try {
+    const res = await fetch(resolveUrl("/api/admin/csrf-token"), {
+      method: "GET",
+      credentials: "include",
+    });
+    if (!res.ok) return null;
+    const cookieMatch = document.cookie.match(/(?:^|;\s*)csrfToken=([^;]*)/);
+    return cookieMatch ? cookieMatch[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+function ensureCsrfToken(): Promise<string | null> {
+  if (!csrfTokenPromise) {
+    csrfTokenPromise = fetchCsrfToken();
+  }
+  return csrfTokenPromise;
+}
+
+function getCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
+  return match ? match[1] : null;
+}
 
 export class ApiClientError extends Error {
   constructor(
@@ -31,12 +79,30 @@ async function request<T = unknown>(
   method: string,
   url: string,
   body?: unknown,
+  tokenOverride?: string,
 ): Promise<T> {
   const isFormData = body instanceof FormData;
 
-  const res = await fetch(url, {
+  const headers: Record<string, string> = {};
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const token = tokenOverride ?? getTokenFromCookie();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  if (method !== "GET") {
+    const csrf = getCookie("csrfToken");
+    if (csrf) {
+      headers["x-csrf-token"] = csrf;
+    }
+  }
+
+  const res = await fetch(resolveUrl(url), {
     method,
-    headers: isFormData ? undefined : { "Content-Type": "application/json" },
+    headers,
     credentials: "include",
     body: isFormData
       ? (body as FormData)
@@ -74,20 +140,88 @@ async function request<T = unknown>(
   return json as T;
 }
 
+async function requestRaw<T = unknown>(
+  method: string,
+  url: string,
+  body?: unknown,
+  tokenOverride?: string,
+): Promise<T> {
+  const isFormData = body instanceof FormData;
+
+  const headers: Record<string, string> = {};
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const token = tokenOverride ?? getTokenFromCookie();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  if (method !== "GET") {
+    const csrf = getCookie("csrfToken");
+    if (csrf) {
+      headers["x-csrf-token"] = csrf;
+    }
+  }
+
+  const res = await fetch(resolveUrl(url), {
+    method,
+    headers,
+    credentials: "include",
+    body: isFormData
+      ? (body as FormData)
+      : body !== undefined
+        ? JSON.stringify(body)
+        : undefined,
+  });
+
+  const text = await res.text();
+  let json: Record<string, unknown>;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new ApiClientError(
+      `Unexpected response (status ${res.status})`,
+      res.status,
+      text.slice(0, 500),
+    );
+  }
+
+  if (res.ok === false || json._status === false) {
+    throw new ApiClientError(
+      (json._message as string) ?? `Request failed with status ${res.status}`,
+      res.status,
+      json,
+    );
+  }
+
+  return json as T;
+}
+
+if (typeof document !== "undefined") {
+  ensureCsrfToken();
+}
+
 export const api = {
-  get<T = unknown>(url: string): Promise<T> {
-    return request<T>("GET", url);
+  get<T = unknown>(url: string, tokenOverride?: string): Promise<T> {
+    return request<T>("GET", url, undefined, tokenOverride);
   },
 
-  post<T = unknown>(url: string, body?: unknown): Promise<T> {
-    return request<T>("POST", url, body);
+  post<T = unknown>(url: string, body?: unknown, tokenOverride?: string): Promise<T> {
+    return request<T>("POST", url, body, tokenOverride);
   },
 
-  put<T = unknown>(url: string, body?: unknown): Promise<T> {
-    return request<T>("PUT", url, body);
+  put<T = unknown>(url: string, body?: unknown, tokenOverride?: string): Promise<T> {
+    return request<T>("PUT", url, body, tokenOverride);
   },
 
-  del<T = unknown>(url: string): Promise<T> {
-    return request<T>("DELETE", url);
+  del<T = unknown>(url: string, tokenOverride?: string): Promise<T> {
+    return request<T>("DELETE", url, undefined, tokenOverride);
+  },
+
+  /** Like post() but returns the full response JSON without extracting `_data`. */
+  postRaw<T = unknown>(url: string, body?: unknown, tokenOverride?: string): Promise<T> {
+    return requestRaw<T>("POST", url, body, tokenOverride);
   },
 };

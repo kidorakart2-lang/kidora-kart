@@ -4,9 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { StatCard } from "@/components/stat-card";
 import { RecentActivity } from "@/components/recent-activity";
 import { RecentOrders } from "@/components/recent-orders";
-import { ShoppingCart, Users, Package, IndianRupee } from "lucide-react";
+import { ShoppingCart, Users, Package, IndianRupee, AlertCircle, RefreshCw } from "lucide-react";
 import RefundedOrdersAdmin from "@/components/RefundedOrdersAdmin";
 import PendingPaymentFix from "@/components/PendingPaymentFix";
+import { api, ApiClientError } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 
 
 interface DashboardStats {
@@ -50,58 +52,43 @@ interface ActivityData {
 
 export default function DashboardPage() {
   const fetchDashboardStats = async (): Promise<DashboardStats> => {
-    const res = await fetch(
-      `/api/admin/dashboard/get-dashboard-stats`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      },
-    );
-    if (!res.ok) throw new Error("Failed to fetch dashboard stats");
-    const data = await res.json();
-    return data.data;
+    return api.post("/api/admin/dashboard/get-dashboard-stats", {});
   };
 
   const fetchRecentActivity = async (): Promise<ActivityData> => {
-    const res = await fetch(
-      `/api/admin/dashboard/get-recent-activity`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      },
-    );
-    if (!res.ok) throw new Error("Failed to fetch activity");
-    const data = await res.json();
-    return data.data;
+    return api.post("/api/admin/dashboard/get-recent-activity", {});
   };
 
   const {
     data: stats,
     isLoading: statsLoading,
     isError: statsError,
+    error: statsErrorObj,
+    refetch: refetchStats,
   } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: fetchDashboardStats,
     staleTime: 60 * 60 * 1000,
+    retry: 1,
   });
 
   const {
     data: activity,
     isLoading: activityLoading,
     isError: activityError,
+    error: activityErrorObj,
+    refetch: refetchActivity,
   } = useQuery({
     queryKey: ["dashboard-activity"],
     queryFn: fetchRecentActivity,
     staleTime: 60 * 60 * 1000,
+    retry: 1,
   });
 
-  if (statsLoading || activityLoading) {
+  const isLoading = statsLoading || activityLoading;
+  const hasError = statsError || activityError;
+
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="animate-pulse space-y-4">
@@ -116,10 +103,31 @@ export default function DashboardPage() {
     );
   }
 
-  if (statsError || activityError) {
+  if (hasError) {
+    const errMsg =
+      statsErrorObj instanceof ApiClientError
+        ? statsErrorObj.message
+        : activityErrorObj instanceof ApiClientError
+          ? activityErrorObj.message
+          : "Something went wrong while fetching dashboard data";
+
     return (
-      <div className="text-red-500">
-        Something went wrong while fetching dashboard data 😬
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">Welcome back! Here&apos;s what&apos;s happening today.</p>
+        </div>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="rounded-full bg-destructive/10 p-4 mb-4">
+            <AlertCircle className="h-8 w-8 text-destructive" />
+          </div>
+          <h2 className="text-xl font-semibold mb-2">Failed to load dashboard</h2>
+          <p className="text-muted-foreground mb-6 max-w-md">{errMsg}</p>
+          <Button onClick={() => { refetchStats(); refetchActivity(); }}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </div>
       </div>
     );
   }

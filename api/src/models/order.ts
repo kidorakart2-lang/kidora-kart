@@ -1,4 +1,5 @@
 import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
+import crypto from "crypto";
 
 const orderSchema = new Schema(
   {
@@ -7,13 +8,11 @@ const orderSchema = new Schema(
       required: true,
       unique: true,
       default: function () {
-        return `ORD-${Date.now()}-${Math.random()
-          .toString(36)
-          .substr(2, 9)
-          .toUpperCase()}`;
+        return `ORD-${Date.now()}-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
       },
     },
-    idempotencyKey: { type: String, unique: true, sparse: true },
+    idempotencyKey: { type: String, sparse: true },
+    idempotencyHash: { type: String },
     userId: {
       type: Schema.Types.ObjectId,
       ref: "users",
@@ -253,6 +252,8 @@ orderSchema.statics.getOrdersByStatus = function (
   if (userId) query.userId = userId;
   return this.find(query).sort({ createdAt: -1 });
 };
+
+orderSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true, sparse: true });
 
 export type IOrder = InferSchemaType<typeof orderSchema>;
 

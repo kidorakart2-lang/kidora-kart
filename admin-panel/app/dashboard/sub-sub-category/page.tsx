@@ -1,55 +1,23 @@
 import { Suspense } from "react";
 import { cookies } from "next/headers";
-import SubSubCategoriesClient from "./SubSubCatClient";
+import SubSubCategoriesClient, { type SubSubCategoryItem } from "./SubSubCatClient";
+import { api } from "@/lib/api";
+import type { Category } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-async function getSubSubCategories(token: string) {
+async function getSubSubCategories(token: string): Promise<SubSubCategoryItem[]> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/"}api/admin/subSubCategory/view`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({}),
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch sub sub categories");
-    }
-
-    const data = await response.json();
-    return Array.isArray(data?._data)
-      ? data._data
-      : Array.isArray(data)
-      ? data
-      : [];
+    return (await api.post<SubSubCategoryItem[]>("/api/admin/subSubCategory/view", {}, token)) || [];
   } catch (error) {
     console.error("Error fetching sub sub categories:", error);
     return [];
   }
 }
 
-async function getSubCategories(token: string) {
+async function getSubCategories(token: string): Promise<Category[]> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/"}api/admin/subCategory/view`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({}),
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch sub categories");
-    }
-
-    const data = await response.json();
-    return data._data || data;
+    return (await api.post<Category[]>("/api/admin/subCategory/view", {}, token)) || [];
   } catch (error) {
     console.error("Error fetching sub categories:", error);
     return [];

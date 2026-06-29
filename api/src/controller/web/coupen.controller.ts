@@ -7,6 +7,9 @@ export const coupenPopUp = async (req: Request, res: Response): Promise<Response
     const coupenId = req.params.id;
     const coupen = await Coupen.findById(coupenId);
     if (!coupen) return fail(res, "Coupen Not Found", 404);
+    if (coupen.expiryDate && new Date(coupen.expiryDate) < new Date()) {
+      return fail(res, "Coupon has expired", 400);
+    }
     return success(res, coupen, "Coupen Found");
   } catch (error) {
     console.error("Coupen Pop Up Error:", error);
@@ -22,6 +25,11 @@ export const findCoupen = async (req: Request, res: Response): Promise<Response>
       deletedAt: null,
       status: true,
       isUsed: false,
+      $or: [
+        { expiryDate: { $exists: false } },
+        { expiryDate: null },
+        { expiryDate: { $gte: new Date() } },
+      ],
     });
     return success(res, coupen, "Coupen Found");
   } catch (error) {

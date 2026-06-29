@@ -5,10 +5,12 @@ const coupenSchema = new Schema(
     name: {
       type: String,
       required: [true, "Coupon Name is required"],
+      trim: true,
     },
     description: {
       type: String,
       default: "",
+      trim: true,
     },
     userId: {
       type: Schema.Types.ObjectId,
@@ -25,6 +27,7 @@ const coupenSchema = new Schema(
     code: {
       type: String,
       required: [true, "Coupon Code is required"],
+      trim: true,
     },
     discountPercentage: {
       type: Number,

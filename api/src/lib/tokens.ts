@@ -67,7 +67,7 @@ export function accessTokenCookieOptions() {
   return {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
-    sameSite: "lax" as const,
+    sameSite: "strict" as const,
     maxAge: 15 * 60 * 1000, // 15 minutes
     path: "/",
   };
@@ -77,7 +77,7 @@ export function refreshTokenCookieOptions(expiresAt: Date) {
   return {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
-    sameSite: "lax" as const,
+    sameSite: "strict" as const,
     expires: expiresAt,
     path: "/",
   };
@@ -87,7 +87,7 @@ export function clearAccessTokenCookie() {
   return {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
-    sameSite: "lax" as const,
+    sameSite: "strict" as const,
     maxAge: 0,
     path: "/",
   };
@@ -97,8 +97,18 @@ export function clearRefreshTokenCookie() {
   return {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
-    sameSite: "lax" as const,
+    sameSite: "strict" as const,
     maxAge: 0,
+    path: "/",
+  };
+}
+
+export function csrfCookieOptions() {
+  return {
+    httpOnly: false,
+    secure: env.NODE_ENV === "production",
+    sameSite: "strict" as const,
+    maxAge: 24 * 60 * 60 * 1000,
     path: "/",
   };
 }

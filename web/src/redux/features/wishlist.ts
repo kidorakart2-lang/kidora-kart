@@ -6,14 +6,14 @@ import {
   clearGuestWishlistStorage,
 } from "@/lib/syncGuestData";
 
-export interface WishlistItem {
+export interface WishlistSliceItem {
   _id: string;
   productId?: string;
   isGuest?: boolean;
 }
 
 export interface WishlistState {
-  wishlistItems: WishlistItem[];
+  wishlistItems: WishlistSliceItem[];
   totalQuantity: number;
 }
 

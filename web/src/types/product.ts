@@ -1,3 +1,14 @@
+export interface ColorItem {
+  _id: string;
+  name: string;
+  code: string;
+}
+
+export interface MaterialItem {
+  _id: string;
+  name: string;
+}
+
 export interface ProductData {
   _id: string;
   name: string;

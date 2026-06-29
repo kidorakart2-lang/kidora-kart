@@ -30,7 +30,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 
-interface SettingsData {
+export interface SettingsData {
   email?: string;
   isEmailVerified?: boolean;
 }

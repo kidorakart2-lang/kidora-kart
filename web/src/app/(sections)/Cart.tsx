@@ -59,7 +59,9 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     if (effectiveCart?._data?.items?.length) {
       setFetchedCart(null);
       fetchKey.current = false;
-      dispatch(updateFullCart(cart!._data!));
+      if (cart?._data?.items?.length) {
+        dispatch(updateFullCart(cart._data));
+      }
       return;
     }
 
@@ -89,50 +91,55 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
     if (reduxCartItems.length === 0) return null;
 
+    const items = reduxCartItems.map((item) => {
+      const p = (item.product ?? {}) as Record<string, unknown>;
+      const colors = (p.colors ?? []) as Array<{
+        _id: string;
+        name: string;
+        code: string;
+      }>;
+      const sizes = (p.sizes ?? []) as Array<{
+        _id: string;
+        name: string;
+      }>;
+      const color = colors.find((c) => c._id === item.colorId);
+      const size = sizes.find((s) => s._id === item.sizeId);
+      return {
+        _id: `${item.productId}_${item.colorId ?? ""}_${item.sizeId ?? ""}`,
+        product: {
+          _id: item.productId,
+          name: String(p.name ?? ""),
+          image: String(p.image ?? ""),
+          price: Number(p.price ?? 0),
+          discount_price: p.discount_price
+            ? Number(p.discount_price)
+            : undefined,
+          slug: String(p.slug ?? ""),
+          stock: Number(p.stock ?? 0),
+          colors,
+          sizes,
+        } as ProductData,
+        quantity: item.quantity,
+        color: {
+          _id: item.colorId ?? "",
+          code: color?.code ?? "#000",
+          name: color?.name ?? "",
+        },
+        size: size ? { _id: size._id, name: size.name } : undefined,
+      } as CartApiItem;
+    });
+
+    const totalPrice = items.reduce(
+      (sum, i) =>
+        sum + (i.product.discount_price || i.product.price) * i.quantity,
+      0
+    );
+
     return {
       _data: {
-        items: reduxCartItems.map((item) => {
-          const p = (item.product ?? {}) as Record<string, unknown>;
-          const colors = (p.colors ?? []) as Array<{
-            _id: string;
-            name: string;
-            code: string;
-          }>;
-          const sizes = (p.sizes ?? []) as Array<{
-            _id: string;
-            name: string;
-          }>;
-          const color = colors.find((c) => c._id === item.colorId);
-          const size = sizes.find((s) => s._id === item.sizeId);
-          return {
-            _id: `${item.productId}_${item.colorId ?? ""}_${item.sizeId ?? ""}`,
-            product: {
-              _id: item.productId,
-              name: String(p.name ?? ""),
-              image: String(p.image ?? ""),
-              price: Number(p.price ?? 0),
-              discount_price: p.discount_price
-                ? Number(p.discount_price)
-                : undefined,
-              slug: String(p.slug ?? ""),
-              stock: Number(p.stock ?? 0),
-              colors,
-              sizes,
-            } as ProductData,
-            quantity: item.quantity,
-            color: {
-              _id: item.colorId ?? "",
-              code: color?.code ?? "#000",
-              name: color?.name ?? "",
-            },
-            size: size ? { _id: size._id, name: size.name } : undefined,
-          } as CartApiItem;
-        }),
-        totalPrice: 0,
-        totalItems: reduxCartItems.reduce(
-          (sum, i) => sum + i.quantity,
-          0
-        ),
+        items,
+        totalPrice,
+        totalItems: items.reduce((sum, i) => sum + i.quantity, 0),
       },
     };
   }, [cart, fetchedCart, reduxCartItems]);

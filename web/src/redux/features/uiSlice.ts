@@ -12,12 +12,12 @@ interface NavigationItem {
   name?: string;
 }
 
-export interface NavigationData {
+export interface UiNavigationData {
   _data: NavigationItem[];
 }
 
 interface UiState {
-  navigation: NavigationData;
+  navigation: UiNavigationData;
   isSidebarOpen: boolean;
   isRequirementModalOpen: boolean;
   isLoginModalOpen: boolean;

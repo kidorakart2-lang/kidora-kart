@@ -17,11 +17,21 @@ import { DataTable } from "@/components/data-table";
 import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, ShieldCheck } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import { api, ApiClientError } from "@/lib/api";
 
 interface AdminUser extends BaseItem {
   _id?: string;
@@ -43,6 +53,9 @@ export default function UsersPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [btnLoading, setBtnLoading] = useState(false);
+  const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
+  const [verifyPassword, setVerifyPassword] = useState("");
+  const [verifyLoading, setVerifyLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -56,15 +69,18 @@ export default function UsersPage() {
 
   const loadUsers = async () => {
     setLoading(true);
-    const data = await fetch(`/api/admin/user/findAllUser`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    });
-    const response = await data.json();
-    setUsers(response._data || []);
-    setLoading(false);
+    try {
+      const data = await api.post<AdminUser[]>("/api/admin/user/findAllUser", {});
+      setUsers(data || []);
+    } catch (error) {
+      toast({
+        title: "Error loading users",
+        description: error instanceof ApiClientError ? error.message : "Request failed",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEdit = (user: AdminUser) => {
@@ -86,32 +102,13 @@ export default function UsersPage() {
   const confirmDelete = async () => {
     if (!userToDelete) return;
     try {
-      const res = await axios.delete(
-        `/api/admin/user/delete/${userToDelete}`,
-        { withCredentials: true }
-      );
-      if (res.data._status === true) {
-        toast({
-          title: res.data._message || "User deleted successfully",
-          description: "",
-        });
-        loadUsers();
-      } else {
-        toast({
-          title: res.data._message || "Something went wrong",
-          description: "",
-          variant: "destructive",
-        });
-      }
-    } catch (error: unknown) {
-      const msg =
-        error instanceof Object && error !== null
-          ? (error as { response?: { data?: { _message?: string } } }).response
-              ?.data?._message
-          : "Operation failed";
+      await api.post(`/api/admin/user/delete/${userToDelete}`, {});
+      toast({ title: "User deleted successfully" });
+      loadUsers();
+    } catch (error) {
       toast({
-        title: msg,
-        description: msg,
+        title: error instanceof ApiClientError ? error.message : "Operation failed",
+        description: error instanceof ApiClientError ? error.message : "Operation failed",
         variant: "destructive",
       });
     }
@@ -125,64 +122,57 @@ export default function UsersPage() {
 
     try {
       if (editingUser) {
-        const res = await axios.post(
-          `/api/admin/user/${editingUser._id}/change-role`,
-          { role: formData.role },
-          { withCredentials: true }
-        );
-        if (res.data._status === true) {
-          toast({ title: res.data._message || "User role changed" });
-          loadUsers();
-        } else {
-          toast({
-            title: res.data._message || "Something went wrong",
-            variant: "destructive",
-          });
-        }
+        setVerifyDialogOpen(true);
+        setBtnLoading(false);
+        return;
       } else {
         if (!formData.name || !formData.email || !formData.password) {
           toast({ title: "Name, email, and password are required", variant: "destructive" });
           setBtnLoading(false);
           return;
         }
-        const res = await axios.post(
-          `/api/admin/user/create`,
-          {
-            name: formData.name,
-            email: formData.email,
-            password: formData.password,
-            role: formData.role,
-          },
-          { withCredentials: true }
-        );
-        if (res.data._status === true) {
-          toast({ title: "User created successfully" });
-          loadUsers();
-          setDrawerOpen(false);
-          setEditingUser(null);
-          setFormData({ name: "", email: "", password: "", role: "user" });
-        } else {
-          toast({
-            title: res.data._message || "Failed to create user",
-            variant: "destructive",
-          });
-        }
+        await api.post("/api/admin/user/create", {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+        });
+        toast({ title: "User created successfully" });
+        loadUsers();
+        setDrawerOpen(false);
+        setEditingUser(null);
+        setFormData({ name: "", email: "", password: "", role: "user" });
       }
-    } catch (error: unknown) {
-      const msg =
-        error instanceof Object && error !== null
-          ? (error as { response?: { data?: { _message?: string } } })
-              .response?.data?._message || "Operation failed"
-          : "Operation failed";
-      toast({ title: msg, variant: "destructive" });
+    } catch (error) {
+      toast({ title: error instanceof ApiClientError ? error.message : "Operation failed", variant: "destructive" });
     } finally {
       setBtnLoading(false);
     }
 
-    if (!editingUser) return; // drawer already closed in create branch above
-    setDrawerOpen(false);
-    setEditingUser(null);
-    setFormData({ name: "", email: "", password: "", role: "user" });
+    if (!editingUser) return;
+  };
+
+  const handleVerifyAndChangeRole = async () => {
+    if (!editingUser) return;
+    setVerifyLoading(true);
+    try {
+      await api.post("/api/admin/user/verify-password", { password: verifyPassword });
+      await api.post(`/api/admin/user/${editingUser._id}/change-role`, { role: formData.role });
+      toast({ title: "User role changed" });
+      setVerifyDialogOpen(false);
+      setVerifyPassword("");
+      setDrawerOpen(false);
+      setEditingUser(null);
+      setFormData({ name: "", email: "", password: "", role: "user" });
+      loadUsers();
+    } catch (error) {
+      toast({
+        title: error instanceof ApiClientError ? error.message : "Verification failed",
+        variant: "destructive",
+      });
+    } finally {
+      setVerifyLoading(false);
+    }
   };
   const router = useRouter();
   const columns: Column<AdminUser>[] = [
@@ -195,7 +185,7 @@ export default function UsersPage() {
           className="flex items-center gap-3 cursor-pointer"
         >
           <Avatar className="h-10 w-10 border-2 border-border">
-            <AvatarImage src={item.avatar || ""} alt={item.name} />
+            <AvatarImage src={item.avatar || "/placeholder.svg"} alt={item.name} />
             <AvatarFallback>{item.name?.[0] ?? "?"}</AvatarFallback>
           </Avatar>
           <div>
@@ -408,6 +398,57 @@ export default function UsersPage() {
         title="Delete User"
         description="Are you sure you want to delete this user? This action cannot be undone."
       />
+
+      <AlertDialog open={verifyDialogOpen} onOpenChange={setVerifyDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5" />
+              Verify Password
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Please enter your password to confirm changing{" "}
+              <strong>{editingUser?.email}</strong> role to{" "}
+              <strong>{formData.role}</strong>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Input
+              type="password"
+              placeholder="Enter your password"
+              value={verifyPassword}
+              onChange={(e) => setVerifyPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !verifyLoading && verifyPassword) {
+                  handleVerifyAndChangeRole();
+                }
+              }}
+              autoFocus
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setVerifyPassword("");
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleVerifyAndChangeRole}
+              disabled={verifyLoading || !verifyPassword}
+            >
+              {verifyLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...
+                </>
+              ) : (
+                "Confirm"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

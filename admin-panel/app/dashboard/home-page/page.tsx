@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState, useCallback, useRef } from "react"
-import axios from "axios"
+import { api, ApiClientError } from "@/lib/api"
+import type { Product, Banner } from "@/lib/types"
 import {
   DndContext,
   closestCenter,
@@ -55,8 +56,6 @@ import {
   Search,
   Check,
 } from "lucide-react"
-
-const AXIOS_CONFIG = { withCredentials: true } as const
 
 // ── Helpers ──
 
@@ -487,7 +486,7 @@ function BannerConfigForm({
   const selectedIds = config.selectedBannerIds || []
   const search = config.bannerSearch || ""
 
-  const [banners, setBanners] = useState<any[]>([])
+  const [banners, setBanners] = useState<Banner[]>([])
   const [loadingBanners, setLoadingBanners] = useState(false)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -495,14 +494,13 @@ function BannerConfigForm({
   const loadBanners = useCallback(async (searchTerm: string, pageNum: number) => {
     setLoadingBanners(true)
     try {
-      const res = await axios.post(
-        "/api/admin/banner/view",
-        { description: searchTerm || undefined, page: pageNum, limit: 20 },
-        { withCredentials: true },
-      )
-      const data = res.data
-      setBanners(data._data || [])
-      setTotalPages(data._total_pages || 1)
+      const res = await api.postRaw<{ _data: Banner[]; _total_pages: number }>("/api/admin/banner/view", {
+        description: searchTerm || undefined,
+        page: pageNum,
+        limit: 20,
+      })
+      setBanners(res._data || [])
+      setTotalPages(res._total_pages || 1)
     } catch {
       setBanners([])
     } finally {
@@ -596,7 +594,7 @@ function BannerConfigForm({
             {search ? "No banners match your search" : "No banners found. Create banners first in the Banners section."}
           </p>
         ) : (
-          banners.map((banner: any) => {
+          banners.map((banner: Banner) => {
             const isSelected = selectedIds.includes(banner._id)
             return (
               <button
@@ -851,7 +849,7 @@ function BentoCellEditor({
 }) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
-  const [products, setProducts] = useState<any[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   const [loadingProducts, setLoadingProducts] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
 
@@ -872,12 +870,8 @@ function BentoCellEditor({
     }
     setLoadingProducts(true)
     try {
-      const res = await axios.post(
-        "/api/admin/product/view",
-        { name: q, limit: 10 },
-        { withCredentials: true },
-      )
-      setProducts(res.data._data || [])
+      const res = await api.post<Product[]>("/api/admin/product/view", { name: q, limit: 10 })
+      setProducts(res ?? [])
     } catch {
       setProducts([])
     } finally {
@@ -885,8 +879,8 @@ function BentoCellEditor({
     }
   }, [])
 
-  const selectProduct = (product: any) => {
-    onChange("productId", product._id)
+  const selectProduct = (product: Product) => {
+    onChange("productId", product._id ?? "")
     onChange("image", product.image || product.images?.[0] || "")
     onChange("title", product.name || "")
     onChange("subtitle", product.discount_price ? `₹${product.discount_price}` : product.price ? `₹${product.price}` : "")
@@ -946,7 +940,7 @@ function BentoCellEditor({
                 {searchTerm.trim() ? "No products found" : "Type to search products"}
               </p>
             ) : (
-              products.map((p: any) => (
+              products.map((p: Product) => (
                 <button
                   key={p._id}
                   type="button"
@@ -1460,13 +1454,13 @@ export default function HomePagePage() {
   const loadSections = useCallback(async () => {
     setLoading(true)
     try {
-      const response = await axios.get("/api/admin/home-page", AXIOS_CONFIG)
-      const data = (response.data._data?.sections ?? []) as HomeSection[]
+      const response = await api.get<{ sections: HomeSection[] }>("/api/admin/home-page")
+      const data = (response?.sections ?? []) as HomeSection[]
       setSections(data.sort((a: HomeSection, b: HomeSection) => a.order - b.order))
     } catch (error) {
       toast({
         title: "Error loading sections",
-        description: axios.isAxiosError(error) ? error.response?.data?._message || "Request failed" : "Request failed",
+        description: error instanceof ApiClientError ? error.message : "Request failed",
         variant: "destructive",
       })
     } finally {
@@ -1571,25 +1565,13 @@ export default function HomePagePage() {
         order: i,
       }))
 
-      const response = await axios.put(
-        "/api/admin/home-page",
-        { sections: ordered },
-        AXIOS_CONFIG,
-      )
-
-      if (response.data._status) {
-        toast({ title: "Home page saved successfully!" })
-        await loadSections()
-      } else {
-        toast({
-          title: response.data._message || "Error saving",
-          variant: "destructive",
-        })
-      }
+      await api.put("/api/admin/home-page", { sections: ordered })
+      toast({ title: "Home page saved successfully!" })
+      await loadSections()
     } catch (error) {
       toast({
         title: "Error saving home page",
-        description: axios.isAxiosError(error) ? error.response?.data?._message || "Request failed" : "Request failed",
+        description: error instanceof ApiClientError ? error.message : "Request failed",
         variant: "destructive",
       })
     } finally {

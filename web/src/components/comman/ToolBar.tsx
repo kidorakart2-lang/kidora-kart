@@ -132,26 +132,6 @@ const ToolBar = () => {
         />
       </button>
 
-      <style jsx>{`
-        @keyframes ping {
-          75%,
-          100% {
-            transform: scale(1.5);
-            opacity: 0;
-          }
-        }
-        .animate-ping {
-          animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-        .animate-spin {
-          animation: spin 1s linear infinite;
-        }
-      `}</style>
     </div>
   );
 };

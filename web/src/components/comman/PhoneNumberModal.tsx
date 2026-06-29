@@ -7,8 +7,8 @@ import { setProfile } from "@/redux/features/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Phone, Loader2 } from "lucide-react";
-import axios from "axios";
 import { getAuthToken } from "@/lib/getAuthToken";
+import { siteConfig } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function PhoneNumberModal() {
@@ -69,21 +69,28 @@ export default function PhoneNumberModal() {
       const formData = new FormData();
       formData.append("mobile", phone);
 
-      const response = await axios.put(
+      const response = await fetch(
         process.env.NEXT_PUBLIC_API_URL + "api/website/user/update-profile",
-        formData,
         {
-          withCredentials: true,
+          method: "PUT",
+          body: formData,
+          credentials: "include",
           headers: {
-            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      if (response.data._status) {
+      if (response.status === 429) {
+        setError("Too many requests, please try again later");
+        setLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data._status) {
         toast.success("Phone number saved successfully!");
-        // Update the profile in redux
         dispatch(
           setProfile({
             ...userDetails,
@@ -92,19 +99,10 @@ export default function PhoneNumberModal() {
         );
         handleClose();
       } else {
-        setError(response.data._message || "Failed to save phone number");
+        setError(data._message || "Failed to save phone number");
       }
-    } catch (error) {
-      const err = error as { status?: number; response?: { data?: { _message?: string } }; message?: string };
-      if (err.status === 429) {
-        setError("Too many requests, please try again later");
-      } else {
-        setError(
-          err.response?.data?._message ||
-            err.message ||
-            "Something went wrong"
-        );
-      }
+    } catch {
+      setError("Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -146,7 +144,7 @@ export default function PhoneNumberModal() {
 
         <div className="flex gap-2">
           <div className="flex items-center px-3 bg-gray-100 rounded-lg text-sm text-gray-600 border border-gray-200">
-            +91
+            {siteConfig.contact.countryCode}
           </div>
           <Input
             type="tel"
@@ -183,37 +181,7 @@ export default function PhoneNumberModal() {
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes phone-modal-in {
-          from {
-            opacity: 0;
-            transform: translateX(100%);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
 
-        @keyframes phone-modal-out {
-          from {
-            opacity: 1;
-            transform: translateX(0);
-          }
-          to {
-            opacity: 0;
-            transform: translateX(100%);
-          }
-        }
-
-        .animate-phone-modal-in {
-          animation: phone-modal-in 0.3s ease-out forwards;
-        }
-
-        .animate-phone-modal-out {
-          animation: phone-modal-out 0.3s ease-out forwards;
-        }
-      `}</style>
     </div>
   );
 }

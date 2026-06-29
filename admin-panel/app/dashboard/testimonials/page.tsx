@@ -22,7 +22,7 @@ import {
   EyeOff,
   Loader2,
 } from "lucide-react";
-import axios from "axios";
+import { api, ApiClientError } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -32,7 +32,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const AXIOS_CONFIG = { withCredentials: true } as const;
 
 export default function TestimonialsPage() {
   const [btnLoading, setBtnLoading] = useState(false);
@@ -78,17 +77,12 @@ export default function TestimonialsPage() {
   const loadTestimonials = async () => {
     setLoading(true);
     try {
-      const response = await axios.post(
-        `/api/admin/testimonial/view`,
-        {},
-        AXIOS_CONFIG
-      );
-      setTestimonials(response.data._data || []);
-    } catch (error: unknown) {
+      const data = await api.post<Testimonial[]>("/api/admin/testimonial/view", {});
+      setTestimonials(data ?? []);
+    } catch (error) {
       toast({
         title: "Error loading testimonials",
-        description:
-          (error as any).response?.data?._message || "Failed to load testimonials",
+        description: error instanceof ApiClientError ? error.message : "Failed to load testimonials",
         variant: "destructive",
       });
     } finally {
@@ -117,18 +111,13 @@ export default function TestimonialsPage() {
     if (!testimonialToDelete) return;
 
     try {
-      await axios.put(
-        `/api/admin/testimonial/delete/${testimonialToDelete}`,
-        { id: testimonialToDelete },
-        AXIOS_CONFIG
-      );
+      await api.put(`/api/admin/testimonial/delete/${testimonialToDelete}`, { id: testimonialToDelete });
       loadTestimonials();
       toast({ title: "Testimonial deleted successfully" });
-    } catch (error: unknown) {
+    } catch (error) {
       toast({
         title: "Error deleting testimonial",
-        description:
-          (error as any).response?.data?._message || "Failed to delete testimonial",
+        description: error instanceof ApiClientError ? error.message : "Failed to delete testimonial",
         variant: "destructive",
       });
     } finally {
@@ -149,19 +138,11 @@ export default function TestimonialsPage() {
 
     try {
       if (editingTestimonial) {
-        await axios.put(
-          `/api/admin/testimonial/update/${editingTestimonial._id}`,
-          submitData,
-          AXIOS_CONFIG
-        );
+        await api.put(`/api/admin/testimonial/update/${editingTestimonial._id}`, submitData);
         loadTestimonials();
         toast({ title: "Testimonial updated successfully" });
       } else {
-        await axios.post(
-          `/api/admin/testimonial/create`,
-          submitData,
-          AXIOS_CONFIG
-        );
+        await api.post("/api/admin/testimonial/create", submitData);
         toast({ title: "Testimonial created successfully" });
         loadTestimonials();
       }
@@ -175,11 +156,10 @@ export default function TestimonialsPage() {
         image: "",
         address: "",
       });
-    } catch (error: unknown) {
+    } catch (error) {
       toast({
         title: editingTestimonial ? "Error updating testimonial" : "Error creating testimonial",
-        description:
-          (error as any).response?.data?._message || "Operation failed",
+        description: error instanceof ApiClientError ? error.message : "Operation failed",
         variant: "destructive",
       });
     } finally {
@@ -189,22 +169,17 @@ export default function TestimonialsPage() {
 
   const changeStatus = async (testimonial: Testimonial) => {
     try {
-      await axios.put(
-        `/api/admin/testimonial/change-status/${testimonial._id}`,
-        { id: testimonial._id },
-        AXIOS_CONFIG
-      );
+      await api.put(`/api/admin/testimonial/change-status/${testimonial._id}`, { id: testimonial._id });
       loadTestimonials();
       toast({
         title: `Testimonial ${
           testimonial.status ? "deactivated" : "activated"
         } successfully`,
       });
-    } catch (error: unknown) {
+    } catch (error) {
       toast({
         title: "Error updating testimonial status",
-        description:
-          (error as any).response?.data?._message || "Failed to update status",
+        description: error instanceof ApiClientError ? error.message : "Failed to update status",
         variant: "destructive",
       });
     }

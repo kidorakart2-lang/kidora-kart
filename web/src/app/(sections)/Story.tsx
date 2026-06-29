@@ -21,7 +21,7 @@ export default function Story() {
     },
     {
       year: "Present",
-      title: "Jewellery Walla Born",
+      title: `${siteConfig.name} Born`,
       description:
         "With 10 years of jewellery expertise, we opened our store in Jhalamand, combining retail, manufacturing, and customization.",
       icon: Sparkles,
@@ -37,88 +37,12 @@ export default function Story() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-4 sm:p-8">
-      <style jsx>{`
-        @keyframes liquid {
-          0%,
-          100% {
-            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-          }
-          50% {
-            border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
-          }
-        }
-
-        .liquid-glass {
-          background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.9),
-            rgba(255, 255, 255, 0.7)
-          );
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.8);
-          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15),
-            inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
-        }
-
-        .liquid-card {
-          background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.95),
-            rgba(255, 255, 255, 0.85)
-          );
-          backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.9);
-          box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.1),
-            inset 0 1px 0 0 rgba(255, 255, 255, 1);
-        }
-
-        .shimmer {
-          position: relative;
-          overflow: hidden;
-        }
-
-        .shimmer::before {
-          content: "";
-          position: absolute;
-          top: -50%;
-          left: -50%;
-          width: 200%;
-          height: 200%;
-          background: linear-gradient(
-            45deg,
-            transparent 30%,
-            rgba(255, 255, 255, 0.8) 50%,
-            transparent 70%
-          );
-          animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-          0% {
-            transform: translateX(-100%) translateY(-100%) rotate(45deg);
-          }
-          100% {
-            transform: translateX(100%) translateY(100%) rotate(45deg);
-          }
-        }
-
-        .glass-icon {
-          background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 1),
-            rgba(240, 240, 255, 0.9)
-          );
-          box-shadow: 0 4px 16px rgba(31, 38, 135, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 1);
-        }
-      `}</style>
-
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto">
         <div className="liquid-glass rounded-[3rem] p-8 sm:p-12 mb-8 shimmer">
           <div className="text-center mb-12 relative z-10">
             <h1 className="text-5xl sm:text-6xl font-bold text-gray-800 mb-4 tracking-tight">
-              Jewellery Walla Story
+              {siteConfig.name} Story
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               From friendship to craftsmanship - A journey of passion,
@@ -247,7 +171,7 @@ export default function Story() {
               <h3 className="text-xl font-semibold text-gray-800">Visit Us</h3>
             </div>
             <p className="text-gray-700 mb-2">
-              <span className="font-semibold">Jewellery Walla</span>
+               <span className="font-semibold">{siteConfig.name}</span>
             </p>
             <p className="text-gray-600">{getFullAddress()}</p>
             <p className="text-gray-500 text-sm mt-3">
@@ -261,7 +185,7 @@ export default function Story() {
         <div className="text-center liquid-card rounded-3xl p-6">
           <p className="text-gray-600 italic">
             "Built on friendship, driven by passion, and crafted with love -
-            Jewellery Walla is more than a business, it's our dream brought to
+            {siteConfig.name} is more than a business, it's our dream brought to
             life."
           </p>
         </div>

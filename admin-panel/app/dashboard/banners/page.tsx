@@ -27,36 +27,8 @@ import {
   EyeOff,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import axios from "axios";
-
-const AXIOS_CONFIG = { withCredentials: true } as const;
-
-interface Banner {
-  _id: string;
-  description: string;
-  image: string;
-  status: boolean;
-  order?: number;
-  link?: {
-    type: string;
-    target?: string;
-    externalUrl?: string;
-    url?: string;
-    label?: string;
-  } | null;
-}
-
-interface LinkOption {
-  _id: string;
-  name: string;
-  slug: string;
-}
-
-function isAxiosError(
-  error: unknown,
-): error is { response?: { data?: { _message?: string } } } {
-  return typeof error === "object" && error !== null && "response" in error;
-}
+import { api, ApiClientError } from "@/lib/api";
+import type { Banner, LinkOption } from "@/lib/types";
 
 export default function BannersPage() {
   const [btnLoading, setBtnLoading] = useState(false);
@@ -97,17 +69,14 @@ export default function BannersPage() {
 
   const loadLinkOptions = async () => {
     try {
-      const [catRes, prodRes] = await Promise.all([
-        axios.get(`/api/admin/banner/link-options/categories`, AXIOS_CONFIG),
-        axios.get(
-          `/api/admin/banner/link-options/products?limit=100`,
-          AXIOS_CONFIG,
-        ),
+      const [categories, products] = await Promise.all([
+        api.get<LinkOption[]>("/api/admin/banner/link-options/categories"),
+        api.get<LinkOption[]>("/api/admin/banner/link-options/products?limit=100"),
       ]);
       setLinkOptions((prev) => ({
         ...prev,
-        categories: catRes.data._data || [],
-        products: prodRes.data._data || [],
+        categories: categories ?? [],
+        products: products ?? [],
       }));
     } catch {
       // silently fail
@@ -116,13 +85,10 @@ export default function BannersPage() {
 
   const loadSubCategories = async (categoryId: string) => {
     try {
-      const res = await axios.get(
-        `/api/admin/banner/link-options/sub-categories?categoryId=${categoryId}`,
-        AXIOS_CONFIG,
-      );
+      const res = await api.get<LinkOption[]>(`/api/admin/banner/link-options/sub-categories?categoryId=${categoryId}`);
       setLinkOptions((prev) => ({
         ...prev,
-        subCategories: res.data._data || [],
+        subCategories: res ?? [],
       }));
     } catch {
       // silently fail
@@ -131,13 +97,10 @@ export default function BannersPage() {
 
   const loadSubSubCategories = async (subCategoryId: string) => {
     try {
-      const res = await axios.get(
-        `/api/admin/banner/link-options/sub-sub-categories?subCategoryId=${subCategoryId}`,
-        AXIOS_CONFIG,
-      );
+      const res = await api.get<LinkOption[]>(`/api/admin/banner/link-options/sub-sub-categories?subCategoryId=${subCategoryId}`);
       setLinkOptions((prev) => ({
         ...prev,
-        subSubCategories: res.data._data || [],
+        subSubCategories: res ?? [],
       }));
     } catch {
       // silently fail
@@ -147,18 +110,12 @@ export default function BannersPage() {
   const loadBanners = async () => {
     setLoading(true);
     try {
-      const response = await axios.post(
-        `/api/admin/banner/view`,
-        {},
-        AXIOS_CONFIG,
-      );
-      setBanners(response.data._data || []);
+      const data = await api.post<Banner[]>("/api/admin/banner/view", {});
+      setBanners(data ?? []);
     } catch (error) {
       toast({
         title: "Error loading banners",
-        description: isAxiosError(error)
-          ? error.response?.data?._message || "Failed to load banners"
-          : "Failed to load banners",
+        description: error instanceof ApiClientError ? error.message : "Failed to load banners",
         variant: "destructive",
       });
     } finally {
@@ -187,19 +144,13 @@ export default function BannersPage() {
     if (!bannerToDelete) return;
 
     try {
-      await axios.put(
-        `/api/admin/banner/delete/${bannerToDelete}`,
-        { id: bannerToDelete },
-        AXIOS_CONFIG,
-      );
+      await api.put(`/api/admin/banner/delete/${bannerToDelete}`, { id: bannerToDelete });
       loadBanners();
       toast({ title: "Banner deleted successfully" });
     } catch (error) {
       toast({
         title: "Error deleting banner",
-        description: isAxiosError(error)
-          ? error.response?.data?._message || "Failed to delete banner"
-          : "Failed to delete banner",
+        description: error instanceof ApiClientError ? error.message : "Failed to delete banner",
         variant: "destructive",
       });
     } finally {
@@ -214,7 +165,7 @@ export default function BannersPage() {
     formDataToSend.append("description", formData.description);
     formDataToSend.append("image", formData.image);
 
-    // Append link data as JSON string
+    // Append link data as JSON string, or null to clear the link
     if (formData.linkType) {
       const linkData: Record<string, unknown> = { type: formData.linkType };
       if (formData.linkType === "external") {
@@ -223,24 +174,21 @@ export default function BannersPage() {
         linkData.target = formData.linkTarget;
       }
       formDataToSend.append("link", JSON.stringify(linkData));
+    } else {
+      // Explicitly clear link when "No link" is selected
+      formDataToSend.append("link", "null");
     }
 
     if (editingBanner) {
       setBtnLoading(true);
       try {
-        await axios.put(
-          `/api/admin/banner/update/${editingBanner._id}`,
-          formDataToSend,
-          AXIOS_CONFIG,
-        );
+        await api.put(`/api/admin/banner/update/${editingBanner._id}`, formDataToSend);
         loadBanners();
         toast({ title: "Banner updated successfully" });
       } catch (error) {
         toast({
           title: "Error updating banner",
-          description: isAxiosError(error)
-            ? error.response?.data?._message || "Failed to update banner"
-            : "Failed to update banner",
+          description: error instanceof ApiClientError ? error.message : "Failed to update banner",
           variant: "destructive",
         });
       } finally {
@@ -249,19 +197,13 @@ export default function BannersPage() {
     } else {
       setBtnLoading(true);
       try {
-        await axios.post(
-          `/api/admin/banner/create`,
-          formDataToSend,
-          AXIOS_CONFIG,
-        );
+        await api.post("/api/admin/banner/create", formDataToSend);
         loadBanners();
         toast({ title: "Banner created successfully" });
       } catch (error) {
         toast({
           title: "Error creating banner",
-          description: isAxiosError(error)
-            ? error.response?.data?._message || "Failed to create banner"
-            : "Failed to create banner",
+          description: error instanceof ApiClientError ? error.message : "Failed to create banner",
           variant: "destructive",
         });
       } finally {
@@ -285,14 +227,12 @@ export default function BannersPage() {
 
   const handleStatusChange = async (id: string) => {
     try {
-      await axios.post(`/api/admin/banner/change-status`, { id }, AXIOS_CONFIG);
+      await api.post("/api/admin/banner/change-status", { id });
       loadBanners();
     } catch (error) {
       toast({
         title: "Error changing status",
-        description: isAxiosError(error)
-          ? error.response?.data?._message || "Failed to change status"
-          : "Failed to change status",
+        description: error instanceof ApiClientError ? error.message : "Failed to change status",
         variant: "destructive",
       });
     }
@@ -545,9 +485,7 @@ export default function BannersPage() {
                 />
               </label>
             </div>
-          </div>
-
-          {/* ── Link target section ── */}
+          </div>            {/* ── Link target section ── */}
           <div className="space-y-3 animate-in slide-in-from-right duration-300 delay-50 border rounded-lg p-4 bg-muted/30">
             <Label className="text-sm font-semibold">
               Link Target (optional)
@@ -570,7 +508,7 @@ export default function BannersPage() {
                 <SelectValue placeholder="No link" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="No Link">No link</SelectItem>
+                <SelectItem value="">No link</SelectItem>
                 <SelectItem value="product">Product</SelectItem>
                 <SelectItem value="category">Category</SelectItem>
                 <SelectItem value="subCategory">Sub Category</SelectItem>

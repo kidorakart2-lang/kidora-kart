@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import axios from "axios";
+import { api, ApiClientError } from "@/lib/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -27,32 +27,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "/api/admin/user/login",
-        {
-          email,
-          password,
-        },
-        { withCredentials: true }
-      );
+      await api.post("/api/admin/user/login", { email, password });
 
-      if (response.status !== 200) {
-        return toast({
-          title: "Login Failed",
-          description: response.data._message,
-          variant: "destructive",
-        });
-      }
-      if (!response.data._status) {
-        toast({
-          title: "Login failed",
-          description: response.data._message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Backend sets httpOnly cookie — no need for js-cookie
       toast({
         title: "Login successful",
         description: "Welcome to the admin panel.",
@@ -60,10 +36,9 @@ export default function LoginPage() {
 
       router.push("/dashboard");
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { _message?: string } } };
       toast({
         title: "Login failed",
-        description: err.response?.data?._message || "Login failed",
+        description: error instanceof ApiClientError ? error.message : "Login failed",
         variant: "destructive",
       });
     } finally {

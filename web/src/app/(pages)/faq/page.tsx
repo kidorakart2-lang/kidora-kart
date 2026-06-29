@@ -29,11 +29,30 @@ async function GetFaq() {
   }
 }
 
+function FAQSchema({ faqs }: { faqs: { question: string; answer: string }[] }) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: { "@type": "Answer", text: f.answer },
+    })),
+  };
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 export default async function page() {
   const faqs = await GetFaq();
 
   return (
     <>
+      {faqs?.length > 0 && <FAQSchema faqs={faqs} />}
       <FAQPage data={faqs || []} />
     </>
   );

@@ -45,6 +45,36 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
+      {
+        source: "/category/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=300, stale-while-revalidate=3600" },
+        ],
+      },
+      {
+        source: "/product-details/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=300, stale-while-revalidate=3600" },
+        ],
+      },
+      {
+        source: "/(about-us|contact-us|faq|story|our-policy|order-track)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" },
+        ],
+      },
+      {
+        source: "/",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=900, stale-while-revalidate=3600" },
+        ],
+      },
+      {
+        source: "/(cart|checkout|order-success|profile)",
+        headers: [
+          { key: "Cache-Control", value: "private, no-cache, no-store, must-revalidate" },
+        ],
+      },
     ];
   },
 };

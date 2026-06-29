@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import User from "../../models/user.js";
 import Order from "../../models/order.js";
 import Product from "../../models/product.js";
+import { logger } from "../../lib/logger.js";
 export const getDashboardStats = async (
   _req: Request,
   res: Response,
@@ -81,7 +82,7 @@ export const getDashboardStats = async (
       data: stats,
     });
   } catch (error) {
-    console.error("Error in getDashboardStats:", error);
+    logger.error({ err: error }, "Error in getDashboardStats");
     res.status(500).json({
       success: false,
       message: "Error retrieving dashboard statistics",
@@ -124,7 +125,7 @@ export const getRecentActivity = async (
       },
     });
   } catch (error) {
-    console.error("Error in getRecentActivity:", error);
+    logger.error({ err: error }, "Error in getRecentActivity");
     res.status(500).json({
       success: false,
       message: "Error retrieving recent activity",

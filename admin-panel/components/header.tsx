@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Bell, Search, User } from "lucide-react";
+import { ArrowRight, Bell, Search, User, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "./theme-toggle";
@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { AlertDialogUse } from "./alert-dialog";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 interface MenuItem {
   label: string;
@@ -30,23 +31,30 @@ export function Header() {
   const [result, setResult] = useState<MenuItem[]>([]);
   const [query, setQuery] = useState("");
 
-  const menuItems: MenuItem[] = [
-    { label: "Dashboard", href: "/dashboard" },
-    { label: "Products", href: "/dashboard/products" },
-    { label: "Users", href: "/dashboard/users" },
-    { label: "Logos", href: "/dashboard/logos" },
-    { label: "Orders", href: "/dashboard/orders" },
-    { label: "Categories", href: "/dashboard/categories" },
-    { label: "Sub Categories", href: "/dashboard/sub-category" },
-    { label: "Sub Sub Categories", href: "/dashboard/sub-sub-category" },
-    { label: "Banners", href: "/dashboard/banners" },
-    { label: "Testimonials", href: "/dashboard/testimonials" },
-    { label: "FAQs", href: "/dashboard/faqs" },
-    { label: "Why Choose Us", href: "/dashboard/why-choose-us" },
-    { label: "Materials & Colors", href: "/dashboard/materials" },
-    { label: "Sizes", href: "/dashboard/sizes" },
-    { label: "Settings", href: "/dashboard/settings" },
-  ];
+  const menuItems: MenuItem[] = useMemo(
+    () => [
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Products", href: "/dashboard/products" },
+      { label: "Users", href: "/dashboard/users" },
+      { label: "Audit Log", href: "/dashboard/audit-log" },
+      { label: "Logos", href: "/dashboard/logos" },
+      { label: "Orders", href: "/dashboard/orders" },
+      { label: "Categories", href: "/dashboard/categories" },
+      { label: "Sub Categories", href: "/dashboard/sub-category" },
+      { label: "Sub Sub Categories", href: "/dashboard/sub-sub-category" },
+      { label: "Banners", href: "/dashboard/banners" },
+      { label: "Testimonials", href: "/dashboard/testimonials" },
+      { label: "FAQs", href: "/dashboard/faqs" },
+      { label: "Why Choose Us", href: "/dashboard/why-choose-us" },
+      { label: "Materials & Colors", href: "/dashboard/materials" },
+      { label: "Sizes", href: "/dashboard/sizes" },
+      { label: "AI Helpers", href: "/dashboard/ai-helpers" },
+      { label: "Home Page", href: "/dashboard/home-page" },
+      { label: "Product FAQs", href: "/dashboard/product-faqs" },
+      { label: "Settings", href: "/dashboard/settings" },
+    ],
+    [],
+  );
 
   const getSearchResult = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -67,7 +75,14 @@ export function Header() {
   };
 
   const handleLogout = async () => {
-    // Cookie cleared by backend on logout
+    try {
+      await fetch("/api/admin/user/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {
+      // Even if the request fails, navigate to login page
+    }
     router.push("/");
   };
   return (
@@ -106,6 +121,7 @@ export function Header() {
             variant="ghost"
             size="icon"
             className="relative transition-all duration-300 hover:scale-110"
+            onClick={() => toast.info("No new notifications")}
           >
             <Bell className="h-5 w-5" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full animate-pulse"></span>
@@ -128,12 +144,12 @@ export function Header() {
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
 
-              <Link href="/dashboard/profile">
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-              </Link>
-              <Link href="/dashboard/settings">
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-              </Link>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/profile">Profile</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings">Settings</Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setOpen(true)}

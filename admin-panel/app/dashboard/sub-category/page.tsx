@@ -1,57 +1,24 @@
 import { Suspense } from "react";
 import { cookies } from "next/headers";
-import SubCategoriesClient from "./SubCategoryClient";
+import SubCategoriesClient, { type SubCategoryItem } from "./SubCategoryClient";
+import { api } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-async function getSubCategories() {
+async function getSubCategories(): Promise<SubCategoryItem[]> {
   try {
     const token = (await cookies()).get("adminToken")?.value;
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/"}api/admin/subCategory/view`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({}),
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch sub categories");
-    }
-
-    const data = await response.json();
-    return Array.isArray(data?._data)
-      ? data._data
-      : Array.isArray(data)
-      ? data
-      : [];
+    return (await api.post<SubCategoryItem[]>("/api/admin/subCategory/view", {}, token)) || [];
   } catch (error) {
     console.error("Error fetching sub categories:", error);
     return [];
   }
 }
 
-async function getCategories() {
+async function getCategories(): Promise<any[]> {
   try {
     const token = (await cookies()).get("adminToken")?.value;
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/"}api/admin/category/view`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({}),
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch categories");
-    }
-
-    const data = await response.json();
-    return data._data || data;
+    return (await api.post("/api/admin/category/view", {}, token)) || [];
   } catch (error) {
     console.error("Error fetching categories:", error);
     return [];

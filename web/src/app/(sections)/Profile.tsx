@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter, useSearchParams } from "next/navigation";
-import axios from "axios";
+
 import { getAuthToken } from "@/lib/getAuthToken";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -35,44 +35,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { getUser } from "@/lib/fetchUser";
 import { RootState } from "@/redux/store/store";
 import { setProfile } from "@/redux/features/auth";
-const INDIAN_STATES = [
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chhattisgarh",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
-  "Tamil Nadu",
-  "Telangana",
-  "Tripura",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
-  "Andaman and Nicobar Islands",
-  "Chandigarh",
-  "Dadra and Nagar Haveli and Daman and Diu",
-  "Delhi",
-  "Jammu and Kashmir",
-  "Ladakh",
-  "Lakshadweep",
-  "Puducherry",
-];
+import { INDIAN_STATES } from "@/lib/utils";
 export default function AccountPage() {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -237,37 +200,35 @@ export default function AccountPage() {
 
     try {
       setLoading(true);
-      const response = await axios.put(
-        process.env.NEXT_PUBLIC_API_URL + `api/website/user/update-profile`,
-        formDataToSend,
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_API_URL + "api/website/user/update-profile",
         {
-          withCredentials: true,
+          method: "PUT",
+          body: formDataToSend,
+          credentials: "include",
           headers: {
-            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      if (response.data._status) {
-        toast.success(response.data._message);
+
+      if (response.status === 429) {
+        toast.error("Too many requests, please try again later");
+        setLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+      if (data._status) {
+        toast.success(data._message);
         fetchUser();
       } else {
-        toast.error(response.data._message);
+        toast.error(data._message);
       }
       setLoading(false);
-      // Optionally show success message to user
-    } catch (err) {
+    } catch {
       setLoading(false);
-      if (err instanceof Error && "status" in err && (err as any).status === 429) {
-        toast.error("Too many requests, please try again later");
-      } else {
-        toast.error(
-          err instanceof Error
-            ? (err as any).response?.data?._message || err.message
-            : "Something went wrong"
-        );
-      }
-      // Optionally show error message to user
+      toast.error("Something went wrong");
     }
     setLoading(false);
   };
@@ -710,38 +671,6 @@ export default function AccountPage() {
           </div>
         </div>
 
-        <style jsx>{`
-          @keyframes fade-in {
-            from {
-              opacity: 0;
-              transform: translateY(10px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-
-          @keyframes slide-up {
-            from {
-              opacity: 0;
-              transform: translateY(20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-
-          .animate-fade-in {
-            animation: fade-in 0.4s ease-out;
-          }
-
-          .animate-slide-up {
-            animation: slide-up 0.5s ease-out forwards;
-            opacity: 0;
-          }
-        `}</style>
       </div>
     </>
   );

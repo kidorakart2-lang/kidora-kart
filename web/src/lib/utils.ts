@@ -12,6 +12,7 @@ interface SiteContact {
   phone: string;
   mobile: string;
   whatsapp: string;
+  countryCode: string;
 }
 
 interface SiteAddress {
@@ -21,8 +22,13 @@ interface SiteAddress {
   state: string;
   postalCode: string;
   country: string;
+  regionCode: string;
   googleMapsUrl: string;
   googleMapsEmbedUrl: string;
+  geo: {
+    lat: number;
+    lng: number;
+  };
 }
 
 interface SiteSocial {
@@ -51,8 +57,9 @@ interface SiteConfig {
   address: SiteAddress;
   social: SiteSocial;
   business: SiteBusiness;
-  keywords: string[];
   categories: string[];
+  themeColor: string;
+  twitterHandle: string;
 }
 
 // SEO Configuration for Jewellery Walla
@@ -69,6 +76,7 @@ export const siteConfig: SiteConfig = {
     phone: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+91-291-1234567",
     mobile: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+91-9876543210",
     whatsapp: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+919876543210",
+    countryCode: "+91",
   },
 
   address: {
@@ -78,8 +86,10 @@ export const siteConfig: SiteConfig = {
     state: "Rajasthan",
     postalCode: process.env.NEXT_PUBLIC_BUSINESS_POSTAL_CODE || "342005",
     country: "India",
+    regionCode: "IN-RJ",
     googleMapsUrl: process.env.NEXT_PUBLIC_GOOGLE_MAPS_URL || "https://maps.app.goo.gl/ohKdTgWQicv8Xjf89",
     googleMapsEmbedUrl: process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3579.0519319886844!2d73.03910947406595!3d26.22750208920371!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39418b779b15f17f%3A0xdd3cdd6bd6778a08!2sJEWELLERY%20WALA!5e0!3m2!1sen!2sin!4v1762241579048!5m2!1sen!2sin",
+    geo: { lat: 26.2389, lng: 73.0243 },
   },
 
   social: {
@@ -98,30 +108,8 @@ export const siteConfig: SiteConfig = {
     hoursWeekend: "10:00 AM - 10:00 PM",
   },
 
-  keywords: [
-    "jewelry walla",
-    "jewellery store jodhpur",
-    "jewellery walla store jodhpur",
-    "gold jewellery jodhpur",
-    "silver jewellery jodhpur",
-    "cheap jewellery shop",
-    "jewellery shop in jodhpur",
-    "diamond jewellery jodhpur",
-    "traditional jewellery rajasthan",
-    "bridal jewellery ",
-    "men jewellery",
-    "women jewellery",
-    "jewellery shop near me",
-    "online jewellery store",
-    "rajasthani jewellery",
-    "kundan jewellery",
-    "meenakari jewellery",
-    "wedding jewellery jodhpur",
-    "jewellery walla",
-    "personalised jewellery",
-    "gift items",
-    "track your order",
-  ],
+  themeColor: "#F58E00",
+  twitterHandle: "@jewellerywalla",
 
   categories: [
     "Rings",
@@ -139,10 +127,48 @@ export const siteConfig: SiteConfig = {
     "Women's Jewellery",
     "Personalised Jewellery",
     "Gift Items",
-
-    "Contact Us",
   ],
 };
+
+// Indian states and union territories (shared across forms)
+export const INDIAN_STATES = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry",
+] as const;
 
 // Get full address as string
 export const getFullAddress = (): string => {
@@ -165,11 +191,10 @@ export const getStructuredAddress = () => ({
 export const defaultMetadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} - Premium Jewellery Store in Jodhpur`,
+    default: `${siteConfig.name} - Premium Jewellery Store in ${siteConfig.address.city}`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
-  keywords: siteConfig.keywords,
   authors: [{ name: siteConfig.name }],
   creator: siteConfig.name,
   publisher: siteConfig.name,
@@ -182,7 +207,7 @@ export const defaultMetadata = {
     type: "website" as const,
     locale: "en_IN" as const,
     url: siteConfig.url,
-    title: `${siteConfig.name} - Premium Jewellery Store in Jodhpur`,
+    title: `${siteConfig.name} - Premium Jewellery Store in ${siteConfig.address.city}`,
     description: siteConfig.description,
     siteName: siteConfig.name,
     images: [
@@ -199,7 +224,7 @@ export const defaultMetadata = {
     title: `${siteConfig.name} - Premium Jewellery Store in Jodhpur`,
     description: siteConfig.description,
     images: [`${siteConfig.url}/og-image.jpg`],
-    creator: "@jewellerywalla",
+    creator: siteConfig.twitterHandle,
   },
   robots: {
     index: true,

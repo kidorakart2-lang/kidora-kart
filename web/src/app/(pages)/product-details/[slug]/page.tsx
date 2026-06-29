@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: ProductDetailsPageProps) {
 
   if (!product) {
     return {
-      title: "Product Not Found | Jewellery Walla",
+      title: `Product Not Found | ${siteConfig.name}`,
       description: "The requested product could not be found.",
     };
   }
@@ -49,13 +49,13 @@ export async function generateMetadata({ params }: ProductDetailsPageProps) {
   const localKeywords = [
     product.name,
     categoryName,
-    `${categoryName} in Jodhpur`,
-    `Jodhpur ${categoryName}`,
-    "Jodhpur jewellery shop",
+    `${categoryName} in ${siteConfig.address.city}`,
+    `${siteConfig.address.city} ${categoryName}`,
+    `${siteConfig.address.city} jewellery shop`,
     "Rajasthani jewellery",
-    "traditional jewellery Jodhpur",
-    "gold jewellery Jodhpur",
-    "silver jewellery Jodhpur",
+    `traditional jewellery ${siteConfig.address.city}`,
+    `gold jewellery ${siteConfig.address.city}`,
+    `silver jewellery ${siteConfig.address.city}`,
     siteConfig.name,
     ...(product.tags || []),
   ].join(", ");
@@ -64,9 +64,9 @@ export async function generateMetadata({ params }: ProductDetailsPageProps) {
     product.description ||
     `Buy authentic ${product.name} from ${
       siteConfig.name
-    }, your trusted jewellery shop in Jodhpur, Rajasthan. ${
+    }, your trusted jewellery shop in ${siteConfig.address.city}, ${siteConfig.address.state}. ${
       product.short_description || ""
-    } Shop premium quality ${categoryName} with traditional Rajasthani craftsmanship. Best prices in Jodhpur.`;
+    } Shop premium quality ${categoryName} with traditional Rajasthani craftsmanship. Best prices in ${siteConfig.address.city}.`;
 
   return {
     title: `${product.name} | ${siteConfig.name}`,
@@ -98,7 +98,7 @@ export async function generateMetadata({ params }: ProductDetailsPageProps) {
       title: `${product.name} | ${siteConfig.name}`,
       description:
         product.description ||
-        `Buy ${product.name} from Jodhpur's trusted jewellery shop.`,
+        `Buy ${product.name} from ${siteConfig.address.city}'s trusted jewellery shop.`,
       images: [productImage],
     },
     robots: {
@@ -206,15 +206,15 @@ export async function generateProductSchema(product: ProductDetail, productUrl: 
       address: {
         "@type": "PostalAddress",
         streetAddress: siteConfig.address.street || "Your Street Address",
-        addressLocality: "Jodhpur",
-        addressRegion: "Rajasthan",
-        postalCode: "342001",
+        addressLocality: siteConfig.address.city,
+        addressRegion: siteConfig.address.state,
+        postalCode: siteConfig.address.postalCode,
         addressCountry: "IN",
       },
       geo: {
         "@type": "GeoCoordinates",
-        latitude: 26.2389,
-        longitude: 73.0243,
+        latitude: siteConfig.address.geo.lat,
+        longitude: siteConfig.address.geo.lng,
       },
       openingHoursSpecification: [
         {

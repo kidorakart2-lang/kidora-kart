@@ -46,6 +46,8 @@ import adminOrderRoutes from "./routes/admin/adminOrder.routes.js";
 import adminBannerLinkOptionsRoutes from "./routes/admin/adminBannerLinkOptions.routes.js";
 import adminProductFaqRoutes from "./routes/admin/adminProductFaq.routes.js";
 import homePageAdminRoutes from "./routes/admin/homePage.routes.js";
+import auditLogRoutes from "./routes/admin/auditLog.routes.js";
+import { getCsrfToken } from "./controller/csrf.controller.js";
 
 const app = express();
 
@@ -135,6 +137,8 @@ app.use("/api/admin/orders", adminOrderRoutes);
 app.use("/api/admin/banner-link-options", adminBannerLinkOptionsRoutes);
 app.use("/api/admin/product-faq", adminProductFaqRoutes);
 app.use("/api/admin/home-page", homePageAdminRoutes);
+app.use("/api/admin/audit-log", auditLogRoutes);
+app.get("/api/admin/csrf-token", getCsrfToken);
 
 app.get("/", (_req, res) => {
   res.send("server started");

@@ -22,13 +22,13 @@ import rateLimit from "../../middleware/rateLimit.js";
 const router = Router();
 
 // Create order (from cart or direct purchase)
-router.post("/create", protect, createOrder);
+router.post("/create", protect, rateLimit.orderCreate, createOrder);
 
 // Create Razorpay order
-router.post("/create-razorpay-order", protect, createRazorpayOrder);
+router.post("/create-razorpay-order", protect, rateLimit.orderCreate, createRazorpayOrder);
 
 // Verify payment
-router.post("/verify-payment", protect, verifyPayment);
+router.post("/verify-payment", protect, rateLimit.orderVerify, verifyPayment);
 
 // Get all user orders (with pagination and filters)
 router.get("/my-orders", protect, uploadNone, getUserOrders);
@@ -40,12 +40,13 @@ router.get("/:orderId", protect, uploadNone, getOrderById);
 router.post("/delivery/:orderId", protect, uploadNone, getOrder);
 
 // Cancel order
-router.put("/:orderId/cancel", protect, uploadNone, cancelOrder);
+router.put("/:orderId/cancel", protect, uploadNone, rateLimit.cancelOrder, cancelOrder);
 
 // Razorpay webhook
 router.post(
   "/webhooks/razorpay",
   raw({ type: "application/json" }),
+  rateLimit.webhook,
   handleWebhook,
 );
 
@@ -61,7 +62,7 @@ router.post(
   sendDeliveryOTP,
 );
 
-router.post("/buy-with-cod", protect, uploadNone, confirmCODOrder);
+router.post("/buy-with-cod", protect, rateLimit.orderCOD, uploadNone, confirmCODOrder);
 
 router.post("/cancel-by-admin", protect, adminOnly, uploadNone, cancelOrderByAdmin);
 

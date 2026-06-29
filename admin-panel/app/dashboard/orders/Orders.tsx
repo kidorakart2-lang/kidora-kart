@@ -17,7 +17,7 @@ import {
 import { Drawer } from "@/components/drawer";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
-import axios from "axios";
+import { api, ApiClientError } from "@/lib/api";
 interface OrderItem {
   productId: string;
   name: string;
@@ -67,24 +67,21 @@ export default function Orders() {
 
   const loadOrders = async () => {
     setLoading(true);
-    const data = await fetch(
-      "/api/admin/orders/all",
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({}),
+    try {
+      const response = await api.post<{ success: boolean; data: OrderData[] }>("/api/admin/orders/all", {});
+      if (response.success) {
+        setOrders(response.data);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to load orders",
+          variant: "destructive",
+        });
       }
-    );
-    const response = await data.json();
-    if (response.ok || response.success) {
-      setOrders(response.data);
-    } else {
+    } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to load orders",
+        description: error instanceof ApiClientError ? error.message : "Failed to load orders",
         variant: "destructive",
       });
     }
@@ -105,31 +102,23 @@ export default function Orders() {
 
   const handleMarkToShipped = async (order: OrderData) => {
     try {
-      const data = await fetch(
+      const response = await api.post<{ success: boolean; message?: string }>(
         "/api/admin/orders/mark-to-shipped",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ orderId: order.orderId }),
-        }
+        { orderId: order.orderId },
       );
-      const response = await data.json();
-      if (response.ok || response.success) {
+      if (response.success) {
         toast({
           title: "Success",
           description: "Order marked to shipped successfully",
         });
         loadOrders();
       } else {
-        throw new Error(response.message || "Failed to mark order to shipped");
+        throw new ApiClientError(response.message || "Failed to mark order to shipped", 400);
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to mark order to shipped",
+        description: error instanceof ApiClientError ? error.message : "Failed to mark order to shipped",
         variant: "destructive",
       });
     }
@@ -137,28 +126,24 @@ export default function Orders() {
 
   const handleMarkToDelivered = async (order: OrderData) => {
     try {
-      const { data } = await axios.post(
+      const response = await api.post<{ success: boolean; message?: string }>(
         "/api/admin/orders/deliever/order",
         { orderId: order.orderId },
-        {
-          withCredentials: true,
-        }
       );
 
-      if (data.success) {
+      if (response.success) {
         toast({
           title: "Success",
-          description: data.message || "Order marked to delivered successfully",
+          description: response.message || "Order marked to delivered successfully",
         });
         loadOrders();
         setDrawerOpen(false);
       }
     } catch (error) {
       console.error(error);
-      const errMsg = error instanceof Error && "response" in error ? (error as { response: { data?: { message?: string } } }).response.data?.message : "Failed to mark order to delivered";
       toast({
         title: "Error",
-        description: errMsg,
+        description: error instanceof ApiClientError ? error.message : "Failed to mark order to delivered",
         variant: "destructive",
       });
     }
@@ -228,18 +213,12 @@ export default function Orders() {
       return;
     }
     try {
-      const { data: responseData } = await axios.post(
+      const responseData = await api.post<{ success: boolean; message?: string }>(
         "/api/admin/orders/cancel-by-admin",
         {
           orderId: cancelOrder.orderId,
           reason,
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
       );
       if (responseData.success) {
         toast({
@@ -257,7 +236,7 @@ export default function Orders() {
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to cancel order",
+        description: error instanceof ApiClientError ? error.message : "Failed to cancel order",
         variant: "destructive",
       });
     }
