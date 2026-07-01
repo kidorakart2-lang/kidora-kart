@@ -35,37 +35,37 @@ export default function Reviews({ product }: { product: ReviewsProduct }) {
         size={14}
         className={
           i < Math.floor(rating || 4)
-            ? "fill-amber-400 text-amber-400"
-            : "text-gray-300"
+            ? "fill-brand-400 text-brand-400"
+            : "text-muted-foreground"
         }
       />
     ));
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
       {/* Summary */}
-      <div className="bg-white rounded-lg p-5 border border-gray-200">
-        <h3 className="text-xl font-semibold text-gray-900 mb-3">
+      <div className="bg-background rounded-lg p-5 border border-border">
+        <h3 className="text-xl font-semibold text-foreground mb-3">
           Customer Reviews
         </h3>
         <div className="flex items-baseline gap-2 mb-2">
-          <span className="text-4xl font-bold text-gray-900">
+          <span className="text-4xl font-bold text-foreground">
             {product.rating}
           </span>
           <div className="flex gap-1">{renderStars(product.rating)}</div>
         </div>
-        <p className="text-xs text-gray-600 mb-4">
+        <p className="text-xs text-muted-foreground mb-4">
           Based on {product.reviews} reviews
         </p>
         <div className="space-y-2">
           {[5, 4, 3, 2, 1].map((stars, i) => (
             <div
               key={stars}
-              className="flex items-center gap-2 text-xs text-gray-600"
+              className="flex items-center gap-2 text-xs text-muted-foreground"
             >
               <span className="w-6">{stars}★</span>
-              <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-amber-500 rounded-full"
+                  className="h-full bg-brand-500 rounded-full"
                   style={{ width: `${[70, 20, 5, 3, 2][i]}%` }}
                 />
               </div>
@@ -79,7 +79,7 @@ export default function Reviews({ product }: { product: ReviewsProduct }) {
         {reviews.map((review) => (
           <div
             key={review.id}
-            className="bg-white rounded-lg p-5 border border-gray-200"
+            className="bg-background rounded-lg p-5 border border-border"
           >
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-3">
@@ -91,15 +91,15 @@ export default function Reviews({ product }: { product: ReviewsProduct }) {
                   className="rounded-full object-cover"
                 />
                 <div>
-                  <p className="font-semibold text-gray-900 text-sm">
+                  <p className="font-semibold text-foreground text-sm">
                     {review.author}
                   </p>
-                  <p className="text-xs text-gray-500">{review.date}</p>
+                  <p className="text-xs text-muted-foreground">{review.date}</p>
                 </div>
               </div>
               <div className="flex gap-1">{renderStars(review.rating)}</div>
             </div>
-            <p className="text-gray-700 text-sm leading-relaxed">
+            <p className="text-muted-foreground text-sm leading-relaxed">
               {review.comment}
             </p>
           </div>

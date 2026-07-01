@@ -58,21 +58,21 @@ export const ImagesSlider = ({
     setLoading(true);
     const srcs = resolvedSlides.map((s) => s.src);
     const loadPromises = srcs.map((src: string) => {
-      return new Promise<string>((resolve, reject) => {
+      return new Promise<string>((resolve) => {
         const img = new Image();
         img.src = src;
         img.onload = () => resolve(src);
-        img.onerror = reject;
+        img.onerror = () => resolve("");  // Resolve with empty string on failure so one bad image doesn't break the slider
       });
     });
 
     Promise.all(loadPromises)
       .then((loadedImages) => {
-        setLoadedImages(loadedImages);
+        setLoadedImages(loadedImages.filter(Boolean));
         setLoading(false);
       })
-      .catch((_error) => {
-
+      .catch(() => {
+        setLoading(false);
       });
   };
   useEffect(() => {
@@ -160,7 +160,7 @@ export const ImagesSlider = ({
       {areImagesLoaded && children}
       {areImagesLoaded && overlay && (
         <div
-          className={cn("absolute inset-0 bg-black/0 z-40", overlayClassName)}
+          className={cn("absolute inset-0 bg-black/0 z-40 pointer-events-none", overlayClassName)}
         />
       )}
       {areImagesLoaded && (
@@ -178,7 +178,7 @@ export const ImagesSlider = ({
               src={slide.src}
               loading="eager"
               fetchPriority="high"
-              alt={slide.src || "banner image"}
+              alt="Banner image"
               className="h-full w-full cursor-pointer aspect-video object-fill"
             />
           </motion.div>

@@ -38,25 +38,25 @@ export default function RequirementModal() {
         }`}
       ></div>
       <DialogPortal>
-        <DialogContent className="fixed left-1/2 top-1/2 z-[1500] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-white p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out sm:rounded-lg px-6 md:px-3">
+        <DialogContent className="fixed left-1/2 top-1/2 z-[1500] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out sm:rounded-lg px-6 md:px-3">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl font-semibold text-gray-900">
+              <DialogTitle className="text-xl font-semibold text-foreground">
                 Complete Your Profile
               </DialogTitle>
              
             </div>
           </DialogHeader>
 
-          <DialogDescription className="text-sm text-gray-600">
+          <DialogDescription className="text-sm text-muted-foreground">
             To proceed, please complete your profile by adding your address and
             contact details. This information helps us serve you better.
           </DialogDescription>
 
-          <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-md">
+          <div className="bg-brand-50 border-l-4 border-brand-400 p-4 rounded-md">
             <div className="flex items-start">
               <svg
-                className="h-5 w-5 text-amber-500 flex-shrink-0"
+                className="h-5 w-5 text-brand-500 flex-shrink-0"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -66,7 +66,7 @@ export default function RequirementModal() {
                   clipRule="evenodd"
                 />
               </svg>
-              <p className="ml-3 text-sm text-amber-700">
+              <p className="ml-3 text-sm text-brand-700">
                 Your profile information is required to continue.
               </p>
             </div>
@@ -74,10 +74,10 @@ export default function RequirementModal() {
 
           <div className="space-y-4">
             {!user?.isEmailVerified && (
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-md">
+              <div className="bg-brand-50 border-l-4 border-brand-400 p-4 rounded-md">
                 <div className="flex items-start">
                   <svg
-                    className="h-5 w-5 text-blue-500 flex-shrink-0"
+                    className="h-5 w-5 text-brand-500 flex-shrink-0"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -88,14 +88,14 @@ export default function RequirementModal() {
                     />
                   </svg>
                   <div className="ml-3">
-                    <p className="text-sm text-blue-700">
+                    <p className="text-sm text-brand-700">
                       Please verify your email address to continue.
                     </p>
                     <div className="mt-2">
                       <Link
                         href="/profile?tab=settings"
                         onClick={handleClose}
-                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-brand-700 bg-brand-100 rounded-md hover:bg-brand-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
                       >
                         Verify Email
                       </Link>
@@ -106,10 +106,10 @@ export default function RequirementModal() {
             )}
 
             {(!user?.address || Object.keys(user.address).length === 0) && (
-              <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-md">
+              <div className="bg-brand-50 border-l-4 border-brand-400 p-4 rounded-md">
                 <div className="flex items-start">
                   <svg
-                    className="h-5 w-5 text-amber-500 flex-shrink-0"
+                    className="h-5 w-5 text-brand-500 flex-shrink-0"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -120,14 +120,14 @@ export default function RequirementModal() {
                     />
                   </svg>
                   <div className="ml-3">
-                    <p className="text-sm text-amber-700">
+                    <p className="text-sm text-brand-700">
                       Please add your delivery address to continue.
                     </p>
                     <div className="mt-2">
                       <Link
                         href="/profile"
                         onClick={handleClose}
-                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-100 rounded-md hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-brand-700 bg-brand-100 rounded-md hover:bg-brand-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
                       >
                         Add Address
                       </Link>
@@ -142,7 +142,7 @@ export default function RequirementModal() {
             <DialogClose asChild>
               <button
                 onClick={handleClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="px-4 py-2 text-sm font-medium text-muted-foreground bg-background border border-input rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
               >
                 Close
               </button>
@@ -150,7 +150,7 @@ export default function RequirementModal() {
             <Link
               href="/profile"
               onClick={handleClose}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-brand-600 border border-transparent rounded-md shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
             >
               Go to Profile
             </Link>

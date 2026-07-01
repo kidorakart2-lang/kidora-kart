@@ -67,7 +67,7 @@ export default function OrederSummery({ cartItems, type, orderData, coupon }: { 
         <div className="space-y-4 mb-6">
           {cartItems.map((item, index) => (
             <div key={item._id || index} className="flex items-start space-x-4">
-              <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+              <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                 <Link
                   className="w-full h-full"
                   href={`/product-details/${item?.product?.slug}`}
@@ -82,25 +82,25 @@ export default function OrederSummery({ cartItems, type, orderData, coupon }: { 
                 </Link>
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-medium text-gray-900 truncate">
+                <h3 className="text-sm font-medium text-foreground truncate">
                   {item?.product?.name}
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Qty: {item?.quantity}{" "}
                   {type == "cart" && item?.color && (
-                    <span className="text-xs text-amber-500 font-medium inline-flex items-center gap-1">
+                    <span className="text-xs text-brand-500 font-medium inline-flex items-center gap-1">
                       <span
                         style={{ backgroundColor: item.color.code }}
-                        className="w-3 h-3 rounded-full border border-gray-300 inline-block"
+                        className="w-3 h-3 rounded-full border border-border inline-block"
                       />
                       {item.color.name}
                     </span>
                   )}
                   {type == "direct" && item?.colorCode && (
-                    <span className="text-xs text-amber-500 font-medium inline-flex items-center gap-1">
+                    <span className="text-xs text-brand-500 font-medium inline-flex items-center gap-1">
                       <span
                         style={{ backgroundColor: item.colorCode }}
-                        className="w-3 h-3 rounded-full border border-gray-300 inline-block"
+                        className="w-3 h-3 rounded-full border border-border inline-block"
                       />
                       {item.colorName}
                     </span>
@@ -108,20 +108,20 @@ export default function OrederSummery({ cartItems, type, orderData, coupon }: { 
                 </p>
                 {/* Size display */}
                 {type == "cart" && item?.size?.name && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Size: <span className="font-medium">{item.size.name}</span>
                   </p>
                 )}
                 {type == "direct" && item?.sizeName && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Size: <span className="font-medium">{item.sizeName}</span>
                   </p>
                 )}
 
-                <p className="text-sm font-medium text-gray-900 mt-1">
+                <p className="text-sm font-medium text-foreground mt-1">
                   ₹{item?.product?.discount_price}
                   {item?.product?.discount_price && (
-                    <span className="ml-2 text-xs text-gray-500 line-through">
+                    <span className="ml-2 text-xs text-muted-foreground line-through">
                       ₹{item?.product?.price}
                     </span>
                   )}
@@ -129,15 +129,16 @@ export default function OrederSummery({ cartItems, type, orderData, coupon }: { 
               </div>
               {item.isPersonalized && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-muted-foreground">
                     Personalized Name
                   </span>
                   <input
                     type="text"
                     value={personalizedName}
                     onChange={handleNameChange}
-                    className="border border-gray-300 rounded px-2 py-1 text-sm"
+                    className="border border-input rounded px-2 py-1 text-sm bg-background text-foreground"
                     placeholder="Enter name"
+                    aria-label="Personalized name for item"
                   />
                 </div>
               )}
@@ -146,8 +147,8 @@ export default function OrederSummery({ cartItems, type, orderData, coupon }: { 
         </div>
 
         {/* Order Total */}
-        <div className="border-t border-gray-200 pt-4 space-y-3">
-          <div className="flex justify-between text-sm text-gray-600">
+        <div className="border-t border-border pt-4 space-y-3">
+          <div className="flex justify-between text-sm text-muted-foreground">
             <span>Subtotal</span>
             <span>
               ₹
@@ -161,9 +162,9 @@ export default function OrederSummery({ cartItems, type, orderData, coupon }: { 
             </span>
           </div>
 
-          <div className="flex justify-between text-sm text-gray-600">
+          <div className="flex justify-between text-sm text-muted-foreground">
             <span>Shipping</span>
-            <span className="text-green-600 font-medium">
+            <span className="text-emerald-600 font-medium">
               {cartItems.reduce(
                 (sum, item) =>
                   sum +
@@ -177,7 +178,7 @@ export default function OrederSummery({ cartItems, type, orderData, coupon }: { 
           </div>
 
           {orderData.giftWrap && (
-            <div className="flex justify-between text-sm text-gray-600">
+            <div className="flex justify-between text-sm text-muted-foreground">
               <span>Gift Wrap</span>
               <span>₹50</span>
             </div>
@@ -189,25 +190,25 @@ export default function OrederSummery({ cartItems, type, orderData, coupon }: { 
             </p>
           )}
 
-          <div className="border-t border-gray-200 pt-3 mt-2">
-            <div className="flex justify-between font-medium text-gray-900">
+          <div className="border-t border-border pt-3 mt-2">
+            <div className="flex justify-between font-medium text-foreground">
               <span>Total</span>
               <span className="text-lg">₹{total}</span>
             </div>
-            <p className="text-xs text-gray-500 mt-1">Inclusive of all taxes</p>
+            <p className="text-xs text-muted-foreground mt-1">Inclusive of all taxes</p>
           </div>
 
           {/* Payment Info Cards */}
           <div className="mt-4 space-y-2">
-            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-              <span className="text-green-600 text-lg">✓</span>
-              <span className="text-sm font-medium text-green-700">
+            <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+              <span className="text-emerald-600 text-lg">✓</span>
+              <span className="text-sm font-medium text-emerald-700">
                 5% Discount on ONLINE Purchase
               </span>
             </div>
-            <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              <span className="text-amber-600 text-lg">✓</span>
-              <span className="text-sm text-amber-700">
+            <div className="flex items-center gap-2 bg-brand-50 border border-brand-200 rounded-lg px-3 py-2">
+              <span className="text-brand-600 text-lg">✓</span>
+              <span className="text-sm text-brand-700">
                 10% Advance And Rest In COD
               </span>
             </div>

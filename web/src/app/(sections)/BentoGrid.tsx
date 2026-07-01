@@ -26,25 +26,21 @@ export default function BentoGrid({ heading, layout = "featured-large", cells = 
   const cellCount = cells.length;
 
   return (
-    <section className="w-full py-10 md:py-16 bg-gradient-to-b from-white via-pink-50/20 to-white relative overflow-hidden">
-      {/* Decorative background */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-pink-100/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-rose-100/20 rounded-full blur-3xl" />
-
+    <section className="w-full py-10 md:py-16 relative overflow-hidden bg-section">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         {heading && (
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 mb-3">
-              <Sparkles className="w-5 h-5 text-pink-500 animate-pulse" />
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-slate-800 tracking-wide">
+              <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif tracking-wide section-heading">
                 {heading}
               </h2>
-              <Sparkles className="w-5 h-5 text-pink-500 animate-pulse" />
+              <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
             </div>
             <div className="flex items-center justify-center gap-2">
-              <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-pink-400" />
-              <div className="w-2 h-2 rotate-45 bg-pink-500" />
-              <div className="w-12 h-0.5 bg-gradient-to-l from-transparent to-pink-400" />
+              <div className="w-12 h-0.5 bg-gradient-to-r from-transparent" style={{ backgroundImage: `linear-gradient(to right, transparent, var(--brand-primary))` }} />
+              <div className="w-2 h-2 rotate-45" style={{ backgroundColor: "var(--brand-primary)" }} />
+              <div className="w-12 h-0.5 bg-gradient-to-l from-transparent" style={{ backgroundImage: `linear-gradient(to left, transparent, var(--brand-primary))` }} />
             </div>
           </div>
         )}
@@ -104,12 +100,15 @@ function BentoCell({ cell, className }: { cell: BentoCell; className?: string })
   const content = (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl group cursor-pointer",
-        "bg-gradient-to-br from-pink-50 to-rose-50",
-        "border border-pink-100/50 shadow-md hover:shadow-xl",
-        "transition-all duration-500 hover:-translate-y-1",
+        "relative overflow-hidden rounded-2xl",
+        "border shadow-md",
+        "transition-all duration-500",
         className,
       )}
+      style={{
+        background: `linear-gradient(135deg, color-mix(in srgb, var(--brand-primary) 10%, white), color-mix(in srgb, var(--brand-secondary, var(--brand-primary)) 10%, white))`,
+        borderColor: "color-mix(in srgb, var(--brand-primary) 15%, transparent)",
+      }}
     >
       {cell.image ? (
         <div className="absolute inset-0">
@@ -117,19 +116,17 @@ function BentoCell({ cell, className }: { cell: BentoCell; className?: string })
             src={cell.image}
             alt={cell.title || ""}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            className="object-cover"
             sizes="(max-width: 768px) 100vw, 50vw"
           />
-          {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
         </div>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-4xl text-pink-200/50">✦</div>
+          <div className="text-4xl" style={{ color: "color-mix(in srgb, var(--brand-primary) 30%, transparent)" }}>✦</div>
         </div>
       )}
 
-      {/* Content */}
       <div className="relative z-10 flex flex-col justify-end h-full p-6 min-h-[200px]">
         {cell.title && (
           <h3 className="text-xl md:text-2xl font-serif text-white font-semibold mb-1 drop-shadow-lg">
@@ -141,15 +138,6 @@ function BentoCell({ cell, className }: { cell: BentoCell; className?: string })
             {cell.subtitle}
           </p>
         )}
-
-        {/* Hover shine */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-        </div>
-
-        {/* Corner accents on hover */}
-        <div className="absolute top-3 left-3 w-8 h-8 border-l-2 border-t-2 border-white/40 opacity-0 group-hover:opacity-100 transition-all duration-500 transform -translate-x-1 -translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0" />
-        <div className="absolute bottom-3 right-3 w-8 h-8 border-r-2 border-b-2 border-white/40 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0" />
       </div>
     </div>
   );

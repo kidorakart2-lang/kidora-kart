@@ -353,7 +353,7 @@ export default function Checkout() {
       <LoadingUi hidden={loading} />
 
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text ">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-8 bg-gradient-to-r from-brand-600 to-orange-600 bg-clip-text ">
           Complete Your Order
         </h1>
 
@@ -361,10 +361,10 @@ export default function Checkout() {
           {/* Left Column - Shipping & Billing */}
           <div className="lg:col-span-2 space-y-8">
             {/* Shipping Address */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100">
+            <div className="bg-background rounded-2xl p-6 shadow-sm border border-brand-100">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-medium">
+                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-medium">
                     1
                   </span>
                   Shipping Information
@@ -373,8 +373,8 @@ export default function Checkout() {
 
               {/* Saved Address Prompt */}
               {showAddressPrompt && (
-                <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="text-sm text-amber-900">
+                <div className="mb-6 p-4 bg-brand-50 border border-brand-200 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="text-sm text-brand-900">
                     <p className="font-medium">Saved address found</p>
                     <p>
                       Would you like to use the address saved in your profile?
@@ -385,14 +385,14 @@ export default function Checkout() {
                       variant="outline"
                       size="sm"
                       onClick={() => setShowAddressPrompt(false)}
-                      className="flex-1 sm:flex-none border-amber-300 hover:bg-amber-100"
+                      className="flex-1 sm:flex-none border-brand-300 hover:bg-brand-100"
                     >
                       Keep Current
                     </Button>
                     <Button
                       size="sm"
                       onClick={loadProfileAddress}
-                      className="flex-1 sm:flex-none bg-amber-600 hover:bg-amber-700 text-white"
+                      className="flex-1 sm:flex-none bg-brand-600 hover:bg-brand-700 text-white"
                     >
                       Use Profile Address
                     </Button>
@@ -403,7 +403,7 @@ export default function Checkout() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Full Name */}
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Full Name *
                   </label>
                   <input
@@ -418,14 +418,14 @@ export default function Checkout() {
                         },
                       })
                     }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
                     required
                   />
                 </div>
 
                 {/* Email */}
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Email *
                   </label>
                   <input
@@ -441,19 +441,19 @@ export default function Checkout() {
                         },
                       })
                     }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
                     required
                   />
                 </div>
 
                 {/* Phone */}
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Phone *
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <span className="text-gray-500 text-sm">{siteConfig.contact.countryCode}</span>
+                      <span className="text-muted-foreground text-sm">{siteConfig.contact.countryCode}</span>
                     </div>
                     <input
                       type="tel"
@@ -471,7 +471,7 @@ export default function Checkout() {
                           });
                         }
                       }}
-                      className="w-full pl-12 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                      className="w-full pl-12 pr-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
                       maxLength={10}
                       required
                     />
@@ -480,7 +480,7 @@ export default function Checkout() {
 
                 {/* Pincode */}
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Pincode *
                   </label>
                   <input
@@ -499,7 +499,7 @@ export default function Checkout() {
                         },
                       });
                     }}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
                     maxLength={6}
                     required
                   />
@@ -507,7 +507,7 @@ export default function Checkout() {
 
                 {/* Street */}
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Street (House No, Building) *
                   </label>
                   <input
@@ -522,14 +522,14 @@ export default function Checkout() {
                         },
                       })
                     }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
                     required
                   />
                 </div>
 
                 {/* Area */}
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Area *
                   </label>
                   <input
@@ -545,13 +545,13 @@ export default function Checkout() {
                         },
                       })
                     }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
                   />
                 </div>
 
                 {/* City */}
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-muted-foreground">
                     City *
                   </label>
                   <input
@@ -566,14 +566,14 @@ export default function Checkout() {
                         },
                       })
                     }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
                     required
                   />
                 </div>
 
                 {/* State */}
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-muted-foreground">
                     State *
                   </label>
                   <Select
@@ -598,7 +598,7 @@ export default function Checkout() {
                         <SelectItem
                           key={state}
                           value={state}
-                          className="cursor-pointer border-b-1 border-gray-300"
+                          className="cursor-pointer border-b-1 border-border"
                         >
                           {state}
                         </SelectItem>
@@ -610,7 +610,7 @@ export default function Checkout() {
 
               {/* Delivery Instructions */}
               <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
                   Delivery Instructions (Optional)
                 </label>
                 <textarea
@@ -626,7 +626,7 @@ export default function Checkout() {
                       },
                     })
                   }
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                  className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
                 />
               </div>
             </div>
@@ -635,9 +635,9 @@ export default function Checkout() {
               cartItems[0]?.product?.isPersonalized && <Personalized />}
 
             {/* Gift Options */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100">
-              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-6">
-                <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-medium">
+            <div className="bg-background rounded-2xl p-6 shadow-sm border border-brand-100">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-6">
+                <span className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-medium">
                   2
                 </span>
                 Gift Options
@@ -652,17 +652,17 @@ export default function Checkout() {
                     onChange={(e) =>
                       setOrderData({ ...orderData, isGift: e.target.checked })
                     }
-                    className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-brand-600 focus:ring-brand-500 border-border rounded"
                   />
                 </div>
                 <div className="flex-1">
                   <label
                     htmlFor="is-gift"
-                    className="text-sm font-medium text-gray-700"
+                    className="text-sm font-medium text-muted-foreground"
                   >
                     This is a gift
                   </label>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     Add a gift message and gift wrap to your order
                   </p>
 
@@ -671,7 +671,7 @@ export default function Checkout() {
                       <div>
                         <label
                           htmlFor="gift-message"
-                          className="block text-sm font-medium text-gray-700 mb-1"
+                          className="block text-sm font-medium text-muted-foreground mb-1"
                         >
                           Gift Message (Optional)
                         </label>
@@ -686,7 +686,7 @@ export default function Checkout() {
                               giftMessage: e.target.value,
                             })
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all text-sm"
+                          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm"
                         />
                       </div>
 
@@ -702,17 +702,17 @@ export default function Checkout() {
                                 giftWrap: e.target.checked,
                               })
                             }
-                            className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
+                            className="h-4 w-4 text-brand-600 focus:ring-brand-500 border-border rounded"
                           />
                         </div>
                         <div>
                           <label
                             htmlFor="gift-wrap"
-                            className="text-sm font-medium text-gray-700"
+                            className="text-sm font-medium text-muted-foreground"
                           >
                             Add Gift Wrap (₹50)
                           </label>
-                          <p className="text-xs text-gray-500 mt-0.5">
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             Premium gift wrapping with a personalized message
                             card
                           </p>
@@ -725,9 +725,9 @@ export default function Checkout() {
             </div>
 
             {/* Order Notes */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100">
-              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-medium">
+            <div className="bg-background rounded-2xl p-6 shadow-sm border border-brand-100">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
+                <span className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-medium">
                   3
                 </span>
                 Additional Information
@@ -738,7 +738,7 @@ export default function Checkout() {
                 <div>
                   <label
                     htmlFor="order-notes"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-muted-foreground mb-1"
                   >
                     Order Notes (Optional)
                   </label>
@@ -750,7 +750,7 @@ export default function Checkout() {
                     onChange={(e) =>
                       setOrderData({ ...orderData, notes: e.target.value })
                     }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
                   />
                 </div>
               </div>
@@ -760,8 +760,8 @@ export default function Checkout() {
           {/* Right Column - Order Summary */}
           <div className="lg:col-span-1">
             <div className="sticky top-6">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="bg-background rounded-2xl p-6 shadow-sm border border-brand-100">
+                <h2 className="text-lg font-semibold text-foreground mb-4">
                   Order Summary
                 </h2>
 
@@ -787,7 +787,7 @@ export default function Checkout() {
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
-                          className="w-full mt-4 py-5 px-6 rounded-xl font-semibold  transition-all border-2 border-amber-500"
+                          className="w-full mt-4 py-5 px-6 rounded-xl font-semibold  transition-all border-2 border-brand-500"
                           variant="outline"
                         >
                           Purchase With Cash On delivery
@@ -902,11 +902,11 @@ export default function Checkout() {
                       />
                     </svg>
                   </div>
-                  <p className="text-xs text-gray-600">Secure Payment</p>
+                  <p className="text-xs text-muted-foreground">Secure Payment</p>
                 </div>
 
                 <div className="text-center">
-                  <div className="w-10 h-10 mx-auto bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-1">
+                  <div className="w-10 h-10 mx-auto bg-brand-100 rounded-full flex items-center justify-center text-brand-600 mb-1">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-5 w-5"
@@ -920,11 +920,11 @@ export default function Checkout() {
                       />
                     </svg>
                   </div>
-                  <p className="text-xs text-gray-600">Genuine Products</p>
+                  <p className="text-xs text-muted-foreground">Genuine Products</p>
                 </div>
 
                 <div className="text-center">
-                  <div className="w-10 h-10 mx-auto bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 mb-1">
+                  <div className="w-10 h-10 mx-auto bg-brand-100 rounded-full flex items-center justify-center text-brand-600 mb-1">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-5 w-5"
@@ -935,7 +935,7 @@ export default function Checkout() {
                       <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 00.9-1.45l-1.33-2.67A3 3 0 0010.5 9h3.5a1 1 0 00.9-1.45l-1.33-2.67A3 3 0 0012.5 3H3z" />
                     </svg>
                   </div>
-                  <p className="text-xs text-gray-600">Free Shipping</p>
+                  <p className="text-xs text-muted-foreground">Free Shipping</p>
                 </div>
               </div>
             </div>

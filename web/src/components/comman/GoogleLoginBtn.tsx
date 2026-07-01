@@ -45,7 +45,7 @@ export default function GoogleLoginBtn() {
     <Button
       onClick={handleGoogleLogin}
       variant="outline"
-      className="w-full py-6 text-base border-gray-300 hover:bg-gray-50"
+      className="w-full py-6 text-base border-input hover:bg-muted"
     >
       <svg className="w-5 h-5" viewBox="0 0 24 24">
         <path

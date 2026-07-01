@@ -156,14 +156,12 @@ export interface SizeItem {
   status: boolean;
 }
 
-export interface ProductFAQ {
+export interface ProductFAQSet {
   _id: string;
-  productId: string;
-  productName?: string;
-  question: string;
-  answer: string;
-  order: number;
+  products: { _id: string; name: string; slug: string }[] | string[];
+  entries: { question: string; answer: string; order: number }[];
   status: boolean;
+  createdAt?: string;
 }
 
 export interface LinkOption {

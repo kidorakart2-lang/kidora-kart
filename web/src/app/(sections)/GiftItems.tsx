@@ -75,11 +75,11 @@ const GiftItems = () => {
       <div className="max-w-[1300px] w-full overflow-x-hidden mx-auto px-4">
         {/* Heading */}
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-serif text-[#8B4513] mb-3">
+          <h2 className="section-heading mb-3">
             Perfect Gift Collection
           </h2>
-          <div className="w-20 h-1 bg-[#8B4513] mx-auto rounded-full"></div>
-          <p className="text-gray-600 mt-3 text-[15px] font-light">
+          <div className="w-20 h-1 bg-brand-800 mx-auto rounded-full"></div>
+          <p className="text-muted-foreground mt-3 text-[15px] font-light">
             Thoughtful gifts for your loved ones
           </p>
         </div>
@@ -129,7 +129,7 @@ const GiftItems = () => {
 
         {/* View More Button */}
         <div className="text-center mt-10">
-          <button className="bg-[#8B4513] hover:bg-[#a05d2b] text-white px-8 py-3 rounded-full text-[15px] transition-all duration-300">
+          <button className="bg-brand-800 hover:bg-brand-700 text-white px-8 py-3 rounded-full text-[15px] transition-all duration-300">
             VIEW MORE
           </button>
         </div>

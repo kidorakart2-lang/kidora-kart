@@ -66,9 +66,9 @@ export default function Footer() {
   const logo = useSelector((state: RootState) => state.logo.logo);
 
   return (
-    <footer className="bg-gradient-to-b from-white to-gray-50 text-gray-700 border-t border-gray-200">
+    <footer className="bg-section text-muted-foreground border-t border-border">
       {/* Features Section */}
-      <div className="border-b border-gray-200 bg-amber-50/50">
+      <div className="border-b border-border bg-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {[
@@ -91,16 +91,16 @@ export default function Footer() {
             ].map(({ Icon, title, desc }, index) => (
               <div
                 key={title}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-white transition-colors duration-200"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-background transition-colors duration-200"
               >
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center">
-                  <Icon className="w-5 h-5 text-white" />
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-[var(--brand-primary-light)] to-[var(--brand-gradient-from)] flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-[var(--brand-primary-foreground)]" />
                 </div>
                 <div className="min-w-0">
-                  <h4 className="font-semibold text-sm text-gray-900 truncate">
+                  <h4 className="font-semibold text-sm text-foreground truncate">
                     {title}
                   </h4>
-                  <p className="text-xs text-gray-600 truncate">{desc}</p>
+                  <p className="text-xs text-muted-foreground truncate">{desc}</p>
                 </div>
               </div>
             ))}
@@ -121,7 +121,7 @@ export default function Footer() {
                 height={100}
               />
             </div>
-            <p className="text-sm text-gray-600 mb-6 max-w-sm">
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
               Discover timeless elegance with our exquisite collection of
               handcrafted jewelry. Subscribe to get exclusive offers and new
               arrivals.
@@ -151,7 +151,7 @@ export default function Footer() {
                   asChild
                   variant="outline"
                   size="icon"
-                  className="border-gray-300 hover:bg-gradient-to-r hover:from-amber-600 hover:to-yellow-500 hover:text-white hover:border-transparent transition-all duration-200"
+                  className="border-border hover:bg-gradient-to-r hover:from-[var(--brand-gradient-from)] hover:to-[var(--brand-gradient-to)] hover:text-[var(--brand-primary-foreground)] hover:border-[var(--brand-primary-foreground)] transition-all duration-200"
                 >
                   <a
                     href={href}
@@ -168,7 +168,7 @@ export default function Footer() {
 
           {/* Shop Categories */}
           <div className="sm:col-span-1 lg:col-span-1">
-            <h3 className="font-bold text-base mb-4 text-gray-900 uppercase tracking-wide border-b-2 border-yellow-400 pb-2 inline-block">
+            <h3 className="font-bold text-base mb-4 text-foreground uppercase tracking-wide border-b-2 border-[var(--brand-primary)] pb-2 inline-block">
               Shop
             </h3>
             <ul className="space-y-2.5 text-sm">
@@ -177,7 +177,7 @@ export default function Footer() {
                   <li key={subCategory.name}>
                     <Link
                       href={`/category/${item.slug}/${subCategory.slug}`}
-                      className="text-gray-600 hover:text-yellow-600 hover:translate-x-1 inline-block transition-all duration-200"
+                      className="text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:translate-x-1 inline-block transition-all duration-200"
                     >
                       {subCategory.name}
                     </Link>
@@ -189,7 +189,7 @@ export default function Footer() {
 
           {/* Customer Service */}
           <div className="sm:col-span-1 lg:col-span-1">
-            <h3 className="font-bold text-base mb-4 text-gray-900 uppercase tracking-wide border-b-2 border-yellow-400 pb-2 inline-block">
+            <h3 className="font-bold text-base mb-4 text-foreground uppercase tracking-wide border-b-2 border-[var(--brand-primary)] pb-2 inline-block">
               Help
             </h3>
             <ul className="space-y-2.5 text-sm">
@@ -203,7 +203,7 @@ export default function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-gray-600 hover:text-yellow-600 hover:translate-x-1 inline-block transition-all duration-200"
+                    className="text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:translate-x-1 inline-block transition-all duration-200"
                   >
                     {link.label}
                   </Link>
@@ -214,7 +214,7 @@ export default function Footer() {
 
           {/* Policies & Info */}
           <div className="sm:col-span-1 lg:col-span-1">
-            <h3 className="font-bold text-base mb-4 text-gray-900 uppercase tracking-wide border-b-2 border-yellow-400 pb-2 inline-block">
+            <h3 className="font-bold text-base mb-4 text-foreground uppercase tracking-wide border-b-2 border-[var(--brand-primary)] pb-2 inline-block">
               Policies
             </h3>
             <ul className="space-y-2.5 text-sm">
@@ -238,7 +238,7 @@ export default function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-gray-600 hover:text-yellow-600 hover:translate-x-1 inline-block transition-all duration-200"
+                    className="text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:translate-x-1 inline-block transition-all duration-200"
                   >
                     {link.label}
                   </Link>
@@ -249,30 +249,30 @@ export default function Footer() {
 
           {/* Contact & Featured Products */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <h3 className="font-bold text-base mb-4 text-gray-900 uppercase tracking-wide border-b-2 border-yellow-400 pb-2 inline-block">
+            <h3 className="font-bold text-base mb-4 text-foreground uppercase tracking-wide border-b-2 border-[var(--brand-primary)] pb-2 inline-block">
               Contact
             </h3>
-            <ul className="space-y-3 text-sm text-gray-600 mb-6">
+            <ul className="space-y-3 text-sm text-muted-foreground mb-6">
               <li className="flex items-start gap-2">
-                <Phone className="w-4 h-4 mt-0.5 flex-shrink-0 text-yellow-600" />
+                <Phone className="w-4 h-4 mt-0.5 flex-shrink-0 text-[var(--brand-primary-dark)]" />
                 <a
                   href={`tel:${siteConfig.contact.phone}`}
-                  className="hover:text-yellow-600 transition-colors"
+                  className="hover:text-[var(--brand-primary-dark)] transition-colors"
                 >
                   {siteConfig.contact.mobile}
                 </a>
               </li>
               <li className="flex items-start gap-2">
-                <WhatsAppIcon className="w-4 h-4 mt-0.5 flex-shrink-0 text-yellow-600" />
+                <WhatsAppIcon className="w-4 h-4 mt-0.5 flex-shrink-0 text-[var(--brand-primary-dark)]" />
                 <a
                   href={`mailto:${siteConfig.contact.email}`}
-                  className="hover:text-yellow-600 transition-colors break-all"
+                  className="hover:text-[var(--brand-primary-dark)] transition-colors break-all"
                 >
                   {siteConfig.contact.email}
                 </a>
               </li>
               <li className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-yellow-600" />
+                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-[var(--brand-primary-dark)]" />
                 <a
                   href={siteConfig.address.googleMapsUrl}
                   target="_blank"
@@ -287,16 +287,16 @@ export default function Footer() {
             {/* Featured Products */}
             {featuredProducts.length > 0 && (
               <div className="space-y-3">
-                <h4 className="font-semibold text-sm text-gray-900 mb-3">
+                <h4 className="font-semibold text-sm text-foreground mb-3">
                   Featured Products
                 </h4>
                 {featuredProducts.map((product: FeaturedProduct) => (
                   <Link
                     key={product._id}
                     href={`/product-details/${product.slug}`}
-                    className="flex items-center gap-3 p-2 rounded-lg border border-gray-200 hover:border-yellow-400 hover:shadow-md transition-all duration-200 group bg-white"
+                    className="flex items-center gap-3 p-2 rounded-lg border border-border hover:border-[var(--brand-primary)] hover:shadow-md transition-all duration-200 group bg-background"
                   >
-                    <div className="relative w-16 h-16 flex-shrink-0 rounded-md overflow-hidden bg-gray-100">
+                    <div className="relative w-16 h-16 flex-shrink-0 rounded-md overflow-hidden bg-muted">
                       <Image
                         src={product.image}
                         alt={product.name}
@@ -306,10 +306,10 @@ export default function Footer() {
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h5 className="font-medium text-sm text-gray-900 truncate group-hover:text-yellow-600 transition-colors">
+                      <h5 className="font-medium text-sm text-foreground truncate group-hover:text-[var(--brand-primary-dark)] transition-colors">
                         {product.name}
                       </h5>
-                      <p className="text-sm font-bold text-yellow-600 flex items-center">
+                      <p className="text-sm font-bold text-[var(--brand-primary)] flex items-center">
                         <IndianRupee size={12} /> {product.discount_price}
                       </p>
                     </div>
@@ -322,9 +322,9 @@ export default function Footer() {
       </div>
 
       {/* Payment Methods Section */}
-      <div className="border-t border-gray-200 bg-gray-50">
+      <div className="border-t border-border bg-section-subtle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className="text-xs text-gray-500 text-center ">
+          <p className="text-xs text-muted-foreground text-center ">
             © {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
           </p>
         </div>

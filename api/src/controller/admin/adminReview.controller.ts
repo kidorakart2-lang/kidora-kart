@@ -2,11 +2,22 @@ import type { Request, Response } from "express";
 import Reviews from "../../models/review.js";
 
 export const getAllReviews = async (
-  _req: Request,
+  req: Request,
   res: Response,
 ): Promise<void> => {
   try {
-    const reviews = await Reviews.find()
+    const isDeletedAt = (req.body?.isDeletedAt ?? req.query?.isDeletedAt) as string | undefined;
+
+    const query: Record<string, unknown> = {};
+    if (isDeletedAt === "all") {
+      // no deletedAt filter — show everything
+    } else if (isDeletedAt === "deleted") {
+      query.deletedAt = { $ne: null };
+    } else {
+      query.deletedAt = null;
+    }
+
+    const reviews = await Reviews.find(query)
       .populate("userId")
       .populate("productId")
       .sort("-createdAt");

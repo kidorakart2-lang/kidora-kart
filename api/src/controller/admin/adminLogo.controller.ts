@@ -35,15 +35,26 @@ export const create = async (
   }
 };
 
-export const view = async (_req: Request, res: Response): Promise<void> => {
+export const view = async (req: Request, res: Response): Promise<void> => {
   try {
+    const filter: Record<string, unknown> = {};
+    const isDeletedAt = req.body?.isDeletedAt ?? req.query?.isDeletedAt;
+    if (isDeletedAt === "all") {
+      // No deletedAt filter — show all
+    } else if (isDeletedAt === "deleted") {
+      filter.deletedAt = { $ne: null };
+    } else {
+      // Default: active (non-deleted) only
+      filter.deletedAt = null;
+    }
+
     const logos = await logoModal
-      .find({ deletedAt: null })
+      .find(filter)
       .sort({ createdAt: "desc" });
     res.status(200).json({
-      _status: logos.length > 0,
-      _message: logos.length > 0 ? "Logos Found" : "No Logos Found",
-      _data: logos.length > 0 ? logos : [],
+      _status: true,
+      _message: "Logos Found",
+      _data: logos,
     });
   } catch (error) {
     res.status(500).json({

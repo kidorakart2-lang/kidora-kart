@@ -83,14 +83,14 @@ export function HoldToConfirmButton({
       disabled={isConfirmed || loading}
       className={`relative w-full py-3.5 px-6 rounded-xl font-semibold text-white transition-all overflow-hidden ${
         isConfirmed
-          ? "bg-gradient-to-r from-amber-700 to-orange-700 shadow-lg cursor-default"
-          : "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-md hover:shadow-lg"
+          ? "bg-gradient-to-r from-brand-700 to-brand-700 shadow-lg cursor-default"
+          : "bg-gradient-to-r from-brand-600 to-brand-600 hover:from-brand-700 hover:to-brand-700 shadow-md hover:shadow-lg"
       } ${className}`}
     >
       <div
         className="absolute inset-0 rounded-xl transition-all duration-75 ease-out"
         style={{
-          background: `linear-gradient(90deg, rgba(217, 119, 6, 0.5) 0%, rgba(217, 119, 6, 0.3) ${progress}%, transparent ${progress}%, transparent 100%)`,
+          background: `linear-gradient(90deg, color-mix(in srgb, var(--brand-600) 50%, transparent) 0%, color-mix(in srgb, var(--brand-600) 30%, transparent) ${progress}%, transparent ${progress}%, transparent 100%)`,
           opacity: isHolding ? 1 : 0,
         }}
       />
@@ -100,7 +100,7 @@ export function HoldToConfirmButton({
         className="absolute inset-0 rounded-xl pointer-events-none transition-all duration-300"
         style={{
           boxShadow: isHolding
-            ? `inset 0 0 20px rgba(217, 119, 6, 0.4), 0 0 20px rgba(217, 119, 6, 0.3)`
+            ? `inset 0 0 20px color-mix(in srgb, var(--brand-600) 40%, transparent), 0 0 20px color-mix(in srgb, var(--brand-600) 30%, transparent)`
             : "none",
         }}
       />
@@ -150,7 +150,7 @@ export function HoldToConfirmButton({
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-1 h-1 bg-white rounded-full pointer-events-none"
+              className="absolute w-1 h-1 bg-background rounded-full pointer-events-none"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,

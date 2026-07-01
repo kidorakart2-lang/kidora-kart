@@ -21,13 +21,6 @@ export const update = async (req: Request, res: Response): Promise<void> => {
   try {
     const sections = (req.body.sections ?? []) as Record<string, unknown>[];
 
-    // Ensure banner is always first
-    const bannerIdx = sections.findIndex((s) => s.type === "banner");
-    if (bannerIdx > 0) {
-      const [banner] = sections.splice(bannerIdx, 1);
-      sections.unshift(banner!);
-    }
-
     const page = await homePage.findOneAndUpdate(
       {},
       { $set: { sections }, $inc: { version: 1 } },

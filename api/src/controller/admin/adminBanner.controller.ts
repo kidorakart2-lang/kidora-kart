@@ -62,8 +62,18 @@ export const getAllBanner = async (
     let limitValue = 10;
     let skipValue: number;
 
-    const andCondition: Record<string, unknown>[] = [{ deletedAt: null }];
+    const andCondition: Record<string, unknown>[] = [];
     const orCondition: Record<string, unknown>[] = [];
+
+    const isDeletedAt = req.body?.isDeletedAt ?? req.query?.isDeletedAt;
+    if (isDeletedAt === "all") {
+      // No deletedAt filter — show all
+    } else if (isDeletedAt === "deleted") {
+      andCondition.push({ deletedAt: { $ne: null } });
+    } else {
+      // Default: active (non-deleted) only
+      andCondition.push({ deletedAt: null });
+    }
 
     const filter: Record<string, unknown> = {};
     if (andCondition.length > 0) {
@@ -98,9 +108,9 @@ export const getAllBanner = async (
       .skip(skipValue);
 
     res.status(200).json({
-      _status: banner.length > 0,
-      _message: banner.length > 0 ? "Banners Found" : "No Banners Found",
-      _data: banner.length > 0 ? banner : [],
+      _status: true,
+      _message: "Banners Found",
+      _data: banner,
       _total_pages: Math.ceil(totalRecords / limitValue),
       _total_records: totalRecords,
       _current_page: Number(pageValue),

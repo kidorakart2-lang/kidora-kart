@@ -36,7 +36,7 @@ const TraditionalJewellery = () => {
   ];
 
   return (
-    <section className={`py-16 bg-white ${montserrat.className}`} aria-label="Traditional Jewellery">
+    <section className={`py-16 bg-background ${montserrat.className}`} aria-label="Traditional Jewellery">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -44,11 +44,11 @@ const TraditionalJewellery = () => {
         transition={{ duration: 0.6 }}
         className="text-center mb-12 px-4"
       >
-        <h2 className={`${playfair.variable} font-playfair text-3xl md:text-4xl font-bold text-gray-900 tracking-wide relative inline-block`}>
+        <h2 className={`${playfair.variable} font-playfair text-3xl md:text-4xl font-bold text-foreground tracking-wide relative inline-block`}>
           Traditional Jewellery
-          <span className="absolute left-0 right-0 h-1 bg-amber-500 w-24 mx-auto bottom-[-10px] rounded-full"></span>
+          <span className="absolute left-0 right-0 h-1 bg-brand-500 w-24 mx-auto bottom-[-10px] rounded-full"></span>
         </h2>
-        <p className="text-gray-600 mt-4 max-w-2xl mx-auto">Discover our exquisite collection of handcrafted traditional jewellery, blending timeless elegance with modern craftsmanship.</p>
+        <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">Discover our exquisite collection of handcrafted traditional jewellery, blending timeless elegance with modern craftsmanship.</p>
       </motion.div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-8 lg:px-16 max-w-7xl mx-auto">
@@ -62,7 +62,7 @@ const TraditionalJewellery = () => {
             whileHover={{ y: -10 }}
             className="relative group cursor-pointer"
           >
-            <div className="relative overflow-hidden rounded-xl shadow-lg bg-white">
+            <div className="relative overflow-hidden rounded-xl shadow-lg bg-background">
               {/* Image Container */}
               <div className="overflow-hidden h-80 md:h-96">
                 <Image
@@ -77,7 +77,7 @@ const TraditionalJewellery = () => {
               {/* Overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
                 <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                  <span className="text-amber-300 text-sm font-medium tracking-wider mb-1 block">
+                  <span className="text-brand-300 text-sm font-medium tracking-wider mb-1 block">
                     {item.subtitle}
                   </span>
                   <h3 className="text-white text-xl font-semibold mb-3">
@@ -90,8 +90,8 @@ const TraditionalJewellery = () => {
               </div>
               
               {/* Floating Badge */}
-              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-md transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                <span className="text-xs font-medium text-gray-800">New Arrival</span>
+              <div className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-md transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                <span className="text-xs font-medium text-foreground">New Arrival</span>
               </div>
             </div>
           </motion.div>

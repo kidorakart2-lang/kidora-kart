@@ -26,16 +26,16 @@ export default function CookieConsent() {
     <div
       role="dialog"
       aria-label="Cookie consent"
-      className="fixed bottom-0 left-0 right-0 z-[9999] border-t border-amber-200/50 bg-gradient-to-r from-amber-50 via-white to-orange-50 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] p-4 md:p-5"
+      className="fixed bottom-0 left-0 right-0 z-[9999] border-t border-brand-200/50 bg-gradient-to-r from-brand-50 via-white to-brand-50 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] p-4 md:p-5"
     >
       <div className="mx-auto flex max-w-7xl flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
         <div className="flex items-start gap-3 flex-1">
-          <Cookie className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-          <p className="text-sm text-slate-700 leading-relaxed">
+          <Cookie className="mt-0.5 h-5 w-5 shrink-0 text-brand-700" />
+          <p className="text-sm text-muted-foreground leading-relaxed">
             We use essential cookies only for authentication and site security. No tracking or analytics cookies are used. By continuing, you accept our{" "}
             <Link
               href="/our-policy"
-              className="font-medium text-amber-700 underline underline-offset-2 hover:text-amber-800 transition-colors"
+              className="font-medium text-brand-700 underline underline-offset-2 hover:text-brand-800 transition-colors"
               onClick={accept}
             >
               Cookie & Data Usage Policy
@@ -46,14 +46,14 @@ export default function CookieConsent() {
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={accept}
-            className="cursor-pointer rounded-lg bg-amber-600 px-5 py-2 text-sm font-medium text-white transition-all hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
+            className="cursor-pointer rounded-lg bg-brand-600 px-5 py-2 text-sm font-medium text-white transition-all hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2"
           >
             Got it
           </button>
           <button
             onClick={accept}
             aria-label="Close cookie notice"
-            className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="cursor-pointer rounded-lg p-2 text-muted-foreground transition-colors hover:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-400"
           >
             <X className="h-4 w-4" />
           </button>

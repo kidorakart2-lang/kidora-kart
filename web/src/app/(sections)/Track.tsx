@@ -71,15 +71,15 @@ export default function OrderTracking() {
 
   const getStatusColor = (status: string, isActive: boolean, isCompleted: boolean) => {
     if (status === "cancelled") {
-      return "bg-red-500 text-white";
+      return "bg-destructive text-destructive-foreground";
     }
     if (isActive) {
-      return "bg-yellow-500 text-white";
+      return "bg-amber-500 text-white";
     }
     if (isCompleted) {
-      return "bg-green-500 text-white";
+      return "bg-emerald-500 text-white";
     }
-    return "bg-gray-200 text-gray-500";
+    return "bg-muted text-muted-foreground";
   };
 
   const getProgressWidth = (status: string) => {
@@ -109,17 +109,17 @@ export default function OrderTracking() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-3xl mx-auto"
         >
-          <h1 className="text-3xl text-gray-900 mb-2">Track Your Order</h1>
-          <p className="text-gray-600 font-sans mb-6">
+          <h1 className="text-3xl text-foreground mb-2">Track Your Order</h1>
+          <p className="text-muted-foreground font-sans mb-6">
             Enter your order details to see its current status. <br />
-            <span className="text-yellow-500 text-sm">
+            <span className="text-amber-500 text-sm">
               or You Can Check your order status in Profile
             </span>
           </p>
 
-          <div className="bg-white rounded-xl shadow-md p-6 mb-10">
+          <div className="bg-background rounded-xl shadow-md p-6 mb-10">
             <div className="mb-4">
-              <Label className="block text-gray-700 font-medium mb-1">
+              <Label className="block text-muted-foreground font-medium mb-1">
                 Order Number
               </Label>
               <Input
@@ -128,12 +128,12 @@ export default function OrderTracking() {
                 value={orderNumber}
                 onChange={(e) => setOrderNumber(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleTrackOrder()}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                className="w-full border border-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
             <Button
               onClick={handleTrackOrder}
-              className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-6 py-2 rounded-lg transition"
+              className="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-6 py-2 rounded-lg transition"
             >
               Track Order
             </Button>
@@ -151,10 +151,10 @@ export default function OrderTracking() {
             animate={{ opacity: 1, y: 0 }}
             className={`rounded-xl shadow-lg overflow-hidden ${
               isCancelled
-                ? "bg-gradient-to-r from-red-500 to-red-600"
+                ? "bg-gradient-to-r from-destructive to-destructive/80"
                 : isDelivered
-                ? "bg-gradient-to-r from-green-500 to-green-600"
-                : "bg-gradient-to-r from-yellow-500 to-yellow-600"
+                ? "bg-gradient-to-r from-emerald-500 to-emerald-600"
+                : "bg-gradient-to-r from-brand-500 to-brand-600"
             } p-6 text-white`}
           >
             <div className="flex items-center justify-between flex-wrap gap-4">
@@ -178,7 +178,7 @@ export default function OrderTracking() {
                 </p>
               </div>
               {isCancelled && (
-                <div className="bg-white/20 px-4 py-2 rounded-lg">
+                <div className="bg-background/20 px-4 py-2 rounded-lg">
                   <p className="font-semibold flex items-center gap-2">
                     <XCircle className="w-5 h-5" />
                     Order Cancelled
@@ -186,7 +186,7 @@ export default function OrderTracking() {
                 </div>
               )}
               {isDelivered && (
-                <div className="bg-white/20 px-4 py-2 rounded-lg">
+                <div className="bg-background/20 px-4 py-2 rounded-lg">
                   <p className="font-semibold flex items-center gap-2">
                     <CheckCircle className="w-5 h-5" />
                     Delivered Successfully
@@ -197,7 +197,7 @@ export default function OrderTracking() {
           </motion.div>
 
           {/* Main Content */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-background rounded-xl shadow-lg overflow-hidden">
             {/* Order Status Timeline */}
             {!isCancelled && (
               <motion.div
@@ -215,7 +215,7 @@ export default function OrderTracking() {
                   <div className="hidden md:block">
                     <div className="flex items-center justify-between mb-8 relative">
                       {/* Progress Line */}
-                      <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 mx-5">
+                      <div className="absolute top-5 left-0 right-0 h-1 bg-muted mx-5">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{
@@ -224,7 +224,7 @@ export default function OrderTracking() {
                             ),
                           }}
                           transition={{ duration: 1, ease: "easeOut" }}
-                          className="h-full bg-green-500"
+                          className="h-full bg-emerald-500"
                         />
                       </div>
 
@@ -267,7 +267,7 @@ export default function OrderTracking() {
                                 {status}
                               </span>
                               {statusItem && (
-                                <span className="text-xs text-gray-500 mt-1">
+                                <span className="text-xs text-muted-foreground mt-1">
                                   {new Date(
                                     statusItem.timestamp
                                   ).toLocaleDateString("en-IN")}
@@ -317,7 +317,7 @@ export default function OrderTracking() {
                             <div className="flex-1">
                               <p className="font-medium capitalize">{status}</p>
                               {statusItem && (
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-muted-foreground">
                                   {new Date(
                                     statusItem.timestamp
                                   ).toLocaleDateString("en-IN", {
@@ -343,15 +343,15 @@ export default function OrderTracking() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="p-6 border-b bg-red-50"
+                className="p-6 border-b bg-destructive/10"
               >
-                <div className="flex items-center gap-4 text-red-600">
-                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                <div className="flex items-center gap-4 text-destructive">
+                  <div className="w-16 h-16 bg-destructive/20 rounded-full flex items-center justify-center">
                     <XCircle className="w-8 h-8" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold">Order Cancelled</h3>
-                    <p className="text-sm text-red-500">
+                    <p className="text-sm text-destructive">
                       This order was cancelled on{" "}
                       {new Date(
                         orderDetails?.order?.statusHistory?.find(
@@ -373,16 +373,16 @@ export default function OrderTracking() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="p-4 bg-green-50 border-l-4 border-green-500 mx-6 mt-6 rounded-r-lg"
+                className="p-4 bg-emerald-50 border-l-4 border-emerald-500 mx-6 mt-6 rounded-r-lg"
               >
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    <span className="font-semibold text-green-800">
+                    <CheckCircle className="w-5 h-5 text-emerald-600" />
+                    <span className="font-semibold text-emerald-800">
                       Delivered On:
                     </span>
                   </div>
-                  <span className="font-semibold text-green-600">
+                  <span className="font-semibold text-emerald-600">
                     {new Date(
                       orderDetails?.order?.statusHistory?.find(
                         (s) => s.status === "delivered"
@@ -415,10 +415,10 @@ export default function OrderTracking() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 * index }}
-                    className="flex items-center gap-4 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                    className="flex items-center gap-4 p-2 bg-muted rounded-lg hover:bg-muted transition"
                   >
                     <Link href={`/product-details/${item.productId.slug}`}>
-                      <div className="w-24 h-24 bg-white rounded-lg overflow-hidden shadow-sm flex-shrink-0">
+                      <div className="w-24 h-24 bg-background rounded-lg overflow-hidden shadow-sm flex-shrink-0">
                         <Image
                           src={item.images?.[0] || "/placeholder.jpg"}
                           alt={item.name}
@@ -429,18 +429,18 @@ export default function OrderTracking() {
                       </div>
                     </Link>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">
+                      <h3 className="font-semibold text-foreground">
                         {item.name}
                       </h3>
                       <div className="flex items-center gap-4 mt-1 flex-wrap">
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-muted-foreground">
                           Qty: {item.quantity}
                         </span>
-                        <span className="text-lg font-semibold text-yellow-600">
+                        <span className="text-lg font-semibold text-brand-600">
                           ₹{item.priceAtPurchase.toLocaleString("en-IN")}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mt-2 flex items-center gap-1">
+                      <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1">
                         <span className="">Color :</span>{" "}
                         <span
                           style={{
@@ -455,14 +455,14 @@ export default function OrderTracking() {
                         {item?.colorId?.name}
                       </p>
                       {item?.sizeId && (
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                           <span className="">Size :</span> {item?.sizeId?.name}
                         </p>
                       )}
                       {item.isPersonalized && item.personalizedName && (
-                        <p className="text-sm text-gray-600 mt-2 bg-orange-50 px-2 py-1 rounded inline-block">
+                        <p className="text-sm text-muted-foreground mt-2 bg-brand-50 px-2 py-1 rounded inline-block">
                           <span className="font-medium">Personalized:</span>{" "}
-                          <span className="text-orange-600">
+                          <span className="text-brand-600">
                             {item.personalizedName}
                           </span>
                         </p>
@@ -476,14 +476,14 @@ export default function OrderTracking() {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="mt-4 p-4 bg-pink-50 border-l-4 border-pink-400 rounded-r-lg"
+                  className="mt-4 p-4 bg-brand-accent-50 border-l-4 border-brand-accent-400 rounded-r-lg"
                 >
                   <div className="flex items-start gap-2">
-                    <Gift className="w-5 h-5 text-pink-600 flex-shrink-0 mt-0.5" />
+                    <Gift className="w-5 h-5 text-brand-accent-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-pink-900">Gift Order</p>
+                      <p className="font-semibold text-brand-accent-900">Gift Order</p>
                       {orderDetails?.order?.giftMessage && (
-                        <p className="text-sm text-pink-700 mt-1">
+                        <p className="text-sm text-brand-accent-700 mt-1">
                           <span className="font-medium">Message:</span>{" "}
                           {orderDetails?.order?.giftMessage}
                         </p>
@@ -498,24 +498,24 @@ export default function OrderTracking() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="p-6 border-b bg-gray-50"
+              className="p-6 border-b bg-muted"
             >
               <h2 className="text-xl font-semibold mb-4">Payment Method</h2>
               <div className="space-y-3">
-                <div className="flex justify-between text-gray-700">
+                <div className="flex justify-between text-muted-foreground">
                   <span>Payment Details</span>
                   <span className="font-medium">
                     {orderDetails?.order?.payment?.method}
                   </span>
                 </div>
-                <div className="flex justify-between text-gray-700">
+                <div className="flex justify-between text-muted-foreground">
                   <span>Payment Status</span>
                   <span className="font-medium">
                     {orderDetails?.order?.payment?.status}
                   </span>
                 </div>
                 {orderDetails?.order?.payment?.codAdvance && (
-                  <div className="flex justify-between text-gray-700">
+                  <div className="flex justify-between text-muted-foreground">
                     <span>Payment In Advane</span>
                     <span className="font-medium">
                       ₹{orderDetails?.order?.pricing?.advance}
@@ -530,15 +530,15 @@ export default function OrderTracking() {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6"
+                  className="bg-background p-4 rounded-lg shadow-sm border border-border mb-6"
                 >
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <XCircle className="h-5 w-5 text-red-500 mr-2" />
+                  <h3 className="text-lg font-medium text-foreground mb-4 flex items-center">
+                    <XCircle className="h-5 w-5 text-destructive mr-2" />
                     Order Cancellation Details
                   </h3>
-                  <div className="space-y-3 text-sm text-gray-700">
+                  <div className="space-y-3 text-sm text-muted-foreground">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">
+                      <span className="text-muted-foreground">
                         Cancellation Reason:
                       </span>
                       <span className="font-medium">
@@ -548,14 +548,14 @@ export default function OrderTracking() {
                     </div>
                     {/* {orderDetails.order.cancellation.cancelledBy !== "customer" && (
                       <div className="flex justify-between">
-                        <span className="text-gray-500">Cancelled By:</span>
+                        <span className="text-muted-foreground">Cancelled By:</span>
                         <span className="font-medium capitalize">
                           {orderDetails.order.cancellation.cancelledBy}
                         </span>
                       </div>
                     )} */}
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Cancelled On:</span>
+                      <span className="text-muted-foreground">Cancelled On:</span>
                       <span className="font-medium">
                         {new Date(
                           orderDetails.order.cancellation.cancelledAt
@@ -565,18 +565,18 @@ export default function OrderTracking() {
 
                     {orderDetails.order.cancellation.refundStatus && (
                       <>
-                        <div className="border-t border-gray-100 my-3"></div>
+                        <div className="border-t border-border my-3"></div>
                         <div className="flex justify-between">
-                          <span className="text-gray-500">Refund Status:</span>
+                          <span className="text-muted-foreground">Refund Status:</span>
                           <span
                             className={`font-medium ${
                               orderDetails.order.cancellation.refundStatus ===
                               "completed"
-                                ? "text-green-600"
+                                ? "text-emerald-600"
                                 : orderDetails.order.cancellation
                                     .refundStatus === "failed"
-                                ? "text-red-600"
-                                : "text-amber-600"
+                                ? "text-destructive"
+                                : "text-brand-600"
                             }`}
                           >
                             {orderDetails.order.cancellation.refundStatus
@@ -590,7 +590,7 @@ export default function OrderTracking() {
 
                         {orderDetails.order.cancellation.refundAmount > 0 && (
                           <div className="flex justify-between">
-                            <span className="text-gray-500">
+                            <span className="text-muted-foreground">
                               Refund Amount:
                             </span>
                             <span className="font-medium">
@@ -604,7 +604,7 @@ export default function OrderTracking() {
 
                         {orderDetails.order.cancellation.refundedAt && (
                           <div className="flex justify-between">
-                            <span className="text-gray-500">
+                            <span className="text-muted-foreground">
                               Refund Processed On:
                             </span>
                             <span className="font-medium">
@@ -616,7 +616,7 @@ export default function OrderTracking() {
                         )}
 
                         {orderDetails.order.cancellation.refundError && (
-                          <div className="mt-2 p-2 bg-red-50 text-red-700 text-sm rounded">
+                          <div className="mt-2 p-2 bg-destructive/10 text-destructive text-sm rounded">
                             <span className="font-medium">Refund Error:</span>{" "}
                             {orderDetails.order.cancellation.refundError}
                           </div>
@@ -632,11 +632,11 @@ export default function OrderTracking() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="p-6 border-b bg-gray-50"
+              className="p-6 border-b bg-muted"
             >
               <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
               <div className="space-y-3">
-                <div className="flex justify-between text-gray-700">
+                <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
                   <span className="font-medium">
                     ₹
@@ -645,7 +645,7 @@ export default function OrderTracking() {
                     )}
                   </span>
                 </div>
-                <div className="flex justify-between text-gray-700">
+                <div className="flex justify-between text-muted-foreground">
                   <span>Shipping</span>
                   <span className="font-medium">
                     ₹
@@ -656,7 +656,7 @@ export default function OrderTracking() {
                 </div>
                 {orderDetails?.order?.pricing?.discount?.amount != null &&
                   orderDetails.order.pricing.discount.amount > 0 && (
-                  <div className="flex justify-between text-green-600">
+                  <div className="flex justify-between text-emerald-600">
                     <span>Discount</span>
                     <span className="font-medium">
                       -₹
@@ -667,7 +667,7 @@ export default function OrderTracking() {
                   </div>
                 )}
                 {orderDetails?.order?.payment?.codAdvance && (
-                  <div className="flex justify-between text-gray-700">
+                  <div className="flex justify-between text-muted-foreground">
                     <span>Amount Left</span>
                     <span className="font-medium">
                       ₹
@@ -676,9 +676,9 @@ export default function OrderTracking() {
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between font-bold text-lg pt-3 border-t-2 border-gray-300">
+                <div className="flex justify-between font-bold text-lg pt-3 border-t-2 border-border">
                   <span>Total</span>
-                  <span className="text-yellow-600">
+                  <span className="text-brand-600">
                     ₹
                     {orderDetails?.order?.pricing?.total?.toLocaleString(
                       "en-IN"
@@ -701,9 +701,9 @@ export default function OrderTracking() {
                     <MapPin className="w-5 h-5" />
                     Shipping Address
                   </h2>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <address className="not-italic text-gray-700 space-y-1">
-                      <p className="font-semibold text-gray-900">
+                  <div className="bg-muted p-4 rounded-lg">
+                    <address className="not-italic text-muted-foreground space-y-1">
+                      <p className="font-semibold text-foreground">
                         {orderDetails?.order?.shippingAddress?.fullName}
                       </p>
                       <p>{orderDetails?.order?.shippingAddress?.street}</p>
@@ -715,7 +715,7 @@ export default function OrderTracking() {
                       <p>
                         India - {orderDetails?.order?.shippingAddress?.pincode}
                       </p>
-                      <p className="mt-3 pt-3 border-t border-gray-200">
+                      <p className="mt-3 pt-3 border-t border-border">
                         <span className="font-medium">Phone:</span>{" "}
                         {orderDetails?.order?.shippingAddress?.phone}
                       </p>
@@ -731,31 +731,31 @@ export default function OrderTracking() {
                     </h2>
                     <div className="space-y-3">
                       {orderDetails?.order?.shippingAddress?.instructions && (
-                        <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
-                          <p className="text-sm font-medium text-blue-900 mb-1">
+                        <div className="bg-brand-50 p-4 rounded-lg border-l-4 border-brand-400">
+                          <p className="text-sm font-medium text-brand-900 mb-1">
                             Delivery Instructions
                           </p>
-                          <p className="text-sm text-blue-700">
+                          <p className="text-sm text-brand-700">
                             {orderDetails?.order?.shippingAddress?.instructions}
                           </p>
                         </div>
                       )}
 
-                      <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-400">
-                        <p className="text-sm font-medium text-yellow-900 mb-1">
+                      <div className="bg-brand-50 p-4 rounded-lg border-l-4 border-brand-400">
+                        <p className="text-sm font-medium text-brand-900 mb-1">
                           Package ID
                         </p>
-                        <p className="text-sm text-yellow-700 font-mono">
+                        <p className="text-sm text-brand-700 font-mono">
                           {orderDetails?.order?.packageId}
                         </p>
                       </div>
 
                       {orderDetails?.order?.notes?.internal && (
-                        <div className="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-400">
-                          <p className="text-sm font-medium text-purple-900 mb-1">
+                        <div className="bg-brand-accent-50 p-4 rounded-lg border-l-4 border-brand-accent-400">
+                          <p className="text-sm font-medium text-brand-accent-900 mb-1">
                             Delivery Note
                           </p>
-                          <p className="text-sm text-purple-700">
+                          <p className="text-sm text-brand-accent-700">
                             {orderDetails?.order?.notes?.internal}
                           </p>
                         </div>
@@ -772,7 +772,7 @@ export default function OrderTracking() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="bg-white rounded-xl shadow-lg p-6"
+            className="bg-background rounded-xl shadow-lg p-6"
           >
             <h2 className="text-xl font-semibold mb-4">Track Another Order</h2>
             <div className="flex gap-3 flex-wrap">
@@ -782,11 +782,11 @@ export default function OrderTracking() {
                 value={orderNumber}
                 onChange={(e) => setOrderNumber(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleTrackOrder()}
-                className="flex-1 min-w-[200px] border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                className="flex-1 min-w-[200px] border border-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
               <Button
                 onClick={handleTrackOrder}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-6 py-2 rounded-lg transition"
+                className="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-6 py-2 rounded-lg transition"
               >
                 Track Order
               </Button>

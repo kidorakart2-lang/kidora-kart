@@ -23,6 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { api, ApiClientError } from "@/lib/api";
+import { invalidateCache } from "@/lib/invalidate-cache";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -42,6 +43,7 @@ export default function TestimonialsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [testimonialToDelete, setTestimonialToDelete] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [deletedFilter, setDeletedFilter] = useState<string>("active");
   const [formData, setFormData] = useState<{
     title: string;
     description: string;
@@ -72,12 +74,13 @@ export default function TestimonialsPage() {
 
   useEffect(() => {
     loadTestimonials();
-  }, []);
+  }, [deletedFilter]);
 
   const loadTestimonials = async () => {
     setLoading(true);
     try {
-      const data = await api.post<Testimonial[]>("/api/admin/testimonial/view", {});
+      const filter = deletedFilter === "active" ? undefined : deletedFilter;
+      const data = await api.post<Testimonial[]>("/api/admin/testimonial/view", { isDeletedAt: filter });
       setTestimonials(data ?? []);
     } catch (error) {
       toast({
@@ -113,6 +116,7 @@ export default function TestimonialsPage() {
     try {
       await api.put(`/api/admin/testimonial/delete/${testimonialToDelete}`, { id: testimonialToDelete });
       loadTestimonials();
+      invalidateCache(["testimonials", "homepage"]);
       toast({ title: "Testimonial deleted successfully" });
     } catch (error) {
       toast({
@@ -140,11 +144,13 @@ export default function TestimonialsPage() {
       if (editingTestimonial) {
         await api.put(`/api/admin/testimonial/update/${editingTestimonial._id}`, submitData);
         loadTestimonials();
+        invalidateCache(["testimonials", "homepage"]);
         toast({ title: "Testimonial updated successfully" });
       } else {
         await api.post("/api/admin/testimonial/create", submitData);
         toast({ title: "Testimonial created successfully" });
         loadTestimonials();
+        invalidateCache(["testimonials", "homepage"]);
       }
 
       setDrawerOpen(false);
@@ -171,6 +177,7 @@ export default function TestimonialsPage() {
     try {
       await api.put(`/api/admin/testimonial/change-status/${testimonial._id}`, { id: testimonial._id });
       loadTestimonials();
+      invalidateCache(["testimonials", "homepage"]);
       toast({
         title: `Testimonial ${
           testimonial.status ? "deactivated" : "activated"
@@ -210,6 +217,19 @@ export default function TestimonialsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Select
+            value={deletedFilter}
+            onValueChange={setDeletedFilter}
+          >
+            <SelectTrigger className="w-[140px] h-8 text-xs">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active Only</SelectItem>
+              <SelectItem value="all">All (incl. deleted)</SelectItem>
+              <SelectItem value="deleted">Deleted Only</SelectItem>
+            </SelectContent>
+          </Select>
           <ExportButtons data={testimonials as unknown as Record<string, unknown>[]} filename="testimonials" />
           <Button
             onClick={() => {

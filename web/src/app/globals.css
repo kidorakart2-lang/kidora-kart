@@ -46,6 +46,30 @@ body[data-scroll-locked] {
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  /* ── Brand spectrum (amber) ── */
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+  --color-brand-950: var(--brand-950);
+  /* ── Brand accent spectrum (rose) ── */
+  --color-brand-accent-50: var(--brand-accent-50);
+  --color-brand-accent-100: var(--brand-accent-100);
+  --color-brand-accent-200: var(--brand-accent-200);
+  --color-brand-accent-300: var(--brand-accent-300);
+  --color-brand-accent-400: var(--brand-accent-400);
+  --color-brand-accent-500: var(--brand-accent-500);
+  --color-brand-accent-600: var(--brand-accent-600);
+  --color-brand-accent-700: var(--brand-accent-700);
+  --color-brand-accent-800: var(--brand-accent-800);
+  --color-brand-accent-900: var(--brand-accent-900);
+  --color-brand-accent-950: var(--brand-accent-950);
 }
 
 :root {
@@ -81,6 +105,81 @@ body[data-scroll-locked] {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* ── Brand palette ── */
+  --brand-primary: #d97706;
+  --brand-primary-foreground: #ffffff;
+  --brand-primary-dark: #b45309;
+  --brand-primary-light: #fbbf24;
+  --brand-primary-darker: oklch(0.396 0.133 52.8);
+  --brand-secondary: #e11d48;
+  --brand-secondary-foreground: #ffffff;
+  --brand-secondary-dark: #be123c;
+  --brand-section-bg: #f8f8f8;
+  --brand-section-bg-subtle: #f8f8f880;
+  --brand-gradient-from: #d97706;
+  --brand-gradient-to: #b45309;
+  --brand-heading: #d97706;
+
+  /* ── Card accent palette ── */
+  --brand-card-1-bg: oklch(0.987 0.022 95.277);
+  --brand-card-1-icon: oklch(0.555 0.163 48.998);
+  --brand-card-1-ring: oklch(0.879 0.169 91.605);
+
+  --brand-card-2-bg: oklch(0.969 0.015 12.422);
+  --brand-card-2-icon: oklch(0.514 0.222 16.935);
+  --brand-card-2-ring: oklch(0.892 0.058 10.001);
+
+  --brand-card-3-bg: oklch(0.979 0.021 166.113);
+  --brand-card-3-icon: oklch(0.627 0.194 149.214);
+  --brand-card-3-ring: oklch(0.901 0.058 154.194);
+
+  --brand-card-4-bg: oklch(0.977 0.013 308.299);
+  --brand-card-4-icon: oklch(0.558 0.288 302.321);
+  --brand-card-4-ring: oklch(0.897 0.059 305.03);
+
+  /* ── Brand full spectrum ── */
+  --brand-50: #fffbeb;
+  --brand-100: #fef3c7;
+  --brand-200: #fde68a;
+  --brand-300: #fcd34d;
+  --brand-400: #fbbf24;
+  --brand-500: #f59e0b;
+  --brand-600: #d97706;
+  --brand-700: #b45309;
+  --brand-800: #92400e;
+  --brand-900: #78350f;
+  --brand-950: #451a03;
+
+  /* ── Brand accent full spectrum (rose) ── */
+  --brand-accent-50: #fff1f2;
+  --brand-accent-100: #ffe4e6;
+  --brand-accent-200: #fecdd3;
+  --brand-accent-300: #fda4af;
+  --brand-accent-400: #fb7185;
+  --brand-accent-500: #f43f5e;
+  --brand-accent-600: #e11d48;
+  --brand-accent-700: #be123c;
+  --brand-accent-800: #9f1239;
+  --brand-accent-900: #881337;
+  --brand-accent-950: #4c0519;
+
+  /* ── Price card gradients ── */
+  --brand-price-1-from: #fbbf24;
+  --brand-price-1-via: #eab308;
+  --brand-price-1-to: #d97706;
+
+  --brand-price-2-from: #c084fc;
+  --brand-price-2-via: #d946ef;
+  --brand-price-2-to: #9333ea;
+
+  --brand-price-3-from: #fb7185;
+  --brand-price-3-via: #ec4899;
+  --brand-price-3-to: #e11d48;
+
+  --brand-price-4-from: #34d399;
+  --brand-price-4-via: #14b8a6;
+  --brand-price-4-to: #059669;
 }
 
 .dark {
@@ -115,6 +214,64 @@ body[data-scroll-locked] {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* ── Brand palette (dark) ── */
+  --brand-primary: #fbbf24;
+  --brand-primary-foreground: #1a1a2e;
+  --brand-primary-dark: #f59e0b;
+  --brand-primary-light: #fde68a;
+  --brand-primary-darker: oklch(0.555 0.163 48.2);
+  --brand-secondary: #fb7185;
+  --brand-secondary-foreground: #1a1a2e;
+  --brand-secondary-dark: #e11d48;
+  --brand-section-bg: #1e1e2e;
+  --brand-section-bg-subtle: #1e1e2e80;
+  --brand-gradient-from: #fbbf24;
+  --brand-gradient-to: #f59e0b;
+  --brand-heading: #fbbf24;
+
+  /* ── Card accent palette (dark) ── */
+  --brand-card-1-bg: oklch(0.25 0.06 85);
+  --brand-card-1-icon: oklch(0.85 0.12 85);
+  --brand-card-1-ring: oklch(0.35 0.06 85);
+
+  --brand-card-2-bg: oklch(0.25 0.06 10);
+  --brand-card-2-icon: oklch(0.85 0.12 10);
+  --brand-card-2-ring: oklch(0.35 0.06 10);
+
+  --brand-card-3-bg: oklch(0.25 0.06 160);
+  --brand-card-3-icon: oklch(0.85 0.12 160);
+  --brand-card-3-ring: oklch(0.35 0.06 160);
+
+  --brand-card-4-bg: oklch(0.25 0.06 300);
+  --brand-card-4-icon: oklch(0.85 0.12 300);
+  --brand-card-4-ring: oklch(0.35 0.06 300);
+
+  /* ── Brand spectrum (dark) ── */
+  --brand-50: #2d1f00;
+  --brand-100: #3d2b00;
+  --brand-200: #5c4200;
+  --brand-300: #7d5a00;
+  --brand-400: #a07400;
+  --brand-500: #c49000;
+  --brand-600: #e8ad00;
+  --brand-700: #fbbf24;
+  --brand-800: #fcd34d;
+  --brand-900: #fde68a;
+  --brand-950: #fef3c7;
+
+  /* ── Brand accent spectrum (dark) ── */
+  --brand-accent-50: #2d1115;
+  --brand-accent-100: #4c1d24;
+  --brand-accent-200: #6b2832;
+  --brand-accent-300: #8f3441;
+  --brand-accent-400: #b34150;
+  --brand-accent-500: #d6505f;
+  --brand-accent-600: #e8606f;
+  --brand-accent-700: #f47282;
+  --brand-accent-800: #fda4af;
+  --brand-accent-900: #fecdd3;
+  --brand-accent-950: #fff1f2;
 }
 
 @layer base {
@@ -568,3 +725,102 @@ body[data-scroll-lock="true"] {
   scrollbar-width: thin;
   scrollbar-color: #f59e0b #fef3c7;
 }
+
+/* ══════════════════════════════════════════════
+   Design System Utility Classes
+   ══════════════════════════════════════════════ */
+
+/* ── Section Layout ── */
+.section-container {
+  @apply max-w-7xl mx-auto px-4;
+}
+
+.bg-section {
+  background-color: var(--brand-section-bg);
+}
+
+.bg-section-subtle {
+  background-color: var(--brand-section-bg-subtle);
+}
+
+/* ── Section Typography ── */
+.section-heading {
+  @apply text-3xl md:text-4xl font-light tracking-wide;
+  color: var(--brand-heading);
+}
+
+.section-subheading {
+  @apply text-sm font-light tracking-widest;
+  color: var(--muted-foreground);
+}
+
+/* ── Hover Effects ── */
+.hover-lift {
+  @apply transition-all duration-300;
+}
+.hover-lift:hover {
+  @apply -translate-y-1 shadow-lg;
+}
+
+.hover-glow {
+  @apply transition-shadow duration-300;
+}
+.hover-glow:hover {
+  box-shadow: 0 0 20px color-mix(in srgb, var(--brand-primary) 30%, transparent);
+}
+
+.hover-underline {
+  @apply relative inline-block;
+}
+.hover-underline::after {
+  content: "";
+  @apply absolute bottom-0 left-1/2 h-0.5 -translate-x-1/2 scale-x-0 transition-transform duration-300;
+  background-color: var(--brand-primary);
+  width: 80%;
+}
+.hover-underline:hover::after {
+  @apply scale-x-100;
+}
+
+/* ── Combined card hover (lift + glow) ── */
+.card-hover {
+  @apply transition-all duration-500;
+}
+.card-hover:hover {
+  @apply -translate-y-2 shadow-2xl;
+}
+
+/* ── Brand gradient text ── */
+.text-gradient-brand {
+  background: linear-gradient(to right, var(--brand-gradient-from), var(--brand-gradient-via, var(--brand-gradient-to)), var(--brand-gradient-to));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Brand gradient backgrounds ── */
+.bg-gradient-brand {
+  background: linear-gradient(to right, var(--brand-gradient-from), var(--brand-gradient-to));
+}
+
+/* ── Price card gradient helpers ── */
+.bg-price-1 { background: linear-gradient(to bottom right, var(--brand-price-1-from), var(--brand-price-1-via), var(--brand-price-1-to)); }
+.bg-price-2 { background: linear-gradient(to bottom right, var(--brand-price-2-from), var(--brand-price-2-via), var(--brand-price-2-to)); }
+.bg-price-3 { background: linear-gradient(to bottom right, var(--brand-price-3-from), var(--brand-price-3-via), var(--brand-price-3-to)); }
+.bg-price-4 { background: linear-gradient(to bottom right, var(--brand-price-4-from), var(--brand-price-4-via), var(--brand-price-4-to)); }
+
+.shadow-price-1 { --tw-shadow-color: var(--brand-price-1-from); }
+.shadow-price-2 { --tw-shadow-color: var(--brand-price-2-from); }
+.shadow-price-3 { --tw-shadow-color: var(--brand-price-3-from); }
+.shadow-price-4 { --tw-shadow-color: var(--brand-price-4-from); }
+
+/* ── Card accent backgrounds ── */
+.bg-card-accent-1 { background-color: var(--brand-card-1-bg); }
+.bg-card-accent-2 { background-color: var(--brand-card-2-bg); }
+.bg-card-accent-3 { background-color: var(--brand-card-3-bg); }
+.bg-card-accent-4 { background-color: var(--brand-card-4-bg); }
+
+.text-card-accent-1 { color: var(--brand-card-1-icon); }
+.text-card-accent-2 { color: var(--brand-card-2-icon); }
+.text-card-accent-3 { color: var(--brand-card-3-icon); }
+.text-card-accent-4 { color: var(--brand-card-4-icon); }

@@ -14,6 +14,7 @@ import { Plus, Edit, Trash2, FolderTree, Loader2 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
 import { api, ApiClientError } from "@/lib/api";
+import { invalidateCache } from "@/lib/invalidate-cache";
 
 
 interface Category {
@@ -43,11 +44,11 @@ const updateCategory = async ({ id, formData }: { id: string; formData: FormData
 };
 
 const deleteCategory = async (id: string) => {
-  return api.del("/api/admin/category/delete/" + id);
+  return api.put("/api/admin/category/delete/" + id, { id });
 };
 
 const changeCategoryStatus = async (id: string) => {
-  return api.put("/api/admin/category/change-status/" + id);
+  return api.put("/api/admin/category/change-status/" + id, { id });
 };
 
 export default function CategoriesClient({ initialCategories = [] }: { initialCategories?: Category[] }) {
@@ -63,10 +64,9 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: categories = initialCategories, isLoading, error } = useQuery({
+  const { data: categories = [], isLoading, error } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategories,
-    initialData: initialCategories,
     staleTime: 5 * 60 * 1000,
     retry: 2,
   });
@@ -75,6 +75,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     mutationFn: createCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+      invalidateCache(["categories", "homepage"]);
       toast({ title: "Category created successfully" });
       closeDrawer();
     },
@@ -87,6 +88,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     mutationFn: updateCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+      invalidateCache(["categories", "homepage"]);
       toast({ title: "Category updated successfully" });
       closeDrawer();
     },
@@ -99,6 +101,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     mutationFn: deleteCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+      invalidateCache(["categories", "homepage"]);
       toast({ title: "Category deleted successfully" });
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
@@ -114,6 +117,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     mutationFn: changeCategoryStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+      invalidateCache(["categories", "homepage"]);
       toast({ title: "Category status updated successfully" });
     },
     onError: (error: Error) => {

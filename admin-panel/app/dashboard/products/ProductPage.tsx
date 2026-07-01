@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import NewMultiSelect from "../../../components/NewMultiSelect";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { invalidateCache } from "@/lib/invalidate-cache";
 
 interface ProductFormData {
   name: string;
@@ -238,8 +239,9 @@ export default function ProductsPage() {
   // Mutations
   const deleteMutation = useMutation({
     mutationFn: deleteProduct,
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      invalidateCache(["products", `product:${id}`, "homepage"]);
       toast({ title: "Product deleted successfully" });
       setAlertOpen(false);
       setDeleteId(null);
@@ -259,6 +261,7 @@ export default function ProductsPage() {
     mutationFn: changeProductStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      invalidateCache(["products", "homepage"]);
       toast({ title: "Status updated successfully" });
     },
     onError: (error: Error) => {
@@ -270,6 +273,11 @@ export default function ProductsPage() {
     mutationFn: saveProduct,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      const tags = ["products", "homepage"];
+      if (editingProduct) {
+        tags.push(`product:${editingProduct._id}`);
+      }
+      invalidateCache(tags);
       toast({
         title: `Product ${editingProduct ? "updated" : "created"} successfully`,
       });

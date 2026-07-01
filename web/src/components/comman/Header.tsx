@@ -1,6 +1,13 @@
 "use client";
 import Link from "next/link";
-import { useState, useEffect, useRef, type FormEvent, type MouseEvent, type TouchEvent } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  type FormEvent,
+  type MouseEvent,
+  type TouchEvent,
+} from "react";
 import {
   Heart,
   Search,
@@ -118,14 +125,20 @@ export default function Header({ navigationData }: HeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const cartCount = useSelector((state: RootState) => state.cart.totalQuantity);
-  const wishlistCount = useSelector((state: RootState) => state.wishlist.totalQuantity);
+  const wishlistCount = useSelector(
+    (state: RootState) => state.wishlist.totalQuantity,
+  );
 
   const pathName = usePathname();
 
   const router = useRouter();
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLogin);
-  const user = useSelector((state: RootState) => state.auth.details) as Record<string, unknown>;
-  const logo = useSelector((state: RootState) => state.logo.logo) as string | null;
+  const user = useSelector((state: RootState) => state.auth.details) as Record<
+    string,
+    unknown
+  >;
+  const logo = useSelector((state: RootState) => state.logo.logo) as
+    string | null;
 
   const dispatch = useDispatch();
 
@@ -191,7 +204,7 @@ export default function Header({ navigationData }: HeaderProps) {
       <Link href={href}>
         <Button
           variant="ghost"
-          className="w-full justify-start py-3 px-4 text-gray-900 hover:bg-amber-50 rounded-lg font-medium h-auto"
+          className="w-full justify-start py-3 px-4 text-foreground hover:bg-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)] rounded-lg font-medium h-auto"
         >
           {name}
         </Button>
@@ -209,21 +222,26 @@ export default function Header({ navigationData }: HeaderProps) {
             <Accordion
               type="single"
               collapsible
-              className="w-full border rounded-lg bg-white shadow-sm"
+              className="w-full border rounded-lg bg-background shadow-sm"
             >
               {/* sub category accordian  */}
               <AccordionItem value="item-1" className="border-b-0">
-                <AccordionTrigger className="py-3 px-4 text-gray-900 hover:bg-gray-50 rounded-lg font-medium">
+                          <AccordionTrigger className="py-3 px-4 text-foreground hover:bg-muted rounded-lg font-medium">
                   <Link href={cat.slug == "home" ? "/" : cat.slug}>
                     {cat.name}
                   </Link>
                 </AccordionTrigger>
-                <AccordionContent className="p-0 border-t bg-gray-50">
+                <AccordionContent className="p-0 border-t bg-muted">
                   {cat.subCategories?.map((menu: MenuItem, menuIdx: number) => (
-                    <Accordion type="single" collapsible className="w-full" key={menuIdx}>
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="w-full"
+                      key={menuIdx}
+                    >
                       {/* sub sub category accordian */}
                       <AccordionItem value="item-1" className="border-b-0">
-                        <AccordionTrigger className="py-3 px-4 text-gray-900 hover:bg-gray-50 rounded-lg font-medium">
+                <AccordionTrigger className="py-3 px-4 text-foreground hover:bg-muted rounded-lg font-medium">
                           <SheetClose asChild>
                             <Link
                               href={"/category/" + cat.slug + "/" + menu.slug}
@@ -232,23 +250,25 @@ export default function Header({ navigationData }: HeaderProps) {
                             </Link>
                           </SheetClose>
                         </AccordionTrigger>
-                        <AccordionContent className="p-0 border-t bg-gray-50">
+                        <AccordionContent className="p-0 border-t bg-muted">
                           {menu.subSubCategories &&
-                            menu.subSubCategories.map((subcat: SubSubCategory, subIdx: number) => (
-                              <div key={subIdx}>
-                                <MobileLink
-                                  name={subcat.name}
-                                  href={
-                                    "/category/" +
-                                    cat.slug +
-                                    "/" +
-                                    menu.slug +
-                                    "/" +
-                                    subcat.slug
-                                  }
-                                />
-                              </div>
-                            ))}
+                            menu.subSubCategories.map(
+                              (subcat: SubSubCategory, subIdx: number) => (
+                                <div key={subIdx}>
+                                  <MobileLink
+                                    name={subcat.name}
+                                    href={
+                                      "/category/" +
+                                      cat.slug +
+                                      "/" +
+                                      menu.slug +
+                                      "/" +
+                                      subcat.slug
+                                    }
+                                  />
+                                </div>
+                              ),
+                            )}
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
@@ -259,8 +279,10 @@ export default function Header({ navigationData }: HeaderProps) {
           )}
         </div>
       ))}
-      <div className="border-t border-amber-100/50 pt-3 mt-3">
-        <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider px-4 mb-2">Quick Links</p>
+      <div className="border-t border-[color-mix(in_srgb,var(--brand-primary)_15%,transparent)] pt-3 mt-3">
+        <p className="text-xs font-semibold uppercase tracking-wider px-4 mb-2" style={{ color: 'var(--brand-heading)' }}>
+          Quick Links
+        </p>
         <MobileLink name="About Us" href="/about" />
         <MobileLink name="Contact Us" href="/contact-us" />
         <MobileLink name="FAQ" href="/faq" />
@@ -282,28 +304,43 @@ export default function Header({ navigationData }: HeaderProps) {
       ) {
         // Check if the click is not on the search toggle button
         const searchToggleButton = document.getElementById(
-          "search-toggle-button"
+          "search-toggle-button",
         );
-        if (searchToggleButton && !searchToggleButton.contains(event.target as Node)) {
+        if (
+          searchToggleButton &&
+          !searchToggleButton.contains(event.target as Node)
+        ) {
           setIsSearchOpen(false);
         }
       }
     };
 
     if (isSearchOpen) {
-      document.addEventListener("mousedown", handleClickOutside as unknown as EventListener);
-      document.addEventListener("touchstart", handleClickOutside as unknown as EventListener);
+      document.addEventListener(
+        "mousedown",
+        handleClickOutside as unknown as EventListener,
+      );
+      document.addEventListener(
+        "touchstart",
+        handleClickOutside as unknown as EventListener,
+      );
     }
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside as unknown as EventListener);
-      document.removeEventListener("touchstart", handleClickOutside as unknown as EventListener);
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside as unknown as EventListener,
+      );
+      document.removeEventListener(
+        "touchstart",
+        handleClickOutside as unknown as EventListener,
+      );
     };
   }, [isSearchOpen]);
 
   return (
     <>
-      <div className="w-full text-center bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-white text-sm py-2.5 relative overflow-hidden">
+      <div className="w-full text-center bg-gradient-to-r from-[var(--brand-primary-dark)] via-[var(--brand-primary-dark)] to-[var(--brand-primary-darker)] text-white text-sm py-2.5 relative overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,.1)_50%,transparent_75%,transparent_100%)] bg-[length:250%_250%] animate-shimmer"></div>
         <span className="relative z-10 flex items-center justify-center gap-2 font-medium">
           <Truck className="inline rotate-y-180" size={16} />
@@ -312,10 +349,10 @@ export default function Header({ navigationData }: HeaderProps) {
         </span>
       </div>
 
-      <header className="max-w-screen w-full bg-white/95 z-[190] sticky top-0 left-0 shadow-lg border-b  border-amber-100/50">
+      <header className="max-w-screen w-full bg-background/95 z-[190] sticky top-0 left-0 shadow-lg border-b  border-[color-mix(in_srgb,var(--brand-primary)_15%,transparent)]">
         {/* Main Header Bar */}
         <div
-          className={`w-full border-b   bg-white/95  border-amber-100/50 transition-all duration-500 ${
+          className={`w-full border-b   bg-background/95  border-[color-mix(in_srgb,var(--brand-primary)_15%,transparent)] transition-all duration-500 ${
             isScrolled ? "py-2 shadow-md" : "py-4"
           }`}
         >
@@ -324,7 +361,7 @@ export default function Header({ navigationData }: HeaderProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden hover:bg-amber-50 hover:text-amber-600 shrink-0 rounded-xl transition-all duration-300"
+              className="md:hidden hover:bg-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)] hover:text-[var(--brand-secondary)] shrink-0 rounded-xl transition-all duration-300"
               aria-label="Open navigation menu"
               onClick={() => setIsOffcanvasOpen(true)}
             >
@@ -356,16 +393,16 @@ export default function Header({ navigationData }: HeaderProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative hover:bg-gradient-to-br hover:from-amber-50 hover:to-orange-50 hover:text-amber-600 rounded-xl transition-all duration-300 hover:scale-105"
+                  className="relative hover:bg-gradient-to-br hover:from-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)] hover:to-[color-mix(in_srgb,var(--brand-secondary)_8%,transparent)] hover:text-[var(--brand-primary)] rounded-xl transition-all duration-300 hover:scale-105"
                   aria-label="View wishlist"
                 >
                   <Heart
-                    fill={wishlistCount > 0 ? "#f59e0b" : "none"}
+                    fill={wishlistCount > 0 ? "var(--brand-primary-dark)" : "none"}
                     size={22}
-                    className={wishlistCount > 0 ? "text-amber-600" : ""}
+                    className={wishlistCount > 0 ? "text-[var(--brand-primary-dark)]" : ""}
                   />
                   {wishlistCount > 0 && (
-                    <Badge className="absolute -top-1.5 -right-1.5 size-5 flex items-center justify-center p-0 bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-xs shadow-lg border-2 border-white">
+                    <Badge className="absolute -top-1.5 -right-1.5 size-5 flex items-center justify-center p-0 bg-gradient-to-br from-[var(--brand-primary-dark)] to-[var(--brand-primary-darker)] hover:from-[var(--brand-primary-darker)] hover:to-[color-mix(in_srgb,var(--brand-primary-darker)_80%,black)] text-xs shadow-lg border-2 border-white">
                       {wishlistCount}
                     </Badge>
                   )}
@@ -376,23 +413,17 @@ export default function Header({ navigationData }: HeaderProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative hidden md:flex hover:bg-gradient-to-br hover:from-amber-50 hover:to-orange-50 hover:text-amber-600 rounded-xl transition-all duration-300 hover:scale-105"
+                className="relative hidden md:flex hover:bg-gradient-to-br hover:from-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)] hover:to-[color-mix(in_srgb,var(--brand-secondary)_8%,transparent)] hover:text-[var(--brand-primary)] rounded-xl transition-all duration-300 hover:scale-105"
                 aria-label="View shopping bag"
-                onClick={() => {
-                  if (isLoggedIn) {
-                    router.push("/cart");
-                  } else {
-                    dispatch(openLoginModal());
-                  }
-                }}
+                onClick={() => router.push("/cart")}
               >
                 <ShoppingCartIcon
-                  fill={cartCount > 0 ? "#f59e0b" : "none"}
-                  size={24}
-                  className={cartCount > 0 ? "text-amber-600" : ""}
-                />
-                {cartCount > 0 && (
-                  <Badge className="absolute -top-1.5 -right-1.5 w-5 h-5 flex items-center justify-center p-0 bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-xs shadow-lg border-2 border-white">
+                    fill={cartCount > 0 ? "var(--brand-primary-dark)" : "none"}
+                    size={24}
+                    className={cartCount > 0 ? "text-[var(--brand-primary-dark)]" : ""}
+                  />
+                  {cartCount > 0 && (
+                    <Badge className="absolute -top-1.5 -right-1.5 w-5 h-5 flex items-center justify-center p-0 bg-gradient-to-br from-[var(--brand-primary-dark)] to-[var(--brand-primary-darker)] hover:from-[var(--brand-primary-darker)] hover:to-[color-mix(in_srgb,var(--brand-primary-darker)_80%,black)] text-xs shadow-lg border-2 border-white">
                     {cartCount}
                   </Badge>
                 )}
@@ -403,7 +434,7 @@ export default function Header({ navigationData }: HeaderProps) {
                 id="search-toggle-button"
                 variant="ghost"
                 size="icon"
-                className="lg:hidden hover:bg-gradient-to-br hover:from-amber-50 hover:to-orange-50 hover:text-amber-600 rounded-xl transition-all duration-300"
+                className="lg:hidden hover:bg-gradient-to-br hover:from-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)] hover:to-[color-mix(in_srgb,var(--brand-secondary)_8%,transparent)] hover:text-[var(--brand-primary)] rounded-xl transition-all duration-300"
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 aria-expanded={isSearchOpen}
                 aria-controls="mobile-search-bar"
@@ -418,7 +449,7 @@ export default function Header({ navigationData }: HeaderProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="relative hover:bg-gradient-to-br hover:from-amber-50 hover:to-orange-50 hover:text-amber-600 rounded-xl transition-all duration-300 hover:scale-105"
+                    className="relative hover:bg-gradient-to-br hover:from-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)] hover:to-[color-mix(in_srgb,var(--brand-secondary)_8%,transparent)] hover:text-[var(--brand-primary)] rounded-xl transition-all duration-300 hover:scale-105"
                     aria-label="User account menu"
                   >
                     {(user as Record<string, string>)?.avatar ? (
@@ -428,7 +459,7 @@ export default function Header({ navigationData }: HeaderProps) {
                           alt="User Avatar"
                           width={28}
                           height={28}
-                          className="rounded-full size-6 md:size-7 border-2 border-amber-200"
+                           className="rounded-full size-6 md:size-7 border-2 border-[color-mix(in_srgb,var(--brand-primary)_30%,transparent)]"
                         />
                       </div>
                     ) : (
@@ -442,25 +473,25 @@ export default function Header({ navigationData }: HeaderProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-64 bg-white/98  border border-amber-200/50 shadow-2xl rounded-xl"
+                  className="w-64 bg-background/98  border border-[color-mix(in_srgb,var(--brand-primary)_30%,transparent)] shadow-2xl rounded-xl"
                   align="end"
                 >
                   {isLoggedIn ? (
                     <>
-                      <DropdownMenuLabel className="bg-gradient-to-br from-amber-50 to-orange-50 py-4 rounded-t-xl">
-                        <p className="text-sm font-semibold text-slate-800">
+                      <DropdownMenuLabel className="bg-gradient-to-br from-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)] to-[color-mix(in_srgb,var(--brand-secondary)_8%,transparent)] py-4 rounded-t-xl">
+                        <p className="text-sm font-semibold text-foreground">
                           Welcome back! {(user as Record<string, string>)?.name}
                         </p>
-                        <p className="text-xs text-amber-600 mt-1 font-medium">
+                        <p className="text-xs text-[var(--brand-primary-dark)] mt-1 font-medium">
                           {(user as Record<string, string>)?.email}
                         </p>
                       </DropdownMenuLabel>
-                      <DropdownMenuSeparator className="bg-amber-100" />
+                      <DropdownMenuSeparator className="bg-[color-mix(in_srgb,var(--brand-primary)_15%,transparent)]" />
                       {userMenuItems.map((item, idx) => (
                         <DropdownMenuItem
                           key={idx}
                           asChild
-                          className="cursor-pointer hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 hover:text-amber-700 py-3 transition-all duration-200"
+                          className="cursor-pointer hover:bg-gradient-to-r hover:from-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)] hover:to-[color-mix(in_srgb,var(--brand-secondary)_8%,transparent)] hover:text-[var(--brand-primary-dark)] py-3 transition-all duration-200"
                         >
                           <Link href={item.href} className="flex items-center">
                             <item.icon className="mr-3" size={18} />
@@ -468,9 +499,9 @@ export default function Header({ navigationData }: HeaderProps) {
                           </Link>
                         </DropdownMenuItem>
                       ))}
-                      <DropdownMenuSeparator className="bg-amber-100" />
+                      <DropdownMenuSeparator className="bg-[color-mix(in_srgb,var(--brand-primary)_15%,transparent)]" />
                       <Link href="/profile?tab=settings&logout=true">
-                        <DropdownMenuItem className="cursor-pointer text-rose-600 hover:bg-rose-50 hover:text-rose-700 py-3 transition-all duration-200">
+                        <DropdownMenuItem className="cursor-pointer text-destructive hover:bg-destructive/10 hover:text-destructive py-3 transition-all duration-200">
                           <LogOut className="mr-3" size={18} />
                           <span className="font-medium">Logout</span>
                         </DropdownMenuItem>
@@ -478,19 +509,19 @@ export default function Header({ navigationData }: HeaderProps) {
                     </>
                   ) : (
                     <div className="px-3 py-5">
-                      <p className="text-sm text-slate-600 mb-4 font-medium text-center">
+                      <p className="text-sm text-muted-foreground mb-4 font-medium text-center">
                         Sign in to your account
                       </p>
                       <div className="space-y-2 flex flex-col gap-2">
                         <Link href="/login" className="cursor-pointer">
-                          <Button className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 shadow-lg hover:shadow-xl transition-all duration-300">
+                          <Button className="w-full bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-primary-dark)] hover:from-[var(--brand-primary-dark)] hover:to-[var(--brand-primary-darker)] shadow-lg hover:shadow-xl transition-all duration-300">
                             Sign In
                           </Button>
                         </Link>
                         <Link className="cursor-pointer" href="/signup">
                           <Button
                             variant="outline"
-                            className="w-full border-2 border-amber-500 text-amber-700 hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 transition-all duration-300"
+                            className="w-full border-2 border-[var(--brand-primary)] text-[var(--brand-primary)] hover:bg-gradient-to-r hover:from-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)] hover:to-[color-mix(in_srgb,var(--brand-secondary)_8%,transparent)] transition-all duration-300"
                           >
                             Register
                           </Button>
@@ -518,27 +549,27 @@ export default function Header({ navigationData }: HeaderProps) {
         </div>
 
         {/* Premium Navigation Bar */}
-        <nav className="hidden md:flex flex-wrap justify-center items-center space-x-8 text-sm font-medium py-3.5  bg-white   border-b border-amber-100/30">
+        <nav className="hidden md:flex flex-wrap justify-center items-center space-x-8 text-sm font-medium py-3.5  bg-background   border-b border-[color-mix(in_srgb,var(--brand-primary)_15%,transparent)]">
           {(navigationData?._data as CategoryItem[])?.map((cat, idx) => (
             <div key={idx}>
               {cat.subCategories?.length == 0 ? (
                 <Link
                   href={urlPrfix(cat.slug)}
-                  className="relative hover:text-amber-700 transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-slate-700 group font-medium"
+                  className="relative hover:text-[var(--brand-primary)] transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-muted-foreground group font-medium"
                 >
                   {cat.name}
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full shadow-sm"></span>
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-brand transition-all duration-300 group-hover:w-full"></span>
                 </Link>
               ) : (
                 <div className="relative group">
                   <button
                     onClick={() => router.push("/category/" + cat.slug)}
-                    className="relative hover:text-amber-700 transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-slate-700 flex items-center gap-1.5 font-medium"
+                    className="relative hover:text-[var(--brand-primary)] transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-muted-foreground flex items-center gap-1.5 font-medium"
                     aria-haspopup="menu"
                   >
                     {cat.name}
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-180" />
-                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full shadow-sm"></span>
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-brand transition-all duration-300 group-hover:w-full"></span>
                   </button>
 
                   {/* Premium Mega Menu */}
@@ -547,37 +578,39 @@ export default function Header({ navigationData }: HeaderProps) {
                       isScrolled ? "top-[110px]" : "top-[175px]"
                     } pt-1 z-[999] hover:visible hover:opacity-100`}
                   >
-                    <Card className="w-[1150px] backdrop-blur-xl max-w-[98vw] h-auto bg-white/98  shadow-2xl rounded-2xl p-6 border border-amber-200/50">
+                    <Card className="w-[1150px] backdrop-blur-xl max-w-[98vw] h-auto bg-background/98  shadow-2xl rounded-2xl p-6 border border-[color-mix(in_srgb,var(--brand-primary)_30%,transparent)]">
                       <div className="grid grid-cols-5 gap-6">
                         {cat.subCategories?.map((menu: MenuItem, i: number) => (
                           <div key={i} className="group/menu">
                             <Link
                               href={"/category/" + cat.slug + "/" + menu.slug}
                             >
-                              <h4 className="font-bold text-slate-800 mb-2 pb-1 border-b border-amber-200/50 text-base hover:text-amber-700 transition-colors">
+                              <h4 className="font-bold text-foreground mb-2 pb-1 border-b border-[color-mix(in_srgb,var(--brand-primary)_30%,transparent)] text-base hover:text-[var(--brand-primary)] transition-colors">
                                 <Badge
                                   variant="outline"
-                                  className="text-sm font-bold text-amber-700 border-amber-400 bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100 transition-all duration-300 px-3 py-1"
+                                  className="text-sm font-bold text-[var(--brand-primary)] border-[var(--brand-primary)] bg-gradient-to-r from-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)] to-[color-mix(in_srgb,var(--brand-secondary)_8%,transparent)] hover:from-[color-mix(in_srgb,var(--brand-primary)_15%,transparent)] hover:to-[color-mix(in_srgb,var(--brand-secondary)_15%,transparent)] transition-all duration-300 px-3 py-1"
                                 >
                                   {menu.name}
                                 </Badge>
                               </h4>
                             </Link>
                             <div className="space-y-2.5">
-                              {menu.subSubCategories?.map((subcat: SubSubCategory, j: number) => (
-                                <div key={j}>
-                                  <ul className="space-y-1 text-slate-600 text-sm">
-                                    <li key={subcat._id}>
-                                      <Link
-                                        href={`/category/${cat.slug}/${menu.slug}/${subcat.slug}`}
-                                        className="block hover:text-amber-600 cursor-pointer transition-all duration-200 hover:translate-x-1 hover:font-medium py-[2px]"
-                                      >
-                                        {subcat.name}
-                                      </Link>
-                                    </li>
-                                  </ul>
-                                </div>
-                              ))}
+                              {menu.subSubCategories?.map(
+                                (subcat: SubSubCategory, j: number) => (
+                                  <div key={j}>
+                                    <ul className="space-y-1 text-muted-foreground text-sm">
+                                      <li key={subcat._id}>
+                                        <Link
+                                          href={`/category/${cat.slug}/${menu.slug}/${subcat.slug}`}
+                                          className="block hover:text-[var(--brand-secondary)] cursor-pointer transition-all duration-200 hover:translate-x-1 hover:font-medium py-[2px]"
+                                        >
+                                          {subcat.name}
+                                        </Link>
+                                      </li>
+                                    </ul>
+                                  </div>
+                                ),
+                              )}
                             </div>
                           </div>
                         ))}
@@ -588,48 +621,19 @@ export default function Header({ navigationData }: HeaderProps) {
               )}
             </div>
           ))}
-          <span className="w-px h-5 bg-amber-200/70 mx-2"></span>
-          <Link
-            href="/about"
-            className="relative hover:text-amber-700 transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-slate-700 group font-medium"
-          >
-            About Us
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full shadow-sm"></span>
-          </Link>
           <Link
             href="/contact-us"
-            className="relative hover:text-amber-700 transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-slate-700 group font-medium"
+            className="relative hover:text-[var(--brand-primary)] transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-muted-foreground group font-medium"
           >
             Contact Us
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full shadow-sm"></span>
-          </Link>
-          <Link
-            href="/faq"
-            className="relative hover:text-amber-700 transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-slate-700 group font-medium"
-          >
-            FAQ
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full shadow-sm"></span>
-          </Link>
-          <Link
-            href="/story"
-            className="relative hover:text-amber-700 transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-slate-700 group font-medium"
-          >
-            Our Story
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full shadow-sm"></span>
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-brand transition-all duration-300 group-hover:w-full"></span>
           </Link>
           <Link
             href="/order-track"
-            className="relative hover:text-amber-700 transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-slate-700 group font-medium"
+            className="relative hover:text-[var(--brand-primary)] transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-muted-foreground group font-medium"
           >
             Track Order
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full shadow-sm"></span>
-          </Link>
-          <Link
-            href="/our-policy"
-            className="relative hover:text-amber-700 transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-slate-700 group font-medium"
-          >
-            Our Policy
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full shadow-sm"></span>
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-brand transition-all duration-300 group-hover:w-full"></span>
           </Link>
         </nav>
       </header>
@@ -638,11 +642,11 @@ export default function Header({ navigationData }: HeaderProps) {
       <Sheet open={isOffcanvasOpen} onOpenChange={setIsOffcanvasOpen}>
         <SheetContent
           side="left"
-          className="w-[80vw] sm:w-80 bg-white p-0 z-[999] border-r border-amber-200/50"
+          className="w-[80vw] sm:w-80 bg-background p-0 z-[999] border-r border-[color-mix(in_srgb,var(--brand-primary)_30%,transparent)]"
         >
-          <SheetHeader className="border-b border-amber-100/50 p-5 bg-gradient-to-r from-amber-50 to-orange-50">
-            <SheetTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-600" />
+          <SheetHeader className="border-b border-[color-mix(in_srgb,var(--brand-primary)_15%,transparent)] p-5 bg-gradient-to-r from-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)] to-[color-mix(in_srgb,var(--brand-secondary)_8%,transparent)]">
+            <SheetTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-[var(--brand-primary-dark)]" />
               Menu
             </SheetTitle>
           </SheetHeader>
@@ -668,7 +672,9 @@ const SearchBar = ({ className }: SearchBarProps) => {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
-    const formElements = form.elements as HTMLFormControlsCollection & { search: HTMLInputElement };
+    const formElements = form.elements as HTMLFormControlsCollection & {
+      search: HTMLInputElement;
+    };
     const searchValue = formElements.search.value;
     router.push(`/category/shop-by-category?q=${searchValue}`);
   };
@@ -697,7 +703,7 @@ const SearchBar = ({ className }: SearchBarProps) => {
         // Only fetch if more than 1 character
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}api/website/result/suggestion?search=${value}`
+            `${process.env.NEXT_PUBLIC_API_URL}api/website/result/suggestion?search=${value}`,
           );
           const resData = await res.json();
           setSuggestions(resData._data as SuggestionData);
@@ -732,7 +738,7 @@ const SearchBar = ({ className }: SearchBarProps) => {
       />
       <Search
         size={20}
-        className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 text-amber-600 pointer-events-none"
+        className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 text-[var(--brand-primary-dark)] pointer-events-none"
       />
 
       {isSuggestionsOpen && (
@@ -740,23 +746,27 @@ const SearchBar = ({ className }: SearchBarProps) => {
           initial="closed"
           animate={isSuggestionsOpen ? "open" : "closed"}
           variants={suggestionVariants}
-          className="absolute top-full left-0 right-0 h-auto w-[78%] md:w-full mt-1 bg-white rounded-lg shadow-lg z-[200] border border-gray-200 overflow-x-hidden overflow-y-auto no-scrollbar"
+          className="absolute top-full left-0 right-0 h-auto w-[78%] md:w-full mt-1 bg-background rounded-lg shadow-lg z-[200] border border-border overflow-x-hidden overflow-y-auto no-scrollbar"
         >
-          <div className="grid grid-cols-[30%_auto] divide-x divide-gray-200">
+          <div className="grid grid-cols-[30%_auto] divide-x divide-border">
             {/* Suggestions Column */}
             {(suggestions?.suggestions?.length ?? 0) > 0 ||
             (suggestions?.products?.length ?? 0) > 0 ? (
               <>
                 <div className="p-4">
-                  <h3 className="text-sm font-medium text-gray-500 mb-2 ">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2 ">
                     <span>Suggestions</span>
                   </h3>
                   <div className="space-y-2">
                     {suggestions?.suggestions?.map((suggestion, index) => (
                       <button
                         key={index}
-                        className="w-full text-left p-2 hover:bg-gray-50 rounded-md transition-colors text-sm"
-                        onClick={() => router.push(`/category/shop-by-category?q=${suggestion}`)}
+                        className="w-full text-left p-2 hover:bg-muted rounded-md transition-colors text-sm"
+                        onClick={() =>
+                          router.push(
+                            `/category/shop-by-category?q=${suggestion}`,
+                          )
+                        }
                       >
                         {suggestion}
                       </button>
@@ -766,7 +776,7 @@ const SearchBar = ({ className }: SearchBarProps) => {
 
                 {/* Products Column */}
                 <div className="p-4">
-                  <h3 className="text-sm font-medium text-gray-500 mb-2 flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center justify-between">
                     <span>Products</span>
                     <span
                       onClick={() => setIsSuggestionsOpen(false)}
@@ -781,20 +791,21 @@ const SearchBar = ({ className }: SearchBarProps) => {
                         onClick={() => setIsSuggestionsOpen(false)}
                         key={product._id}
                         href={`/product-details/${product.slug}`}
-                        className="group flex flex-col items-center p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                        className="group flex flex-col items-center p-3 hover:bg-muted rounded-lg transition-colors"
                       >
-                        <div className="relative w-full aspect-square mb-2 bg-gray-100 rounded-md overflow-hidden">
+                        <div className="relative w-full aspect-square mb-2 bg-muted rounded-md overflow-hidden">
                           <Image
                             src={product.image}
                             alt={product.name}
                             fill
+                            sizes="96px"
                             className="object-cover group-hover:scale-105 transition-transform"
                           />
                         </div>
                         <p className="text-sm font-medium  line-clamp-2">
                           {product.name}
                         </p>
-                        <p className="text-amber-600 font-medium mt-1">
+                        <p className="text-[var(--brand-primary-dark)] font-medium mt-1">
                           ₹{product.discount_price || product.price}
                         </p>
                       </Link>
@@ -803,8 +814,8 @@ const SearchBar = ({ className }: SearchBarProps) => {
                 </div>
               </>
             ) : (
-              <div className="p-4 col-span-2 text-center text-gray-500">
-                <h3 className="text-sm font-medium text-gray-500 mb-2 flex items-center justify-between">
+              <div className="p-4 col-span-2 text-center text-muted-foreground">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center justify-between">
                   <span>No suggestions found</span>
                   <span
                     onClick={() => setIsSuggestionsOpen(false)}

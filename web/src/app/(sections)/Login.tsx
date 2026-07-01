@@ -141,7 +141,7 @@ const LoginPage = () => {
   };
 
   return (
-    <main className="min-h-[550px] flex justify-center bg-gray-50 p-4 relative overflow-hidden">
+    <main className="min-h-[550px] flex justify-center bg-muted p-4 relative overflow-hidden">
       <Card className={"w-full max-w-md"}>
         <CardHeader>
           <CardTitle className={"text-center text-2xl md:text-3xl"}>
@@ -161,7 +161,7 @@ const LoginPage = () => {
             <div>
               <Label
                 htmlFor="email"
-                className="block text-gray-700 mb-2 font-medium text-sm"
+                className="block text-muted-foreground mb-2 font-medium text-sm"
               >
                 Email Address
               </Label>
@@ -176,16 +176,16 @@ const LoginPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="example@mail.com"
-                  className={`w-full pl-10 pr-4 py-3 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md ${
-                    formState.errors.email ? "border-red-400" : ""
-                  }`}
+className={`w-full pl-10 pr-4 py-3 bg-background/70 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md ${
+                       formState.errors.email ? "border-destructive" : ""
+                     }`}
                   aria-required="true"
                   aria-invalid={!!formState.errors.email}
                   aria-describedby="email-error"
                 />
               </div>
               {formState.errors.email && (
-                <p id="email-error" className="text-red-500 text-xs mt-1" role="alert" aria-live="polite">
+                <p id="email-error" className="text-destructive text-xs mt-1" role="alert" aria-live="polite">
                   {formState.errors.email}
                 </p>
               )}
@@ -198,16 +198,16 @@ const LoginPage = () => {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="********"
-                className={`w-full  py-3 bg-white/70 backdrop-blur-sm  rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all duration-300  ${
-                  formState.errors.password ? "border-red-400" : ""
-                }`}
+className={`w-full  py-3 bg-background/70 backdrop-blur-sm  rounded-xl focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-300  ${
+                   formState.errors.password ? "border-destructive" : ""
+                 }`}
                 aria-required="true"
                 aria-invalid={!!formState.errors.password}
                 aria-describedby="password-error"
               />
             </div>
             {formState.errors.password && (
-              <p id="password-error" className="text-red-500 text-xs mt-1" role="alert" aria-live="polite">
+              <p id="password-error" className="text-destructive text-xs mt-1" role="alert" aria-live="polite">
                 {formState.errors.password}
               </p>
             )}
@@ -216,7 +216,7 @@ const LoginPage = () => {
             <div className="flex justify-end">
               <Link
                 href="/reset-password"
-                className="text-xs text-amber-600 hover:underline"
+                className="text-xs text-brand-600 hover:underline"
                 aria-label="Forgot password?"
               >
                 Forgot Password?
@@ -226,7 +226,7 @@ const LoginPage = () => {
             {/* API Error Message */}
             {apiError && (
               <div
-                className="bg-red-50/80 backdrop-blur-sm border border-red-200 text-red-700 p-3 rounded-xl text-sm text-center shadow-sm"
+                className="bg-destructive/10 backdrop-blur-sm border border-destructive text-destructive p-3 rounded-xl text-sm text-center shadow-sm"
                 role="alert"
                 aria-live="polite"
               >
@@ -240,8 +240,8 @@ const LoginPage = () => {
               disabled={formState.isSubmitting}
               className={`w-full py-3 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
                 formState.isSubmitting
-                  ? "bg-amber-400 cursor-not-allowed opacity-70"
-                  : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                  ? "bg-brand-400 cursor-not-allowed opacity-70"
+                  : "bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"
               }`}
               aria-label={
                 formState.isSubmitting
@@ -282,10 +282,10 @@ const LoginPage = () => {
 
           <div className="my-6 relative" role="separator" aria-label="or">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
+              <div className="w-full border-t border-border"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white/80 text-gray-500 font-medium">
+              <span className="px-4 bg-background/80 text-muted-foreground font-medium">
                 Or continue with
               </span>
             </div>
@@ -295,11 +295,11 @@ const LoginPage = () => {
             <GoogleLoginBtn />
           </div>
 
-          <p className="text-center text-gray-600 text-sm">
+          <p className="text-center text-muted-foreground text-sm">
             Don't have an account?{" "}
             <Link
               href="/signup"
-              className="text-amber-600 hover:text-amber-700 font-semibold hover:underline transition-colors"
+              className="text-brand-600 hover:text-brand-700 font-semibold hover:underline transition-colors"
               aria-label="Navigate to sign up page"
             >
               Sign Up

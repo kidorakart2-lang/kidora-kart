@@ -106,6 +106,7 @@ export default function ImageZoom({ src, alt, isMobile }: { src: string; alt: st
         src={src || "/placeholder.svg"}
         alt={alt}
         fill
+        sizes="(max-width: 768px) 100vw, 50vw"
         className="object-cover"
         priority
       />
@@ -115,7 +116,7 @@ export default function ImageZoom({ src, alt, isMobile }: { src: string; alt: st
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute w-32 h-32 border-2 border-amber-400 rounded-full pointer-events-none shadow-lg z-[1000]"
+          className="absolute w-32 h-32 border-2 border-brand-400 rounded-full pointer-events-none shadow-lg z-[1000]"
           style={{
             left: `${mousePos.x}%`,
             top: `${mousePos.y}%`,
@@ -126,7 +127,7 @@ export default function ImageZoom({ src, alt, isMobile }: { src: string; alt: st
             backgroundRepeat: "no-repeat",
           }}
         >
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-200/20 to-transparent" />
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-brand-200/20 to-transparent" />
         </motion.div>
       )}
     </div>

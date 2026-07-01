@@ -145,11 +145,22 @@ export const refreshDeliveryToken = async (req: Request, res: Response): Promise
 };
 
 export const findAllUser = async (
-  _req: Request,
+  req: Request,
   res: Response,
 ): Promise<void> => {
   try {
-    const users = await userModel.find({ deletedAt: null }).lean();
+    const isDeletedAt = (req.body?.isDeletedAt ?? req.query?.isDeletedAt) as string | undefined;
+
+    const query: Record<string, unknown> = {};
+    if (isDeletedAt === "all") {
+      // no deletedAt filter — show everything
+    } else if (isDeletedAt === "deleted") {
+      query.deletedAt = { $ne: null };
+    } else {
+      query.deletedAt = null;
+    }
+
+    const users = await userModel.find(query).lean();
     res.status(200).json({
       _status: true,
       _message: "Users found successfully",

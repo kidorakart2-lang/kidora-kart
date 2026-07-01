@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import MainLayout from "@/components/comman/MainLayout";
 import { siteConfig, defaultMetadata, getStructuredAddress } from "@/lib/utils";
 import { cache } from "react";
+import { TAG_NAVIGATION } from "@/lib/revalidation-tags";
 import ScrollToTop from "@/components/ui/scroll-to-top";
 import RequirementModal from "@/components/comman/RequirementModal";
 import LoginModal from "@/components/comman/LoginModal";
@@ -158,7 +159,7 @@ const getNavigation = cache(async () => {
       {
         next: {
           revalidate: 3600,
-          tags: ["navigation"],
+          tags: [TAG_NAVIGATION],
         },
       },
     );
@@ -205,12 +206,12 @@ export default async function RootLayout({
         <meta name="ICBM" content={`${siteConfig.address.geo.lat}, ${siteConfig.address.geo.lng}`} />
         <link rel="icon" href="/logo.ico" />
         <meta name="theme-color" content={siteConfig.themeColor} />
-        <meta name="msapplication-TileColor" content="#F58E00" />
+        <meta name="msapplication-TileColor" content={siteConfig.themeColor} />
       </head>
       <body
-        className={`pt-0 !mr-0 bg-background antialiased flex flex-col ${lato.variable} pb-12 md:pb-0`}
+        className={`pt-0 !mr-0 bg-background dark antialiased flex flex-col ${lato.variable} pb-12 md:pb-0`}
       >
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-amber-600 focus:text-white focus:rounded-lg focus:shadow-lg">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg focus:shadow-lg">
           Skip to main content
         </a>
         <Client>

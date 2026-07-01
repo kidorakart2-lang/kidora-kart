@@ -22,7 +22,7 @@ const validations = [
 function getStrokeColorClass(p: number) {
   if (p <= 0) return "stroke-transparent";
   if (p <= 0.35) return "stroke-red-500";
-  if (p <= 0.7) return "stroke-orange-500";
+  if (p <= 0.7) return "stroke-brand-500";
   return "stroke-teal-400";
 }
 
@@ -83,7 +83,7 @@ export default function StrongPasswordInput({
 
   return (
     <div>
-      <Label htmlFor="password" className="block text-gray-700 mb-2 font-medium text-sm">
+      <Label htmlFor="password" className="block text-muted-foreground mb-2 font-medium text-sm">
         Password
       </Label>
       <div className="relative">
@@ -97,7 +97,7 @@ export default function StrongPasswordInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="********"
-          className="w-full pl-10 pr-12 py-3 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md"
+          className="w-full pl-10 pr-12 py-3 bg-background/70 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md"
           required
           aria-required="true"
           aria-describedby="password-description"
@@ -106,7 +106,7 @@ export default function StrongPasswordInput({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+            className="text-muted-foreground hover:text-muted-foreground transition-colors cursor-pointer"
             tabIndex={-1}
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
@@ -127,7 +127,7 @@ export default function StrongPasswordInput({
               <div
                 key={index}
                 className={`flex items-center gap-2 text-sm transition-colors duration-200 ${
-                  isValid ? "text-teal-500 font-medium" : "text-gray-400"
+                  isValid ? "text-emerald-500 font-medium" : "text-muted-foreground"
                 }`}
               >
                 <div className="flex items-center justify-center w-3.5 h-3.5">
@@ -135,12 +135,12 @@ export default function StrongPasswordInput({
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="flex items-center justify-center w-3 h-3 rounded-full bg-teal-500 text-white"
+                      className="flex items-center justify-center w-3 h-3 rounded-full bg-emerald-500 text-white"
                     >
                       <Check className="size-2.5 shrink-0" strokeWidth={3} />
                     </motion.div>
                   ) : (
-                    <div className="w-2 h-2 rounded-full bg-gray-300" />
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground/15" />
                   )}
                 </div>
                 <span>{validation.text}</span>

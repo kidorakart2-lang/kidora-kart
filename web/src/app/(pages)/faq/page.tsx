@@ -1,6 +1,7 @@
 import FAQPage from "@/app/(sections)/FAQ";
 import React from "react";
 import { siteConfig } from "@/lib/utils";
+import { TAG_FAQ } from "@/lib/revalidation-tags";
 
 export const metadata = {
   title: `FAQ - Frequently Asked Questions | ${siteConfig.name}`,
@@ -20,7 +21,8 @@ export const metadata = {
 async function GetFaq() {
   try {
     const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/faq"
+      process.env.NEXT_PUBLIC_API_URL + "api/website/faq",
+      { next: { tags: [TAG_FAQ] } }
     );
     const data = await response.json();
     return data._data;

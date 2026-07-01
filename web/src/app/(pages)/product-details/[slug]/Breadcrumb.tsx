@@ -24,13 +24,13 @@ const Breadcrumb = ({ items = [] }: BreadcrumbProps) => {
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="flex items-center gap-2 text-sm text-gray-600 mb-6"
+      className="flex items-center gap-2 text-sm text-muted-foreground mb-6"
       role="navigation"
       aria-label="Breadcrumb"
     >
       <Link
         href="/"
-        className="text-amber-600 hover:text-amber-700 transition-colors font-medium"
+        className="text-brand-600 hover:text-brand-700 transition-colors font-medium"
         onClick={(e) => handleClick(e, "/")}
       >
         Home
@@ -41,16 +41,16 @@ const Breadcrumb = ({ items = [] }: BreadcrumbProps) => {
           <ChevronRight
             size={14}
             aria-hidden="true"
-            className="text-gray-400"
+            className="text-muted-foreground"
           />
           {index === items.length - 1 ? (
-            <span className="text-gray-900 font-medium" aria-current="page">
+            <span className="text-foreground font-medium" aria-current="page">
               {item.label}
             </span>
           ) : (
             <Link
               href={item.href ?? "#"}
-              className="text-amber-600 hover:text-amber-700 transition-colors font-medium"
+              className="text-brand-600 hover:text-brand-700 transition-colors font-medium"
               onClick={(e) => handleClick(e, item.href ?? "#")}
             >
               {item.label}

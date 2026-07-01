@@ -79,7 +79,7 @@ export default function Loading() {
       </div>
 
       {/* Product Tabs */}
-      <div className="border-t border-gray-200 pt-8 mb-12">
+      <div className="border-t border-border pt-8 mb-12">
         <div className="flex gap-6 mb-6">
           {["Description", "Reviews", "Shipping & Returns"].map((tab) => (
             <Skeleton key={tab} className="h-8 w-24" />

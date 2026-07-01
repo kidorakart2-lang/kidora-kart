@@ -66,7 +66,7 @@ app.use(
       "https://jewellerywalla.com",
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
     credentials: true,
   }),
 );

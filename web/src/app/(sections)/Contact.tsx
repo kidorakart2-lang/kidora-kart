@@ -61,8 +61,8 @@ export default function ContactPage() {
       title: "Phone",
       content: siteConfig.contact.mobile,
       subContent: "Mon-Sun, 10am-10pm IST",
-      color: "bg-amber-100/80 border border-amber-200/50",
-      bgColor: "bg-amber-50/80",
+      color: "bg-brand-100/80 border border-brand-200/50",
+      bgColor: "bg-brand-50/80",
       href: `tel:${siteConfig.contact.phone}`,
       ariaLabel: "Contact us by phone",
     },
@@ -71,8 +71,8 @@ export default function ContactPage() {
       title: "Email",
       content: siteConfig.contact.email,
       subContent: "We'll respond within 24 hours",
-      color: "bg-amber-100/80 border border-amber-200/50",
-      bgColor: "bg-amber-50/80",
+      color: "bg-brand-100/80 border border-brand-200/50",
+      bgColor: "bg-brand-50/80",
       href: `mailto:${siteConfig.contact.email}`,
       ariaLabel: "Send us an email",
     },
@@ -81,21 +81,21 @@ export default function ContactPage() {
       title: "Address",
       content: siteConfig.address.street,
       subContent: getFullAddress(),
-      color: "bg-amber-100/80 border border-amber-200/50",
-      bgColor: "bg-amber-50/80",
+      color: "bg-brand-100/80 border border-brand-200/50",
+      bgColor: "bg-brand-50/80",
       href: siteConfig.address.googleMapsUrl,
       ariaLabel: "View our location on map",
     },
   ];
 
   return (
-    <div id="contact" className="min-h-screen bg-gray-50 overflow-hidden">
+    <div id="contact" className="min-h-screen bg-muted overflow-hidden">
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 bg-white rounded-2xl">
-        <h1 className="text-4xl md:text-5xl font-medium text-gray-900 mb-4 text-center">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 bg-background rounded-2xl">
+        <h1 className="text-4xl md:text-5xl font-medium text-foreground mb-4 text-center">
           Contact Us
         </h1>
-        <p className="text-gray-600 text-lg mb-12 text-center">
+        <p className="text-muted-foreground text-lg mb-12 text-center">
           We're here to help. Please reach out with any questions or concerns.
           We will get back to you as soon as possible.
         </p>
@@ -110,7 +110,7 @@ export default function ContactPage() {
               {contactInfo.map((info, index) => (
                 <Card
                   key={index}
-                  className="transition-all duration-300 hover:shadow-md hover:-translate-y-1 border-gray-200 py-2"
+                  className="transition-all duration-300 hover:shadow-md hover:-translate-y-1 border-border py-2"
                   style={{ animationDelay: `${index * 100}ms` }}
                   role="listitem"
                 >
@@ -128,17 +128,17 @@ export default function ContactPage() {
                         className={`${info.bgColor} p-3 rounded-lg transition-transform duration-300 group-hover:scale-110`}
                       >
                         <info.icon
-                          className="w-6 h-6 text-amber-600"
+                          className="w-6 h-6 text-brand-600"
                           aria-hidden="true"
                         />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900 mb-1">
+                        <h3 className="font-semibold text-foreground mb-1">
                           {info.title}
                         </h3>
-                        <p className="text-gray-700">{info.content}</p>
+                        <p className="text-muted-foreground">{info.content}</p>
                         {info.subContent && (
-                          <p className="text-sm text-gray-500 mt-1">
+                          <p className="text-sm text-muted-foreground mt-1">
                             {info.subContent}
                           </p>
                         )}
@@ -152,7 +152,7 @@ export default function ContactPage() {
 
           {/* Right Column - Contact Form */}
           <div className="anim-fill-both anim-name-fade-in anim-name-slide-right anim-duration-700">
-            <Card className="border-gray-200 shadow-lg">
+            <Card className="border-border shadow-lg">
               <CardContent className="p-8">
                 {isSubmitted && (
                   <Alert className="mb-6 bg-green-50 border-green-200 anim-fill-both anim-name-fade-in anim-name-slide-top anim-duration-500">
@@ -170,7 +170,7 @@ export default function ContactPage() {
                   aria-label="Contact form"
                 >
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-gray-700 font-medium">
+                    <Label htmlFor="name" className="text-muted-foreground font-medium">
                       Your Name
                     </Label>
                     <Input
@@ -189,7 +189,7 @@ export default function ContactPage() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="email"
-                      className="text-gray-700 font-medium"
+                      className="text-muted-foreground font-medium"
                     >
                       Your Email
                     </Label>
@@ -209,7 +209,7 @@ export default function ContactPage() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="message"
-                      className="text-gray-700 font-medium"
+                      className="text-muted-foreground font-medium"
                     >
                       Message
                     </Label>
@@ -229,7 +229,7 @@ export default function ContactPage() {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-amber-500 hover:bg-amber-600 transition-all duration-300 hover:scale-[1.02] disabled:hover:scale-100"
+                    className="w-full bg-brand-500 hover:bg-brand-600 transition-all duration-300 hover:scale-[1.02] disabled:hover:scale-100"
                     aria-busy={isLoading}
                   >
                     {isLoading ? (

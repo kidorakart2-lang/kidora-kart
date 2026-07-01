@@ -216,8 +216,8 @@ export default function ProductListing() {
     <div>
       <div className="lg:flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-3">
         <div>
-          <h2 className="text-2xl font-serif text-[#8B4513]">All Products</h2>
-          <p className="text-gray-500 text-sm">
+          <h2 className="text-2xl font-serif text-brand-800">All Products</h2>
+          <p className="text-muted-foreground text-sm">
             {totalProducts || filteredProducts?.length} product
             {(totalProducts || filteredProducts?.length) !== 1 ? "s" : ""}
           </p>
@@ -228,8 +228,8 @@ export default function ProductListing() {
               onClick={() => setGridLayout("normal")}
               className={`p-2 transition-colors ${
                 gridLayout === "normal"
-                  ? "bg-amber-100 text-amber-700"
-                  : "hover:bg-gray-100 text-gray-500"
+                  ? "bg-brand-100 text-brand-700"
+                  : "hover:bg-muted text-muted-foreground"
               }`}
               title="Grid view"
             >
@@ -239,8 +239,8 @@ export default function ProductListing() {
               onClick={() => setGridLayout("single")}
               className={`p-2 transition-colors ${
                 gridLayout === "single"
-                  ? "bg-amber-100 text-amber-700"
-                  : "hover:bg-gray-100 text-gray-500"
+                  ? "bg-brand-100 text-brand-700"
+                  : "hover:bg-muted text-muted-foreground"
               }`}
               title="List view"
             >
@@ -305,22 +305,22 @@ export default function ProductListing() {
               {loadingMore ? (
                 <div className="text-center flex items-center justify-center gap-2">
                   <Loader className="animate-spin" size={20} />
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-muted-foreground">
                     Loading more products...
                   </span>
                 </div>
               ) : hasMore ? (
-                <span className="text-xs text-gray-400"></span>
+                <span className="text-xs text-muted-foreground"></span>
               ) : null}
             </div>
           )}
         </div>
       ) : (
         <div className="text-center py-16">
-          <p className="text-gray-500 text-lg">
+          <p className="text-muted-foreground text-lg">
             No products found matching your filters.
           </p>
-          <p className="text-gray-400 text-sm mt-2">
+          <p className="text-muted-foreground text-sm mt-2">
             Try adjusting your filter criteria.
           </p>
         </div>

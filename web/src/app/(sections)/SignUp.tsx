@@ -106,7 +106,7 @@ const SignUpPage = () => {
   };
 
   return (
-    <main className="min-h-[550px] flex justify-center bg-gray-50  p-4 relative overflow-hidden">
+    <main className="min-h-[550px] flex justify-center bg-muted  p-4 relative overflow-hidden">
       <Card className={"w-full max-w-md"}>
         <CardHeader>
           <CardTitle className={"text-center text-2xl md:text-3xl"}>
@@ -127,7 +127,7 @@ const SignUpPage = () => {
               <div>
                 <Label
                   htmlFor="name"
-                  className="block text-gray-700 mb-2 font-medium text-sm"
+                  className="block text-muted-foreground mb-2 font-medium text-sm"
                 >
                   Full Name
                 </Label>
@@ -142,7 +142,7 @@ const SignUpPage = () => {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="John Doe"
-                    className="w-full pl-10 pr-4 py-3 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md"
+                    className="w-full pl-10 pr-4 py-3 bg-background/70 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md"
                     required
                     aria-required="true"
                     aria-describedby="name-description"
@@ -157,7 +157,7 @@ const SignUpPage = () => {
               <div>
                 <Label
                   htmlFor="email"
-                  className="block text-gray-700 mb-2 font-medium text-sm"
+                  className="block text-muted-foreground mb-2 font-medium text-sm"
                 >
                   Email Address
                 </Label>
@@ -172,7 +172,7 @@ const SignUpPage = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="example@mail.com"
-                    className="w-full pl-10 pr-4 py-3 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md"
+                    className="w-full pl-10 pr-4 py-3 bg-background/70 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md"
                     required
                     aria-required="true"
                     aria-describedby="email-description"
@@ -195,7 +195,7 @@ const SignUpPage = () => {
               {/* Error Message */}
               {error && (
                 <div
-                  className="bg-red-50/80 backdrop-blur-sm border border-red-200 text-red-700 p-3 rounded-xl text-sm text-center shadow-sm"
+                  className="bg-destructive/10 backdrop-blur-sm border border-destructive text-destructive p-3 rounded-xl text-sm text-center shadow-sm"
                   role="alert"
                   aria-live="polite"
                 >
@@ -209,8 +209,8 @@ const SignUpPage = () => {
                 disabled={loading}
                 className={`w-full py-3 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
                   loading
-                    ? "bg-amber-400 cursor-not-allowed opacity-70"
-                    : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                    ? "bg-brand-400 cursor-not-allowed opacity-70"
+                    : "bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"
                 }`}
                 aria-label={
                   loading
@@ -251,10 +251,10 @@ const SignUpPage = () => {
 
             <div className="my-6 relative" role="separator" aria-label="or">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
+                <div className="w-full border-t border-border"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white/80 text-gray-500 font-medium">
+                <span className="px-4 bg-background/80 text-muted-foreground font-medium">
                   Or continue with
                 </span>
               </div>
@@ -264,11 +264,11 @@ const SignUpPage = () => {
               <GoogleLoginBtn />
             </div>
 
-            <p className="text-center text-gray-600 text-sm">
+            <p className="text-center text-muted-foreground text-sm">
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="text-amber-600 hover:text-amber-700 font-semibold hover:underline transition-colors"
+                className="text-brand-600 hover:text-brand-700 font-semibold hover:underline transition-colors"
                 aria-label="Navigate to login page"
               >
                 Log In

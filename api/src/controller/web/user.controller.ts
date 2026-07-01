@@ -29,12 +29,13 @@ setInterval(() => {
   }
 }, 120000);
 
-/** Helper: set access + refresh token cookies for a user session */
+/** Helper: set access + refresh token cookies for a user session.
+ * Returns the generated access token so callers can reuse it without calling generateToken again. */
 async function setSessionCookies(
   res: Response,
   user: { _id: unknown },
   type: "user",
-): Promise<void> {
+): Promise<string> {
   const accessToken = generateToken(user);
   const refresh = await createRefreshToken(String(user._id), type);
 
@@ -44,6 +45,8 @@ async function setSessionCookies(
     refresh.tokenValue,
     refreshTokenCookieOptions(refresh.expiresAt),
   );
+
+  return accessToken;
 }
 
 /** Helper: clear all session cookies */
@@ -90,12 +93,13 @@ export const registerUser = async (
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _pw, ...userData } = userObj;
 
-    await setSessionCookies(res, newUser, "user");
+    const accessToken = await setSessionCookies(res, newUser, "user");
 
     return res.status(201).json({
       _status: true,
       _message: "User registered successfully",
       _data: userData,
+      _token: accessToken,
     });
   } catch (error) {
     console.error(error);
@@ -128,12 +132,13 @@ export const loginUser = async (
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _pw, ...userData } = userObj;
 
-    await setSessionCookies(res, user, "user");
+    const accessToken = await setSessionCookies(res, user, "user");
 
     return res.status(200).json({
       _status: true,
       _message: "User logged in successfully",
       _data: userData,
+      _token: accessToken,
     });
   } catch (error) {
     console.error(error);
@@ -552,12 +557,13 @@ export const googleLogin = async (
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userData } = userObj;
 
-    await setSessionCookies(res, user, "user");
+    const accessToken = await setSessionCookies(res, user, "user");
 
     return res.status(200).json({
       _status: true,
       _message: "Login successful",
       _data: { user: userData },
+      _token: accessToken,
     });
   } catch (error) {
     console.error("Google login error:", error);
@@ -624,12 +630,13 @@ export const googleAuthCallback = async (
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userData } = userObj;
 
-    await setSessionCookies(res, user, "user");
+    const accessToken = await setSessionCookies(res, user, "user");
 
     return res.status(200).json({
       _status: true,
       _message: "Login successful",
       _data: { user: userData },
+      _token: accessToken,
     });
   } catch (error) {
     console.error("Google auth callback error:", error);

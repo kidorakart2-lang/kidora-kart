@@ -1,36 +1,35 @@
 import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 
+const productFaqEntrySchema = new Schema(
+  {
+    question: { type: String, required: [true, "Question is required"] },
+    answer: { type: String, required: [true, "Answer is required"] },
+    order: { type: Number, default: 0, min: 0, max: 1000 },
+  },
+  { _id: false },
+);
+
 const productFaqSchema = new Schema(
   {
-    question: {
-      type: String,
-      required: [true, "Question is required"],
+    products: {
+      type: [{ type: Schema.Types.ObjectId, ref: "products" }],
+      default: [],
     },
-    answer: { type: String, required: [true, "Answer is required"] },
-    product: {
-      type: Schema.Types.ObjectId,
-      ref: "products",
-      default: null,
-    },
-    category: {
-      type: Schema.Types.ObjectId,
-      ref: "Categories",
-      default: null,
+    entries: {
+      type: [productFaqEntrySchema],
+      default: [],
+      validate: {
+        validator: (v: unknown[]) => v.length > 0,
+        message: "At least one FAQ entry is required",
+      },
     },
     status: { type: Boolean, default: true },
-    order: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 1000,
-    },
     deletedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );
 
-productFaqSchema.index({ product: 1 });
-productFaqSchema.index({ category: 1 });
+productFaqSchema.index({ products: 1 });
 
 export type IProductFaq = InferSchemaType<typeof productFaqSchema>;
 

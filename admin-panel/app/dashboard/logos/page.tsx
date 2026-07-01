@@ -19,7 +19,15 @@ import { Drawer } from "@/components/drawer";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { api, ApiClientError } from "@/lib/api";
+import { invalidateCache } from "@/lib/invalidate-cache";
 import type { Logo } from "@/lib/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 
 export default function LogosPage() {
@@ -31,6 +39,7 @@ export default function LogosPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [logoToDelete, setLogoToDelete] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [deletedFilter, setDeletedFilter] = useState<string>("active");
   const [formData, setFormData] = useState<{ image: File | string | null }>({
     image: null,
   });
@@ -38,12 +47,13 @@ export default function LogosPage() {
 
   useEffect(() => {
     loadLogos();
-  }, []);
+  }, [deletedFilter]);
 
   const loadLogos = async () => {
     setLoading(true);
     try {
-      const data = await api.post<Logo[]>("/api/admin/logo/view", {});
+      const filter = deletedFilter === "active" ? undefined : deletedFilter;
+      const data = await api.post<Logo[]>("/api/admin/logo/view", { isDeletedAt: filter });
       setLogos(data ?? []);
     } catch (error) {
       toast({
@@ -95,6 +105,7 @@ export default function LogosPage() {
       setDrawerOpen(false);
       resetForm();
       loadLogos();
+      invalidateCache(["homepage"]);
     } catch (error) {
       toast({
         title: `Error ${editingLogo ? "updating" : "adding"} logo`,
@@ -126,6 +137,7 @@ export default function LogosPage() {
     try {
       await api.put(`/api/admin/logo/destroy/${logoToDelete}`, { id: logoToDelete });
       loadLogos();
+      invalidateCache(["homepage"]);
       toast({ title: "Logo deleted successfully" });
     } catch (error) {
       toast({
@@ -143,6 +155,7 @@ export default function LogosPage() {
     try {
       await api.post("/api/admin/logo/change-status", { id: logo._id });
       loadLogos();
+      invalidateCache(["homepage"]);
       toast({
         title: `Logo ${
           logo.status ? "deactivated" : "activated"
@@ -179,16 +192,31 @@ export default function LogosPage() {
           <h1 className="text-3xl font-bold tracking-tight">Logos</h1>
           <p className="text-muted-foreground">Manage your brand logos</p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingLogo(null);
-            resetForm();
-            setDrawerOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Logo
-        </Button>
+        <div className="flex items-center gap-3">
+          <Select
+            value={deletedFilter}
+            onValueChange={setDeletedFilter}
+          >
+            <SelectTrigger className="w-[140px] h-8 text-xs">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active Only</SelectItem>
+              <SelectItem value="all">All (incl. deleted)</SelectItem>
+              <SelectItem value="deleted">Deleted Only</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            onClick={() => {
+              setEditingLogo(null);
+              resetForm();
+              setDrawerOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Logo
+          </Button>
+        </div>
       </div>
 
       {logos.length === 0 ? (

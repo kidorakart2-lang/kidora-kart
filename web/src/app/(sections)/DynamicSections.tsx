@@ -1,28 +1,37 @@
 import { cache } from "react";
 import dynamic from "next/dynamic";
-import Banner from "./Banner";
+import BannerSingle from "./BannerSingle";
+import BannerSlider from "./BannerSlider";
 import WhyChooseUs from "./WhyChooseUs";
+import {
+  TAG_PRODUCTS,
+  TAG_HOMEPAGE,
+  TAG_TESTIMONIALS,
+} from "@/lib/revalidation-tags";
 
 const Slider = dynamic(() => import("./Slider"), {
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg mx-4 my-8" />,
+  loading: () => <div className="h-96 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
 });
 const Testimonial = dynamic(() => import("./Testimonial"), {
-  loading: () => <div className="h-80 bg-gray-100 animate-pulse rounded-lg mx-4 my-8" />,
+  loading: () => <div className="h-80 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
 });
 const RoundCategorySlider = dynamic(() => import("./RoundCategorySlider"), {
-  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg mx-4 my-6" />,
+  loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-6" />,
 });
 const MenWomen = dynamic(() => import("./MenWomen"), {
-  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg mx-4 my-6" />,
+  loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-6" />,
 });
 const ShopByPrice = dynamic(() => import("./ShopbyPrice"), {
-  loading: () => <div className="h-80 bg-gray-100 animate-pulse rounded-lg mx-4 my-8" />,
+  loading: () => <div className="h-80 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
 });
-const FullVideoSection = dynamic(() => import("./video"), {
-  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg mx-4 my-8" />,
+const PromoBannerSection = dynamic(() => import("./PromoBannerSection").then((m) => ({ default: m.PromoBannerSection })), {
+  loading: () => <div className="h-[65vh] bg-muted animate-pulse mx-auto" />,
+});
+const VideoSection = dynamic(() => import("./VideoSection").then((m) => ({ default: m.VideoSection })), {
+  loading: () => <div className="h-[65vh] bg-muted animate-pulse mx-auto" />,
 });
 const BentoGrid = dynamic(() => import("./BentoGrid"), {
-  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg mx-4 my-8" />,
+  loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
 });
 
 export interface HomeSection {
@@ -36,7 +45,7 @@ const getHomeSections = cache(async () => {
   try {
     const res = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "api/website/home-page",
-      { next: { revalidate: 3600 } },
+      { next: { tags: [TAG_HOMEPAGE], revalidate: 3600 } },
     );
     const data = await res.json();
     return (data._data?.sections ?? []) as HomeSection[];
@@ -80,17 +89,28 @@ function SectionHeader({ title }: { title?: string }) {
 }
 
 async function DynamicSection({ section }: { section: HomeSection }) {
-  const cfg = section.config;
+  const cfg = section.config ?? {};
 
   switch (section.type) {
     case "banner":
-      return <Banner />;
+      return (
+        <BannerFromConfig
+          selectedBannerIds={cfg.selectedBannerIds as string[] | undefined}
+          bannerMode={cfg.bannerMode as "single" | "slider" | undefined}
+        />
+      );
 
     case "round-categories":
-      return <RoundCategorySlider />;
+      return <RoundCategorySlider heading={cfg.heading as string | undefined} />;
 
     case "category-grid":
-      return <MenWomen />;
+      return (
+        <MenWomen
+          heading={cfg.heading as string | undefined}
+          sourceType={cfg.categorySourceType as string | undefined}
+          selectedItemIds={cfg.categorySelectedIds as string[] | undefined}
+        />
+      );
 
     case "product-slider": {
       const source = (cfg.productSource as string) ?? "new-arrivals";
@@ -119,24 +139,40 @@ async function DynamicSection({ section }: { section: HomeSection }) {
     }
 
     case "shop-by-price":
-      return <ShopByPrice />;
+      return <ShopByPrice heading={cfg.heading as string | undefined} />;
 
     case "why-choose-us":
-      return <WhyChooseUs bg={(cfg.bgColor as string) ?? "bg-[#f8f8f8]"} />;
+      return <WhyChooseUs />;
 
     case "testimonial": {
       const testimonials = await fetchTestimonials();
       if (!testimonials || testimonials.length === 0) return null;
-      return (
-        <Testimonial
-          data={testimonials}
-          bg={(cfg.bgColor as string) ?? "bg-[#f8f8f8]/50"}
-        />
-      );
+      return <Testimonial data={testimonials} />;
     }
 
-    case "video-banner":
-      return <FullVideoSection />;
+    case "promo-banner":
+      return (
+        <PromoBannerSection
+          heading={cfg.heading as string | undefined}
+          buttonText={cfg.buttonText as string | undefined}
+          selectedBannerId={cfg.selectedBannerId as string | undefined}
+          bannerImage={cfg.bannerImage as string | undefined}
+          bannerLinkData={cfg.bannerLinkData as { type?: string; target?: string; externalUrl?: string; label?: string } | undefined}
+        />
+      )
+
+    case "video":
+      return (
+        <VideoSection
+          heading={cfg.heading as string | undefined}
+          subtitle={cfg.subtitle as string | undefined}
+          buttonText={cfg.buttonText as string | undefined}
+          buttonUrl={cfg.buttonUrl as string | undefined}
+          videoUrl={cfg.videoUrl as string | undefined}
+          selectedBannerId={cfg.selectedBannerId as string | undefined}
+          bannerLinkData={cfg.bannerLinkData as { type?: string; target?: string; externalUrl?: string; label?: string } | undefined}
+        />
+      )
 
     case "bento-grid": {
       const heading = cfg.heading as string | undefined;
@@ -178,11 +214,60 @@ async function ProductsTabSection({
 
 // ── Data fetching helpers ──
 
+// ── Banner helpers ──
+
+interface BannerItem {
+  _id?: string
+  image: string
+  link?: { url?: string | null; type?: string }
+}
+
+const getWebsiteBanners = cache(async () => {
+  try {
+    const res = await fetch(
+      process.env.NEXT_PUBLIC_API_URL + "api/website/banner",
+      { next: { tags: [TAG_HOMEPAGE], revalidate: 3600 } },
+    )
+    const data = await res.json()
+    return (data._data as BannerItem[]) ?? []
+  } catch {
+    return []
+  }
+})
+
+async function BannerFromConfig({
+  selectedBannerIds,
+  bannerMode,
+}: {
+  selectedBannerIds?: string[]
+  bannerMode?: "single" | "slider"
+}) {
+  const allBanners = await getWebsiteBanners()
+
+  const banners = selectedBannerIds && selectedBannerIds.length > 0
+    ? allBanners.filter((b) => b._id && selectedBannerIds.includes(b._id))
+    : allBanners
+
+  if (!banners || banners.length === 0) return null
+
+  const slides = banners.map((item) => ({
+    src: item.image,
+    href: item.link?.url || undefined,
+    external: item.link?.type === "external",
+  }))
+
+  if (bannerMode === "single" || slides.length === 1) {
+    return <BannerSingle slide={slides[0]} />
+  }
+
+  return <BannerSlider slides={slides} />
+}
+
 async function fetchProducts(source: string, limit: number) {
   try {
     const res = await fetch(
       process.env.NEXT_PUBLIC_API_URL + `api/website/product/${source}?limit=${limit}`,
-      { next: { revalidate: 3600 } },
+      { next: { tags: [TAG_PRODUCTS], revalidate: 3600 } },
     );
     if (!res.ok) return [];
     const data = await res.json();
@@ -196,7 +281,7 @@ async function fetchProductsBySearch(term: string) {
   try {
     const res = await fetch(
       process.env.NEXT_PUBLIC_API_URL + `api/website/product/get-by-search?search=${encodeURIComponent(term)}&limit=8`,
-      { next: { revalidate: 3600 } },
+      { next: { tags: [TAG_PRODUCTS], revalidate: 3600 } },
     );
     if (!res.ok) return [];
     const data = await res.json();
@@ -210,7 +295,7 @@ async function fetchTestimonials() {
   try {
     const res = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "api/website/testimonial",
-      { next: { revalidate: 3600 } },
+      { next: { tags: [TAG_TESTIMONIALS, TAG_HOMEPAGE], revalidate: 3600 } },
     );
     const data = await res.json();
     return data._data;

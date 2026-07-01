@@ -1,4 +1,5 @@
 import SimpleLoading from "@/components/comman/SimpleLoading";
+import { TAG_SEARCH } from "@/lib/revalidation-tags";
 import { Suspense } from "react";
 import Search from "./Search";
 
@@ -9,6 +10,7 @@ const getProducts = async (q: string) => {
       {
         method: "GET",
         headers: { "Content-Type": "application/json" },
+        next: { tags: [TAG_SEARCH] },
       }
     );
     const data = await response.json();

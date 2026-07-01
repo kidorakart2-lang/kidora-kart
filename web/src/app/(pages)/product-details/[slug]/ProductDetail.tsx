@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import {
   Star,
   Heart,
@@ -31,39 +31,50 @@ import { addToWishlist, removeFromWishlist } from "@/redux/features/wishlist";
 import type { RootState } from "@/redux/store/store";
 import type { ColorItem } from "@/types";
 
-interface ProductFaqItem {
+interface FaqSet {
   _id: string;
-  question: string;
-  answer: string;
-  product: string;
+  entries: { question: string; answer: string; order: number }[];
 }
 
 function ProductFaqSection({ productId }: { productId: string }) {
-  const [faqs, setFaqs] = useState<ProductFaqItem[]>([]);
+  const [faqSets, setFaqSets] = useState<FaqSet[]>([]);
 
   useEffect(() => {
-    fetch(process.env.NEXT_PUBLIC_API_URL + "api/website/product-faq")
+    const params = new URLSearchParams({ product: productId });
+    fetch(process.env.NEXT_PUBLIC_API_URL + "api/website/product-faq?" + params.toString())
       .then((r) => r.json())
       .then((data) => {
-        const all: ProductFaqItem[] = data._data ?? [];
-        setFaqs(all.filter((f) => f.product === productId));
+        setFaqSets(data._data ?? []);
       })
       .catch(() => {});
   }, [productId]);
 
-  if (faqs.length === 0) return null;
+  if (faqSets.length === 0) return null;
+
+  // Flatten all entries from all sets, deduplicate by question text
+  const seen = new Set<string>();
+  const allEntries = faqSets
+    .flatMap((set) => set.entries)
+    .sort((a, b) => a.order - b.order)
+    .filter((entry) => {
+      if (seen.has(entry.question)) return false;
+      seen.add(entry.question);
+      return true;
+    });
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: faqs.map((f) => ({
+    mainEntity: allEntries.map((e) => ({
       "@type": "Question",
-      name: f.question,
-      acceptedAnswer: { "@type": "Answer", text: f.answer },
+      name: e.question,
+      acceptedAnswer: { "@type": "Answer", text: e.answer },
     })),
   };
 
-  const jsonLdString = useMemo(() => JSON.stringify(jsonLd), [jsonLd]);
+  const jsonLdString = JSON.stringify(jsonLd);
+
+  if (allEntries.length === 0) return null;
 
   return (
     <section className="mb-12">
@@ -71,20 +82,20 @@ function ProductFaqSection({ productId }: { productId: string }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdString }}
       />
-      <div className="bg-white/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-12 border border-white/80">
-        <h2 className="text-3xl font-light text-gray-900 tracking-tight mb-8">
+      <div className="bg-background/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-12 border border-white/80">
+        <h2 className="text-3xl font-light text-foreground tracking-tight mb-8">
           Frequently Asked Questions
         </h2>
         <div className="space-y-4">
-          {faqs.map((faq) => (
+          {allEntries.map((entry, i) => (
             <details
-              key={faq._id}
-              className="group border border-gray-200 rounded-lg overflow-hidden"
+              key={i}
+              className="group border border-border rounded-lg overflow-hidden"
             >
-              <summary className="flex items-center justify-between px-5 py-4 cursor-pointer text-gray-800 font-[450] text-base hover:bg-gray-50 transition-colors list-none [&::-webkit-details-marker]:hidden">
-                {faq.question}
+              <summary className="flex items-center justify-between px-5 py-4 cursor-pointer text-foreground font-[450] text-base hover:bg-muted transition-colors list-none [&::-webkit-details-marker]:hidden">
+                {entry.question}
                 <svg
-                  className="w-4 h-4 text-gray-500 shrink-0 group-open:rotate-180 transition-transform"
+                  className="w-4 h-4 text-muted-foreground shrink-0 group-open:rotate-180 transition-transform"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
                   fill="none"
@@ -94,8 +105,8 @@ function ProductFaqSection({ productId }: { productId: string }) {
                   <path d="M6 9l6 6 6-6" />
                 </svg>
               </summary>
-              <div className="px-5 pb-4 text-gray-600 text-base font-[350] leading-relaxed">
-                {faq.answer}
+              <div className="px-5 pb-4 text-muted-foreground text-base font-[350] leading-relaxed">
+                {entry.answer}
               </div>
             </details>
           ))}
@@ -111,6 +122,7 @@ interface SizeItem {
 }
 
 interface CategoryItem {
+  _id: string;
   name: string;
   slug?: string;
 }
@@ -177,15 +189,15 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full mb-6 shadow-lg"
+            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-brand-100 to-orange-100 rounded-full mb-6 shadow-lg"
           >
-            <AlertCircle className="w-10 h-10 text-amber-600" />
+            <AlertCircle className="w-10 h-10 text-brand-600" />
           </motion.div>
           <motion.h2
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-2xl font-bold text-gray-900 mb-3"
+            className="text-2xl font-bold text-foreground mb-3"
           >
             Product Not Found
           </motion.h2>
@@ -193,7 +205,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-gray-600 mb-8"
+            className="text-muted-foreground mb-8"
           >
             We couldn't find the product you're looking for. It might have been
             removed or is temporarily unavailable.
@@ -205,7 +217,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => router.push("/")}
-            className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-shadow"
+            className="bg-gradient-to-r from-brand-600 to-orange-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-shadow"
           >
             Back to Home
           </motion.button>
@@ -359,8 +371,8 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
           size={16}
           className={
             i < Math.floor(rating || 4)
-              ? "fill-amber-400 text-amber-400"
-              : "text-gray-300"
+              ? "fill-brand-400 text-brand-400"
+              : "text-muted-foreground"
           }
         />
       </motion.div>
@@ -489,7 +501,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-4xl lg:text-5xl font-[350] text-gray-900 mb-6 leading-tight tracking-tight"
+              className="text-4xl lg:text-5xl font-[350] text-foreground mb-6 leading-tight tracking-tight"
             >
               {product.name}
             </motion.h1>
@@ -503,8 +515,8 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               <div className="flex items-center gap-1">
                 {renderStars(product.rating ?? 0)}
               </div>
-              <div className="h-4 w-px bg-gray-300" />
-              <span className="text-sm text-gray-500 font-[350]">
+              <div className="h-4 w-px bg-muted-foreground" />
+              <span className="text-sm text-muted-foreground font-[350]">
                 {product.reviewCount} Reviews
               </span>
             </motion.div>
@@ -518,15 +530,15 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               <div className="flex items-baseline gap-4 mb-1">
                 {product.discount_price ? (
                   <>
-                    <span className="text-5xl font-[350] text-gray-900 tracking-tight">
+                    <span className="text-5xl font-[350] text-foreground tracking-tight">
                       ₹{product.discount_price.toLocaleString()}
                     </span>
-                    <span className="text-gray-400 text-2xl line-through font-light">
+                    <span className="text-muted-foreground text-2xl line-through font-light">
                       ₹{product.price.toLocaleString()}
                     </span>
                   </>
                 ) : (
-                  <span className="text-5xl font-light text-gray-900">
+                  <span className="text-5xl font-light text-foreground">
                     ₹{product.price?.toLocaleString() || "N/A"}
                   </span>
                 )}
@@ -541,26 +553,26 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               transition={{ delay: 0.6 }}
               className="mb-7"
             >
-              <h3 className="text-base uppercase tracking-widest text-gray-800 mb-3 font-[450]">
+              <h3 className="text-base uppercase tracking-widest text-foreground mb-3 font-[450]">
                 Specifications
               </h3>
               <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                 {(product.material?.length ?? 0) > 0 && (
                   <div>
-                    <div className="text-base text-gray-800 mb-1 font-[350]">
+                    <div className="text-base text-foreground mb-1 font-[350]">
                       Material -
                     </div>
-                    <div className="text-base text-gray-900 font-[350]">
+                    <div className="text-base text-foreground font-[350]">
                       {product.material?.map((m) => m.name).join(", ")}
                     </div>
                   </div>
                 )}
                 {product.purity && (
                   <div>
-                    <div className="text-base text-gray-800 mb-1 font-[350]">
+                    <div className="text-base text-foreground mb-1 font-[350]">
                       Purity -
                     </div>
-                    <div className="text-base text-gray-900 font-[350]">
+                    <div className="text-base text-foreground font-[350]">
                       {product.purity}
                     </div>
                   </div>
@@ -575,7 +587,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                 transition={{ delay: 0.7 }}
                 className="mb-10"
               >
-                <h3 className="text-base uppercase tracking-widest text-gray-800 mb-3 font-[450]">
+                <h3 className="text-base uppercase tracking-widest text-foreground mb-3 font-[450]">
                   Color
                 </h3>
                 <div className="flex gap-3">
@@ -588,9 +600,10 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                       whileTap={{ scale: 0.95 }}
                       className={`relative w-12 h-12 rounded-full transition-all ${
                         selectedColor === color._id
-                          ? "ring-2 ring-amber-600 ring-offset-2"
+                          ? "ring-2 ring-brand-600 ring-offset-2"
                           : "ring-1 ring-gray-200"
                       }`}
+                      aria-label={`Select color ${color.code}`}
                     >
                       <div
                         className="w-full h-full rounded-full"
@@ -602,8 +615,8 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                           animate={{ scale: 1 }}
                           className="absolute inset-0 flex items-center justify-center"
                         >
-                          <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                            <Check size={12} className="text-amber-600" />
+                          <div className="w-4 h-4 bg-background rounded-full flex items-center justify-center">
+                            <Check size={12} className="text-brand-600" />
                           </div>
                         </motion.div>
                       )}
@@ -620,7 +633,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                 transition={{ delay: 0.75 }}
                 className="mb-10"
               >
-                <h3 className="text-base uppercase tracking-widest text-gray-800 mb-3 font-[450]">
+                <h3 className="text-base uppercase tracking-widest text-foreground mb-3 font-[450]">
                   Size
                 </h3>
                 <div className="flex flex-wrap gap-3">
@@ -633,8 +646,8 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                       whileTap={{ scale: 0.95 }}
                       className={`px-4 py-2 rounded-full border font-light text-sm transition-all ${
                         selectedSize === size._id
-                          ? "border-amber-600 bg-amber-50 text-amber-700"
-                          : "border-gray-200 text-gray-700 hover:border-gray-400"
+                          ? "border-brand-600 bg-brand-50 text-brand-700"
+                          : "border-border text-muted-foreground hover:border-border"
                       }`}
                     >
                       {size.name}
@@ -644,7 +657,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                           animate={{ scale: 1 }}
                           className="ml-2 inline-flex"
                         >
-                          <Check size={14} className="text-amber-600" />
+                          <Check size={14} className="text-brand-600" />
                         </motion.span>
                       )}
                     </motion.button>
@@ -659,21 +672,22 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               transition={{ delay: 0.8 }}
               className="mb-7"
             >
-              <h3 className="text-base uppercase tracking-widest text-gray-800 mb-5 font-[350]">
+              <h3 className="text-base uppercase tracking-widest text-foreground mb-5 font-[350]">
                 Quantity
               </h3>
-              <div className="inline-flex items-center border border-gray-200 rounded-full overflow-hidden">
+              <div className="inline-flex items-center border border-border rounded-full overflow-hidden">
                 <motion.button
                   type="button"
                   onClick={handleDecrement}
                   disabled={quantity <= 1}
                   whileHover={{ backgroundColor: "rgba(251, 191, 36, 0.05)" }}
                   whileTap={{ scale: 0.95 }}
-                  className="w-10 h-10 flex items-center justify-center text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="w-10 h-10 flex items-center justify-center text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Decrease quantity"
                 >
                   −
                 </motion.button>
-                <div className="w-12 h-10 flex items-center justify-center text-gray-900 font-light border-x border-gray-200">
+                <div className="w-12 h-10 flex items-center justify-center text-foreground font-light border-x border-border">
                   {quantity}
                 </div>
                 <motion.button
@@ -682,7 +696,8 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                   disabled={quantity >= (product.stock || 10)}
                   whileHover={{ backgroundColor: "rgba(251, 191, 36, 0.05)" }}
                   whileTap={{ scale: 0.95 }}
-                  className="w-10 h-10 flex items-center justify-center text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="w-10 h-10 flex items-center justify-center text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Increase quantity"
                 >
                   +
                 </motion.button>
@@ -702,7 +717,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                   disabled={!product.stock || loading}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex-1 bg-white border border-gray-300 text-gray-900 py-4 px-6 rounded-full font-light flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 transition-all text-sm uppercase tracking-wider"
+                  className="flex-1 bg-background border border-border text-foreground py-4 px-6 rounded-full font-light flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:border-border transition-all text-sm uppercase tracking-wider"
                 >
                   {loading ? (
                     <motion.div
@@ -732,7 +747,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                   className={`w-14 h-14 flex items-center justify-center rounded-full border transition-all ${
                     isWishlisted
                       ? "text-red-500 border-red-300 bg-red-50"
-                      : "border-gray-300 hover:border-gray-400 text-gray-600"
+                      : "border-border hover:border-border text-muted-foreground"
                   }`}
                 >
                   <Heart
@@ -748,7 +763,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                 disabled={!product.stock}
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full bg-gradient-to-r from-amber-600 to-amber-500 text-white py-4 px-6 rounded-full font-light flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl text-sm uppercase tracking-wider"
+                className="w-full bg-gradient-to-r from-brand-600 to-brand-500 text-white py-4 px-6 rounded-full font-light flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl text-sm uppercase tracking-wider"
               >
                 <span>Buy Now</span>
                 <ShoppingCart size={18} />
@@ -760,9 +775,9 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1 }}
-                className="mt-8 flex items-center gap-3 text-base text-gray-500 font-light"
+                className="mt-8 flex items-center gap-3 text-base text-muted-foreground font-light"
               >
-                <Truck size={16} className="text-amber-600" />
+                <Truck size={16} className="text-brand-600" />
                 <span>
                   Expected delivery in {product.estimated_delivery_time}
                 </span>
@@ -779,7 +794,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
           transition={{ delay: 0.2 }}
           className="mb-12"
         >
-          <div className="bg-white/60 backdrop-blur-xl  shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-12 border border-white/80 relative overflow-hidden">
+          <div className="bg-background/60 backdrop-blur-xl  shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-12 border border-white/80 relative overflow-hidden">
             <motion.div
               animate={{
                 rotate: [0, 360],
@@ -789,7 +804,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                 rotate: { duration: 25, repeat: Infinity, ease: "linear" },
                 scale: { duration: 5, repeat: Infinity, ease: "easeInOut" },
               }}
-              className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-amber-100/20 to-orange-100/20 rounded-full blur-3xl"
+              className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-brand-100/20 to-orange-100/20 rounded-full blur-3xl"
             />
 
             <div className="relative z-10">
@@ -802,16 +817,16 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                     ease: "easeInOut",
                   }}
                 >
-                  <Gem size={24} className="text-amber-600" strokeWidth={1.5} />
+                  <Gem size={24} className="text-brand-600" strokeWidth={1.5} />
                 </motion.div>
-                <h2 className="text-3xl font-light text-gray-900 tracking-tight">
+                <h2 className="text-3xl font-light text-foreground tracking-tight">
                   Description For The Product
                 </h2>
               </div>
 
-              <div className="h-px bg-gradient-to-r from-amber-200/50 via-amber-300/50 to-transparent mb-2" />
+              <div className="h-px bg-gradient-to-r from-brand-200/50 via-brand-300/50 to-transparent mb-2" />
 
-              <div className="text-gray-800 leading-loose text-base font-[350] whitespace-pre-line">
+              <div className="text-foreground leading-loose text-base font-[350] whitespace-pre-line">
                 {product.description}
               </div>
             </div>
@@ -821,8 +836,8 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
         <ProductFaqSection productId={product._id} />
         <RelatedProducts
           id={product._id}
-          subCategory={(product.subCategory ?? []).map((c) => c.slug ?? c.name)}
-          subSubCategory={(product.subSubCategory ?? []).map((c) => c.slug ?? c.name)}
+          subCategory={(product.subCategory ?? []).map((c) => c._id)}
+          subSubCategory={(product.subSubCategory ?? []).map((c) => c._id)}
         />
         <ProductReviews productId={product._id} />
       </motion.div>

@@ -14,10 +14,17 @@ import { Plus, Pencil, Trash2, Ruler } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api, ApiClientError } from "@/lib/api";
 import type { SizeItem } from "@/lib/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // API functions
-const fetchSizes = async (): Promise<SizeItem[]> => {
-  const data = await api.post<SizeItem[]>("/api/admin/size/view", {});
+const fetchSizes = async (isDeletedAt?: string): Promise<SizeItem[]> => {
+  const data = await api.post<SizeItem[]>("/api/admin/size/view", { isDeletedAt });
   return data ?? [];
 };
 
@@ -50,13 +57,15 @@ export default function SizesPage() {
   const queryClient = useQueryClient();
 
   // React Query hooks
+  const [deletedFilter, setDeletedFilter] = useState<string>("active");
+
   const {
     data: sizes = [],
     isLoading,
     isError,
   } = useQuery<SizeItem[]>({
-    queryKey: ["sizes"],
-    queryFn: fetchSizes,
+    queryKey: ["sizes", deletedFilter],
+    queryFn: () => fetchSizes(deletedFilter === "active" ? undefined : deletedFilter),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -187,9 +196,24 @@ export default function SizesPage() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            {sizes.length} sizes available
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-muted-foreground">
+              {sizes.length} sizes available
+            </p>
+            <Select
+              value={deletedFilter}
+              onValueChange={setDeletedFilter}
+            >
+              <SelectTrigger className="w-[140px] h-8 text-xs">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active Only</SelectItem>
+                <SelectItem value="all">All (incl. deleted)</SelectItem>
+                <SelectItem value="deleted">Deleted Only</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex items-center gap-2">
             <ExportButtons data={sizes as unknown as Record<string, unknown>[]} filename="sizes" />
             <Button

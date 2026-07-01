@@ -59,8 +59,18 @@ export const view = async (
   response: Response,
 ): Promise<void> => {
   try {
-    const andCondition: Record<string, unknown>[] = [{ deletedAt: null }];
+    const andCondition: Record<string, unknown>[] = [];
     const orCondition: Record<string, unknown>[] = [];
+
+    const isDeletedAt = request.body?.isDeletedAt ?? request.query?.isDeletedAt;
+    if (isDeletedAt === "all") {
+      // No deletedAt filter — show all
+    } else if (isDeletedAt === "deleted") {
+      andCondition.push({ deletedAt: { $ne: null } });
+    } else {
+      // Default: active (non-deleted) only
+      andCondition.push({ deletedAt: null });
+    }
 
     const filter: Record<string, unknown> = {};
     if (andCondition.length > 0) filter.$and = andCondition;
@@ -82,9 +92,9 @@ export const view = async (
       .lean();
 
     response.send({
-      _status: ress.length > 0,
-      _message: ress.length > 0 ? "Data Found" : "No Data Found",
-      _data: ress.length > 0 ? ress : [],
+      _status: true,
+      _message: "Data Found",
+      _data: ress,
     });
   } catch (err) {
     response.send({

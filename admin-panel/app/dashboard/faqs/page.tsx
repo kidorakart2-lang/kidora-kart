@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { api, ApiClientError } from "@/lib/api"
+import { invalidateCache } from "@/lib/invalidate-cache"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,6 +12,13 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Drawer } from "@/components/drawer"
 import { ExportButtons } from "@/components/export-buttons"
 import { AlertDialogUse } from "@/components/alert-dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, Pencil, Trash2, Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import type { FAQ } from "@/lib/types";
@@ -23,6 +31,7 @@ export default function FAQsPage() {
   const [editingFaq, setEditingFaq] = useState<FAQ | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [faqToDelete, setFaqToDelete] = useState<string | null>(null)
+  const [deletedFilter, setDeletedFilter] = useState<string>("active")
   const [formData, setFormData] = useState({
     question: "",
     answer: "",
@@ -32,12 +41,13 @@ export default function FAQsPage() {
 
   useEffect(() => {
     loadFaqs()
-  }, [])
+  }, [deletedFilter])
 
   const loadFaqs = async () => {
     setLoading(true)
     try {
-      const data = await api.post<FAQ[]>("/api/admin/faq/view", {})
+      const filter = deletedFilter === "active" ? undefined : deletedFilter
+      const data = await api.post<FAQ[]>("/api/admin/faq/view", { isDeletedAt: filter })
       setFaqs(data ?? [])
     } catch (error) {
       toast({
@@ -71,6 +81,7 @@ export default function FAQsPage() {
     try {
       await api.put("/api/admin/faq/destroy", { id: faqToDelete })
       loadFaqs()
+      invalidateCache(["faq"])
       toast({ title: "FAQ deleted successfully" })
     } catch (error) {
       toast({
@@ -88,6 +99,7 @@ export default function FAQsPage() {
     try {
       await api.post("/api/admin/faq/change-status", { id: faq._id })
       loadFaqs()
+      invalidateCache(["faq"])
       toast({ title: "FAQ status updated successfully" })
     } catch (error) {
       toast({
@@ -105,10 +117,12 @@ export default function FAQsPage() {
       if (editingFaq) {
         await api.put(`/api/admin/faq/update/${editingFaq._id}`, formData)
         loadFaqs()
+        invalidateCache(["faq"])
         toast({ title: "FAQ updated successfully" })
       } else {
         await api.post("/api/admin/faq/create", formData)
         loadFaqs()
+        invalidateCache(["faq"])
         toast({ title: "FAQ created successfully" })
       }
 
@@ -149,6 +163,19 @@ export default function FAQsPage() {
           <p className="text-muted-foreground">Manage frequently asked questions</p>
         </div>
         <div className="flex items-center gap-2">
+          <Select
+            value={deletedFilter}
+            onValueChange={setDeletedFilter}
+          >
+            <SelectTrigger className="w-[140px] h-8 text-xs">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active Only</SelectItem>
+              <SelectItem value="all">All (incl. deleted)</SelectItem>
+              <SelectItem value="deleted">Deleted Only</SelectItem>
+            </SelectContent>
+          </Select>
           <ExportButtons data={faqs as unknown as Record<string, unknown>[]} filename="faqs" />
           <Button
             onClick={() => {

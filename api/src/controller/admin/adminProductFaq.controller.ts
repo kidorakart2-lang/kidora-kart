@@ -10,9 +10,41 @@ const invalidateCache = () => {
 
 export const create = async (req: Request, res: Response): Promise<void> => {
   try {
-    const doc = await productFaq.create(req.body);
+    const { products, entries, status } = req.body as {
+      products: string[];
+      entries: { question: string; answer: string; order?: number }[];
+      status?: boolean;
+    };
+
+    if (!products || !Array.isArray(products) || products.length === 0) {
+      fail(res, "At least one product is required", 400);
+      return;
+    }
+
+    if (!entries || !Array.isArray(entries) || entries.length === 0) {
+      fail(res, "At least one FAQ entry is required", 400);
+      return;
+    }
+
+    for (const [i, entry] of entries.entries()) {
+      if (!entry.question?.trim() || !entry.answer?.trim()) {
+        fail(res, `FAQ entry ${i + 1} has empty question or answer`, 400);
+        return;
+      }
+    }
+
+    const doc = await productFaq.create({
+      products,
+      entries: entries.map((e) => ({
+        question: e.question.trim(),
+        answer: e.answer.trim(),
+        order: e.order ?? 1,
+      })),
+      status: status ?? true,
+    });
+
     invalidateCache();
-    success(res, doc, "Product FAQ created", 201);
+    success(res, doc, "Product FAQ set created", 201);
   } catch (err) {
     fail(res, err instanceof Error ? err.message : "Failed to create", 500);
   }
@@ -20,9 +52,20 @@ export const create = async (req: Request, res: Response): Promise<void> => {
 
 export const view = async (req: Request, res: Response): Promise<void> => {
   try {
-    const andCondition: Record<string, unknown>[] = [{ deletedAt: null }];
+    const andCondition: Record<string, unknown>[] = [];
     const orCondition: Record<string, unknown>[] = [];
     const filter: Record<string, unknown> = {};
+
+    const isDeletedAt = req.body?.isDeletedAt ?? req.query?.isDeletedAt;
+    if (isDeletedAt === "all") {
+      // No deletedAt filter — show all
+    } else if (isDeletedAt === "deleted") {
+      andCondition.push({ deletedAt: { $ne: null } });
+    } else {
+      // Default: active (non-deleted) only
+      andCondition.push({ deletedAt: null });
+    }
+
     if (andCondition.length > 0) filter.$and = andCondition;
 
     const pageValue = req.body.page ?? 1;
@@ -30,16 +73,13 @@ export const view = async (req: Request, res: Response): Promise<void> => {
     const skipValue = (pageValue - 1) * limitValue;
 
     if (req.body.question) {
-      orCondition.push({ question: new RegExp(req.body.question, "i") });
+      orCondition.push({ "entries.question": new RegExp(req.body.question, "i") });
     }
     if (req.body.status !== undefined) {
       andCondition.push({ status: req.body.status });
     }
     if (req.body.product) {
-      andCondition.push({ product: req.body.product });
-    }
-    if (req.body.category) {
-      andCondition.push({ category: req.body.category });
+      andCondition.push({ products: req.body.product });
     }
     if (orCondition.length > 0) filter.$or = orCondition;
 
@@ -48,15 +88,14 @@ export const view = async (req: Request, res: Response): Promise<void> => {
       .countDocuments();
     const data = await productFaq
       .find(filter as FilterQuery<typeof productFaq>)
-      .sort({ order: "asc", _id: "desc" })
+      .sort({ createdAt: "desc", _id: "desc" })
       .limit(limitValue)
       .skip(skipValue)
-      .populate("product", "name slug")
-      .populate("category", "name slug");
+      .populate("products", "name slug");
 
     res.json({
-      _status: data.length > 0,
-      _message: data.length > 0 ? "FAQs Found" : "No FAQs Found",
+      _status: true,
+      _message: "FAQ Sets Found",
       _data: data,
       _total_pages: Math.ceil(totalRecords / limitValue),
       _total_records: totalRecords,
@@ -71,9 +110,8 @@ export const details = async (req: Request, res: Response): Promise<void> => {
   try {
     const result = await productFaq
       .findById(req.body.id)
-      .populate("product", "name slug")
-      .populate("category", "name slug");
-    success(res, result, result ? "FAQ Found" : "No FAQ Found");
+      .populate("products", "name slug");
+    success(res, result, result ? "FAQ Set Found" : "No FAQ Set Found");
   } catch (err) {
     fail(res, "Internal Server Error", 500);
   }
@@ -81,13 +119,30 @@ export const details = async (req: Request, res: Response): Promise<void> => {
 
 export const update = async (req: Request, res: Response): Promise<void> => {
   try {
+    const updateData: Record<string, unknown> = {};
+    if (req.body.products !== undefined) updateData.products = req.body.products;
+    if (req.body.entries !== undefined) {
+      for (const [i, entry] of req.body.entries.entries()) {
+        if (!entry.question?.trim() || !entry.answer?.trim()) {
+          fail(res, `FAQ entry ${i + 1} has empty question or answer`, 400);
+          return;
+        }
+      }
+      updateData.entries = req.body.entries.map((e: { question: string; answer: string; order?: number }) => ({
+        question: e.question.trim(),
+        answer: e.answer.trim(),
+        order: e.order ?? 1,
+      }));
+    }
+    if (req.body.status !== undefined) updateData.status = req.body.status;
+
     const result = await productFaq.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
-      { new: true },
+      { $set: updateData },
+      { new: true, runValidators: true },
     );
     invalidateCache();
-    success(res, result, result ? "FAQ Updated" : "FAQ Not Found");
+    success(res, result, result ? "FAQ Set Updated" : "FAQ Set Not Found");
   } catch (err) {
     fail(res, "Failed to update product FAQ", 500);
   }
@@ -101,86 +156,9 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
       { new: true },
     );
     invalidateCache();
-    success(res, result, result ? "FAQ Deleted" : "FAQ Not Found");
+    success(res, result, result ? "FAQ Set Deleted" : "FAQ Set Not Found");
   } catch (err) {
     fail(res, "Failed to delete product FAQ", 500);
-  }
-};
-
-export const bulkCreate = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { productIds, question, answer, order, status } = req.body as {
-      productIds: string[];
-      question: string;
-      answer: string;
-      order?: number;
-      status?: boolean;
-    };
-
-    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
-      fail(res, "At least one product is required", 400);
-      return;
-    }
-
-    const docs = await productFaq.insertMany(
-      productIds.map((productId) => ({
-        product: productId,
-        question,
-        answer,
-        order: order ?? 1,
-        status: status ?? true,
-      })),
-    );
-
-    invalidateCache();
-    success(res, docs, `${docs.length} FAQs created`, 201);
-  } catch (err) {
-    fail(res, err instanceof Error ? err.message : "Failed to create", 500);
-  }
-};
-
-export const bulkCreateFaqs = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { productIds, faqs } = req.body as {
-      productIds: string[];
-      faqs: { question: string; answer: string; order?: number; status?: boolean }[];
-    };
-
-    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
-      fail(res, "At least one product is required", 400);
-      return;
-    }
-
-    if (!faqs || !Array.isArray(faqs) || faqs.length === 0) {
-      fail(res, "At least one FAQ entry is required", 400);
-      return;
-    }
-
-    // Validate each FAQ entry
-    for (const [i, faq] of faqs.entries()) {
-      if (!faq.question?.trim() || !faq.answer?.trim()) {
-        fail(res, `FAQ entry ${i + 1} has empty question or answer`, 400);
-        return;
-      }
-    }
-
-    // Create the cross-product: each FAQ for each product
-    const docs = await productFaq.insertMany(
-      productIds.flatMap((productId) =>
-        faqs.map((faq) => ({
-          product: productId,
-          question: faq.question.trim(),
-          answer: faq.answer.trim(),
-          order: faq.order ?? 1,
-          status: faq.status ?? true,
-        })),
-      ),
-    );
-
-    invalidateCache();
-    success(res, docs, `${docs.length} FAQs created (${faqs.length} entries × ${productIds.length} products)`, 201);
-  } catch (err) {
-    fail(res, "Failed to create FAQs", 500);
   }
 };
 

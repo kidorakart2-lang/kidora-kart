@@ -177,8 +177,8 @@ export default function ResetPassword() {
     <div className="flex min-h-screen items-center justify-center  p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
-            <Lock className="h-6 w-6 text-amber-600" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-100">
+            <Lock className="h-6 w-6 text-brand-600" />
           </div>
           <CardTitle className="text-2xl font-bold">
             {step === "request" ? "Reset Password" : "Create New Password"}
@@ -195,7 +195,7 @@ export default function ResetPassword() {
               <div className="space-y-2">
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-muted-foreground"
                 >
                   Email
                 </label>
@@ -221,7 +221,7 @@ export default function ResetPassword() {
           ) : step === "otp" ? (
             <form onSubmit={verifyOtp} className="space-y-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-muted-foreground">
                   Enter verification code
                 </label>
                 <div className="flex justify-center space-x-2">
@@ -237,7 +237,7 @@ export default function ResetPassword() {
                         <InputOTPSlot
                           key={index}
                           index={index}
-                          className="h-12 w-12 text-lg border-gray-300 focus-visible:ring-2 focus-visible:ring-amber-500 rounded-lg"
+                          className="h-12 w-12 text-lg border-border focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg"
                         />
                       ))}
                     </InputOTPGroup>
@@ -253,7 +253,7 @@ export default function ResetPassword() {
               <div className="space-y-2">
                 <label
                   htmlFor="newPassword"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-muted-foreground"
                 >
                   New Password
                 </label>
@@ -270,7 +270,7 @@ export default function ResetPassword() {
               <div className="space-y-2">
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-muted-foreground"
                 >
                   Confirm Password
                 </label>

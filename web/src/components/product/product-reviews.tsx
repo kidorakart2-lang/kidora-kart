@@ -60,6 +60,7 @@ const StarRating = ({ rating, onRatingChange, readOnly = false }: StarRatingProp
       <button
         key={star}
         type="button"
+        aria-label={`${star} star${star > 1 ? 's' : ''}`}
         onClick={() => { if (!readOnly && onRatingChange) onRatingChange(star); }}
         className={`${!readOnly ? "cursor-pointer" : ""}`}
         disabled={readOnly}
@@ -67,7 +68,7 @@ const StarRating = ({ rating, onRatingChange, readOnly = false }: StarRatingProp
         <Star
           size={20}
           className={`${
-            star <= rating ? "fill-amber-400 text-amber-400" : "text-gray-300"
+            star <= rating ? "fill-brand-400 text-brand-400" : "text-muted-foreground"
           }`}
         />
       </button>
@@ -215,7 +216,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-16">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
       </div>
     );
   }
@@ -234,47 +235,47 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
             variants={itemVariants}
             className="inline-flex items-center gap-2 mb-4"
           >
-            <div className="h-px w-12 bg-gradient-to-r from-transparent to-amber-300" />
-            <Award size={20} className="text-amber-600" strokeWidth={1.5} />
-            <div className="h-px w-12 bg-gradient-to-l from-transparent to-amber-300" />
+            <div className="h-px w-12 bg-gradient-to-r from-transparent to-brand-300" />
+            <Award size={20} className="text-brand-600" strokeWidth={1.5} />
+            <div className="h-px w-12 bg-gradient-to-l from-transparent to-brand-300" />
           </motion.div>
 
           <motion.h2
             variants={itemVariants}
-            className="text-4xl md:text-5xl font-extralight text-gray-900 tracking-tight mb-3"
+            className="text-4xl md:text-5xl font-extralight text-foreground tracking-tight mb-3"
           >
             Customer Reviews
           </motion.h2>
 
           <motion.p
             variants={itemVariants}
-            className="text-sm text-gray-500 font-light uppercase tracking-[0.2em]"
+            className="text-sm text-muted-foreground font-light uppercase tracking-[0.2em]"
           >
             What Our Clients Say
           </motion.p>
         </div>
 
         {/* Main Content Card */}
-        <div className="bg-white/60 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/80 overflow-hidden">
+        <div className="bg-background/60 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/80 overflow-hidden">
           {/* Header with Write Review Button */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-8 md:p-10 border-b border-gray-100">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-8 md:p-10 border-b border-border">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-100 to-orange-100 flex items-center justify-center">
                 <Star
                   size={20}
-                  className="text-amber-600 fill-amber-600"
+                  className="text-brand-600 fill-brand-600"
                   strokeWidth={1.5}
                 />
               </div>
               <div>
-                <div className="text-sm text-gray-500 font-light">
+                <div className="text-sm text-muted-foreground font-light">
                   Overall Rating
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-3xl font-light text-gray-900">
+                  <span className="text-3xl font-light text-foreground">
                     {averageRating.toFixed(1)}
                   </span>
-                  <span className="text-gray-400 text-sm">/ 5.0</span>
+                  <span className="text-muted-foreground text-sm">/ 5.0</span>
                 </div>
               </div>
             </div>
@@ -283,7 +284,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setIsModalOpen(true)}
-              className="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-full font-light text-sm uppercase tracking-wider shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+              className="px-6 py-3 bg-gradient-to-r from-brand-600 to-orange-600 text-white rounded-full font-light text-sm uppercase tracking-wider shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
             >
               <Edit3 size={16} />
               <span>Write Review</span>
@@ -293,22 +294,22 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
           {/* Rating Summary */}
           <motion.div
             variants={itemVariants}
-            className="p-8 md:p-10 bg-gradient-to-br from-amber-50/30 to-orange-50/30"
+            className="p-8 md:p-10 bg-gradient-to-br from-brand-50/30 to-orange-50/30"
           >
             <div className="flex items-center gap-6 mb-4">
               <StarRating rating={Math.round(averageRating)} readOnly={true} />
-              <span className="text-gray-500 font-light text-sm">
+              <span className="text-muted-foreground font-light text-sm">
                 Based on {reviews.length}{" "}
                 {reviews.length === 1 ? "review" : "reviews"}
               </span>
             </div>
 
-            <div className="relative w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="relative w-full h-2 bg-muted rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: `${(averageRating / 5) * 100}%` }}
                 transition={{ duration: 1.2, ease: "easeOut" }}
-                className="absolute h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"
+                className="absolute h-full bg-gradient-to-r from-brand-500 to-orange-500 rounded-full"
               />
             </div>
           </motion.div>
@@ -326,7 +327,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               >
                 <motion.div
                   whileHover={{ y: -2 }}
-                  className="p-6 md:p-8 bg-white rounded-2xl border border-gray-100 hover:border-amber-200 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                  className="p-6 md:p-8 bg-background rounded-2xl border border-border hover:border-brand-200 transition-all cursor-pointer shadow-sm hover:shadow-md"
                   onClick={() =>
                     setExpandedReview(expandedReview === i ? null : i)
                   }
@@ -344,7 +345,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                   <div className="flex items-start gap-4 mb-4">
                     {/* Avatar */}
                     <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-amber-700 font-light text-lg">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-100 to-orange-100 flex items-center justify-center text-brand-700 font-light text-lg">
                         {review.userId?.avatar ? (
                           <img
                             src={review.userId.avatar}
@@ -360,10 +361,10 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                     {/* User Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-light text-gray-900 text-lg">
+                        <h4 className="font-light text-foreground text-lg">
                           {review.userId?.name || "Anonymous User"}
                         </h4>
-                        <span className="text-xs text-gray-400 font-light">
+                        <span className="text-xs text-muted-foreground font-light">
                           {new Date(review.createdAt).toLocaleDateString(
                             "en-US",
                             {
@@ -377,15 +378,15 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
                       <div className="flex items-center gap-2 mb-4">
                         <StarRating rating={review.rating} readOnly={true} />
-                        <span className="text-sm text-gray-400">|</span>
-                        <span className="text-sm text-gray-500 font-light">
+                        <span className="text-sm text-muted-foreground">|</span>
+                        <span className="text-sm text-muted-foreground font-light">
                           {review.rating}.0
                         </span>
                       </div>
 
                       {/* Review Text */}
                       <p
-                        className={`text-gray-600 font-light leading-relaxed ${
+                        className={`text-muted-foreground font-light leading-relaxed ${
                           expandedReview === i ? "" : "line-clamp-2"
                         }`}
                       >
@@ -394,7 +395,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
                       {/* Expand Button */}
                       {review.comment.length > 150 && (
-                        <button className="mt-3 flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700 font-light transition-colors">
+                        <button className="mt-3 flex items-center gap-1 text-sm text-brand-600 hover:text-brand-700 font-light transition-colors">
                           <span>
                             {expandedReview === i ? "Show less" : "Read more"}
                           </span>
@@ -434,7 +435,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-[1001]"
             >
-              <div className="bg-white rounded-3xl shadow-2xl p-8 m-4">
+              <div className="bg-background rounded-3xl shadow-2xl p-8 m-4">
                 {submitSuccess ? (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -452,54 +453,58 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                         strokeWidth={2}
                       />
                     </motion.div>
-                    <h3 className="text-2xl font-light text-gray-900 mb-2">
+                    <h3 className="text-2xl font-light text-foreground mb-2">
                       Thank You!
                     </h3>
-                    <p className="text-gray-500 font-light">
+                    <p className="text-muted-foreground font-light">
                       Your review has been submitted successfully
                     </p>
                   </motion.div>
                 ) : (
                   <>
                     <div className="text-center mb-8">
-                      <h3 className="text-3xl font-light text-gray-900 mb-2">
+                      <h3 className="text-3xl font-light text-foreground mb-2">
                         Write a Review
                       </h3>
-                      <p className="text-sm text-gray-500 font-light">
+                      <p className="text-sm text-muted-foreground font-light">
                         Share your experience with us
                       </p>
                     </div>
 
                     <div className="space-y-6">
                       <div>
-                        <label className="block text-sm font-light text-gray-700 mb-3 uppercase tracking-wider">
+                        <label id="rating-label" className="block text-sm font-light text-muted-foreground mb-3 uppercase tracking-wider">
                           Your Rating
                         </label>
-                        <StarRating
-                          rating={formData.rating}
-                          onRatingChange={handleRatingChange}
-                        />
+                        <div role="radiogroup" aria-labelledby="rating-label">
+                          <StarRating
+                            rating={formData.rating}
+                            onRatingChange={handleRatingChange}
+                          />
+                        </div>
                         {formErrors.rating && (
-                          <p className="mt-2 text-sm text-red-500 font-light">
+                          <p className="mt-2 text-sm text-destructive font-light">
                             {formErrors.rating}
                           </p>
                         )}
                       </div>
 
                       <div>
-                        <label className="block text-sm font-light text-gray-700 mb-3 uppercase tracking-wider">
-                          Your Review
+                        <label htmlFor="comment" className="block text-sm font-light text-muted-foreground mb-3 uppercase tracking-wider">
+                          Your Review <span className="text-destructive">*</span>
                         </label>
                         <textarea
+                          id="comment"
                           name="comment"
                           value={formData.comment}
                           onChange={handleInputChange}
                           rows={5}
-                          className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:border-amber-300 focus:ring focus:ring-amber-200 focus:ring-opacity-50 transition-all font-light text-gray-700 resize-none"
+                          className="w-full px-4 py-3 border border-border rounded-2xl focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50 transition-all font-light text-muted-foreground resize-none"
                           placeholder="Share your thoughts about this piece..."
+                          aria-required={true}
                         />
                         {formErrors.comment && (
-                          <p className="mt-2 text-sm text-red-500 font-light">
+                          <p className="mt-2 text-sm text-destructive font-light">
                             {formErrors.comment}
                           </p>
                         )}
@@ -511,7 +516,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                           onClick={() => setIsModalOpen(false)}
                           whileHover={{ y: -2 }}
                           whileTap={{ scale: 0.98 }}
-                          className="flex-1 px-6 py-3 border border-gray-200 text-gray-700 rounded-full font-light text-sm uppercase tracking-wider hover:bg-gray-50 transition-all"
+                          className="flex-1 px-6 py-3 border border-border text-muted-foreground rounded-full font-light text-sm uppercase tracking-wider hover:bg-muted transition-all"
                         >
                           Cancel
                         </motion.button>
@@ -521,7 +526,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                           disabled={isSubmitting}
                           whileHover={{ y: -2 }}
                           whileTap={{ scale: 0.98 }}
-                          className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-full font-light text-sm uppercase tracking-wider shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                          className="flex-1 px-6 py-3 bg-gradient-to-r from-brand-600 to-orange-600 text-white rounded-full font-light text-sm uppercase tracking-wider shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                         >
                           {isSubmitting ? "Submitting..." : "Submit Review"}
                         </motion.button>

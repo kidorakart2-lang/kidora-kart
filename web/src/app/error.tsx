@@ -12,26 +12,22 @@ export default function Error({
   reset: () => void;
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-      {/*
-       * Static fallback that works without JavaScript.
-       * Framer Motion animations are applied as progressive enhancement via JS only.
-       */}
+    <div className="min-h-screen bg-gradient-to-br from-muted to-muted/80 flex items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl w-full text-center">
         <div className="mb-8">
-          <div className="mx-auto flex items-center justify-center h-24 w-24 text-red-500 mb-6">
+          <div className="mx-auto flex items-center justify-center h-24 w-24 text-destructive mb-6">
             <AlertCircle className="h-24 w-24" />
           </div>
 
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
             Something went wrong!
           </h1>
 
-          <p className="text-gray-600 mb-6 text-lg">
+          <p className="text-muted-foreground mb-6 text-lg">
             {"We're sorry, but an unexpected problem appeared. Please try again."}
           </p>
 
-          <p className="text-gray-500 text-sm mb-8">
+          <p className="text-muted-foreground text-sm mb-8">
             Error code: {error?.digest || "UNKNOWN_ERROR"}
           </p>
         </div>
@@ -55,7 +51,7 @@ export default function Error({
           </Button>
         </div>
 
-        <div className="mt-16 text-gray-400 text-sm">
+        <div className="mt-16 text-muted-foreground/60 text-sm">
           <p>If the problem persists, please contact support.</p>
         </div>
       </div>

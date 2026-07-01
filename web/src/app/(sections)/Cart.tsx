@@ -248,15 +248,15 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
               <AnimatedCart />
             </div>
             <div className="absolute -top-2 -right-2">
-              <Sparkles className="w-6 h-6 text-amber-500 animate-pulse" />
+              <Sparkles className="w-6 h-6 text-brand-500 animate-pulse" />
             </div>
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-2xl md:text-3xl font-serif text-slate-800">
+            <h2 className="text-2xl md:text-3xl font-serif text-foreground">
               Your Cart is Empty
             </h2>
-            <p className="text-slate-600 text-base">
+            <p className="text-muted-foreground text-base">
               Discover our exquisite jewelry collection and add items to your
               cart
             </p>
@@ -264,10 +264,10 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
           <button
             onClick={() => router.push("/category/new-arrival")}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-600 to-amber-700 
-                     hover:from-amber-700 hover:to-amber-800 text-white font-medium py-3 px-8 
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-600 to-brand-700 
+                     hover:from-brand-700 hover:to-brand-800 text-white font-medium py-3 px-8 
                      rounded-full transition-all duration-300 shadow-lg hover:shadow-xl 
-                     hover:shadow-amber-500/30 transform hover:scale-105"
+                     hover:shadow-brand-500/30 transform hover:scale-105"
           >
             <ShoppingBag size={18} />
             Start Shopping
@@ -280,29 +280,29 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
   return (
     <>
-      <main className="py-12 md:py-16 bg-gradient-to-b from-amber-50/30 via-white to-amber-50/30 min-h-screen">
+      <main className="py-12 md:py-16 bg-gradient-to-b from-brand-50/30 via-white to-brand-50/30 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* Header */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 mb-4">
-              <Sparkles className="w-5 h-5 text-amber-600 animate-pulse" />
-              <span className="text-sm font-medium text-slate-600 tracking-wider uppercase">
+              <Sparkles className="w-5 h-5 text-brand-600 animate-pulse" />
+              <span className="text-sm font-medium text-muted-foreground tracking-wider uppercase">
                 Your Selection
               </span>
-              <Sparkles className="w-5 h-5 text-amber-600 animate-pulse" />
+              <Sparkles className="w-5 h-5 text-brand-600 animate-pulse" />
             </div>
 
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif text-slate-800 mb-4 tracking-wide">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif text-foreground mb-4 tracking-wide">
               Shopping Cart
             </h1>
 
             <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-amber-600"></div>
-              <div className="w-3 h-3 bg-amber-600 rounded-full"></div>
-              <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-amber-600"></div>
+              <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-brand-600"></div>
+              <div className="w-3 h-3 bg-brand-600 rounded-full"></div>
+              <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-brand-600"></div>
             </div>
 
-            <p className="text-slate-600 text-base">
+            <p className="text-muted-foreground text-base">
               {effectiveCart?._data?.totalItems || 0}{" "}
               {effectiveCart?._data?.totalItems === 1 ? "item" : "items"} in your cart
             </p>
@@ -315,14 +315,14 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                 {effectiveCart?._data?.items.map((item) => (
                   <div
                     key={item._id}
-                    className="group bg-white rounded-2xl p-5 sm:p-6 shadow-md hover:shadow-xl 
-                             transition-all duration-300 border border-slate-100 hover:border-amber-200 
+                    className="group bg-background rounded-2xl p-5 sm:p-6 shadow-md hover:shadow-xl 
+                             transition-all duration-300 border border-border hover:border-brand-200 
                              relative overflow-hidden"
                   >
                     {/* Hover Gradient */}
                     <div
-                      className="absolute inset-0 bg-gradient-to-br from-amber-50/0 to-transparent 
-                                  group-hover:from-amber-50/50 transition-all duration-500 pointer-events-none"
+                      className="absolute inset-0 bg-gradient-to-br from-brand-50/0 to-transparent 
+                                  group-hover:from-brand-50/50 transition-all duration-500 pointer-events-none"
                     />
 
                     <div className="flex gap-4 sm:gap-6 relative z-10">
@@ -332,8 +332,8 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                         className="flex-shrink-0"
                       >
                         <div
-                          className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden border-2 border-slate-200 
-                                      group-hover:border-amber-300 transition-all duration-300 bg-gradient-to-br from-amber-50 to-slate-50"
+                          className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden border-2 border-border 
+                                      group-hover:border-brand-300 transition-all duration-300 bg-gradient-to-br from-brand-50 to-slate-50"
                         >
                           <Image
                             src={item.product.image ?? "/placeholder.svg"}
@@ -353,8 +353,8 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                               href={`/product-details/${item.product.slug}`}
                             >
                               <h3
-                                className="text-base sm:text-lg font-semibold text-slate-900 mb-2 
-                                           group-hover:text-amber-700 transition-colors line-clamp-2"
+                                className="text-base sm:text-lg font-semibold text-foreground mb-2 
+                                           group-hover:text-brand-700 transition-colors line-clamp-2"
                               >
                                 {item.product.name}
                               </h3>
@@ -362,15 +362,15 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
                             {/* Color */}
                             <div className="flex items-center gap-2 mb-2">
-                              <span className="text-sm text-slate-600">
+                              <span className="text-sm text-muted-foreground">
                                 Color:
                               </span>
                               <div className="flex items-center gap-1.5">
                                 <span
                                   style={{ backgroundColor: item.color.code }}
-                                  className="w-5 h-5 rounded-full border-2 border-slate-300 shadow-sm"
+                                  className="w-5 h-5 rounded-full border-2 border-border shadow-sm"
                                 />
-                                <span className="text-sm font-medium text-slate-700">
+                                <span className="text-sm font-medium text-muted-foreground">
                                   {item.color.name}
                                 </span>
                               </div>
@@ -379,17 +379,17 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                             {/* Size */}
                             {item.size && (
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="text-sm text-slate-600">
+                                <span className="text-sm text-muted-foreground">
                                   Size:
                                 </span>
-                                <span className="text-sm font-medium text-slate-700">
+                                <span className="text-sm font-medium text-muted-foreground">
                                   {item.size.name}
                                 </span>
                               </div>
                             )}
 
                             {/* Price */}
-                            <p className="text-xl sm:text-2xl font-bold text-amber-600">
+                            <p className="text-xl sm:text-2xl font-bold text-brand-600">
                               ₹
                               {(
                                 item.product.discount_price ||
@@ -401,33 +401,33 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                           {/* Remove Button */}
                           <button
                             onClick={() => removeItem(item._id)}
-                            className="flex-shrink-0 w-9 h-9 rounded-full bg-slate-100 hover:bg-rose-50 
-                                     border border-slate-200 hover:border-rose-300 flex items-center justify-center 
+                            className="flex-shrink-0 w-9 h-9 rounded-full bg-muted hover:bg-brand-accent-50 
+                                     border border-border hover:border-brand-accent-300 flex items-center justify-center 
                                      transition-all duration-300 group/btn hover:scale-110"
                             aria-label="Remove item"
                           >
                             <Trash2
                               size={16}
-                              className="text-slate-600 group-hover/btn:text-rose-500 transition-colors"
+                              className="text-muted-foreground group-hover/btn:text-brand-accent-500 transition-colors"
                             />
                           </button>
                         </div>
 
                         {/* Quantity Controls */}
                         <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2 bg-slate-50 rounded-full p-1 border border-slate-200">
+                          <div className="flex items-center gap-2 bg-muted rounded-full p-1 border border-border">
                             <button
                               disabled={loading || item.quantity === 1}
                               onClick={() =>
                                 updateQuantity(item._id, item.quantity - 1)
                               }
-                              className="w-8 h-8 rounded-full hover:bg-white border border-transparent 
-                                       hover:border-slate-300 flex items-center justify-center transition-all 
+                              className="w-8 h-8 rounded-full hover:bg-background border border-transparent 
+                                       hover:border-border flex items-center justify-center transition-all 
                                        disabled:opacity-40 disabled:cursor-not-allowed"
                             >
-                              <Minus size={14} className="text-slate-700" />
+                              <Minus size={14} className="text-muted-foreground" />
                             </button>
-                            <span className="w-10 text-center font-semibold text-slate-900">
+                            <span className="w-10 text-center font-semibold text-foreground">
                               {item.quantity}
                             </span>
                             <button
@@ -437,14 +437,14 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                               onClick={() =>
                                 updateQuantity(item._id, item.quantity + 1)
                               }
-                              className="w-8 h-8 rounded-full hover:bg-white border border-transparent 
-                                       hover:border-slate-300 flex items-center justify-center transition-all 
+                              className="w-8 h-8 rounded-full hover:bg-background border border-transparent 
+                                       hover:border-border flex items-center justify-center transition-all 
                                        disabled:opacity-40 disabled:cursor-not-allowed"
                             >
-                              <Plus size={14} className="text-slate-700" />
+                              <Plus size={14} className="text-muted-foreground" />
                             </button>
                           </div>
-                          <span className="text-sm text-slate-500">
+                          <span className="text-sm text-muted-foreground">
                             {item.product.stock} in stock
                           </span>
                         </div>
@@ -454,7 +454,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                     {/* Bottom Shine */}
                     <div
                       className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent 
-                                  via-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                  via-brand-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                     />
                   </div>
                 ))}
@@ -462,19 +462,19 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
               {/* Order Summary */}
               <div className="lg:col-span-1">
-                <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl border border-slate-100 sticky top-24">
+                <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-xl border border-border sticky top-24">
                   <div className="flex items-center gap-2 mb-6">
-                    <ShoppingBag className="w-5 h-5 text-amber-600" />
-                    <h2 className="text-xl font-semibold text-slate-900">
+                    <ShoppingBag className="w-5 h-5 text-brand-600" />
+                    <h2 className="text-xl font-semibold text-foreground">
                       Order Summary
                     </h2>
                   </div>
 
                   {/* Price Breakdown */}
-                  <div className="space-y-4 py-6 border-y border-slate-200">
-                    <div className="flex justify-between text-slate-600">
+                  <div className="space-y-4 py-6 border-y border-border">
+                    <div className="flex justify-between text-muted-foreground">
                       <span>Subtotal</span>
-                      <span className="font-semibold text-slate-900">
+                      <span className="font-semibold text-foreground">
                         ₹{subtotal.toFixed(2)}
                       </span>
                     </div>
@@ -488,7 +488,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                       </div>
                     )}
 
-                    <div className="flex justify-between text-slate-600">
+                    <div className="flex justify-between text-muted-foreground">
                       <span>Shipping</span>
                       <span className="font-semibold">
                         {shipping === 0 ? (
@@ -497,7 +497,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                             Free
                           </span>
                         ) : (
-                          <span className="text-slate-900">
+                          <span className="text-foreground">
                             ₹{shipping.toFixed(2)}
                           </span>
                         )}
@@ -505,14 +505,14 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                     </div>
 
                     {finalSubtotal < 1000 && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                        <p className="text-xs text-amber-800">
+                      <div className="bg-brand-50 border border-brand-200 rounded-lg p-3">
+                        <p className="text-xs text-brand-800">
                           Add ₹{(1000 - finalSubtotal).toFixed(2)} more for free
                           shipping!
                         </p>
-                        <div className="mt-2 bg-white rounded-full h-2 overflow-hidden">
+                        <div className="mt-2 bg-background rounded-full h-2 overflow-hidden">
                           <div
-                            className="bg-gradient-to-r from-amber-400 to-amber-600 h-full transition-all duration-500"
+                            className="bg-gradient-to-r from-brand-400 to-brand-600 h-full transition-all duration-500"
                             style={{
                               width: `${Math.min(
                                 (finalSubtotal / 950) * 100,
@@ -527,10 +527,10 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
                   {/* Total */}
                   <div className="flex justify-between items-center py-6">
-                    <span className="text-lg font-semibold text-slate-900">
+                    <span className="text-lg font-semibold text-foreground">
                       Estimated Total
                     </span>
-                    <span className="text-2xl font-bold text-amber-600">
+                    <span className="text-2xl font-bold text-brand-600">
                       ₹{estimatedTotal.toFixed(2)}
                     </span>
                   </div>
@@ -539,10 +539,10 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                   <div className="space-y-3">
                     <Link href="/checkout?type=cart">
                       <button
-                        className="w-full bg-gradient-to-r from-amber-600 to-amber-700 
-                                       hover:from-amber-700 hover:to-amber-800 text-white font-semibold 
+                        className="w-full bg-gradient-to-r from-brand-600 to-brand-700 
+                                       hover:from-brand-700 hover:to-brand-800 text-white font-semibold 
                                        py-4 rounded-xl transition-all duration-300 shadow-lg 
-                                       hover:shadow-xl hover:shadow-amber-500/30 transform hover:scale-[1.02]
+                                       hover:shadow-xl hover:shadow-brand-500/30 transform hover:scale-[1.02]
                                        flex items-center justify-center gap-2"
                       >
                         Proceed to Checkout
@@ -552,9 +552,9 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
                     <Link href="/">
                       <button
-                        className="w-full mt-4  bg-white border-2 border-slate-200 hover:border-amber-400 
-                                       text-slate-700 hover:text-amber-700 font-medium py-4 rounded-xl 
-                                       transition-all duration-300 hover:bg-amber-50"
+                        className="w-full mt-4  bg-background border-2 border-border hover:border-brand-400 
+                                       text-muted-foreground hover:text-brand-700 font-medium py-4 rounded-xl 
+                                       transition-all duration-300 hover:bg-brand-50"
                       >
                         Continue Shopping
                       </button>
@@ -562,8 +562,8 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                   </div>
 
                   {/* Trust Badges */}
-                  <div className="mt-6 pt-6 border-t border-slate-200 space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <div className="mt-6 pt-6 border-t border-border space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
                         <svg
                           className="w-3 h-3 text-emerald-600"
@@ -579,7 +579,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                       </div>
                       <span>Secure Checkout</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
                         <svg
                           className="w-3 h-3 text-emerald-600"
@@ -614,12 +614,12 @@ export const LoadingUi = ({ hidden }: { hidden: boolean }) => {
       className={
         !hidden
           ? "hidden"
-          : "fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-[1800]"
+          : "fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-[1800]"
       }
     >
       <div className="text-center">
-        <Loader2 className="w-12 h-12 animate-spin text-amber-600 mx-auto mb-3" />
-        <p className="text-slate-600 text-sm">Updating ...</p>
+        <Loader2 className="w-12 h-12 animate-spin text-brand-600 mx-auto mb-3" />
+        <p className="text-muted-foreground text-sm">Updating ...</p>
       </div>
     </div>
   );
@@ -629,12 +629,12 @@ const AnimatedCart = () => {
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       <div
-        className="absolute inset-0 rounded-full border-2 border-amber-300 animate-ping"
+        className="absolute inset-0 rounded-full border-2 border-brand-300 animate-ping"
         style={{ animationDuration: "2s" }}
       />
-      <div className="absolute inset-4 rounded-full border-2 border-amber-400 animate-pulse" />
+      <div className="absolute inset-4 rounded-full border-2 border-brand-400 animate-pulse" />
       <ShoppingCart
-        className="w-16 h-16 text-amber-500 relative z-10"
+        className="w-16 h-16 text-brand-500 relative z-10"
         strokeWidth={1.5}
       />
     </div>

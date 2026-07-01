@@ -124,11 +124,11 @@ export default function MyOrders() {
   };
 
   const statusColors: Record<string, string> = {
-    pending: "bg-amber-100 text-amber-800 border-amber-300",
-    confirmed: "bg-blue-100 text-blue-800 border-blue-300",
-    shipped: "bg-purple-100 text-purple-800 border-purple-300",
+    pending: "bg-brand-100 text-brand-800 border-brand-300",
+    confirmed: "bg-brand-100 text-brand-800 border-brand-300",
+    shipped: "bg-brand-accent-100 text-brand-accent-800 border-brand-accent-300",
     delivered: "bg-green-100 text-green-800 border-green-300",
-    cancelled: "bg-gray-100 text-gray-800 border-gray-300",
+    cancelled: "bg-muted text-muted-foreground border-border",
   };
 
   const filters = [
@@ -149,11 +149,11 @@ export default function MyOrders() {
       >
         <div className="flex items-center gap-3 mb-8">
           <div className="p-3 rounded-xl shadow-lg">
-            <Package className="w-8 h-8 text-amber-600" />
+            <Package className="w-8 h-8 text-brand-600" />
           </div>
           <div>
             <h1 className="text-4xl font-bold ">My Orders</h1>
-            <p className="text-amber-700/70 text-sm">
+            <p className="text-brand-700/70 text-sm">
               Track and manage your purchases
             </p>
           </div>
@@ -166,8 +166,8 @@ export default function MyOrders() {
           className="mb-6"
         >
           <div className="flex items-center gap-2 mb-3">
-            <Filter className="w-4 h-4 text-amber-600" />
-            <span className="text-sm font-medium text-amber-900">
+            <Filter className="w-4 h-4 text-brand-600" />
+            <span className="text-sm font-medium text-brand-900">
               Filter by status
             </span>
           </div>
@@ -190,7 +190,7 @@ export default function MyOrders() {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="w-12 h-12 border-4 border-amber-200 border-t-amber-500 rounded-full"
+              className="w-12 h-12 border-4 border-brand-200 border-t-brand-500 rounded-full"
             />
           </div>
         ) : (
@@ -203,10 +203,10 @@ export default function MyOrders() {
               className="space-y-4"
             >
               {orders.length === 0 ? (
-                <Card className="border-amber-200 bg-white/80 backdrop-blur">
+                <Card className="border-brand-200 bg-background/80 backdrop-blur">
                   <CardContent className="py-20 text-center">
-                    <Package className="w-16 h-16 text-amber-300 mx-auto mb-4" />
-                    <p className="text-amber-700 font-medium">
+                    <Package className="w-16 h-16 text-brand-300 mx-auto mb-4" />
+                    <p className="text-brand-700 font-medium">
                       No orders found yet
                     </p>
                   </CardContent>
@@ -219,14 +219,14 @@ export default function MyOrders() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
                   >
-                    <Card className="bg-white  backdrop-blur hover:shadow-xl transition-all duration-300 p-2 ">
+                    <Card className="bg-background  backdrop-blur hover:shadow-xl transition-all duration-300 p-2 ">
                       <CardHeader className="">
                         <div className="flex justify-between items-start">
                           <div>
-                            <h3 className="text-lg font-semibold text-amber-900">
+                            <h3 className="text-lg font-semibold text-brand-900">
                               Order #{order.orderId}
                             </h3>
-                            <p className="text-sm text-amber-600">
+                            <p className="text-sm text-brand-600">
                               {new Date(order.createdAt).toLocaleDateString(
                                 "en-US",
                                 {
@@ -266,7 +266,7 @@ export default function MyOrders() {
                                 alt={item.name}
                                 width={80}
                                 height={80}
-                                className="w-20 h-20 cursor-pointer object-cover rounded-md border-2 border-amber-200"
+                                className="w-20 h-20 cursor-pointer object-cover rounded-md border-2 border-brand-200"
                               />
                               <div
                                 onClick={() =>
@@ -276,33 +276,33 @@ export default function MyOrders() {
                                 }
                                 className="flex-1 cursor-pointer"
                               >
-                                <p className="font-medium text-amber-900">
+                                <p className="font-medium text-brand-900">
                                   {item.name}
                                 </p>
-                                <p className="text-sm text-amber-600">
+                                <p className="text-sm text-brand-600">
                                   Quantity: {item.quantity}
                                 </p>
                                 {/* Color display */}
                                 {item.color && (
-                                  <p className="text-sm text-amber-600 flex items-center gap-1">
+                                  <p className="text-sm text-brand-600 flex items-center gap-1">
                                     Color:{" "}
                                     <span
                                       style={{
                                         backgroundColor: item.color.code,
                                       }}
-                                      className="w-3 h-3 rounded-full border border-amber-300 inline-block"
+                                      className="w-3 h-3 rounded-full border border-brand-300 inline-block"
                                     />
                                     <span>{item.color.name}</span>
                                   </p>
                                 )}
                                 {/* Size display */}
                                 {item.sizeId && (
-                                  <p className="text-sm text-amber-600">
+                                  <p className="text-sm text-brand-600">
                                     Size: {item.sizeId.name}
                                   </p>
                                 )}
                                 {item.isPersonalized && (
-                                  <p className="text-sm text-orange-600 font-medium">
+                                  <p className="text-sm text-brand-600 font-medium">
                                     ✨ Personalized Name :{" "}
                                     {item.personalizedName}
                                   </p>
@@ -313,8 +313,8 @@ export default function MyOrders() {
                         </div>
                       </CardContent>
 
-                      <CardFooter className="flex flex-wrap gap-2 justify-between items-center border-t border-amber-100 bg-gradient-to-r from-amber-50/50 to-orange-50/50">
-                        <div className="text-lg font-bold text-amber-900">
+                      <CardFooter className="flex flex-wrap gap-2 justify-between items-center border-t border-brand-100 bg-gradient-to-r from-brand-50/50 to-brand-50/50">
+                        <div className="text-lg font-bold text-brand-900">
                           Total: ₹{order.pricing.total}
                         </div>
                         <div className="flex gap-2">
@@ -337,7 +337,7 @@ export default function MyOrders() {
                               )
                             }
                             size="sm"
-                            className="bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600"
+                            className="bg-gradient-to-r from-brand-500 to-brand-600 text-white hover:from-brand-600 hover:to-brand-700"
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             View Details
@@ -363,18 +363,18 @@ export default function MyOrders() {
               onClick={() => setPage(page - 1)}
               disabled={page === 1}
               variant="outline"
-              className="border-amber-300 text-amber-700 hover:bg-amber-100 disabled:opacity-50"
+              className="border-brand-300 text-brand-700 hover:bg-brand-100 disabled:opacity-50"
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
               Previous
             </Button>
-            <span className="px-2 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg flex shadow-md">
+            <span className="px-2 py-2 bg-gradient-to-r from-brand-500 to-orange-500 text-white rounded-lg flex shadow-md">
               Page {page}
             </span>
             <Button
               onClick={() => setPage(page + 1)}
               variant="outline"
-              className="border-amber-300 text-amber-700 hover:bg-amber-100"
+              className="border-brand-300 text-brand-700 hover:bg-brand-100"
             >
               Next
               <ChevronRight className="w-4 h-4 ml-1" />
@@ -384,10 +384,10 @@ export default function MyOrders() {
       </motion.div>
 
       <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <DialogContent className="h-[95vh] w-screen max-w-screen md:max-w-md z-[1300] border-amber-200 bg-gradient-to-br from-white to-amber-50">
+        <DialogContent className="h-[95vh] w-screen max-w-screen md:max-w-md z-[1300] border-brand-200 bg-gradient-to-br from-white to-brand-50">
           <DialogHeader>
-            <DialogTitle className="text-amber-900">Cancel Order</DialogTitle>
-            <DialogDescription className="text-amber-700">
+            <DialogTitle className="text-brand-900">Cancel Order</DialogTitle>
+            <DialogDescription className="text-brand-700">
               Please provide a reason for cancelling this order.
             </DialogDescription>
           </DialogHeader>
@@ -395,7 +395,7 @@ export default function MyOrders() {
             placeholder="Enter cancellation reason..."
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}
-            className="border-amber-200 focus:border-amber-400 focus:ring-amber-400"
+            className="border-brand-200 focus:border-brand-400 focus:ring-brand-400"
             rows={4}
           />
           <DialogFooter>
@@ -406,7 +406,7 @@ export default function MyOrders() {
                 setCancelDialogOpen(false);
                 setCancelReason("");
               }}
-              className="border-amber-300 text-amber-700 hover:bg-amber-100"
+              className="border-brand-300 text-brand-700 hover:bg-brand-100"
             >
               Keep Order
             </Button>

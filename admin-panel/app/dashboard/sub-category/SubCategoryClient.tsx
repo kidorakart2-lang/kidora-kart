@@ -15,6 +15,7 @@ import { AlertDialogUse } from "@/components/alert-dialog";
 import { Plus, Edit, Trash2, FolderTree, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import NewMultiSelect from "../../../components/NewMultiSelect";
+import { invalidateCache } from "@/lib/invalidate-cache";
 
 export interface SubCategoryItem {
   _id: string;
@@ -71,17 +72,15 @@ export default function SubCategoriesClient({
   const queryClient = useQueryClient();
 
   // React Query hooks
-  const { data: categories = initialCategories } = useQuery({
+  const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategories,
-    initialData: initialCategories,
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: subCategories = initialSubCategories, isLoading } = useQuery({
+  const { data: subCategories = [], isLoading } = useQuery({
     queryKey: ["subCategories"],
     queryFn: fetchSubCategories,
-    initialData: initialSubCategories,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -89,6 +88,7 @@ export default function SubCategoriesClient({
     mutationFn: createSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subCategories"] });
+      invalidateCache(["categories", "homepage"]);
       toast({ title: "Sub category created successfully" });
       closeDrawer();
     },
@@ -101,6 +101,7 @@ export default function SubCategoriesClient({
     mutationFn: updateSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subCategories"] });
+      invalidateCache(["categories", "homepage"]);
       toast({ title: "Sub category updated successfully" });
       closeDrawer();
     },
@@ -113,6 +114,7 @@ export default function SubCategoriesClient({
     mutationFn: deleteSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subCategories"] });
+      invalidateCache(["categories", "homepage"]);
       toast({ title: "Sub category deleted successfully" });
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
@@ -128,6 +130,7 @@ export default function SubCategoriesClient({
     mutationFn: changeSubCategoryStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subCategories"] });
+      invalidateCache(["categories", "homepage"]);
       toast({ title: "Sub category status updated successfully" });
     },
     onError: (error) => {

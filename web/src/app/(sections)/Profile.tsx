@@ -42,7 +42,7 @@ export default function AccountPage() {
 
   const data = useSelector((state: RootState) => state.auth.details);
 
-  const [avatar, setAvatar] = useState(data?.avatar ?? "");
+  const [avatar, setAvatar] = useState(data?.avatar ?? null);
   const [activeTab, setActiveTab] = useState("account");
   const [formData, setFormData] = useState({
     name: data?.name || "",
@@ -82,7 +82,7 @@ export default function AccountPage() {
       pincode: user._data.address.pincode,
       instructions: user._data.address.instructions,
     });
-    setAvatar(user._data.avatar ?? "");
+    setAvatar(user._data.avatar ?? null);
     setLoading(false);
   };
 
@@ -242,27 +242,29 @@ export default function AccountPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50">
+      <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-50 to-brand-accent-50">
         <div className="max-w-7xl w-full mx-auto ">
           {/* Profile Header Card */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden mb-6 border border-amber-100">
+          <div className="bg-background/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden mb-6 border border-brand-100">
             <div className="px-2 md:px-8 py-2 ">
               {/* Avatar Section */}
               <div className="flex flex-col md:flex-row md:items-end md:justify-between">
                 <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6">
                   <div className="relative group">
                     {/* Avatar container with same glow + shape */}
-                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-gradient-to-br from-amber-100 to-orange-100 transform transition-transform duration-300 group-hover:scale-105">
+                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-gradient-to-br from-brand-100 to-brand-100 transform transition-transform duration-300 group-hover:scale-105">
                       <Avatar className="w-full h-full">
-                        <Image
-                          src={avatar}
-                          alt="Profile"
-                          width={128}
-                          height={128}
-                          className="w-full h-full object-cover"
-                        />
+                        {avatar && (
+                          <Image
+                            src={avatar}
+                            alt="Profile"
+                            width={128}
+                            height={128}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
 
-                        <AvatarFallback className="bg-amber-200 text-amber-800 font-semibold text-lg">
+                        <AvatarFallback className="bg-brand-200 text-brand-800 font-semibold text-lg">
                           {data?.name?.slice(0, 1).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -271,7 +273,7 @@ export default function AccountPage() {
                     {/* Camera Button */}
                     <button
                       onClick={scrollToImageUpload}
-                      className="absolute bottom-2 right-2 bg-amber-600 hover:bg-amber-700 text-white p-2 rounded-full shadow-lg transform transition-all duration-300 hover:scale-110 active:scale-95"
+                      className="absolute bottom-2 right-2 bg-brand-600 hover:bg-brand-700 text-white p-2 rounded-full shadow-lg transform transition-all duration-300 hover:scale-110 active:scale-95"
                     >
                       <Camera size={16} />
                     </button>
@@ -286,31 +288,31 @@ export default function AccountPage() {
                   onValueChange={handleTabChange}
                   className="w-full"
                 >
-                  <TabsList className="w-full md:w-auto grid grid-cols-2 md:flex h-auto md:h-10 bg-amber-50/50 p-1 rounded-xl">
+                  <TabsList className="w-full md:w-auto grid grid-cols-2 md:flex h-auto md:h-10 bg-brand-50/50 p-1 rounded-xl">
                     <TabsTrigger
                       value="account"
-                      className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 md:py-2 text-sm transition-all duration-300"
+                      className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md rounded-lg px-4 py-2.5 md:py-2 text-sm transition-all duration-300"
                     >
                       <User size={16} />
                       <span className=" sm:inline">Account</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="orders"
-                      className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 md:py-2 text-sm transition-all duration-300"
+                      className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md rounded-lg px-4 py-2.5 md:py-2 text-sm transition-all duration-300"
                     >
                       <History size={16} />
                       <span className=" sm:inline">Orders</span>
                     </TabsTrigger>
                     {/* <TabsTrigger
                       value="wishlist"
-                      className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 md:py-2 text-sm transition-all duration-300"
+                      className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md rounded-lg px-4 py-2.5 md:py-2 text-sm transition-all duration-300"
                     >
                       <Heart size={16} />
                       <span className=" sm:inline">Wishlist</span>
                     </TabsTrigger> */}
                     <TabsTrigger
                       value="settings"
-                      className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg px-4 py-2.5 md:py-2 text-sm transition-all duration-300"
+                      className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md rounded-lg px-4 py-2.5 md:py-2 text-sm transition-all duration-300"
                     >
                       <Settings size={16} />
                       <span className=" sm:inline">Settings</span>
@@ -327,15 +329,15 @@ export default function AccountPage() {
                       {/* Image Upload Section */}
                       <div
                         ref={imageUploadRef}
-                        className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-amber-100/50 animate-slide-up"
+                        className="bg-background/60 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-brand-100/50 animate-slide-up"
                       >
-                        <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-                          <Camera size={18} className="text-amber-600" />
+                        <h2 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                          <Camera size={18} className="text-brand-600" />
                           Profile Picture
                         </h2>
 
                         <div className="flex flex-col md:flex-row gap-6 items-start">
-                          <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-dashed border-gray-300  flex items-center justify-center">
+                          <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-dashed border-border  flex items-center justify-center">
                             {previewImage ? (
                               <div className="relative w-full h-full group">
                                 <img
@@ -345,13 +347,13 @@ export default function AccountPage() {
                                 />
                                 <button
                                   onClick={removePreviewImage}
-                                  className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                  className="absolute top-1 right-1 bg-destructive hover:bg-destructive/90 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                 >
                                   <X size={14} />
                                 </button>
                               </div>
                             ) : (
-                              <Upload size={32} className="text-gray-400" />
+                              <Upload size={32} className="text-muted-foreground" />
                             )}
                           </div>
 
@@ -366,12 +368,12 @@ export default function AccountPage() {
                             />
                             <Label
                               htmlFor="avatar-upload"
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg cursor-pointer transition-all duration-300 text-sm font-medium"
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-border text-muted-foreground rounded-lg cursor-pointer transition-all duration-300 text-sm font-medium"
                             >
                               <Upload size={16} />
                               Choose Image
                             </Label>
-                            <p className="text-xs text-gray-500 mt-2">
+                            <p className="text-xs text-muted-foreground mt-2">
                               JPG, PNG or GIF. Max size 5MB.
                             </p>
 
@@ -379,7 +381,7 @@ export default function AccountPage() {
                               <div className="flex gap-2 mt-4 animate-fade-in">
                                 <button
                                   onClick={removePreviewImage}
-                                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition-all duration-300"
+                                  className="px-4 py-2 bg-border text-muted-foreground rounded-lg text-sm font-medium hover:bg-muted-foreground/20 transition-all duration-300"
                                 >
                                   Cancel
                                 </button>
@@ -391,10 +393,10 @@ export default function AccountPage() {
 
                       {/* Personal Information */}
                       <div
-                        className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-amber-100/50 animate-slide-up"
+                        className="bg-background/60 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-brand-100/50 animate-slide-up"
                         style={{ animationDelay: "0.1s" }}
                       >
-                        <h2 className="text-lg font-semibold mb-6 text-gray-800">
+                        <h2 className="text-lg font-semibold mb-6 text-foreground">
                           Personal Information
                         </h2>
 
@@ -402,7 +404,7 @@ export default function AccountPage() {
                           <div className="grid md:grid-cols-2 gap-4">
                             {/* Name */}
                             <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-gray-700">
+                              <Label className="block text-sm font-medium text-muted-foreground">
                                 Full Name
                               </Label>
                               <Input
@@ -415,12 +417,12 @@ export default function AccountPage() {
                                     name: e.target.value,
                                   })
                                 }
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 bg-white/80"
+                                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
                               />
                             </div>
                             {/* Gender */}
                             <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-gray-700">
+                              <Label className="block text-sm font-medium text-muted-foreground">
                                 Gender
                               </Label>
                               <Select
@@ -428,7 +430,7 @@ export default function AccountPage() {
                                 onValueChange={(value) =>
                                   setFormData({ ...formData, gender: value })
                                 }
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 bg-white/80"
+                                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
                               >
                                 <SelectTrigger className="w-full">
                                   <SelectValue
@@ -448,14 +450,14 @@ export default function AccountPage() {
                           <div className="grid md:grid-cols-2 gap-4">
                             {/* Email */}
                             <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-gray-700">
+                              <Label className="block text-sm font-medium text-muted-foreground">
                                 Email Address
                               </Label>
                               <p>{data?.email}</p>
                             </div>
                             {/* Phone */}
                             <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-gray-700">
+                              <Label className="block text-sm font-medium text-muted-foreground">
                                 Phone Number
                               </Label>
                               <Input
@@ -469,7 +471,7 @@ export default function AccountPage() {
                                   })
                                 }
                                 placeholder="Enter phone number"
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 bg-white/80"
+                                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
                               />
                             </div>
                           </div>
@@ -478,11 +480,11 @@ export default function AccountPage() {
 
                       {/* Shipping Address */}
                       <div
-                        className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-amber-100/50 animate-slide-up"
+                        className="bg-background/60 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-brand-100/50 animate-slide-up"
                         style={{ animationDelay: "0.2s" }}
                       >
-                        <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-                          <MapPin size={18} className="text-amber-600" />
+                        <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                          <MapPin size={18} className="text-brand-600" />
                           Shipping Address
                         </h3>
 
@@ -490,7 +492,7 @@ export default function AccountPage() {
                           <div className="grid md:grid-cols-2 gap-4">
                             {/* Street */}
                             <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-gray-700">
+                              <Label className="block text-sm font-medium text-muted-foreground">
                                 Street Address
                               </Label>
                               <Input
@@ -504,12 +506,12 @@ export default function AccountPage() {
                                   })
                                 }
                                 placeholder="Enter street address"
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 bg-white/80"
+                                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
                               />
                             </div>
                             {/* Area */}
                             <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-gray-700">
+                              <Label className="block text-sm font-medium text-muted-foreground">
                                 Area
                               </Label>
                               <Input
@@ -523,7 +525,7 @@ export default function AccountPage() {
                                   })
                                 }
                                 placeholder="Enter area/locality"
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 bg-white/80"
+                                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
                               />
                             </div>
                           </div>
@@ -531,7 +533,7 @@ export default function AccountPage() {
                           <div className="grid md:grid-cols-2 gap-4">
                             {/* City */}
                             <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-gray-700">
+                              <Label className="block text-sm font-medium text-muted-foreground">
                                 City
                               </Label>
                               <Input
@@ -545,12 +547,12 @@ export default function AccountPage() {
                                   })
                                 }
                                 placeholder="Enter city"
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 bg-white/80"
+                                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
                               />
                             </div>
                             {/* State */}
                             <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-gray-700">
+                              <Label className="block text-sm font-medium text-muted-foreground">
                                 State
                               </Label>
                               <Select
@@ -572,7 +574,7 @@ export default function AccountPage() {
                                     <SelectItem
                                       key={state}
                                       value={state}
-                                      className="cursor-pointer border-b-1 border-gray-300"
+                                      className="cursor-pointer border-b-1 border-border"
                                     >
                                       {state}
                                     </SelectItem>
@@ -585,7 +587,7 @@ export default function AccountPage() {
                           <div className="grid md:grid-cols-2 gap-4">
                             {/* Pincode */}
                             <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-gray-700">
+                              <Label className="block text-sm font-medium text-muted-foreground">
                                 Pincode
                               </Label>
                               <Input
@@ -599,14 +601,14 @@ export default function AccountPage() {
                                   })
                                 }
                                 placeholder="Enter pincode"
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 bg-white/80"
+                                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
                               />
                             </div>
                           </div>
 
                           {/* Instructions */}
                           <div className="space-y-2">
-                            <Label className="block text-sm font-medium text-gray-700">
+                            <Label className="block text-sm font-medium text-muted-foreground">
                               Delivery Instructions (Optional)
                             </Label>
                             <Textarea
@@ -620,13 +622,13 @@ export default function AccountPage() {
                               }
                               placeholder="Add any special delivery instructions"
                               rows={3}
-                              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 bg-white/80 resize-none"
+                              className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80 resize-none"
                             />
                           </div>
                         </div>
 
                         <div className="pt-6 flex gap-3">
-                          <Button className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 active:scale-95">
+                          <Button className="bg-gradient-to-r from-brand-600 to-brand-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 active:scale-95">
                             Save Changes
                           </Button>
                         </div>
@@ -654,9 +656,9 @@ export default function AccountPage() {
                   >
                     <div
                       id="settings"
-                      className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-amber-100/50"
+                      className="bg-background/60 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-brand-100/50"
                     >
-                      <h2 className="text-xl font-semibold mb-6 text-gray-800">
+                      <h2 className="text-xl font-semibold mb-6 text-foreground">
                         Account Settings
                       </h2>
 

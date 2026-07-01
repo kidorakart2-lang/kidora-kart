@@ -146,7 +146,24 @@ export const view = async (
       inStock,
     } = request.query as Record<string, string | undefined>;
 
-    const query: Record<string, unknown> = { deletedAt: null };
+    const isDeletedAt = (request.body?.isDeletedAt ?? request.query?.isDeletedAt) as string | undefined;
+
+    const query: Record<string, unknown> = {};
+    if (isDeletedAt === "all") {
+      // no deletedAt filter — show everything
+    } else if (isDeletedAt === "deleted") {
+      query.deletedAt = { $ne: null };
+    } else {
+      query.deletedAt = null;
+    }
+
+    // Support search via request.body.name (used by admin panel bento grid picker)
+    if (request.body?.name) {
+      query.$or = [
+        { name: { $regex: request.body.name, $options: "i" } },
+        { description: { $regex: request.body.name, $options: "i" } },
+      ];
+    }
 
     if (categories) {
       query.categories = Array.isArray(categories)

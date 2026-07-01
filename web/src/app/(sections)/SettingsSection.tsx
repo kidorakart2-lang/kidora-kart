@@ -61,7 +61,7 @@ function PasswordOptionsDialog({ open, onOpenChange, onOptionSelect }: { open: b
           <Link href="/reset-password">
             <Button
               variant="outline"
-              className="justify-start gap-2 text-amber-600 hover:text-amber-700"
+              className="justify-start gap-2 text-brand-600 hover:text-brand-700"
               onClick={() => onOptionSelect("forgot")}
             >
               <Lock className="h-4 w-4" />
@@ -124,12 +124,12 @@ function PasswordFormSheet({ open, onOpenChange, type = "change" }: { open: bool
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="bg-white px-6 py-8 rounded-l-2xl shadow-2xl animate-in slide-in-from-right duration-300 ease-out">
+      <SheetContent className="bg-background px-6 py-8 rounded-l-2xl shadow-2xl animate-in slide-in-from-right duration-300 ease-out">
         <SheetHeader className="text-center mb-6">
-          <SheetTitle className="text-2xl font-semibold text-[#5d4037]">
+          <SheetTitle className="text-2xl font-semibold text-brand-800">
             {type === "change" ? "Change Password" : "Reset Password"}
           </SheetTitle>
-          <SheetDescription className="text-[#795548]/80">
+          <SheetDescription className="text-brand-700/80">
             {type === "change"
               ? "Enter your current password and a new password."
               : "Enter your email to receive a password reset link."}
@@ -148,7 +148,7 @@ function PasswordFormSheet({ open, onOpenChange, type = "change" }: { open: bool
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="Enter current password"
                 label="Current Password"
-                className="focus:ring-2 focus:ring-[#d7ccc8] rounded-lg transition-all duration-200"
+                className="focus:ring-2 focus:ring-brand-200 rounded-lg transition-all duration-200"
               />
             </div>
           )}
@@ -160,7 +160,7 @@ function PasswordFormSheet({ open, onOpenChange, type = "change" }: { open: bool
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Enter new password"
               label="New Password"
-              className=" focus:ring-2 focus:ring-[#d7ccc8] rounded-lg transition-all duration-200"
+              className=" focus:ring-2 focus:ring-brand-200 rounded-lg transition-all duration-200"
             />
           </div>
 
@@ -171,14 +171,14 @@ function PasswordFormSheet({ open, onOpenChange, type = "change" }: { open: bool
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm new password"
               label="Confirm New Password"
-              className=" focus:ring-2 focus:ring-[#d7ccc8] rounded-lg transition-all duration-200"
+              className=" focus:ring-2 focus:ring-brand-200 rounded-lg transition-all duration-200"
             />
           </div>
 
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full mt-6 bg-gradient-to-r from-[#d7b377] via-[#b98b5d] to-[#8d6e63] text-white font-semibold py-3 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300 disabled:opacity-60"
+            className="w-full mt-6 bg-gradient-to-r from-brand-400 via-brand-500 to-brand-700 text-white font-semibold py-3 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300 disabled:opacity-60"
           >
             {isLoading ? "Processing..." : "Update Password"}
           </Button>
@@ -267,42 +267,42 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
       <LoadingUi hidden={loading} />
       {/* Security Section */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Security</h3>
+        <h3 className="text-sm font-semibold text-muted-foreground mb-3">Security</h3>
 
         {/* Change Password Button */}
         <button
           onClick={() => setShowPasswordOptions(true)}
-          className="w-full flex items-center justify-between p-4 bg-white/80 rounded-lg border border-gray-200 hover:border-amber-300 hover:shadow-md transition-all duration-300 group"
+          className="w-full flex items-center justify-between p-4 bg-background/80 rounded-lg border border-border hover:border-brand-300 hover:shadow-md transition-all duration-300 group"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors duration-300">
-              <Lock size={18} className="text-amber-600" />
+            <div className="p-2 bg-brand-100 rounded-lg group-hover:bg-brand-200 transition-colors duration-300">
+              <Lock size={18} className="text-brand-600" />
             </div>
             <div className="text-left">
-              <p className="font-medium text-gray-800">Change Password</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium text-foreground">Change Password</p>
+              <p className="text-sm text-muted-foreground">
                 Update your password regularly
               </p>
             </div>
           </div>
-          <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-amber-600 transition-colors" />
+          <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-brand-600 transition-colors" />
         </button>
 
         {/* Verify Email Button */}
         {data?.isEmailVerified ? null : (
           <button
             onClick={() => handleVerifyClick("email")}
-            className="w-full flex items-center justify-between p-4 bg-white/80 rounded-lg border border-gray-200 hover:border-amber-300 hover:shadow-md transition-all duration-300 group"
+            className="w-full flex items-center justify-between p-4 bg-background/80 rounded-lg border border-border hover:border-brand-300 hover:shadow-md transition-all duration-300 group"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors duration-300">
-                <Mail size={18} className="text-blue-600" />
+              <div className="p-2 bg-brand-100 rounded-lg group-hover:bg-brand-200 transition-colors duration-300">
+                <Mail size={18} className="text-brand-600" />
               </div>
               <div className="text-left">
-                <p className="font-medium text-gray-800 flex items-center gap-2">
+                <p className="font-medium text-foreground flex items-center gap-2">
                   Verify Email
                   {!data?.isEmailVerified && (
-                    <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">
+                    <span className="px-2 py-0.5 bg-brand-100 text-brand-700 text-xs rounded-full">
                       Pending
                     </span>
                   )}
@@ -310,22 +310,22 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
                     <CheckCircle size={16} className="text-green-600" />
                   )}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   {data?.isEmailVerified
                     ? "Your email is verified"
                     : "Verify your email address"}
                 </p>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-amber-600 transition-colors" />
+            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-brand-600 transition-colors" />
           </button>
         )}
 
         {/* Logout Button */}
-        <div className="pt-4 border-t border-gray-200">
+        <div className="pt-4 border-t border-border">
           <Button
             onClick={() => setShowLogoutDialog(true)}
-            className="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium transition-colors duration-300 bg-white border-red-600 hover:bg-red-600/20"
+            className="flex items-center gap-2 text-destructive hover:text-destructive/80 font-medium transition-colors duration-300 bg-background border-destructive hover:bg-destructive/20"
           >
             <LogOut className="h-5 w-5" />
             Sign Out
@@ -364,7 +364,7 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-destructive hover:bg-destructive/90"
               >
                 Sign Out
               </AlertDialogAction>

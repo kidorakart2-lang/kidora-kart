@@ -134,8 +134,8 @@ export default function VerifyEmailPage() {
     <div className="flex min-h-screen items-center justify-center  p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-            <Mail className="h-6 w-6 text-blue-600" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-100">
+            <Mail className="h-6 w-6 text-brand-600" />
           </div>
           <CardTitle className="text-2xl font-bold">
             Verify Your Email
@@ -150,7 +150,7 @@ export default function VerifyEmailPage() {
             <div className="space-y-2">
               <label
                 htmlFor="otp"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-muted-foreground"
               >
                 Enter 6-digit code
               </label>
@@ -168,7 +168,7 @@ export default function VerifyEmailPage() {
                       <InputOTPSlot
                         key={index}
                         index={index}
-                        className="h-12 w-12 text-lg border-gray-300 focus-visible:ring-2 focus-visible:ring-amber-500 rounded-lg"
+                        className="h-12 w-12 text-lg border-border focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg"
                       />
                     ))}
                   </InputOTPGroup>
@@ -191,7 +191,7 @@ export default function VerifyEmailPage() {
               )}
             </Button>
 
-            <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-sm text-muted-foreground">
               Didn't receive a code?{" "}
               <button
                 type="button"
@@ -199,8 +199,8 @@ export default function VerifyEmailPage() {
                 disabled={countdown > 0 || isResending}
                 className={`font-medium ${
                   countdown > 0 || isResending
-                    ? "text-gray-400"
-                    : "text-blue-600 hover:text-blue-700"
+                    ? "text-muted-foreground"
+                    : "text-brand-600 hover:text-brand-700"
                 }`}
               >
                 {isResending

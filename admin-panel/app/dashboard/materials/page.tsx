@@ -8,6 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
@@ -17,13 +24,13 @@ import { api, ApiClientError } from "@/lib/api";
 import type { MaterialItem, ColorItem } from "@/lib/types";
 
 // API functions
-const fetchMaterials = async (): Promise<MaterialItem[]> => {
-  const data = await api.post<MaterialItem[]>("/api/admin/material/view", {});
+const fetchMaterials = async (isDeletedAt?: string): Promise<MaterialItem[]> => {
+  const data = await api.post<MaterialItem[]>("/api/admin/material/view", { isDeletedAt });
   return data ?? [];
 };
 
-const fetchColors = async (): Promise<ColorItem[]> => {
-  const data = await api.post<ColorItem[]>("/api/admin/color/view", {});
+const fetchColors = async (isDeletedAt?: string): Promise<ColorItem[]> => {
+  const data = await api.post<ColorItem[]>("/api/admin/color/view", { isDeletedAt });
   return data ?? [];
 };
 
@@ -75,19 +82,20 @@ export default function MaterialsColorsPage() {
     code: "#000000",
     order: 0,
   });
+  const [deletedFilter, setDeletedFilter] = useState<string>("active");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // React Query hooks for fetching
   const { data: materials = [], isLoading: materialsLoading } = useQuery<MaterialItem[]>({
-    queryKey: ["materials"],
-    queryFn: fetchMaterials,
+    queryKey: ["materials", deletedFilter],
+    queryFn: () => fetchMaterials(deletedFilter === "active" ? undefined : deletedFilter),
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: colors = [], isLoading: colorsLoading } = useQuery<ColorItem[]>({
-    queryKey: ["colors"],
-    queryFn: fetchColors,
+    queryKey: ["colors", deletedFilter],
+    queryFn: () => fetchColors(deletedFilter === "active" ? undefined : deletedFilter),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -303,6 +311,19 @@ export default function MaterialsColorsPage() {
             Manage product materials and color options
           </p>
         </div>
+        <Select
+          value={deletedFilter}
+          onValueChange={setDeletedFilter}
+        >
+          <SelectTrigger className="w-[140px] h-8 text-xs">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Active Only</SelectItem>
+            <SelectItem value="all">All (incl. deleted)</SelectItem>
+            <SelectItem value="deleted">Deleted Only</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <Tabs defaultValue="materials" className="space-y-6">

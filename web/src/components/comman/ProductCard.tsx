@@ -260,7 +260,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
 
   return (
     <motion.article
-      className="group relative bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 border border-slate-100 hover:border-amber-200"
+      className="group relative bg-background rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 border border-border hover:border-brand-200"
       itemScope
       itemType="https://schema.org/Product"
       variants={cardVariants}
@@ -295,7 +295,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
 
       {/* Gradient Overlay on Hover */}
       <div
-        className="absolute inset-0 bg-gradient-to-t from-black/0 via-transparent to-transparent 
+        className="absolute inset-0 bg-gradient-to-t from-black/0 via-transparent to-transparent
                     group-hover:from-black/10 transition-all duration-500 pointer-events-none z-[1]"
       ></div>
 
@@ -305,7 +305,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
         <AnimatePresence>
           {discountPercentage > 0 && (
             <motion.div
-              className="bg-gradient-to-br from-rose-500 to-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1"
+              className="bg-gradient-to-br from-brand-accent-500 to-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1"
               initial={{ opacity: 0, scale: 0.8, x: -20 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
               exit={{ opacity: 0, scale: 0.8 }}
@@ -328,8 +328,8 @@ export default function ProductCard({ data }: { data: ProductData }) {
               : `Add ${data.name} to wishlist`
           }
            aria-pressed={!!isWishlisted}
-          className={`w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-slate-200 
-                   hover:bg-white hover:border-amber-400 flex items-center justify-center 
+          className={`w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-border
+                   hover:bg-background hover:border-brand-400 flex items-center justify-center
                    transition-all duration-300 shadow-lg hover:shadow-xl
                    ${wishlistLoading ? "opacity-50 cursor-not-allowed" : ""}`}
           onClick={handleWishlistToggle}
@@ -341,7 +341,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
             size={18}
             fill={isWishlisted ? "currentColor" : "none"}
             className={`transition-colors ${
-              isWishlisted ? "text-rose-500" : "text-slate-600"
+              isWishlisted ? "text-brand-accent-500" : "text-muted-foreground"
             }`}
             aria-hidden="true"
           />
@@ -356,7 +356,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
         prefetch={false}
       >
         <div
-          className="relative h-64 sm:h-72 bg-gradient-to-br from-amber-50 to-slate-50 overflow-hidden"
+          className="relative h-64 sm:h-72 bg-gradient-to-br from-brand-50 to-muted overflow-hidden"
           onMouseEnter={() => handleImageHover(true)}
           onMouseLeave={() => handleImageHover(false)}
         >
@@ -396,10 +396,10 @@ export default function ProductCard({ data }: { data: ProductData }) {
                 opacity: isHovered ? 1 : 0,
               }}
               transition={{ duration: 0.3 }}
-              className="bg-white rounded-full px-6 py-3 flex items-center gap-2 shadow-xl"
+              className="bg-background rounded-full px-6 py-3 flex items-center gap-2 shadow-xl"
             >
-              <Eye className="w-5 h-5 text-amber-600" />
-              <span className="text-sm font-semibold text-slate-800">
+              <Eye className="w-5 h-5 text-brand-700" />
+              <span className="text-sm font-semibold text-foreground">
                 Quick View
               </span>
             </motion.div>
@@ -412,12 +412,12 @@ export default function ProductCard({ data }: { data: ProductData }) {
         {/* Category */}
         {data.subCategory && data.subCategory.length > 0 && (
           <motion.p
-            className="text-[10px] uppercase tracking-wider text-amber-600 font-bold mb-2 flex items-center gap-1"
+            className="text-[10px] uppercase tracking-wider text-brand-700 font-bold mb-2 flex items-center gap-1"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.15, duration: 0.3 }}
           >
-            <span className="w-1 h-1 bg-amber-600 rounded-full"></span>
+            <span className="w-1 h-1 bg-brand-700 rounded-full"></span>
             <span itemProp="category">
               {data.subCategory.map((cat) => cat.name).join(", ")}
             </span>
@@ -427,8 +427,8 @@ export default function ProductCard({ data }: { data: ProductData }) {
         {/* Product Name */}
         <Link href={`/product-details/${data.slug}`} prefetch={false}>
           <motion.h3
-            className="text-base sm:text-lg font-semibold text-slate-900 mb-3 line-clamp-2 
-                     group-hover:text-amber-700 transition-colors cursor-pointer leading-tight"
+            className="text-base sm:text-lg font-semibold text-foreground mb-3 line-clamp-2
+                     group-hover:text-brand-700 transition-colors cursor-pointer leading-tight"
             itemProp="name"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -450,7 +450,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
           <div className="flex items-baseline gap-2 mb-1">
             {displayCurrentPrice && (
               <span
-                className="text-2xl font-bold text-slate-900"
+                className="text-2xl font-bold text-foreground"
                 itemProp="price"
                 aria-label={`Current price: ${displayCurrentPrice} rupees`}
               >
@@ -459,7 +459,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
             )}
             {displayPrice && displayPrice !== displayCurrentPrice && (
               <span
-                className="text-sm text-slate-400 line-through"
+                className="text-sm text-muted-foreground line-through"
                 aria-label={`Original price: ${displayPrice} rupees`}
               >
                 ₹{displayPrice}
@@ -486,10 +486,10 @@ export default function ProductCard({ data }: { data: ProductData }) {
         >
           <Button
             disabled={loading || data.stock === 0}
-            className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 
+            className="w-full bg-gradient-to-r from-brand-700 to-brand-800 hover:from-brand-800 hover:to-brand-900
                      text-white py-6 rounded-xl text-sm font-semibold uppercase tracking-wider
-                     flex items-center justify-center gap-2 shadow-lg hover:shadow-xl
-                     hover:shadow-amber-500/30 transition-all duration-300 
+                     flex items-center justify-center gap-2 shadow-lg
+                      transition-all duration-300
                      transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
                      group-hover:shadow-2xl"
             onClick={handleAddToCart}
@@ -508,11 +508,6 @@ export default function ProductCard({ data }: { data: ProductData }) {
         </motion.div>
       </div>
 
-      {/* Bottom Shine Effect */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent 
-                    opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-      ></div>
     </motion.article>
   );
 }

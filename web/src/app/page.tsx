@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
-import Banner from "./(sections)/Banner";
+import DefaultBanner from "./(sections)/DefaultBanner";
 import MenWomen from "./(sections)/MenWomen";
 import ShopByPrice from "./(sections)/ShopbyPrice";
 import TabProducts from "./(sections)/TabProducts";
@@ -9,18 +9,25 @@ import { cache } from "react";
 import ProductsTab from "./(sections)/ProductsTab";
 import DynamicSections, { getHomeSections } from "./(sections)/DynamicSections";
 import type { HomeSection } from "./(sections)/DynamicSections";
+import {
+  TAG_PRODUCTS,
+  TAG_HOMEPAGE,
+  TAG_BEST_SELLERS,
+  TAG_TESTIMONIALS,
+  TAG_TABS,
+} from "@/lib/revalidation-tags";
 
 const RoundCategorySlider = dynamic(() => import("./(sections)/RoundCategorySlider"), {
-  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg mx-4 my-6" />,
+  loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-6" />,
 });
 const Slider = dynamic(() => import("./(sections)/Slider"), {
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg mx-4 my-8" />,
+  loading: () => <div className="h-96 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
 });
 const Testimonial = dynamic(() => import("./(sections)/Testimonial"), {
-  loading: () => <div className="h-80 bg-gray-100 animate-pulse rounded-lg mx-4 my-8" />,
+  loading: () => <div className="h-80 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
 });
 const FullVideoSection = dynamic(() => import("./(sections)/video"), {
-  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg mx-4 my-8" />,
+  loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
 });
 
 export const metadata = {
@@ -127,6 +134,7 @@ const GetTestimonials = cache(async () => {
       process.env.NEXT_PUBLIC_API_URL + "api/website/testimonial",
       {
         next: {
+          tags: [TAG_TESTIMONIALS, TAG_HOMEPAGE],
           revalidate: 3600,
         },
       }
@@ -144,6 +152,7 @@ const getTabsData = cache(async () => {
       process.env.NEXT_PUBLIC_API_URL + "api/website/product/tab-products",
       {
         next: {
+          tags: [TAG_TABS, TAG_PRODUCTS],
           revalidate: 3600,
         },
       }
@@ -162,6 +171,7 @@ const getNewArrivals = cache(async () => {
       process.env.NEXT_PUBLIC_API_URL + "api/website/product/new-arrivals",
       {
         next: {
+          tags: [TAG_PRODUCTS, TAG_HOMEPAGE],
           revalidate: 3600,
         },
       }
@@ -179,6 +189,7 @@ const getBestSellers = cache(async () => {
       process.env.NEXT_PUBLIC_API_URL + "api/website/product/best-sellers",
       {
         next: {
+          tags: [TAG_BEST_SELLERS, TAG_PRODUCTS],
           revalidate: 3600,
         },
       }
@@ -196,6 +207,7 @@ const getTrendingProducts = cache(async () => {
       process.env.NEXT_PUBLIC_API_URL + "api/website/product/trending-products",
       {
         next: {
+          tags: [TAG_PRODUCTS, TAG_HOMEPAGE],
           revalidate: 3600,
         },
       }
@@ -213,10 +225,11 @@ export default async function Home() {
   const hasDynamicSections = homeSections.some((s) => !s.config?.hidden);
 
   if (hasDynamicSections) {
-    // Dynamic layout from admin panel - render sections in order
-    // Banner is always first (enforced by backend + admin panel)
+    // Dynamic layout from admin panel — render all sections in order
+    // Banner is included as a normal section and may appear anywhere in the order
     return (
       <>
+        <h1 className="sr-only">{siteConfig.name} - Best Jewellery Store in {siteConfig.address.city}</h1>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -240,17 +253,18 @@ export default async function Home() {
   return (
     <>
       {/* Add Structured Data */}
+      <h1 className="sr-only">{siteConfig.name} - Best Jewellery Store in {siteConfig.address.city}</h1>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <Banner />
+      <DefaultBanner />
       <RoundCategorySlider />
       <MenWomen />
-      <ShopByPrice bg="bg-[#f8f8f8]" />
+      <ShopByPrice />
       <TabProducts data={tabsData} />
-      <WhyChooseUs bg="bg-[#f8f8f8]" />
+      <WhyChooseUs />
       <Slider data={newArrivals} heading="New Arrivals" />
       <FullVideoSection />
       <Slider data={bestSellersProducts} heading="Best Sellers Products" />
@@ -260,7 +274,7 @@ export default async function Home() {
         data={trendingProducts}
         heading="Trending Products"
       />
-      <Testimonial data={testimonials} bg="bg-[#f8f8f8]/50" />
+      <Testimonial data={testimonials} />
     </>
   );
 }

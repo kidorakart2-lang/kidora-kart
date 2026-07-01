@@ -29,6 +29,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { api, ApiClientError } from "@/lib/api";
 import type { Banner, LinkOption } from "@/lib/types";
+import { invalidateCache } from "@/lib/invalidate-cache";
 
 export default function BannersPage() {
   const [btnLoading, setBtnLoading] = useState(false);
@@ -71,7 +72,9 @@ export default function BannersPage() {
     try {
       const [categories, products] = await Promise.all([
         api.get<LinkOption[]>("/api/admin/banner/link-options/categories"),
-        api.get<LinkOption[]>("/api/admin/banner/link-options/products?limit=100"),
+        api.get<LinkOption[]>(
+          "/api/admin/banner/link-options/products?limit=100",
+        ),
       ]);
       setLinkOptions((prev) => ({
         ...prev,
@@ -85,7 +88,9 @@ export default function BannersPage() {
 
   const loadSubCategories = async (categoryId: string) => {
     try {
-      const res = await api.get<LinkOption[]>(`/api/admin/banner/link-options/sub-categories?categoryId=${categoryId}`);
+      const res = await api.get<LinkOption[]>(
+        `/api/admin/banner/link-options/sub-categories?categoryId=${categoryId}`,
+      );
       setLinkOptions((prev) => ({
         ...prev,
         subCategories: res ?? [],
@@ -97,7 +102,9 @@ export default function BannersPage() {
 
   const loadSubSubCategories = async (subCategoryId: string) => {
     try {
-      const res = await api.get<LinkOption[]>(`/api/admin/banner/link-options/sub-sub-categories?subCategoryId=${subCategoryId}`);
+      const res = await api.get<LinkOption[]>(
+        `/api/admin/banner/link-options/sub-sub-categories?subCategoryId=${subCategoryId}`,
+      );
       setLinkOptions((prev) => ({
         ...prev,
         subSubCategories: res ?? [],
@@ -115,7 +122,10 @@ export default function BannersPage() {
     } catch (error) {
       toast({
         title: "Error loading banners",
-        description: error instanceof ApiClientError ? error.message : "Failed to load banners",
+        description:
+          error instanceof ApiClientError
+            ? error.message
+            : "Failed to load banners",
         variant: "destructive",
       });
     } finally {
@@ -144,13 +154,19 @@ export default function BannersPage() {
     if (!bannerToDelete) return;
 
     try {
-      await api.put(`/api/admin/banner/delete/${bannerToDelete}`, { id: bannerToDelete });
+      await api.put(`/api/admin/banner/delete/${bannerToDelete}`, {
+        id: bannerToDelete,
+      });
       loadBanners();
+      invalidateCache(["homepage"]);
       toast({ title: "Banner deleted successfully" });
     } catch (error) {
       toast({
         title: "Error deleting banner",
-        description: error instanceof ApiClientError ? error.message : "Failed to delete banner",
+        description:
+          error instanceof ApiClientError
+            ? error.message
+            : "Failed to delete banner",
         variant: "destructive",
       });
     } finally {
@@ -182,13 +198,20 @@ export default function BannersPage() {
     if (editingBanner) {
       setBtnLoading(true);
       try {
-        await api.put(`/api/admin/banner/update/${editingBanner._id}`, formDataToSend);
+        await api.put(
+          `/api/admin/banner/update/${editingBanner._id}`,
+          formDataToSend,
+        );
         loadBanners();
+        invalidateCache(["homepage"]);
         toast({ title: "Banner updated successfully" });
       } catch (error) {
         toast({
           title: "Error updating banner",
-          description: error instanceof ApiClientError ? error.message : "Failed to update banner",
+          description:
+            error instanceof ApiClientError
+              ? error.message
+              : "Failed to update banner",
           variant: "destructive",
         });
       } finally {
@@ -199,11 +222,15 @@ export default function BannersPage() {
       try {
         await api.post("/api/admin/banner/create", formDataToSend);
         loadBanners();
+        invalidateCache(["homepage"]);
         toast({ title: "Banner created successfully" });
       } catch (error) {
         toast({
           title: "Error creating banner",
-          description: error instanceof ApiClientError ? error.message : "Failed to create banner",
+          description:
+            error instanceof ApiClientError
+              ? error.message
+              : "Failed to create banner",
           variant: "destructive",
         });
       } finally {
@@ -229,10 +256,14 @@ export default function BannersPage() {
     try {
       await api.post("/api/admin/banner/change-status", { id });
       loadBanners();
+      invalidateCache(["homepage"]);
     } catch (error) {
       toast({
         title: "Error changing status",
-        description: error instanceof ApiClientError ? error.message : "Failed to change status",
+        description:
+          error instanceof ApiClientError
+            ? error.message
+            : "Failed to change status",
         variant: "destructive",
       });
     }
@@ -406,7 +437,6 @@ export default function BannersPage() {
               required
             />
           </div>
-
           <div className="space-y-2 animate-in slide-in-from-right duration-300 delay-100">
             <Label htmlFor="image">Banner Image</Label>
             <div className="flex flex-col items-center justify-center w-full">
@@ -485,7 +515,8 @@ export default function BannersPage() {
                 />
               </label>
             </div>
-          </div>            {/* ── Link target section ── */}
+          </div>{" "}
+          {/* ── Link target section ── */}
           <div className="space-y-3 animate-in slide-in-from-right duration-300 delay-50 border rounded-lg p-4 bg-muted/30">
             <Label className="text-sm font-semibold">
               Link Target (optional)
@@ -508,7 +539,7 @@ export default function BannersPage() {
                 <SelectValue placeholder="No link" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No link</SelectItem>
+                <SelectItem value="No Link">No link</SelectItem>
                 <SelectItem value="product">Product</SelectItem>
                 <SelectItem value="category">Category</SelectItem>
                 <SelectItem value="subCategory">Sub Category</SelectItem>
@@ -773,7 +804,6 @@ export default function BannersPage() {
               </div>
             )}
           </div>
-
           <Button
             type="submit"
             disabled={btnLoading}

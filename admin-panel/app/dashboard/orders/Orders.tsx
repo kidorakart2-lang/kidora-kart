@@ -18,6 +18,7 @@ import { Drawer } from "@/components/drawer";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { api, ApiClientError } from "@/lib/api";
+import { invalidateCache } from "@/lib/invalidate-cache";
 interface OrderItem {
   productId: string;
   name: string;
@@ -112,6 +113,7 @@ export default function Orders() {
           description: "Order marked to shipped successfully",
         });
         loadOrders();
+        invalidateCache(["products"]);
       } else {
         throw new ApiClientError(response.message || "Failed to mark order to shipped", 400);
       }
@@ -137,6 +139,7 @@ export default function Orders() {
           description: response.message || "Order marked to delivered successfully",
         });
         loadOrders();
+        invalidateCache(["products"]);
         setDrawerOpen(false);
       }
     } catch (error) {
@@ -226,6 +229,7 @@ export default function Orders() {
           description: responseData.message || "Order cancelled successfully",
         });
         loadOrders();
+        invalidateCache(["products"]);
       } else {
         toast({
           title: "Error",

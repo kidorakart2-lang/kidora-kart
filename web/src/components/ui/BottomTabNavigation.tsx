@@ -26,7 +26,7 @@ export function BottomTabNavigation() {
 
     {
       id: "cart",
-      url: isLogin ? "/cart" : "/login",
+      url: "/cart",
       label: "Cart",
       icon: <ShoppingCartIcon size={24} />,
     },
@@ -48,7 +48,7 @@ export function BottomTabNavigation() {
     const currentTab = tabs.find(
       (tab) =>
         tab.url === pathname ||
-        (pathname.startsWith(tab.url) && tab.url !== "/")
+        (pathname.startsWith(tab.url) && tab.url !== "/"),
     );
     if (currentTab) {
       setActiveTab(currentTab.id);
@@ -65,10 +65,8 @@ export function BottomTabNavigation() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       if (currentScrollY > lastScrollY) {
-        // Scrolling down
         setScroll(true);
       } else if (currentScrollY < lastScrollY) {
-        // Scrolling up
         setScroll(false);
       }
       lastScrollY = currentScrollY > 0 ? currentScrollY : 0;
@@ -81,7 +79,7 @@ export function BottomTabNavigation() {
 
   return (
     <div
-      className={`block md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white shadow-lg border-t border-gray-100 duration-500 ${
+      className={`block md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background shadow-lg border-t border-border duration-500 ${
         scroll ? "bottom-[-10%]" : "bottom-0"
       }`}
     >
@@ -100,7 +98,7 @@ export function BottomTabNavigation() {
                   {isActive && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute inset-0 bg-blue-50 rounded-t-lg"
+                      className="absolute inset-0 bg-brand-50 rounded-t-lg"
                       initial={false}
                       transition={{
                         type: "spring",
@@ -112,7 +110,7 @@ export function BottomTabNavigation() {
                 </AnimatePresence>
                 <motion.div
                   className={`relative z-10 flex flex-col items-center p-2 ${
-                    isActive ? "text-blue-600" : "text-gray-500"
+                    isActive ? "text-brand-600" : "text-muted-foreground"
                   }`}
                   animate={{
                     y: isActive ? -2 : 0,
@@ -123,19 +121,19 @@ export function BottomTabNavigation() {
                     {React.cloneElement(tab.icon, {
                       className: `w-6 h-6 transition-colors ${
                         isActive
-                          ? "text-blue-600"
-                          : "text-gray-500 group-hover:text-blue-400"
+                          ? "text-brand-600"
+                          : "text-muted-foreground group-hover:text-brand-400"
                       }`,
                     })}
                     {tab.id === "cart" && cartCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                         {cartCount > 9 ? "9+" : cartCount}
                       </span>
                     )}
                   </div>
                   <motion.span
                     className={`text-xs font-medium mt-1 ${
-                      isActive ? "text-blue-600" : "text-gray-500"
+                      isActive ? "text-brand-600" : "text-muted-foreground"
                     }`}
                     initial={{ opacity: 0, y: 5 }}
                     animate={{

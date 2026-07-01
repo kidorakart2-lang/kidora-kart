@@ -34,7 +34,7 @@ const OurPolicy = () => {
   ];
 
   return (
-    <section className="py-12 md:py-16 bg-white">
+    <section className="py-12 md:py-16 bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {/* Header */}
         <motion.div
@@ -43,11 +43,11 @@ const OurPolicy = () => {
           transition={{ duration: 0.5 }}
           className="mb-12"
         >
-          <h1 className="text-3xl md:text-4xl font-serif text-slate-900 mb-3">
+          <h1 className="text-3xl md:text-4xl font-serif text-foreground mb-3">
             Our Policies
           </h1>
-          <div className="w-16 h-0.5 bg-amber-600 mb-4"></div>
-          <p className="text-slate-600 text-base leading-relaxed">
+          <div className="w-16 h-0.5 bg-brand-600 mb-4"></div>
+          <p className="text-muted-foreground text-base leading-relaxed">
             At {siteConfig.name}, we are committed to providing you with an
             exceptional shopping experience. Here's how we ensure your
             satisfaction at every step.
@@ -66,15 +66,15 @@ const OurPolicy = () => {
             return (
               <div
                 key={index}
-                className="border-l-4 border-amber-500 pl-6 py-2"
+                className="border-l-4 border-brand-500 pl-6 py-2"
               >
                 <div className="flex items-start gap-3 mb-2">
-                  <IconComponent className="w-5 h-5 text-amber-600 mt-1 flex-shrink-0" />
-                  <h2 className="text-xl font-semibold text-slate-800">
+                  <IconComponent className="w-5 h-5 text-brand-600 mt-1 flex-shrink-0" />
+                  <h2 className="text-xl font-semibold text-foreground">
                     {policy.title}
                   </h2>
                 </div>
-                <p className="text-slate-600 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {policy.description}
                 </p>
               </div>
@@ -90,8 +90,8 @@ const OurPolicy = () => {
           className="mb-12"
         >
           <div className="flex items-center gap-3 mb-4">
-            <RefreshCw className="w-6 h-6 text-slate-700" />
-            <h2 className="text-2xl font-semibold text-slate-900">
+            <RefreshCw className="w-6 h-6 text-muted-foreground" />
+            <h2 className="text-2xl font-semibold text-foreground">
               Refund & Cancellation Policy
             </h2>
           </div>
@@ -99,14 +99,14 @@ const OurPolicy = () => {
           <div className="space-y-6">
             <div>
               <div className="flex items-start gap-2 mb-2">
-                <Clock className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                <h3 className="text-lg font-semibold text-slate-800">
+                <Clock className="w-5 h-5 text-brand-600 mt-0.5 flex-shrink-0" />
+                <h3 className="text-lg font-semibold text-foreground">
                   Order Cancellation
                 </h3>
               </div>
-              <p className="text-slate-600 leading-relaxed pl-7">
+              <p className="text-muted-foreground leading-relaxed pl-7">
                 You can cancel your order within{" "}
-                <strong className="text-slate-900">24 hours</strong> of placing
+                <strong className="text-foreground">24 hours</strong> of placing
                 it. Simply contact our customer support team or use your account
                 dashboard to initiate the cancellation.
               </p>
@@ -114,23 +114,23 @@ const OurPolicy = () => {
 
             <div>
               <div className="flex items-start gap-2 mb-2">
-                <RefreshCw className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                <h3 className="text-lg font-semibold text-slate-800">
+                <RefreshCw className="w-5 h-5 text-brand-600 mt-0.5 flex-shrink-0" />
+                <h3 className="text-lg font-semibold text-foreground">
                   Refund Processing
                 </h3>
               </div>
-              <p className="text-slate-600 leading-relaxed pl-7">
+              <p className="text-muted-foreground leading-relaxed pl-7">
                 Once your return or cancellation is approved, refunds will be
                 processed within{" "}
-                <strong className="text-slate-900">3-5 business days</strong>{" "}
+                <strong className="text-foreground">3-5 business days</strong>{" "}
                 according to Razorpay's processing timeline. The amount will be
                 credited to your original payment method.
               </p>
             </div>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 pl-7">
-              <p className="text-sm text-slate-700 leading-relaxed">
-                <strong className="text-slate-900">Note:</strong> For custom or
+            <div className="bg-brand-50 border border-brand-200 rounded-lg p-4 pl-7">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                <strong className="text-foreground">Note:</strong> For custom or
                 personalized jewelry, cancellations may not be available once
                 production has begun. Please contact us immediately if you need
                 to make changes.
@@ -147,13 +147,13 @@ const OurPolicy = () => {
           className="mb-12"
         >
           <div className="flex items-center gap-3 mb-4">
-            <Lock className="w-6 h-6 text-slate-700" />
-            <h2 className="text-2xl font-semibold text-slate-900">
+            <Lock className="w-6 h-6 text-muted-foreground" />
+            <h2 className="text-2xl font-semibold text-foreground">
               Cookie & Data Usage Policy
             </h2>
           </div>
 
-          <div className="space-y-4 text-slate-600 leading-relaxed">
+          <div className="space-y-4 text-muted-foreground leading-relaxed">
             <p>
               We use cookies to help us recognize returning users and keep your
               shopping experience smooth. No personal data is shared with
@@ -173,13 +173,13 @@ const OurPolicy = () => {
             </p>
             <p>
               Please note, EMI or installment payment options are currently{" "}
-              <strong className="text-slate-900">not available</strong>. For
+              <strong className="text-foreground">not available</strong>. For
               product care, maintenance, or service inquiries, contact our team
               directly — we're here to help.
             </p>
             <p>
               We're{" "}
-              <strong className="text-amber-700">
+              <strong className="text-brand-700">
                 BIS Hallmark Certified
               </strong>
               , ensuring authenticity and quality in every item. Product prices
@@ -195,19 +195,19 @@ const OurPolicy = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <h2 className="text-2xl font-semibold text-slate-900 mb-6">
+          <h2 className="text-2xl font-semibold text-foreground mb-6">
             Additional Information
           </h2>
 
           <div className="space-y-6">
             <div>
               <div className="flex items-start gap-2 mb-2">
-                <Ruler className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                <h3 className="text-lg font-semibold text-slate-800">
+                <Ruler className="w-5 h-5 text-brand-600 mt-0.5 flex-shrink-0" />
+                <h3 className="text-lg font-semibold text-foreground">
                   Size Guide
                 </h3>
               </div>
-              <p className="text-slate-600 leading-relaxed pl-7">
+              <p className="text-muted-foreground leading-relaxed pl-7">
                 Unsure about your ring or bracelet size? Visit our size guide or
                 contact our customer service for assistance in finding your
                 perfect fit.
@@ -216,12 +216,12 @@ const OurPolicy = () => {
 
             <div>
               <div className="flex items-start gap-2 mb-2">
-                <Sparkles className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                <h3 className="text-lg font-semibold text-slate-800">
+                <Sparkles className="w-5 h-5 text-brand-600 mt-0.5 flex-shrink-0" />
+                <h3 className="text-lg font-semibold text-foreground">
                   Custom Orders
                 </h3>
               </div>
-              <p className="text-slate-600 leading-relaxed pl-7">
+              <p className="text-muted-foreground leading-relaxed pl-7">
                 Looking for something unique? We offer custom jewelry design
                 services. Contact us to discuss your vision and we'll bring it
                 to life.

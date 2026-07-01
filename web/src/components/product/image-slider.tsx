@@ -56,7 +56,7 @@ export default function ImageSlider({
     <div className="space-y-4">
       {/* Main Image */}
       <motion.div
-        className="relative bg-gradient-to-br from-amber-50/50 to-yellow-50/50  overflow-hidden h-96 sm:h-[500px] shadow-2xl border border-amber-100/50 glass-effect"
+        className="relative bg-gradient-to-br from-brand-50/50 to-yellow-50/50  overflow-hidden h-96 sm:h-[500px] shadow-2xl border border-brand-100/50 glass-effect"
         whileHover={!isMobile ? { scale: 1.01 } : {}}
         transition={{ duration: 0.2 }}
       >
@@ -88,7 +88,7 @@ export default function ImageSlider({
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 0.3, type: "spring" }}
-            className="absolute top-4 right-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg backdrop-blur-sm"
+            className="absolute top-4 right-4 bg-gradient-to-r from-brand-500 to-orange-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg backdrop-blur-sm"
           >
             NEW
           </motion.span>
@@ -101,7 +101,7 @@ export default function ImageSlider({
               whileHover={{ scale: 1.1, x: -4 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => paginate(-1)}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-amber-600 p-3 rounded-full shadow-lg backdrop-blur-md transition-all"
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-brand-600 p-3 rounded-full shadow-lg backdrop-blur-md transition-all"
               aria-label="Previous image"
             >
               <ChevronLeft className="w-6 h-6" />
@@ -110,7 +110,7 @@ export default function ImageSlider({
               whileHover={{ scale: 1.1, x: 4 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => paginate(1)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-amber-600 p-3 rounded-full shadow-lg backdrop-blur-md transition-all"
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-brand-600 p-3 rounded-full shadow-lg backdrop-blur-md transition-all"
               aria-label="Next image"
             >
               <ChevronRight className="w-6 h-6" />
@@ -131,10 +131,10 @@ export default function ImageSlider({
       {/* Thumbnail Slider */}
       {images.length > 1 && (
         <div className="relative group mt-4 px-2">
-          <div className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 z-10 cursor-pointer p-2 bg-white/80 rounded-full shadow-md text-amber-600 hover:bg-white transition-all border border-amber-100 disabled:opacity-50 disabled:cursor-not-allowed">
+          <div className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 z-10 cursor-pointer p-2 bg-white/80 rounded-full shadow-md text-brand-600 hover:bg-white transition-all border border-brand-100 disabled:opacity-50 disabled:cursor-not-allowed">
             <ChevronLeft className="w-5 h-5" />
           </div>
-          <div className="swiper-button-next-custom absolute right-0 top-1/2 -translate-y-1/2 z-10 cursor-pointer p-2 bg-white/80 rounded-full shadow-md text-amber-600 hover:bg-white transition-all border border-amber-100 disabled:opacity-50 disabled:cursor-not-allowed">
+          <div className="swiper-button-next-custom absolute right-0 top-1/2 -translate-y-1/2 z-10 cursor-pointer p-2 bg-white/80 rounded-full shadow-md text-brand-600 hover:bg-white transition-all border border-brand-100 disabled:opacity-50 disabled:cursor-not-allowed">
             <ChevronRight className="w-5 h-5" />
           </div>
 
@@ -161,8 +161,8 @@ export default function ImageSlider({
                   tabIndex={0}
                   className={`flex-shrink-0 size-20 md:size-28 overflow-hidden border-3 transition-all rounded-md ${
                     currentImage === index
-                      ? "border-amber-500 shadow-lg ring-2 ring-amber-200"
-                      : "border-amber-100 hover:border-amber-300"
+                      ? "border-brand-500 shadow-lg ring-2 ring-brand-200"
+                      : "border-brand-100 hover:border-brand-300"
                   }`}
                 >
                   <Image

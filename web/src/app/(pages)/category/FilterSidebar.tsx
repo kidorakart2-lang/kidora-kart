@@ -110,8 +110,8 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
       <div
         className={`
           fixed lg:static inset-y-0 left-0 z-50
-          w-80 bg-white shadow-xl lg:shadow-none
-          flex flex-col h-full border border-gray-200
+          w-80 bg-background shadow-xl lg:shadow-none
+          flex flex-col h-full border border-border
           transition-transform duration-300 ease-in-out md:rounded-2xl
           ${
             isOpen
@@ -123,14 +123,14 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
         {/* Header */}
         <div className="border-b p-4 ">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-amber-900">Filters</h2>
+            <h2 className="text-xl font-bold text-brand-900">Filters</h2>
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden hover:bg-amber-100"
+              className="lg:hidden hover:bg-brand-100"
               onClick={onClose}
             >
-              <X className="h-5 w-5 text-amber-700" />
+              <X className="h-5 w-5 text-brand-700" />
             </Button>
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
           {/* Quick Filters */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold text-amber-900">
+            <Label className="text-base font-semibold text-brand-900">
               Quick Filters
             </Label>
             <div className="grid grid-cols-2 gap-2">
@@ -154,8 +154,8 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
                   onClick={() => dispatch(setQuickFilter(item.key))}
                   className={`px-3 py-2 text-xs font-medium rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${
                     filters.quickFilter === item.key
-                      ? "bg-amber-100 border-amber-400 text-amber-800"
-                      : "bg-white border-gray-200 text-gray-600 hover:bg-amber-50 hover:border-amber-300"
+                      ? "bg-brand-100 border-brand-400 text-brand-800"
+                      : "bg-background border-border text-muted-foreground hover:bg-brand-50 hover:border-brand-300"
                   }`}
                 >
                   <item.icon size={14} />
@@ -167,7 +167,7 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
 
           {/* Category Filter */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold text-amber-900">
+            <Label className="text-base font-semibold text-brand-900">
               Category
             </Label>
             <div className="space-y-2">
@@ -176,7 +176,7 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
                 subCategory.map((category) => (
                   <Label
                     key={category.slug}
-                    className="flex items-center space-x-2 cursor-pointer hover:text-amber-600 transition-colors duration-200"
+                    className="flex items-center space-x-2 cursor-pointer hover:text-brand-600 transition-colors duration-200"
                   >
                     <Input
                       type="checkbox"
@@ -184,7 +184,7 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
                       onChange={() =>
                         handleCheckboxChange("category", category.slug)
                       }
-                      className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500 cursor-pointer accent-amber-600"
+                      className="w-4 h-4 rounded border-border text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600"
                     />
                     <span className="text-sm">{category.name}</span>
                   </Label>
@@ -194,14 +194,14 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
 
           {/* Color Filter */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold text-amber-900">
+            <Label className="text-base font-semibold text-brand-900">
               Color
             </Label>
             <div className="space-y-2">
               {color.map((colorDetail) => (
                 <Label
                   key={colorDetail._id}
-                  className="flex items-center space-x-2 cursor-pointer hover:text-amber-600 transition-colors duration-200"
+                  className="flex items-center space-x-2 cursor-pointer hover:text-brand-600 transition-colors duration-200"
                 >
                   <Input
                     type="checkbox"
@@ -209,11 +209,11 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
                     onChange={() =>
                       handleCheckboxChange("color", colorDetail._id)
                     }
-                    className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500 cursor-pointer accent-amber-600"
+                    className="w-4 h-4 rounded border-border text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600"
                   />
                   <span
                     style={{ backgroundColor: colorDetail.code }}
-                    className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500 cursor-pointer accent-amber-600"
+                    className="w-4 h-4 rounded border-border text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600"
                   ></span>
                   <span className="text-sm">{colorDetail.name}</span>
                 </Label>
@@ -223,14 +223,14 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
 
           {/* Material Filter */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold text-amber-900">
+            <Label className="text-base font-semibold text-brand-900">
               Material
             </Label>
             <div className="space-y-2">
               {material.map((materialDetail) => (
                 <Label
                   key={materialDetail._id}
-                  className="flex items-center space-x-2 cursor-pointer hover:text-amber-600 transition-colors duration-200"
+                  className="flex items-center space-x-2 cursor-pointer hover:text-brand-600 transition-colors duration-200"
                 >
                   <Input
                     type="checkbox"
@@ -238,7 +238,7 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
                     onChange={() =>
                       handleCheckboxChange("material", materialDetail._id)
                     }
-                    className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500 cursor-pointer accent-amber-600"
+                    className="w-4 h-4 rounded border-border text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600"
                   />
                   <span className="text-sm">{materialDetail.name}</span>
                 </Label>
@@ -248,7 +248,7 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
 
           {/* Price Range Filter */}
           <div className="space-y-3 pb-4">
-            <Label className="text-base font-semibold text-amber-900">
+            <Label className="text-base font-semibold text-brand-900">
               Price Range
             </Label>
             <div className="px-2">
@@ -258,14 +258,14 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
                 step={1}
                 value={[localPrice.priceFrom, localPrice.priceTo]}
                 onValueChange={handlePriceChange}
-                className="w-full bg-amber-50"
+                className="w-full bg-brand-50"
               />
-              <div className="flex justify-between mt-3 text-sm font-medium text-amber-700">
-                <span className="bg-amber-50 px-2 py-1 rounded flex items-center ">
+              <div className="flex justify-between mt-3 text-sm font-medium text-brand-700">
+                <span className="bg-brand-50 px-2 py-1 rounded flex items-center ">
                   <IndianRupee size={16} />
                   {localPrice.priceFrom.toLocaleString()}
                 </span>
-                <span className="bg-amber-50 px-2 py-1 rounded flex items-center ">
+                <span className="bg-brand-50 px-2 py-1 rounded flex items-center ">
                   <IndianRupee size={16} />
                   {localPrice.priceTo.toLocaleString()}
                 </span>
@@ -277,14 +277,14 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
           <div className="space-y-3 pb-4">
             <Button
               onClick={applyPriceFilter}
-              className="w-full bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-700 hover:to-yellow-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+              className="w-full bg-gradient-to-r from-brand-600 to-yellow-500 hover:from-brand-700 hover:to-yellow-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
             >
               Apply Filters
             </Button>
             <Button
               onClick={clearFilters}
               variant="outline"
-              className="w-full border-amber-300 text-amber-700 hover:bg-amber-50 hover:border-amber-400 transition-all duration-200"
+              className="w-full border-brand-300 text-brand-700 hover:bg-brand-50 hover:border-brand-400 transition-all duration-200"
             >
               Clear All
             </Button>

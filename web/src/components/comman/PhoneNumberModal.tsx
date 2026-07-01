@@ -118,12 +118,12 @@ export default function PhoneNumberModal() {
 
   return (
     <div
-      className={`fixed bottom-4 right-4 z-[1500] w-80 bg-white rounded-xl shadow-2xl border border-amber-100 overflow-hidden transition-all duration-300 ease-out ${
+      className={`fixed bottom-4 right-4 z-[1500] w-80 bg-background rounded-xl shadow-2xl border border-brand-100 overflow-hidden transition-all duration-300 ease-out ${
         isClosing ? "animate-phone-modal-out" : "animate-phone-modal-in"
       }`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500">
+      <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-brand-700 to-brand-800">
         <div className="flex items-center gap-2 text-white">
           <Phone size={18} />
           <span className="font-medium text-sm">Add Phone Number</span>
@@ -138,21 +138,23 @@ export default function PhoneNumberModal() {
 
       {/* Body */}
       <div className="p-4">
-        <p className="text-xs text-gray-500 mb-3">
+        <p className="text-xs text-muted-foreground mb-3">
           Add your phone number to receive order updates and offers.
         </p>
 
         <div className="flex gap-2">
-          <div className="flex items-center px-3 bg-gray-100 rounded-lg text-sm text-gray-600 border border-gray-200">
+          <div className="flex items-center px-3 bg-muted rounded-lg text-sm text-muted-foreground border border-border">
             {siteConfig.contact.countryCode}
           </div>
           <Input
+            id="phone-number"
             type="tel"
             value={phone}
             onChange={handlePhoneChange}
             placeholder="Enter phone number"
             className="flex-1 text-sm"
             maxLength={10}
+            aria-label="Phone number"
           />
         </div>
 
@@ -174,7 +176,7 @@ export default function PhoneNumberModal() {
             size="sm"
             onClick={handleSave}
             disabled={loading || !phone}
-            className="flex-1 text-xs bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700"
+            className="flex-1 text-xs bg-gradient-to-r from-brand-700 to-brand-800 hover:from-brand-800 hover:to-brand-900"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
           </Button>

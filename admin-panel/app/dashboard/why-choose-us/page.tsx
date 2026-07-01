@@ -30,6 +30,14 @@ import {
   Sparkle,
 } from "lucide-react";
 import { api, ApiClientError } from "@/lib/api";
+import { invalidateCache } from "@/lib/invalidate-cache";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { WhyChooseUsItem } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -44,6 +52,7 @@ export default function WhyChooseUsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [whyChooseUsToDelete, setWhyChooseUsToDelete] = useState<string | null>(null);
   const [selectedIcon, setSelectedIcon] = useState<{ name: string; component: any; color: string } | null>(null);
+  const [deletedFilter, setDeletedFilter] = useState<string>("active");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -72,12 +81,13 @@ export default function WhyChooseUsPage() {
 
   useEffect(() => {
     loadWhyChooseUs();
-  }, []);
+  }, [deletedFilter]);
 
   const loadWhyChooseUs = async () => {
     setLoading(true);
     try {
-      const data = await api.post<WhyChooseUsItem[]>("/api/admin/whyChooseUs/view", {});
+      const filter = deletedFilter === "active" ? undefined : deletedFilter;
+      const data = await api.post<WhyChooseUsItem[]>("/api/admin/whyChooseUs/view", { isDeletedAt: filter });
       setWhyChooseUsArray(data ?? []);
     } catch (error) {
       toast({
@@ -122,6 +132,7 @@ export default function WhyChooseUsPage() {
     try {
       await api.put(`/api/admin/whyChooseUs/delete/${whyChooseUsToDelete}`, { id: whyChooseUsToDelete });
       loadWhyChooseUs();
+      invalidateCache(["homepage"]);
       toast({ title: "Why Choose Us deleted successfully" });
     } catch (error) {
       toast({
@@ -149,13 +160,12 @@ export default function WhyChooseUsPage() {
     submitData.append("title", formData.title);
     submitData.append("description", formData.description);
     submitData.append("icon", formData.icon);
-    submitData.append("image", formData.icon);
-
-    if (editingWhyChooseUs) {
+    submitData.append("image", formData.icon);      if (editingWhyChooseUs) {
       setBtnLoading(true);
       try {
         await api.put(`/api/admin/whyChooseUs/update/${editingWhyChooseUs._id}`, submitData);
         loadWhyChooseUs();
+        invalidateCache(["homepage"]);
         toast({ title: "Why Choose Us updated successfully" });
       } catch (error) {
         toast({
@@ -172,6 +182,7 @@ export default function WhyChooseUsPage() {
         await api.post("/api/admin/whyChooseUs/create", submitData);
         toast({ title: "Why Choose Us created successfully" });
         loadWhyChooseUs();
+        invalidateCache(["homepage"]);
       } catch (error) {
         toast({
           title: "Error creating Why Choose Us",
@@ -191,6 +202,7 @@ export default function WhyChooseUsPage() {
     try {
       await api.put(`/api/admin/whyChooseUs/change-status/${whyChooseUs._id}`, { id: whyChooseUs._id });
       loadWhyChooseUs();
+      invalidateCache(["homepage"]);
       toast({
         title: `why Choose Us ${
           whyChooseUs.status ? "deactivated" : "activated"
@@ -228,6 +240,19 @@ export default function WhyChooseUsPage() {
           <p className="text-muted-foreground">Manage Why Choose Us</p>
         </div>
         <div className="flex items-center gap-2">
+          <Select
+            value={deletedFilter}
+            onValueChange={setDeletedFilter}
+          >
+            <SelectTrigger className="w-[140px] h-8 text-xs">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active Only</SelectItem>
+              <SelectItem value="all">All (incl. deleted)</SelectItem>
+              <SelectItem value="deleted">Deleted Only</SelectItem>
+            </SelectContent>
+          </Select>
           <ExportButtons data={whyChooseUsArray as unknown as Record<string, unknown>[]} filename="whyChooseUs" />
           <Button
             onClick={() => {
