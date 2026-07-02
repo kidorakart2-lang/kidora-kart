@@ -290,8 +290,8 @@ export default function HomePagePage() {
 
       {/* ── Edit Dialog ── */}
       {editDialogOpen && editingSection && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="flex flex-col w-[95vw] h-[95vh] border bg-background shadow-2xl rounded-xl">
+        <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="flex flex-col w-[95vw] max-w-5xl max-h-[90vh] border bg-background shadow-2xl rounded-xl">
             <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b">
               <h2 className="text-lg font-semibold">Edit Section</h2>
               <Button
@@ -365,8 +365,8 @@ export default function HomePagePage() {
 
       {/* ── Add Section Dialog ── */}
       {addDialogOpen && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="flex flex-col w-[95vw] h-[95vh] border bg-background shadow-2xl rounded-xl">
+        <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="flex flex-col w-[95vw] max-w-5xl max-h-[90vh] border bg-background shadow-2xl rounded-xl">
             <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b">
               <h2 className="text-lg font-semibold">Add Section</h2>
               <Button

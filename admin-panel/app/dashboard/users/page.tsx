@@ -63,14 +63,18 @@ export default function UsersPage() {
     role: "user",
   });
   const { toast } = useToast();
+  const [deletedFilter, setDeletedFilter] = useState<string>("active");
+
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [deletedFilter]);
 
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const data = await api.post<AdminUser[]>("/api/admin/user/findAllUser", {});
+      const data = await api.post<AdminUser[]>("/api/admin/user/findAllUser", {
+        isDeletedAt: deletedFilter === "active" ? undefined : deletedFilter,
+      });
       setUsers(data || []);
     } catch (error) {
       toast({
@@ -258,6 +262,19 @@ export default function UsersPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Select
+            value={deletedFilter}
+            onValueChange={setDeletedFilter}
+          >
+            <SelectTrigger className="w-[140px] h-9 text-xs">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active Only</SelectItem>
+              <SelectItem value="all">All (incl. deleted)</SelectItem>
+              <SelectItem value="deleted">Deleted Only</SelectItem>
+            </SelectContent>
+          </Select>
           <ExportButtons data={users as unknown as Record<string, unknown>[]} filename="users" />
           <Button
             onClick={() => {
@@ -306,7 +323,6 @@ export default function UsersPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="delivery">Delivery</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
@@ -365,7 +381,6 @@ export default function UsersPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="delivery">Delivery</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>

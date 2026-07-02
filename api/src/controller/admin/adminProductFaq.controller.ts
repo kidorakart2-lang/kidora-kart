@@ -150,13 +150,25 @@ export const update = async (req: Request, res: Response): Promise<void> => {
 
 export const destroy = async (req: Request, res: Response): Promise<void> => {
   try {
-    const result = await productFaq.findByIdAndUpdate(
+    const existing = await productFaq.findById(req.params.id);
+    if (!existing) {
+      fail(res, "FAQ Set Not Found", 404);
+      return;
+    }
+    if (existing.deletedAt) {
+      // Already soft-deleted → permanently delete
+      await productFaq.findByIdAndDelete(req.params.id);
+      invalidateCache();
+      success(res, null, "FAQ Set Permanently Deleted");
+      return;
+    }
+    await productFaq.findByIdAndUpdate(
       req.params.id,
       { deletedAt: new Date() },
       { new: true },
     );
     invalidateCache();
-    success(res, result, result ? "FAQ Set Deleted" : "FAQ Set Not Found");
+    success(res, null, "FAQ Set Deleted");
   } catch (err) {
     fail(res, "Failed to delete product FAQ", 500);
   }

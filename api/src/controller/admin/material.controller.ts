@@ -104,23 +104,28 @@ export const destroy = async (
       return;
     }
 
-    const result = await material.updateMany(
-      { _id: request.body.id },
-      { $set: { deletedAt: Date.now() } },
-    );
-    if (result.matchedCount === 0) {
-      response.status(404).json({
-        _status: false,
-        _message: "No Data Found",
-        _data: null,
-      });
+    const existing = await material.findById(request.body.id);
+    if (!existing) {
+      response.status(404).json({ _status: false, _message: "No Data Found", _data: null });
       return;
     }
+    if (existing.deletedAt) {
+      // Already soft-deleted → permanently delete
+      await material.findByIdAndDelete(request.body.id);
+      cache.del("materialData");
+      response.status(200).json({ _status: true, _message: "Data Permanently Deleted", _data: null });
+      return;
+    }
+
+    await material.updateOne(
+      { _id: request.body.id },
+      { $set: { deletedAt: new Date() } },
+    );
     cache.del("materialData");
     response.status(200).json({
       _status: true,
       _message: "Data Deleted",
-      _data: result,
+      _data: null,
     });
   } catch (err) {
     response.status(500).json({

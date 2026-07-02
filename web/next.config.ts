@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { CACHE } from "./src/lib/cache-config";
 
 const csp = `
   default-src 'self';
@@ -13,74 +14,7 @@ const csp = `
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  cacheLife: {
-    // Products: price/stock changes propagate quickly
-    products: {
-      stale: 300,       // 5 min  — serve stale while revalidating
-      revalidate: 1800, // 30 min — max age before re-fetch
-      expire: 7200,     // 2 hr   — hard expiry from cache store
-    },
-    // Homepage: banners, sections, testimonials, why-choose-us
-    homepage: {
-      stale: 600,       // 10 min
-      revalidate: 3600, // 1 hr
-      expire: 21600,    // 6 hr
-    },
-    // Categories: hierarchy changes rarely
-    categories: {
-      stale: 3600,       // 1 hr
-      revalidate: 86400, // 24 hr
-      expire: 604800,    // 7 days
-    },
-    // Filters: colors, materials — very stable
-    filters: {
-      stale: 3600,
-      revalidate: 86400,
-      expire: 604800,
-    },
-    // FAQ content: almost never changes
-    faq: {
-      stale: 86400,       // 24 hr
-      revalidate: 604800, // 7 days
-      expire: 2592000,    // 30 days
-    },
-    // Testimonials
-    testimonials: {
-      stale: 3600,
-      revalidate: 86400,
-      expire: 604800,
-    },
-    // Search results
-    search: {
-      stale: 300,
-      revalidate: 1800,
-      expire: 7200,
-    },
-    // Navigation menu
-    navigation: {
-      stale: 86400,
-      revalidate: 604800,
-      expire: 2592000,
-    },
-    // Best sellers / flash sale product lists
-    "best-sellers": {
-      stale: 300,
-      revalidate: 1800,
-      expire: 7200,
-    },
-    // Tab products (silver/gold/gift)
-    tabs: {
-      stale: 300,
-      revalidate: 3600,
-      expire: 14400,
-    },
-    // Default max-age profile used by revalidateTag()
-    max: {
-      stale: 3600,
-      revalidate: 86400,
-      expire: 604800,
-    },
-  },
+  cacheLife: CACHE,
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
@@ -141,6 +75,17 @@ const nextConfig: NextConfig = {
         source: "/(cart|checkout|order-success|profile)",
         headers: [
           { key: "Cache-Control", value: "private, no-cache, no-store, must-revalidate" },
+        ],
+      },
+      // Allow the admin panel (cross-origin) to call the revalidation endpoint.
+      // The endpoint is already protected by Bearer token auth, so we can be
+      // permissive with the allowed origin.
+      {
+        source: "/api/revalidate",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Access-Control-Allow-Methods", value: "POST, OPTIONS" },
+          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
         ],
       },
     ];

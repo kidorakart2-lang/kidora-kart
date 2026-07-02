@@ -36,10 +36,10 @@ async function setSessionCookies(
   user: { _id: unknown },
   type: "user",
 ): Promise<string> {
-  const accessToken = generateToken(user);
+  const accessToken = generateToken(user, "user");
   const refresh = await createRefreshToken(String(user._id), type);
 
-  res.cookie(type === "user" ? "userToken" : "adminToken", accessToken, accessTokenCookieOptions());
+  res.cookie(type === "user" ? "userToken" : "adminToken", accessToken, accessTokenCookieOptions("user"));
   res.cookie(
     type === "user" ? "userRefreshToken" : "adminRefreshToken",
     refresh.tokenValue,

@@ -17,7 +17,7 @@ import type { RootState } from "@/redux/store/store";
 
 export default function ProductCard({ data }: { data: ProductData }) {
   const cartItem = useSelector((state: RootState) =>
-    state.cart.cartItems.find((item) => item.productId === data?._id)
+    (state.cart?.cartItems ?? []).find((item) => item.productId === data?._id)
   );
 
   const cartObj = {
@@ -44,7 +44,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const isWishlisted = useSelector((state: RootState) =>
-    state.wishlist.wishlistItems.find((item) => item._id === data?._id)
+    (state.wishlist?.wishlistItems ?? []).find((item) => item._id === data?._id)
   );
 
   const [slideDirection, setSlideDirection] = useState(1);

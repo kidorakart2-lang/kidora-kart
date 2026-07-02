@@ -105,16 +105,29 @@ export const destroy = async (
       return;
     }
 
-    const result = await color.updateOne(
+    const existing = await color.findById(request.body.id);
+    if (!existing) {
+      response.status(404).json({ _status: false, _message: "No Data Found", _data: null });
+      return;
+    }
+    if (existing.deletedAt) {
+      // Already soft-deleted → permanently delete
+      await color.findByIdAndDelete(request.body.id);
+      cache.del("colorData");
+      response.status(200).json({ _status: true, _message: "Data Permanently Deleted", _data: null });
+      return;
+    }
+
+    await color.updateOne(
       { _id: request.body.id },
-      { $set: { deletedAt: Date.now() } },
+      { $set: { deletedAt: new Date() } },
     );
     cache.del("colorData");
 
     response.status(200).json({
       _status: true,
       _message: "Data Deleted",
-      _data: result,
+      _data: null,
     });
   } catch (err) {
     response.status(500).json({

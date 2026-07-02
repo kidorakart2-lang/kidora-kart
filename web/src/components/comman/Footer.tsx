@@ -37,30 +37,31 @@ interface NavCategory {
   subCategories?: NavSubCategory[];
 }
 
-export default function Footer() {
-  const [featuredProducts, setFeaturedProducts] = useState<FeaturedProduct[]>([]);
+export default function Footer({ featuredProducts: _featuredProducts }: { featuredProducts?: any[] }) {
+  // Use server-fetched featured products (from layout.tsx).
+  // The server caches this with next: { tags: ["featured-products"] }.
+  // Admin can invalidate via invalidateCache(["featured-products"]).
+  const [featuredProducts, setFeaturedProducts] = useState<FeaturedProduct[]>(_featuredProducts ?? []);
 
+  // Fallback: fetch client-side once if no server data
   const fetchFeaturedProducts = async () => {
     try {
       const res = await fetch(
         process.env.NEXT_PUBLIC_API_URL +
           "api/website/product/featured-for-footer",
-        {
-          next: {
-            revalidate: 600,
-            tags: ["featured-products"],
-          },
-        }
       );
       const data = await res.json();
       setFeaturedProducts(data._data);
-    } catch (err) {
+    } catch {
+      // ignore
     }
   };
 
   useEffect(() => {
-    fetchFeaturedProducts();
-  }, []);
+    if (!_featuredProducts || _featuredProducts.length === 0) {
+      fetchFeaturedProducts();
+    }
+  }, [_featuredProducts]);
   const categories = useSelector((state: RootState) => state?.ui?.navigation?._data as NavCategory[] | undefined);
 
   const logo = useSelector((state: RootState) => state.logo.logo);

@@ -23,7 +23,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { HoldToConfirmButton } from "@/components/ui/hold-to-confirm-button";
+import { SwipeButton } from "@/components/ui/swipe-button";
 import { LoadingUi } from "./Cart";
 import Personalized from "@/components/product/Personalized";
 import {
@@ -774,14 +774,12 @@ export default function Checkout() {
 
                 {/* Payment Button */}
                 <div className="mt-6">
-                  <HoldToConfirmButton
-                    loading={loading}
-                    onConfirm={handlePayment}
-                    duration={1200}
-                    label="Pay Online With Razorpay"
-                    confirmLabel="Loading Payment..."
-                    className="w-full py-3.5 px-6 rounded-xl font-semibold text-white transition-all"
+                  <SwipeButton
+                    onSwipeComplete={handlePayment}
+                    text="Pay Online With Razorpay"
+                    className="w-full"
                   />
+                  <p className="text-[10px] text-muted-foreground text-center mt-1">Swipe to complete payment</p>
 
                   {
                     <AlertDialog>
@@ -793,9 +791,9 @@ export default function Checkout() {
                           Purchase With Cash On delivery
                         </Button>
                       </AlertDialogTrigger>
-                      <AlertDialogContent>
+                      <AlertDialogContent className="border-brand-500/30 shadow-xl">
                         <AlertDialogHeader>
-                          <AlertDialogTitle>
+                          <AlertDialogTitle className="text-foreground">
                             Do you want to Continue?
                           </AlertDialogTitle>
                           <AlertDialogDescription>
@@ -804,10 +802,11 @@ export default function Checkout() {
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel className="border-brand-500/30 text-foreground hover:bg-brand-500/10">Cancel</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => handlePayment(true)}
                             disabled={loading}
+                            className="bg-brand-600 hover:bg-brand-700 text-white"
                           >
                             Continue
                           </AlertDialogAction>
@@ -943,14 +942,14 @@ export default function Checkout() {
         </div>
 
         <AlertDialog open={alert.open}>
-          <AlertDialogContent className="max-w-sm">
+          <AlertDialogContent className="max-w-sm border-brand-500/30 shadow-xl">
             <AlertDialogHeader>
-              <AlertDialogTitle>{alert.title || "Alert"}</AlertDialogTitle>
+              <AlertDialogTitle className="text-foreground">{alert.title || "Alert"}</AlertDialogTitle>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <Button
                 onClick={() => setAlert({ title: "", open: false })}
-                className="w-full"
+                className="w-full bg-brand-600 hover:bg-brand-700 text-white"
               >
                 Okay
               </Button>

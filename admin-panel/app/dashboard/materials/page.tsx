@@ -22,6 +22,7 @@ import { Plus, Pencil, Trash2, Palette, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api, ApiClientError } from "@/lib/api";
 import type { MaterialItem, ColorItem } from "@/lib/types";
+import { invalidateCache } from "@/lib/invalidate-cache";
 
 // API functions
 const fetchMaterials = async (isDeletedAt?: string): Promise<MaterialItem[]> => {
@@ -104,6 +105,7 @@ export default function MaterialsColorsPage() {
     mutationFn: createMaterial,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["materials"] });
+      invalidateCache(["filters"]);
       toast({ title: "Material created successfully" });
       setDrawerOpen(false);
       setMaterialForm({ name: "", order: 0 });
@@ -117,6 +119,7 @@ export default function MaterialsColorsPage() {
     mutationFn: updateMaterial,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["materials"] });
+      invalidateCache(["filters"]);
       toast({ title: "Material updated successfully" });
       setDrawerOpen(false);
       setEditingItem(null);
@@ -131,6 +134,7 @@ export default function MaterialsColorsPage() {
     mutationFn: deleteMaterial,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["materials"] });
+      invalidateCache(["filters"]);
       toast({ title: "Material deleted successfully" });
       setDeleteDialogOpen(false);
       setItemToDelete(null);
@@ -148,6 +152,7 @@ export default function MaterialsColorsPage() {
     mutationFn: changeMaterialStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["materials"] });
+      invalidateCache(["filters"]);
       toast({ title: "Material status updated successfully" });
     },
     onError: (error) => {
@@ -160,6 +165,7 @@ export default function MaterialsColorsPage() {
     mutationFn: createColor,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["colors"] });
+      invalidateCache(["filters"]);
       toast({ title: "Color created successfully" });
       setDrawerOpen(false);
       setColorForm({ name: "", code: "#000000", order: 0 });
@@ -173,6 +179,7 @@ export default function MaterialsColorsPage() {
     mutationFn: updateColor,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["colors"] });
+      invalidateCache(["filters"]);
       toast({ title: "Color updated successfully" });
       setDrawerOpen(false);
       setEditingItem(null);
@@ -187,6 +194,7 @@ export default function MaterialsColorsPage() {
     mutationFn: deleteColor,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["colors"] });
+      invalidateCache(["filters"]);
       toast({ title: "Color deleted successfully" });
       setDeleteDialogOpen(false);
       setItemToDelete(null);
@@ -204,6 +212,7 @@ export default function MaterialsColorsPage() {
     mutationFn: changeColorStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["colors"] });
+      invalidateCache(["filters"]);
       toast({ title: "Color status updated successfully" });
     },
     onError: (error) => {

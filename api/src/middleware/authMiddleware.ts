@@ -49,20 +49,20 @@ const extractAndVerifyToken = async (
 
 /**
  * Attempt to auto-refresh the access token using the refresh token cookie.
- * If successful, sets new httpOnly cookies and proceeds with the request.
+ * The proactive refresh (admin panel every 10 min, website every 10 min)
+ * prevents the race condition of multiple parallel auto-refresh attempts,
+ * so this function can be kept simple without a distributed lock.
  */
 async function attemptAutoRefresh(
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> {
-  // Determine which cookie types to check based on which tokens are present
   const userRefresh = req.cookies?.userRefreshToken;
   const adminRefresh = req.cookies?.adminRefreshToken;
-  const deliveryRefresh = req.cookies?.deliveryRefreshToken;
 
   let refreshValue: string | undefined;
-  let tokenType: "user" | "admin" | "delivery" | undefined;
+  let tokenType: "user" | "admin" | undefined;
 
   if (userRefresh) {
     refreshValue = userRefresh;
@@ -70,9 +70,6 @@ async function attemptAutoRefresh(
   } else if (adminRefresh) {
     refreshValue = adminRefresh;
     tokenType = "admin";
-  } else if (deliveryRefresh) {
-    refreshValue = deliveryRefresh;
-    tokenType = "delivery";
   }
 
   if (!refreshValue || !tokenType) {
@@ -85,9 +82,8 @@ async function attemptAutoRefresh(
 
   const result = await verifyRefreshToken(refreshValue, tokenType);
   if (!result) {
-    // Refresh token invalid or expired — clear cookies
     res.cookie(
-      tokenType === "user" ? "userRefreshToken" : tokenType === "admin" ? "adminRefreshToken" : "deliveryRefreshToken",
+      tokenType === "user" ? "userRefreshToken" : "adminRefreshToken",
       "",
       clearRefreshTokenCookie(),
     );
@@ -101,7 +97,6 @@ async function attemptAutoRefresh(
   // Revoke old refresh token (rotation)
   await revokeRefreshToken(result.tokenHash);
 
-  // Fetch user from DB (don't trust the JWT payload for anything except _id)
   const user = await User.findById(result.userId).select("-password");
   if (!user || user.deletedAt) {
     res.status(401).json({
@@ -111,24 +106,16 @@ async function attemptAutoRefresh(
     return;
   }
 
-  // Issue new access + refresh tokens
-  const newAccessToken = generateToken(user.toObject());
+  const newAccessToken = generateToken(user.toObject(), tokenType);
   const newRefresh = await createRefreshToken(
     String(user._id),
     tokenType,
   );
 
-  const accessCookieName =
-    tokenType === "user" ? "userToken"
-    : tokenType === "admin" ? "adminToken"
-    : "deliveryToken";
+  const accessCookieName = tokenType === "user" ? "userToken" : "adminToken";
+  const refreshCookieName = tokenType === "user" ? "userRefreshToken" : "adminRefreshToken";
 
-  const refreshCookieName =
-    tokenType === "user" ? "userRefreshToken"
-    : tokenType === "admin" ? "adminRefreshToken"
-    : "deliveryRefreshToken";
-
-  res.cookie(accessCookieName, newAccessToken, accessTokenCookieOptions());
+  res.cookie(accessCookieName, newAccessToken, accessTokenCookieOptions(tokenType));
   res.cookie(refreshCookieName, newRefresh.tokenValue, refreshTokenCookieOptions(newRefresh.expiresAt));
 
   req.user = user;
@@ -159,7 +146,7 @@ const protect = async (
   }
 
   // Fallback: check httpOnly cookies
-  token = req.cookies?.adminToken || req.cookies?.deliveryToken || req.cookies?.userToken;
+  token = req.cookies?.adminToken || req.cookies?.userToken;
   if (token) {
     await extractAndVerifyToken(req, res, next, token);
     return;

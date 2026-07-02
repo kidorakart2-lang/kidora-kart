@@ -13,6 +13,13 @@ import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { Plus, Edit, Trash2, FolderTree, Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import NewMultiSelect from "../../../components/NewMultiSelect";
 import { invalidateCache } from "@/lib/invalidate-cache";
@@ -30,8 +37,8 @@ const fetchSubCategories = async (): Promise<Category[]> => {
   return api.post<Category[]>("/api/admin/subCategory/view", {});
 };
 
-const fetchSubSubCategories = async () => {
-  const data = await api.post("/api/admin/subSubCategory/view", {});
+const fetchSubSubCategories = async (isDeletedAt?: string) => {
+  const data = await api.post("/api/admin/subSubCategory/view", { isDeletedAt });
   return Array.isArray(data) ? data : [];
 };
 
@@ -70,6 +77,7 @@ export default function SubSubCategoriesClient({
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [deletedFilter, setDeletedFilter] = useState<string>("active");
 
   // React Query hooks
   const { data: subCategories = [] } = useQuery({
@@ -80,8 +88,8 @@ export default function SubSubCategoriesClient({
 
   const { data: subSubCategories = [], isLoading } =
     useQuery({
-      queryKey: ["subSubCategories"],
-      queryFn: fetchSubSubCategories,
+      queryKey: ["subSubCategories", deletedFilter],
+      queryFn: () => fetchSubSubCategories(deletedFilter === "active" ? undefined : deletedFilter),
       staleTime: 5 * 60 * 1000,
     });
 
@@ -89,7 +97,7 @@ export default function SubSubCategoriesClient({
     mutationFn: createSubSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subSubCategories"] });
-      invalidateCache(["categories", "homepage"]);
+      invalidateCache(["categories", "homepage", "navigation"]);
       toast({ title: "Sub sub category created successfully" });
       closeDrawer();
     },
@@ -102,7 +110,7 @@ export default function SubSubCategoriesClient({
     mutationFn: updateSubSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subSubCategories"] });
-      invalidateCache(["categories", "homepage"]);
+      invalidateCache(["categories", "homepage", "navigation"]);
       toast({ title: "Sub sub category updated successfully" });
       closeDrawer();
     },
@@ -115,7 +123,7 @@ export default function SubSubCategoriesClient({
     mutationFn: deleteSubSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subSubCategories"] });
-      invalidateCache(["categories", "homepage"]);
+      invalidateCache(["categories", "homepage", "navigation"]);
       toast({ title: "Sub sub category deleted successfully" });
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
@@ -131,7 +139,7 @@ export default function SubSubCategoriesClient({
     mutationFn: changeSubSubCategoryStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subSubCategories"] });
-      invalidateCache(["categories", "homepage"]);
+      invalidateCache(["categories", "homepage", "navigation"]);
       toast({ title: "Sub sub category status updated successfully" });
     },
     onError: (error) => {
@@ -255,6 +263,19 @@ export default function SubSubCategoriesClient({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Select
+            value={deletedFilter}
+            onValueChange={setDeletedFilter}
+          >
+            <SelectTrigger className="w-[140px] h-9 text-xs">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active Only</SelectItem>
+              <SelectItem value="all">All (incl. deleted)</SelectItem>
+              <SelectItem value="deleted">Deleted Only</SelectItem>
+            </SelectContent>
+          </Select>
           <ExportButtons
             data={subSubCategories}
             filename="sub-sub-categories"

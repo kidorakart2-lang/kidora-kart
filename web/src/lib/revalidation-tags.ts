@@ -20,6 +20,7 @@
  *   "testimonials"        –  testimonial carousel / list
  *   "brand:{slug}"        –  brand-filtered product list
  *   "tabs"                –  tab-products data (silver / gold / gift)
+ *   "product-faq"         –  product-specific FAQ sets
  */
 
 // ── Generic scope tags ──────────────────────────────────────────────
@@ -35,6 +36,8 @@ export const TAG_TABS = "tabs" as const;
 export const TAG_FAQ = "faq" as const;
 export const TAG_FILTERS = "filters" as const;
 export const TAG_NAVIGATION = "navigation" as const;
+export const TAG_FEATURED_PRODUCTS = "featured-products" as const;
+export const TAG_PRODUCT_FAQ = "product-faq" as const;
 
 // ── Scoped tag helpers ──────────────────────────────────────────────
 

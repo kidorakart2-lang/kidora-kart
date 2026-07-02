@@ -5,7 +5,7 @@ import { Toaster } from "sonner";
 import MainLayout from "@/components/comman/MainLayout";
 import { siteConfig, defaultMetadata, getStructuredAddress } from "@/lib/utils";
 import { cache } from "react";
-import { TAG_NAVIGATION } from "@/lib/revalidation-tags";
+import { TAG_NAVIGATION, TAG_FEATURED_PRODUCTS } from "@/lib/revalidation-tags";
 import ScrollToTop from "@/components/ui/scroll-to-top";
 import RequirementModal from "@/components/comman/RequirementModal";
 import LoginModal from "@/components/comman/LoginModal";
@@ -180,12 +180,43 @@ const getNavigation = cache(async () => {
   }
 });
 
+const getFeaturedProducts = cache(async () => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}api/website/product/featured-for-footer`,
+      {
+        next: {
+          revalidate: 600,
+          tags: [TAG_FEATURED_PRODUCTS],
+        },
+      },
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (!data?._status) {
+      return null;
+    }
+
+    return data._data ?? [];
+  } catch {
+    return null;
+  }
+});
+
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [navigation] = await Promise.all([getNavigation()]);
+  const [navigation, featuredProducts] = await Promise.all([
+    getNavigation(),
+    getFeaturedProducts(),
+  ]);
 
   console.clear();
   return (
@@ -209,14 +240,14 @@ export default async function RootLayout({
         <meta name="msapplication-TileColor" content={siteConfig.themeColor} />
       </head>
       <body
-        className={`pt-0 !mr-0 bg-background dark antialiased flex flex-col ${lato.variable} pb-12 md:pb-0`}
+        className={`pt-0 !mr-0 bg-background  antialiased flex flex-col ${lato.variable} pb-12 md:pb-0`}
       >
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg focus:shadow-lg">
           Skip to main content
         </a>
         <Client>
           <MotionConfig reducedMotion="user">
-          <MainLayout navigationData={navigation}>
+          <MainLayout navigationData={navigation} featuredProducts={featuredProducts ?? []}>
             {children}
           </MainLayout>
           <ScrollToTop />

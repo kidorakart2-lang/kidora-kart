@@ -13,6 +13,13 @@ import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { Plus, Edit, Trash2, FolderTree, Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import NewMultiSelect from "../../../components/NewMultiSelect";
 import { invalidateCache } from "@/lib/invalidate-cache";
@@ -30,8 +37,8 @@ const fetchCategories = async (): Promise<Category[]> => {
   return api.post<Category[]>("/api/admin/category/view", {});
 };
 
-const fetchSubCategories = async () => {
-  const data = await api.post("/api/admin/subCategory/view", {});
+const fetchSubCategories = async (isDeletedAt?: string) => {
+  const data = await api.post("/api/admin/subCategory/view", { isDeletedAt });
   return Array.isArray(data) ? data : [];
 };
 
@@ -70,6 +77,7 @@ export default function SubCategoriesClient({
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [deletedFilter, setDeletedFilter] = useState<string>("active");
 
   // React Query hooks
   const { data: categories = [] } = useQuery({
@@ -79,8 +87,8 @@ export default function SubCategoriesClient({
   });
 
   const { data: subCategories = [], isLoading } = useQuery({
-    queryKey: ["subCategories"],
-    queryFn: fetchSubCategories,
+    queryKey: ["subCategories", deletedFilter],
+    queryFn: () => fetchSubCategories(deletedFilter === "active" ? undefined : deletedFilter),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -88,7 +96,7 @@ export default function SubCategoriesClient({
     mutationFn: createSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subCategories"] });
-      invalidateCache(["categories", "homepage"]);
+      invalidateCache(["categories", "homepage", "navigation"]);
       toast({ title: "Sub category created successfully" });
       closeDrawer();
     },
@@ -101,7 +109,7 @@ export default function SubCategoriesClient({
     mutationFn: updateSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subCategories"] });
-      invalidateCache(["categories", "homepage"]);
+      invalidateCache(["categories", "homepage", "navigation"]);
       toast({ title: "Sub category updated successfully" });
       closeDrawer();
     },
@@ -114,7 +122,7 @@ export default function SubCategoriesClient({
     mutationFn: deleteSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subCategories"] });
-      invalidateCache(["categories", "homepage"]);
+      invalidateCache(["categories", "homepage", "navigation"]);
       toast({ title: "Sub category deleted successfully" });
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
@@ -130,7 +138,7 @@ export default function SubCategoriesClient({
     mutationFn: changeSubCategoryStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subCategories"] });
-      invalidateCache(["categories", "homepage"]);
+      invalidateCache(["categories", "homepage", "navigation"]);
       toast({ title: "Sub category status updated successfully" });
     },
     onError: (error) => {
@@ -249,6 +257,19 @@ export default function SubCategoriesClient({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Select
+            value={deletedFilter}
+            onValueChange={setDeletedFilter}
+          >
+            <SelectTrigger className="w-[140px] h-9 text-xs">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active Only</SelectItem>
+              <SelectItem value="all">All (incl. deleted)</SelectItem>
+              <SelectItem value="deleted">Deleted Only</SelectItem>
+            </SelectContent>
+          </Select>
           <ExportButtons data={subCategories} filename="sub-categories" />
           <Button
             onClick={() => {

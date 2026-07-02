@@ -5,6 +5,7 @@ import {
   type PersistConfig,
 } from "redux-persist";
 import storageSession from "redux-persist/lib/storage/session";
+import encryptTransform from "@/lib/persistTransform";
 import authReducer from "../features/auth";
 import cartReducer from "../features/cart";
 import wishlistReducer from "../features/wishlist";
@@ -27,7 +28,8 @@ export type RootState = ReturnType<typeof rootReducer>;
 const persistConfig: PersistConfig<RootState> = {
   key: "root",
   storage: storageSession,
-  whitelist: ["cart"],
+  whitelist: ["cart", "wishlist"],
+  ...(encryptTransform ? { transforms: [encryptTransform] } : {}),
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

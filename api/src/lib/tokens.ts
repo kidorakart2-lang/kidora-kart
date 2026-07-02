@@ -3,9 +3,12 @@ import { env } from "../config/env.js";
 import RefreshTokenModel from "../models/refreshToken.js";
 
 // ── Refresh Token (opaque, stored hashed in DB) ──
-const REFRESH_TOKEN_DAYS = 7;
-
-// ── Refresh Token (opaque, stored hashed in DB) ──
+// Admin tokens: 10 days, User tokens: 5 days, Delivery tokens: 5 days
+// The createRefreshToken function receives the type, but we use a single
+// constant here as a base. Individual callers can override via the expiry param.
+const REFRESH_TOKEN_DAYS_ADMIN = 10;
+const REFRESH_TOKEN_DAYS_USER = 5;
+const REFRESH_TOKEN_DAYS_DELIVERY = 5;
 
 export function generateRefreshTokenValue(): string {
   return randomBytes(64).toString("hex");
@@ -15,9 +18,14 @@ export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-function getRefreshTokenExpiry(): Date {
+function getRefreshTokenExpiry(type: "user" | "admin" | "delivery"): Date {
+  const days = type === "admin"
+    ? REFRESH_TOKEN_DAYS_ADMIN
+    : type === "user"
+      ? REFRESH_TOKEN_DAYS_USER
+      : REFRESH_TOKEN_DAYS_DELIVERY;
   const d = new Date();
-  d.setDate(d.getDate() + REFRESH_TOKEN_DAYS);
+  d.setDate(d.getDate() + days);
   return d;
 }
 
@@ -27,7 +35,7 @@ export async function createRefreshToken(
 ): Promise<{ tokenValue: string; expiresAt: Date }> {
   const tokenValue = generateRefreshTokenValue();
   const tokenHash = hashToken(tokenValue);
-  const expiresAt = getRefreshTokenExpiry();
+  const expiresAt = getRefreshTokenExpiry(type);
 
   await RefreshTokenModel.create({ tokenHash, userId, type, expiresAt });
 
@@ -63,12 +71,15 @@ export async function revokeAllUserRefreshTokens(userId: string): Promise<void> 
 
 // ── Cookie config helpers ──
 
-export function accessTokenCookieOptions() {
+export function accessTokenCookieOptions(type?: "admin" | "user" | "delivery") {
+  const maxAge = type === "admin"
+    ? 2 * 60 * 60 * 1000   // 2 hours
+    : 1 * 60 * 60 * 1000;  // 1 hour
   return {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
     sameSite: "strict" as const,
-    maxAge: 15 * 60 * 1000, // 15 minutes
+    maxAge,
     path: "/",
   };
 }

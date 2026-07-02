@@ -12,6 +12,13 @@ import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { Cloud, IndianRupee, Plus, X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import NewMultiSelect from "../../../components/NewMultiSelect";
 import Image from "next/image";
@@ -150,8 +157,8 @@ const fetchSubSubCategories = async () => {
   }
 };
 
-const fetchProducts = async () => {
-  const data = await api.post<Product[]>("/api/admin/product/view?showDeleted=true", {});
+const fetchProducts = async (isDeletedAt?: string) => {
+  const data = await api.post<Product[]>("/api/admin/product/view", { isDeletedAt });
   return data || [];
 };
 
@@ -226,13 +233,15 @@ export default function ProductsPage() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const [deletedFilter, setDeletedFilter] = useState<string>("active");
+
   const {
     data: products = [],
     isLoading,
     isError,
   } = useQuery<Product[]>({
-    queryKey: ["products"],
-    queryFn: fetchProducts,
+    queryKey: ["products", deletedFilter],
+    queryFn: () => fetchProducts(deletedFilter === "active" ? undefined : deletedFilter),
     staleTime: 2 * 60 * 1000,
   });
 
@@ -241,7 +250,7 @@ export default function ProductsPage() {
     mutationFn: deleteProduct,
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      invalidateCache(["products", `product:${id}`, "homepage"]);
+      invalidateCache(["products", `product:${id}`, "homepage", "best-sellers", "flash-sale"]);
       toast({ title: "Product deleted successfully" });
       setAlertOpen(false);
       setDeleteId(null);
@@ -261,7 +270,7 @@ export default function ProductsPage() {
     mutationFn: changeProductStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      invalidateCache(["products", "homepage"]);
+      invalidateCache(["products", "homepage", "best-sellers", "flash-sale"]);
       toast({ title: "Status updated successfully" });
     },
     onError: (error: Error) => {
@@ -273,7 +282,7 @@ export default function ProductsPage() {
     mutationFn: saveProduct,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      const tags = ["products", "homepage"];
+      const tags = ["products", "homepage", "best-sellers", "flash-sale"];
       if (editingProduct) {
         tags.push(`product:${editingProduct._id}`);
       }
@@ -655,6 +664,19 @@ export default function ProductsPage() {
           <p className="text-muted-foreground">Manage your product inventory</p>
         </div>
         <div className="flex items-center gap-2">
+          <Select
+            value={deletedFilter}
+            onValueChange={setDeletedFilter}
+          >
+            <SelectTrigger className="w-[140px] h-9 text-xs">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active Only</SelectItem>
+              <SelectItem value="all">All (incl. deleted)</SelectItem>
+              <SelectItem value="deleted">Deleted Only</SelectItem>
+            </SelectContent>
+          </Select>
           <ExportButtons data={products as unknown as Record<string, unknown>[]} filename="products" />
           <Button
             onClick={() => {

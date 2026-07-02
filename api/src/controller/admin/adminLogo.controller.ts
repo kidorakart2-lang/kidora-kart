@@ -123,13 +123,20 @@ export const destroy = async (
       });
       return;
     }
+    if (logo.deletedAt) {
+      // Already soft-deleted → permanently delete
+      await logoModal.findByIdAndDelete(req.params.id);
+      cache.del("logoData");
+      res.status(200).json({ _status: true, _message: "Logo Permanently Deleted", _data: null });
+      return;
+    }
     logo.deletedAt = new Date();
     await logo.save();
     cache.del("logoData");
     res.status(200).json({
       _status: true,
-      _message: "Logo Deleted Permanently",
-      _data: logo,
+      _message: "Logo Deleted",
+      _data: null,
     });
   } catch (error) {
     res.status(500).json({

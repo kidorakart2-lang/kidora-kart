@@ -11,6 +11,13 @@ import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { Plus, Edit, Trash2, FolderTree, Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { useToast } from "@/hooks/use-toast";
 import { api, ApiClientError } from "@/lib/api";
@@ -31,8 +38,8 @@ interface FormState {
 
 
 
-const fetchCategories = async (): Promise<Category[]> => {
-  return api.post<Category[]>("/api/admin/category/view", {});
+const fetchCategories = async (isDeletedAt?: string): Promise<Category[]> => {
+  return api.post<Category[]>("/api/admin/category/view", { isDeletedAt });
 };
 
 const createCategory = async (formData: FormData) => {
@@ -57,6 +64,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [deletedFilter, setDeletedFilter] = useState<string>("active");
   const [formData, setFormData] = useState<FormState>({
     name: "",
     image: null,
@@ -65,8 +73,8 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
   const queryClient = useQueryClient();
 
   const { data: categories = [], isLoading, error } = useQuery({
-    queryKey: ["categories"],
-    queryFn: fetchCategories,
+    queryKey: ["categories", deletedFilter],
+    queryFn: () => fetchCategories(deletedFilter === "active" ? undefined : deletedFilter),
     staleTime: 5 * 60 * 1000,
     retry: 2,
   });
@@ -75,7 +83,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     mutationFn: createCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      invalidateCache(["categories", "homepage"]);
+      invalidateCache(["categories", "homepage", "navigation"]);
       toast({ title: "Category created successfully" });
       closeDrawer();
     },
@@ -88,7 +96,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     mutationFn: updateCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      invalidateCache(["categories", "homepage"]);
+      invalidateCache(["categories", "homepage", "navigation"]);
       toast({ title: "Category updated successfully" });
       closeDrawer();
     },
@@ -101,7 +109,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     mutationFn: deleteCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      invalidateCache(["categories", "homepage"]);
+      invalidateCache(["categories", "homepage", "navigation"]);
       toast({ title: "Category deleted successfully" });
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
@@ -117,7 +125,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     mutationFn: changeCategoryStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      invalidateCache(["categories", "homepage"]);
+      invalidateCache(["categories", "homepage", "navigation"]);
       toast({ title: "Category status updated successfully" });
     },
     onError: (error: Error) => {
@@ -242,6 +250,19 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Select
+            value={deletedFilter}
+            onValueChange={setDeletedFilter}
+          >
+            <SelectTrigger className="w-[140px] h-9 text-xs">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active Only</SelectItem>
+              <SelectItem value="all">All (incl. deleted)</SelectItem>
+              <SelectItem value="deleted">Deleted Only</SelectItem>
+            </SelectContent>
+          </Select>
           <ExportButtons data={categories as unknown as Record<string, unknown>[]} filename="categories" />
           <Button
             onClick={() => {

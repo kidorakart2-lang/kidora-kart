@@ -64,7 +64,7 @@ export default function BannersPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    loadBanners();
+    // loadLinkOptions only; loadBanners is handled by the deletedFilter effect
     loadLinkOptions();
   }, []);
 
@@ -114,10 +114,18 @@ export default function BannersPage() {
     }
   };
 
+  const [deletedFilter, setDeletedFilter] = useState<string>("active");
+
+  useEffect(() => {
+    loadBanners();
+  }, [deletedFilter]);
+
   const loadBanners = async () => {
     setLoading(true);
     try {
-      const data = await api.post<Banner[]>("/api/admin/banner/view", {});
+      const data = await api.post<Banner[]>("/api/admin/banner/view", {
+        isDeletedAt: deletedFilter === "active" ? undefined : deletedFilter,
+      });
       setBanners(data ?? []);
     } catch (error) {
       toast({
@@ -294,6 +302,19 @@ export default function BannersPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Select
+            value={deletedFilter}
+            onValueChange={setDeletedFilter}
+          >
+            <SelectTrigger className="w-[140px] h-9 text-xs">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active Only</SelectItem>
+              <SelectItem value="all">All (incl. deleted)</SelectItem>
+              <SelectItem value="deleted">Deleted Only</SelectItem>
+            </SelectContent>
+          </Select>
           <ExportButtons
             data={banners as unknown as Record<string, unknown>[]}
             filename="banners"
@@ -351,15 +372,17 @@ export default function BannersPage() {
                   {banner.description}
                 </p>
               </div>
-              {banner.link?.url && (
+              {banner.link && (
                 <div className="flex items-center gap-1.5">
-                  <Badge
-                    variant="outline"
-                    className="text-xs font-mono truncate max-w-full gap-1"
-                  >
-                    <LinkIcon className="h-3 w-3 shrink-0" />
-                    <span className="truncate">{banner.link.url}</span>
-                  </Badge>
+                  {banner.link.url || banner.link.label || banner.link.externalUrl ? (
+                    <span className="text-xs text-muted-foreground truncate max-w-[180px]">
+                      {banner.link.label || banner.link.url || banner.link.externalUrl}
+                    </span>
+                  ) : banner.link.target ? (
+                    <span className="text-xs text-muted-foreground truncate max-w-[180px]">
+                      ID: {banner.link.target}
+                    </span>
+                  ) : null}
                   <Badge variant="secondary" className="text-xs shrink-0">
                     {banner.link.type === "external" ? (
                       <>

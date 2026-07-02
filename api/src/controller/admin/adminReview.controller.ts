@@ -104,17 +104,6 @@ export const deleteReview = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const reviewList = await Reviews.find({ _id: id });
-    if (reviewList.length === 0 || !reviewList[0]?.userId) {
-      await Reviews.findByIdAndDelete(id);
-      res.status(200).json({
-        _status: true,
-        _message: "Review deleted successfully",
-        _data: null,
-      });
-      return;
-    }
-
     const review = await Reviews.findById(id);
     if (!review) {
       res.status(404).json({
@@ -124,6 +113,27 @@ export const deleteReview = async (
       });
       return;
     }
+    // Already soft-deleted → permanently delete
+    if (review.deletedAt) {
+      await Reviews.findByIdAndDelete(id);
+      res.status(200).json({
+        _status: true,
+        _message: "Review permanently deleted",
+        _data: null,
+      });
+      return;
+    }
+    // No user attached → permanently delete (guest review)
+    if (!review.userId) {
+      await Reviews.findByIdAndDelete(id);
+      res.status(200).json({
+        _status: true,
+        _message: "Review deleted successfully",
+        _data: null,
+      });
+      return;
+    }
+    // Soft delete for user-attached reviews
     review.deletedAt = new Date();
     await review.save();
     res.status(200).json({

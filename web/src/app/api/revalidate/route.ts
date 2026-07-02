@@ -22,6 +22,8 @@ const TAG_PROFILES: Record<string, string> = {
   "flash-sale": "best-sellers",   // same cadence as best-sellers
   tabs: "tabs",
   navigation: "navigation",
+  "product-faq": "faq",            // same cadence as faq
+  "featured-products": "best-sellers",
   brand: "max",                   // brand:{slug} — no dedicated profile yet
 };
 

@@ -40,6 +40,13 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default("gemini-2.0-flash"),
   AI_DAILY_TOKEN_BUDGET: z.coerce.number().int().positive().default(100000),
+
+  CORS_ORIGINS: z
+    .string()
+    .default("http://localhost:3000,http://localhost:3001")
+    .transform((val) => val.split(",").map((s) => s.trim())),
+
+  REVALIDATE_SECRET: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

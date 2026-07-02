@@ -30,6 +30,12 @@ import Personalized from "@/components/product/Personalized";
 import { addToWishlist, removeFromWishlist } from "@/redux/features/wishlist";
 import type { RootState } from "@/redux/store/store";
 import type { ColorItem } from "@/types";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface FaqSet {
   _id: string;
@@ -48,8 +54,6 @@ function ProductFaqSection({ productId }: { productId: string }) {
       })
       .catch(() => {});
   }, [productId]);
-
-  if (faqSets.length === 0) return null;
 
   // Flatten all entries from all sets, deduplicate by question text
   const seen = new Set<string>();
@@ -72,47 +76,42 @@ function ProductFaqSection({ productId }: { productId: string }) {
     })),
   };
 
-  const jsonLdString = JSON.stringify(jsonLd);
-
   if (allEntries.length === 0) return null;
 
   return (
-    <section className="mb-12">
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      className="mb-12"
+    >
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLdString }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="bg-background/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-12 border border-white/80">
         <h2 className="text-3xl font-light text-foreground tracking-tight mb-8">
           Frequently Asked Questions
         </h2>
-        <div className="space-y-4">
+        <Accordion type="single" collapsible className="space-y-3">
           {allEntries.map((entry, i) => (
-            <details
+            <AccordionItem
               key={i}
-              className="group border border-border rounded-lg overflow-hidden"
+              value={`faq-${i}`}
+              className="border border-border rounded-lg overflow-hidden"
             >
-              <summary className="flex items-center justify-between px-5 py-4 cursor-pointer text-foreground font-[450] text-base hover:bg-muted transition-colors list-none [&::-webkit-details-marker]:hidden">
+              <AccordionTrigger className="px-5 py-4 text-foreground font-[450] text-base hover:bg-brand-50 hover:no-underline transition-colors data-[state=open]:bg-brand-50">
                 {entry.question}
-                <svg
-                  className="w-4 h-4 text-muted-foreground shrink-0 group-open:rotate-180 transition-transform"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </summary>
-              <div className="px-5 pb-4 text-muted-foreground text-base font-[350] leading-relaxed">
+              </AccordionTrigger>
+              <AccordionContent className="px-5 text-muted-foreground text-base font-[350] leading-relaxed">
                 {entry.answer}
-              </div>
-            </details>
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
       </div>
-    </section>
+    </motion.section>
   );
 }
 

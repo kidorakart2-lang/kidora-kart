@@ -182,16 +182,28 @@ export const deleteBanner = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const banner = await bannerModal.findByIdAndUpdate(
+    const existing = await bannerModal.findById(req.params.id);
+    if (!existing) {
+      res.status(404).json({ _status: false, _message: "Banner Not Found", _data: null });
+      return;
+    }
+    if (existing.deletedAt) {
+      // Already soft-deleted → permanently delete
+      await bannerModal.findByIdAndDelete(req.params.id);
+      cache.del("bannerData");
+      res.status(200).json({ _status: true, _message: "Banner Permanently Deleted", _data: null });
+      return;
+    }
+    await bannerModal.findByIdAndUpdate(
       req.params.id,
       { deletedAt: new Date() },
       { new: true },
     );
     cache.del("bannerData");
     res.status(200).json({
-      _status: !!banner,
-      _message: banner ? "Banner Deleted Successfully" : "Banner Not Found",
-      _data: banner,
+      _status: true,
+      _message: "Banner Deleted Successfully",
+      _data: null,
     });
   } catch (error) {
     res.status(500).json({

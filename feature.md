@@ -283,7 +283,9 @@ Why a `slides` prop and not overloading `images`? Two reasons: the existing prop
 
 ---
 
-## 2. Feature A — Product FAQ / Q&A Module
+## ✅ 2. Feature A — Product FAQ / Q&A Module (COMPLETE)
+
+**Status: IMPLEMENTED AND VERIFIED** — Admin can create/edit/reorder product-specific FAQs via dedicated dashboard page. FAQs render as `<details>/<summary>` accordion on the customer product detail page with JSON-LD `FAQPage` schema. Cache is invalidated per-product on every admin write.
 
 ### 2.1 Why a separate collection (not a field on Product)
 

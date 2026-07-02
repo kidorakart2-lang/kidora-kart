@@ -555,7 +555,7 @@ export default function Header({ navigationData }: HeaderProps) {
               {cat.subCategories?.length == 0 ? (
                 <Link
                   href={urlPrfix(cat.slug)}
-                  className="relative hover:text-[var(--brand-primary)] transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-muted-foreground group font-medium"
+                  className="relative hover:text-[var(--brand-primary)] transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-foreground group font-medium"
                 >
                   {cat.name}
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-brand transition-all duration-300 group-hover:w-full"></span>
@@ -564,7 +564,7 @@ export default function Header({ navigationData }: HeaderProps) {
                 <div className="relative group">
                   <button
                     onClick={() => router.push("/category/" + cat.slug)}
-                    className="relative hover:text-[var(--brand-primary)] transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-muted-foreground flex items-center gap-1.5 font-medium"
+                    className="relative hover:text-[var(--brand-primary)] transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-foreground flex items-center gap-1.5 font-medium"
                     aria-haspopup="menu"
                   >
                     {cat.name}
@@ -598,7 +598,7 @@ export default function Header({ navigationData }: HeaderProps) {
                               {menu.subSubCategories?.map(
                                 (subcat: SubSubCategory, j: number) => (
                                   <div key={j}>
-                                    <ul className="space-y-1 text-muted-foreground text-sm">
+                                    <ul className="space-y-1 text-foreground text-sm">
                                       <li key={subcat._id}>
                                         <Link
                                           href={`/category/${cat.slug}/${menu.slug}/${subcat.slug}`}
@@ -623,14 +623,14 @@ export default function Header({ navigationData }: HeaderProps) {
           ))}
           <Link
             href="/contact-us"
-            className="relative hover:text-[var(--brand-primary)] transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-muted-foreground group font-medium"
+            className="relative hover:text-[var(--brand-primary)] transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-foreground group font-medium"
           >
             Contact Us
             <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-brand transition-all duration-300 group-hover:w-full"></span>
           </Link>
           <Link
             href="/order-track"
-            className="relative hover:text-[var(--brand-primary)] transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-muted-foreground group font-medium"
+            className="relative hover:text-[var(--brand-primary)] transition-all duration-300 text-[15px] whitespace-nowrap pb-1.5 text-foreground group font-medium"
           >
             Track Order
             <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-brand transition-all duration-300 group-hover:w-full"></span>

@@ -11,9 +11,11 @@ const AUTH_PATHS = ["/login", "/signup"];
 export default function MainLayout({
   children,
   navigationData,
+  featuredProducts,
 }: {
   children: React.ReactNode;
   navigationData: any;
+  featuredProducts?: any[];
 }) {
   const pathname = usePathname();
   const isAuthPage = AUTH_PATHS.includes(pathname);
@@ -26,7 +28,7 @@ export default function MainLayout({
     <>
       <Header navigationData={navigationData} />
       <main id="main-content" className="flex-1">{children}</main>
-      <Footer />
+      <Footer featuredProducts={featuredProducts} />
       <BottomTabNavigation />
       <ToolBar />
     </>

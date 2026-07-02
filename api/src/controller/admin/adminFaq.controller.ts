@@ -89,15 +89,27 @@ export const destroy = async (
   response: Response,
 ): Promise<void> => {
   try {
-    const result = await faqs.updateMany(
+    const existing = await faqs.findById(request.body.id);
+    if (!existing) {
+      response.send({ _status: false, _message: "No Data Found", _data: null });
+      return;
+    }
+    if (existing.deletedAt) {
+      // Already soft-deleted → permanently delete
+      await faqs.findByIdAndDelete(request.body.id);
+      cache.del("faqData");
+      response.send({ _status: true, _message: "Data Permanently Deleted", _data: null });
+      return;
+    }
+    await faqs.updateOne(
       { _id: request.body.id },
-      { deletedAt: new Date() },
+      { $set: { deletedAt: new Date() } },
     );
     cache.del("faqData");
     response.send({
       _status: true,
       _message: "Data Deleted",
-      _data: result,
+      _data: null,
     });
   } catch (err) {
     response.send({

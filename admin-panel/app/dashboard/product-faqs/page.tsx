@@ -14,6 +14,13 @@ import { Drawer } from "@/components/drawer"
 import { ExportButtons } from "@/components/export-buttons"
 import { AlertDialogUse } from "@/components/alert-dialog"
 import { Plus, Pencil, Trash2, Eye, EyeOff, Search, X, CopyPlus } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import type { ProductFAQSet } from "@/lib/types"
 
@@ -66,19 +73,21 @@ export default function ProductFAQsPage() {
     { question: "", answer: "", order: 1 },
   ])
   const [submitting, setSubmitting] = useState(false)
+  const [deletedFilter, setDeletedFilter] = useState<string>("active")
   const { toast } = useToast()
 
   useEffect(() => {
     loadFaqSets()
     loadProducts()
-  }, [])
+  }, [deletedFilter])
 
   // ── API helpers ──
 
   const loadFaqSets = async () => {
     setLoading(true)
     try {
-      const data = await api.post<ProductFAQSet[]>("/api/admin/product-faq/view", {})
+      const filter = deletedFilter === "active" ? undefined : deletedFilter
+      const data = await api.post<ProductFAQSet[]>("/api/admin/product-faq/view", { isDeletedAt: filter })
       setFaqSets(data ?? [])
     } catch (error) {
       toast({
@@ -147,7 +156,7 @@ export default function ProductFAQsPage() {
     try {
       await api.put("/api/admin/product-faq/delete/" + setToDelete)
       loadFaqSets()
-      invalidateCache(["faq", "products"])
+      invalidateCache(["product-faq", "faq", "products"])
       toast({ title: "FAQ set deleted successfully" })
     } catch (error) {
       toast({
@@ -165,7 +174,7 @@ export default function ProductFAQsPage() {
     try {
       await api.post("/api/admin/product-faq/change-status", { id: set._id })
       loadFaqSets()
-      invalidateCache(["faq", "products"])
+      invalidateCache(["product-faq", "faq", "products"])
       toast({ title: "FAQ set status updated successfully" })
     } catch (error) {
       toast({
@@ -234,7 +243,7 @@ export default function ProductFAQsPage() {
       }
 
       loadFaqSets()
-      invalidateCache(["faq", "products"])
+      invalidateCache(["product-faq", "faq", "products"])
       setDrawerOpen(false)
       setEditingSet(null)
       setSelectedProductIds([])
@@ -279,6 +288,19 @@ export default function ProductFAQsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Select
+            value={deletedFilter}
+            onValueChange={setDeletedFilter}
+          >
+            <SelectTrigger className="w-[140px] h-8 text-xs">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active Only</SelectItem>
+              <SelectItem value="all">All (incl. deleted)</SelectItem>
+              <SelectItem value="deleted">Deleted Only</SelectItem>
+            </SelectContent>
+          </Select>
           <ExportButtons data={faqSets as unknown as Record<string, unknown>[]} filename="product-faq-sets" />
           <Button onClick={openCreateDrawer} className="transition-all duration-200 hover:scale-105">
             <Plus className="h-4 w-4 mr-2" />

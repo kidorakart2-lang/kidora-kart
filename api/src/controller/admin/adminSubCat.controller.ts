@@ -115,9 +115,23 @@ export const destroy = async (
   response: Response,
 ): Promise<void> => {
   try {
-    const result = await subCategory.updateMany(
+    const existing = await subCategory.findById(request.body.id);
+    if (!existing) {
+      response.send({ _status: false, _message: "No Data Found", _data: null });
+      return;
+    }
+    if (existing.deletedAt) {
+      // Already soft-deleted → permanently delete
+      await subCategory.findByIdAndDelete(request.body.id);
+      cache.del("navigationData");
+      cache.del("subCategory_men");
+      cache.del("subCategory_women");
+      response.send({ _status: true, _message: "Data Permanently Deleted", _data: null });
+      return;
+    }
+    await subCategory.updateOne(
       { _id: request.body.id },
-      { $set: { deletedAt: Date.now() } },
+      { $set: { deletedAt: new Date() } },
     );
     cache.del("navigationData");
     cache.del("subCategory_men");
@@ -125,7 +139,7 @@ export const destroy = async (
     response.send({
       _status: true,
       _message: "Data Deleted",
-      _data: result,
+      _data: null,
     });
   } catch (err) {
     response.send({

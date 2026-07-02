@@ -461,6 +461,17 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
       });
       return;
     }
+    if (product.deletedAt) {
+      // Already soft-deleted → permanently delete
+      await Product.findByIdAndDelete(id);
+      invalidateProductCaches();
+      res.send({
+        _status: true,
+        _message: "Product permanently deleted",
+        _data: null,
+      });
+      return;
+    }
     await Product.findByIdAndUpdate(
       id,
       { deletedAt: new Date() },
@@ -470,7 +481,7 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
     res.send({
       _status: true,
       _message: "Product deleted successfully",
-      _data: product,
+      _data: null,
     });
   } catch (err) {
     res.send({

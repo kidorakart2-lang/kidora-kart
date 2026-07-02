@@ -21,7 +21,7 @@
 const FRONTEND_URL =
   process.env.NEXT_PUBLIC_FRONTEND_URL ?? "http://localhost:3000";
 
-const REVALIDATE_SECRET = process.env.REVALIDATE_SECRET ?? "";
+const REVALIDATE_SECRET = process.env.NEXT_PUBLIC_REVALIDATE_SECRET ?? "";
 
 export interface InvalidateResult {
   success: boolean;

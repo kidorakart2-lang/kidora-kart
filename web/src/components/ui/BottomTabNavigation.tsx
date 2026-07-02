@@ -126,7 +126,7 @@ export function BottomTabNavigation() {
                       }`,
                     })}
                     {tab.id === "cart" && cartCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      <span className="absolute -top-2 -right-2 bg-destructive text-background text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                         {cartCount > 9 ? "9+" : cartCount}
                       </span>
                     )}

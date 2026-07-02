@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { AlertDialogUse } from "./alert-dialog";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -73,6 +73,43 @@ export function Header() {
 
     setResult(filtered);
   };
+
+  // ── Proactive token refresh ──────────────────────────────────────
+  // Refresh the access token every 10 minutes (before the 15-min expiry)
+  // to prevent race conditions from parallel auto-refresh attempts.
+  const refreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const doTokenRefresh = useCallback(async () => {
+    try {
+      await fetch("/api/admin/user/refresh", {
+        method: "POST",
+        credentials: "include",
+        // Don't wait for the response — fire-and-forget
+      });
+    } catch {
+      // Silently ignore — auto-refresh in middleware handles edge cases
+    }
+  }, []);
+
+  useEffect(() => {
+    // Start the interval
+    refreshIntervalRef.current = setInterval(doTokenRefresh, 10 * 60 * 1000);
+
+    // Also refresh on page visibility change (user returns after idle)
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        doTokenRefresh();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [doTokenRefresh]);
 
   const handleLogout = async () => {
     try {
