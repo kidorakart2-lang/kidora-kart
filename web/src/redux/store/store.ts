@@ -24,8 +24,8 @@ const rootReducer = combineReducers({
 
 export type RootState = ReturnType<typeof rootReducer>;
 
-// Lazy-init storage: avoid redux-persist SSR warning by only importing session storage on client
-const getPersistStorage = (): PersistConfig<RootState>["storage"] => {
+// Custom storage wrapper that silently handles QuotaExceededError
+const createSafeStorage = (): PersistConfig<RootState>["storage"] => {
   if (typeof window === "undefined") {
     return {
       getItem: async () => null,
@@ -35,8 +35,50 @@ const getPersistStorage = (): PersistConfig<RootState>["storage"] => {
   }
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { default: storageSession } = require("redux-persist/lib/storage/session");
-  return storageSession;
+  return {
+    ...storageSession,
+    setItem: async (key: string, value: string) => {
+      try {
+        await storageSession.setItem(key, value);
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "QuotaExceededError") {
+          console.warn("Storage quota exceeded, clearing persisted state");
+          await storageSession.removeItem("persist:root");
+          try {
+            await storageSession.setItem(key, value);
+          } catch {
+            console.warn("Still unable to store after clearing, persisting disabled");
+          }
+        } else {
+          throw err;
+        }
+      }
+    },
+  };
 };
+
+// Strip heavy product data from cart items before persisting
+const cartItemTransform = createTransform(
+  (inboundState: Record<string, unknown>) => {
+    if (Array.isArray(inboundState.cartItems)) {
+      return {
+        ...inboundState,
+        cartItems: inboundState.cartItems.map(
+          (item: Record<string, unknown>) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            colorId: item.colorId,
+            sizeId: item.sizeId,
+            isGuest: item.isGuest,
+          })
+        ),
+      };
+    }
+    return inboundState;
+  },
+  (outboundState: Record<string, unknown>) => outboundState,
+  { whitelist: ["cart"] }
+);
 
 // Strip auth token before persisting — token lives only in the cookie
 const authTokenFilter = createTransform(
@@ -53,10 +95,11 @@ const authTokenFilter = createTransform(
 // Configuration for redux-persist
 const persistConfig: PersistConfig<RootState> = {
   key: "root",
-  storage: getPersistStorage(),
+  storage: createSafeStorage(),
   whitelist: ["cart", "wishlist", "auth"],
   transforms: [
     ...(encryptTransform ? [encryptTransform] : []),
+    cartItemTransform,
     authTokenFilter,
   ],
 };
