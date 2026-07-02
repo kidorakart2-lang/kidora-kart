@@ -38,7 +38,15 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const backendUrl =
       process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/";
+    const frontendUrl =
+      process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
     return [
+      // Route /api/revalidate to the web frontend (for cache invalidation)
+      // so it doesn't get proxied to the backend API server.
+      {
+        source: "/api/revalidate",
+        destination: `${frontendUrl}/api/revalidate`,
+      },
       {
         source: "/api/:path*",
         destination: `${backendUrl}api/:path*`,

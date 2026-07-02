@@ -46,7 +46,7 @@ export default function Search({ products, q }: SearchProps) {
           className="text-center space-y-6 px-4"
         >
           <div className="relative inline-block">
-            <div className="absolute inset-0 bg-gradient-to-r from-brand-400 to-yellow-600 blur-3xl opacity-20 animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-r from-brand-400 to-brand-600 blur-3xl opacity-20 animate-pulse" />
             <Card className="relative p-12 border-2 border-brand-200/50 bg-gradient-to-br from-white to-brand-50/30">
               <motion.div
                 animate={{
@@ -64,7 +64,7 @@ export default function Search({ products, q }: SearchProps) {
                 />
               </motion.div>
 
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-brand-700 via-yellow-600 to-brand-700 bg-clip-text text-transparent mb-3">
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-brand-700 via-brand-600 to-brand-700 bg-clip-text text-transparent mb-3">
                 No Products Found
               </h1>
 
@@ -108,13 +108,13 @@ export default function Search({ products, q }: SearchProps) {
       >
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-brand-400 to-yellow-600 blur-xl opacity-30" />
-            <div className="relative bg-gradient-to-br from-brand-500 to-yellow-600 p-3 rounded-xl shadow-lg">
-              <Sparkles className="w-6 h-6 text-white" />
+            <div className="absolute inset-0 bg-gradient-to-r from-brand-400 to-brand-600 blur-xl opacity-30" />
+            <div className="relative bg-gradient-to-br from-brand-500 to-brand-600 p-3 rounded-xl shadow-lg">
+              <Sparkles className="w-6 h-6 text-background" />
             </div>
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-brand-800 via-yellow-700 to-brand-800 bg-clip-text text-transparent">
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-brand-800 via-brand-700 to-brand-800 bg-clip-text text-transparent">
               Search Results for{" "}
               <span className="font-semibold text-brand-700">"{q}"</span>
             </h1>
@@ -131,7 +131,7 @@ export default function Search({ products, q }: SearchProps) {
         {/* Decorative divider */}
         <div className="relative h-px bg-gradient-to-r from-transparent via-brand-300 to-transparent">
           <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-brand-400 to-yellow-600"
+            className="absolute inset-0 bg-gradient-to-r from-brand-400 to-brand-600"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -172,7 +172,7 @@ export default function Search({ products, q }: SearchProps) {
               className="relative group"
             >
               {/* Golden shimmer effect on hover */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-brand-400 via-yellow-500 to-brand-400 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-500" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-brand-400 via-brand-500 to-brand-400 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-500" />
               <div className="relative">
                 <ProductCard data={product} />
               </div>
@@ -185,7 +185,7 @@ export default function Search({ products, q }: SearchProps) {
                   transition={{ delay: 0.3 + index * 0.1, type: "spring" }}
                   className="absolute -top-2 -right-2 z-10"
                 >
-                  <div className="bg-gradient-to-br from-brand-500 to-yellow-600 text-white text-xs font-bold rounded-full w-8 h-8 flex items-center justify-center shadow-lg border-2 border-white">
+                  <div className="bg-gradient-to-br from-brand-500 to-brand-600 text-background text-xs font-bold rounded-full w-8 h-8 flex items-center justify-center shadow-lg border-2 border-white">
                     {index + 1}
                   </div>
                 </motion.div>

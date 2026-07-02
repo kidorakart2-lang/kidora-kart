@@ -30,19 +30,19 @@ export default function TabProducts({ data }: { data: Record<string, ProductData
             >
               <TabsTrigger
                 value="silver"
-                className="px-8 py-3 rounded-full font-semibold text-sm uppercase transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:text-white data-[state=active]:shadow-md"
+                className="px-8 py-3 rounded-full font-semibold text-sm uppercase transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:text-background data-[state=active]:shadow-md"
               >
                 Silver
               </TabsTrigger>
               <TabsTrigger
                 value="gold"
-                className="px-8 py-3 rounded-full font-semibold text-sm uppercase transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--brand-primary-dark)] data-[state=active]:to-[var(--brand-primary)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                className="px-8 py-3 rounded-full font-semibold text-sm uppercase transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--brand-primary-dark)] data-[state=active]:to-[var(--brand-primary)] data-[state=active]:text-background data-[state=active]:shadow-md"
               >
                 Gold
               </TabsTrigger>
               <TabsTrigger
                 value="gift"
-                className="px-8 py-3 rounded-full font-semibold text-sm uppercase transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--brand-secondary)] data-[state=active]:to-[var(--brand-secondary-dark)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                className="px-8 py-3 rounded-full font-semibold text-sm uppercase transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--brand-secondary)] data-[state=active]:to-[var(--brand-secondary-dark)] data-[state=active]:text-background data-[state=active]:shadow-md"
               >
                 Gift
               </TabsTrigger>
@@ -141,7 +141,7 @@ export default function TabProducts({ data }: { data: Record<string, ProductData
           {/* View More Button */}
           <div className="flex justify-center mt-12 lg:mt-16">
             <Link href="/category/new-arrivals">
-              <Button className="group relative bg-gradient-to-r from-[var(--brand-primary-dark)] to-[var(--brand-primary)] hover:from-[var(--brand-primary)] hover:to-[var(--brand-primary-dark)] text-white px-10 py-6 rounded-full font-semibold text-sm uppercase tracking-wider shadow-lg transition-all duration-500 overflow-hidden">
+              <Button className="group relative bg-gradient-to-r from-[var(--brand-primary-dark)] to-[var(--brand-primary)] hover:from-[var(--brand-primary)] hover:to-[var(--brand-primary-dark)] text-background px-10 py-6 rounded-full font-semibold text-sm uppercase tracking-wider shadow-lg transition-all duration-500 overflow-hidden">
                 <span className="relative flex items-center gap-3">
                   View More
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />

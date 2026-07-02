@@ -60,7 +60,7 @@ function AnimatedCheckmarkCircle({ progress }: { progress: number }) {
           animate={{ scale: isComplete ? 1 : 0, opacity: isComplete ? 1 : 0 }}
           transition={{ type: "spring", stiffness: 400, damping: 15, delay: isComplete ? 0.28 : 0 }}
         >
-          <Check className="text-white size-3" strokeWidth={3} />
+          <Check className="text-background size-3" strokeWidth={3} />
         </motion.div>
       </div>
     </div>
@@ -88,7 +88,7 @@ export default function StrongPasswordInput({
       </Label>
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Lock size={18} className="text-black z-10" />
+          <Lock size={18} className="text-foreground z-10" />
         </div>
         <input
           type={showPassword ? "text" : "password"}
@@ -135,7 +135,7 @@ export default function StrongPasswordInput({
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="flex items-center justify-center w-3 h-3 rounded-full bg-emerald-500 text-white"
+                      className="flex items-center justify-center w-3 h-3 rounded-full bg-emerald-500 text-background"
                     >
                       <Check className="size-2.5 shrink-0" strokeWidth={3} />
                     </motion.div>

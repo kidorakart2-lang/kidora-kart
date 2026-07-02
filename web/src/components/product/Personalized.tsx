@@ -63,7 +63,7 @@ export default function PremiumPersonalized() {
       {/* Main Card */}
       <div className="bg-background/60 backdrop-blur-xl  border border-white/80 shadow-lg overflow-hidden">
         {/* Header Section */}
-        <div className="bg-gradient-to-br from-brand-50/50 to-orange-50/50 p-6 md:p-8 border-b border-brand-100/50">
+        <div className="bg-gradient-to-br from-brand-50/50 to-brand-100/50 p-6 md:p-8 border-b border-brand-100/50">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4">
               <motion.div
@@ -73,7 +73,7 @@ export default function PremiumPersonalized() {
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-100 to-orange-100 flex items-center justify-center flex-shrink-0"
+                className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center flex-shrink-0"
               >
                 <Gift className="w-6 h-6 text-brand-600" strokeWidth={1.5} />
               </motion.div>

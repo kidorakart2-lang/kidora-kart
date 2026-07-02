@@ -1,5 +1,6 @@
 import { Lato } from "next/font/google";
 import "./globals.css";
+import "@/index.css";
 import { Client } from "@/redux/provider/Client";
 import { Toaster } from "sonner";
 import MainLayout from "@/components/comman/MainLayout";
@@ -12,6 +13,7 @@ import LoginModal from "@/components/comman/LoginModal";
 import PhoneNumberModal from "@/components/comman/PhoneNumberModal";
 import CookieConsent from "@/components/comman/CookieConsent";
 import AxeAccessibility from "@/components/comman/AxeAccessibility";
+import ThemeColorMeta from "@/components/comman/ThemeColorMeta";
 import { MotionConfig } from "framer-motion";
 
 const lato = Lato({
@@ -236,15 +238,17 @@ export default async function RootLayout({
         <meta name="geo.position" content={`${siteConfig.address.geo.lat};${siteConfig.address.geo.lng}`} />
         <meta name="ICBM" content={`${siteConfig.address.geo.lat}, ${siteConfig.address.geo.lng}`} />
         <link rel="icon" href="/logo.ico" />
+        {/* Static SSR fallback — overridden at runtime by ThemeColorMeta */}
         <meta name="theme-color" content={siteConfig.themeColor} />
         <meta name="msapplication-TileColor" content={siteConfig.themeColor} />
       </head>
       <body
         className={`pt-0 !mr-0 bg-background  antialiased flex flex-col ${lato.variable} pb-12 md:pb-0`}
       >
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg focus:shadow-lg">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-background focus:rounded-lg focus:shadow-lg">
           Skip to main content
         </a>
+        <ThemeColorMeta />
         <Client>
           <MotionConfig reducedMotion="user">
           <MainLayout navigationData={navigation} featuredProducts={featuredProducts ?? []}>

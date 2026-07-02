@@ -30,7 +30,7 @@ const encryptTransform = PERSIST_KEY
           return s as object;
         }
       },
-      { whitelist: ["cart", "wishlist"] }
+      { whitelist: ["cart", "wishlist", "auth"] }
     )
   : undefined;
 

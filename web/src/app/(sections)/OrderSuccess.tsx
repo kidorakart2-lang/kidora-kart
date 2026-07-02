@@ -31,9 +31,9 @@ function ConfettiBurst() {
     "bg-brand-accent-500",
     "bg-green-500",
     "bg-brand-500",
-    "bg-purple-500",
-    "bg-pink-500",
-    "bg-yellow-400",
+    "bg-brand-accent-700",
+    "bg-brand-accent-500",
+    "bg-brand-400",
   ];
   const particles = Array.from({ length: 30 });
 
@@ -183,7 +183,7 @@ function OrderTimeline({ status }: { status: string }) {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${
                   isCompleted
-                    ? "bg-brand-500 text-white shadow-md shadow-brand-500/30"
+                    ? "bg-brand-500 text-background shadow-md shadow-brand-500/30"
                     : "bg-muted text-muted-foreground"
                 } ${isCurrent ? "ring-4 ring-brand-500/20" : ""}`}
               >
@@ -339,7 +339,7 @@ export default function OrderSuccess() {
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 260, damping: 20 }}
                 >
-                  <Check className="w-11 h-11 text-white" strokeWidth={3.5} />
+                  <Check className="w-11 h-11 text-background" strokeWidth={3.5} />
                 </motion.div>
               </motion.div>
             </div>
@@ -385,7 +385,7 @@ export default function OrderSuccess() {
             <CardContent className="pt-6 pb-6">
               <div className="flex items-center gap-2.5 mb-4">
                 <div className="w-9 h-9 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center shadow-md shadow-brand-500/30">
-                  <Package className="w-4.5 h-4.5 text-white" />
+                  <Package className="w-4.5 h-4.5 text-background" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground text-sm">
@@ -408,7 +408,7 @@ export default function OrderSuccess() {
               >
                 <div className="bg-gradient-to-r from-card via-muted to-card px-6 py-5 text-center">
                   <motion.span
-                    className="text-4xl md:text-5xl font-bold tracking-[0.25em] text-white font-mono"
+                    className="text-4xl md:text-5xl font-bold tracking-[0.25em] text-background font-mono"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
@@ -466,7 +466,7 @@ export default function OrderSuccess() {
               <CardContent className="pt-5 pb-5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center shadow-md shadow-brand-500/30">
-                    <Package className="w-5 h-5 text-white" />
+                    <Package className="w-5 h-5 text-background" />
                   </div>
                   <div className="flex-1">
                     <p className="text-xs text-muted-foreground font-medium">
@@ -654,7 +654,7 @@ export default function OrderSuccess() {
         >
           <Button
             onClick={() => (window.location.href = "/profile?tab=orders")}
-            className="bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white shadow-lg shadow-brand-500/30 h-12 text-base font-medium group"
+            className="bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-background shadow-lg shadow-brand-500/30 h-12 text-base font-medium group"
           >
             <ShoppingBag className="w-5 h-5 mr-2" />
             View My Orders

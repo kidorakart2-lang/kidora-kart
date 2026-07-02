@@ -17,6 +17,10 @@ function useTokenRefresh() {
 
   const doRefresh = useCallback(async () => {
     if (!isLogin) return;
+    // Only attempt refresh if the js-readable userToken cookie exists.
+    // Both cookies now share the same 5-day lifetime, so this is a reliable
+    // proxy for the httpOnly refresh-token cookie being present too.
+    if (!getAuthToken()) return;
     try {
       await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}api/website/user/refresh`,

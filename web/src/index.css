@@ -1,0 +1,520 @@
+@reference "./app/globals.css";
+
+body[data-scroll-locked] {
+  margin-right: 0px !important;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(5deg);
+  }
+}
+@keyframes floatAlt {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(15px) rotate(-5deg);
+  }
+}
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes expandLine {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+.animate-floatAlt {
+  animation: floatAlt 8s ease-in-out infinite;
+}
+.animate-scaleIn {
+  animation: scaleIn 0.5s ease-out forwards;
+}
+.animate-expandLine {
+  animation: expandLine 0.8s ease-out 0.6s forwards;
+  transform-origin: center;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+@keyframes enterFlip {
+  0% {
+    opacity: 0;
+    transform: perspective(1500px) rotateY(30deg);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1500px) rotateY(0deg);
+  }
+}
+
+@keyframes leaveFlip {
+  0% {
+    opacity: 1;
+    transform: perspective(1500px) rotateY(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: perspective(1500px) rotateY(-30deg);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+.no-scollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.swiper-button-next,
+.swiper-button-prev {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000 !important;
+  padding: 10px;
+  background: #fff !important;
+  border-radius: 50%;
+  width: 40px !important;
+  height: 40px !important;
+  transition: all 0.3s ease;
+  border: 1px solid var(--brand-500) !important;
+}
+
+@media (max-width: 768px) {
+  .swiper-button-next,
+  .swiper-button-prev {
+    display: none !important;
+  }
+}
+
+@keyframes megaMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mega-menu-enter {
+  animation: megaMenuIn 0.3s ease-out forwards;
+}
+
+img {
+  user-select: none;
+}
+
+@media print {
+  header, footer, .no-print { display: none !important; }
+  body { color: #000; background: #fff; font-size: 12pt; }
+  a[href]:after { content: " (" attr(href) ")"; font-size: 10pt; }
+  a[href^="#"]:after, a[href^="javascript:"]:after { content: ""; }
+  img { max-width: 100% !important; page-break-inside: avoid; }
+  h1, h2, h3 { page-break-after: avoid; }
+}
+
+::selection {
+  background-color: gold;
+  color: #000000;
+}
+
+::-webkit-selection {
+  background-color: gold;
+  color: #000000;
+}
+
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+
+body[data-scroll-lock="true"] {
+  overflow: auto !important;
+}
+
+.glass-effect {
+  @apply backdrop-blur-md bg-white/10 border border-white/20;
+}
+
+.glass-effect-light {
+  @apply backdrop-blur-md bg-white/40 border border-white/30;
+}
+
+.gradient-golden {
+  @apply bg-gradient-to-br from-brand-50 via-brand-100 to-brand-accent-50;
+}
+
+.gradient-golden-dark {
+  @apply bg-gradient-to-br from-brand-950/20 via-brand-900/20 to-brand-accent-950/20;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0.3) 60%,
+    transparent 100%
+  );
+  background-size: 1000px 100%;
+}
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
+}
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-slide-out {
+  animation: slide-out 0.3s ease-out forwards;
+}
+@keyframes slide-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+    transform-origin: top;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+    transform: translateX(-20px);
+  }
+}
+
+@keyframes sliderFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slider-fadeIn {
+  animation: sliderFadeIn 0.8s ease-out forwards;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.jewelry-swiper {
+  padding: 20px 0;
+}
+
+.delay-700 {
+  animation-delay: 700ms;
+}
+
+@keyframes anim-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes anim-slide-left {
+  from { transform: translateX(-20px); }
+  to { transform: translateX(0); }
+}
+
+@keyframes anim-slide-right {
+  from { transform: translateX(20px); }
+  to { transform: translateX(0); }
+}
+
+@keyframes anim-slide-top {
+  from { transform: translateY(-10px); }
+  to { transform: translateY(0); }
+}
+
+.anim-fill-both {
+  animation-fill-mode: both;
+}
+
+.anim-name-fade-in {
+  animation-name: anim-fade-in;
+}
+
+.anim-name-slide-left {
+  animation-name: anim-slide-left, anim-fade-in;
+}
+
+.anim-name-slide-right {
+  animation-name: anim-slide-right, anim-fade-in;
+}
+
+.anim-name-slide-top {
+  animation-name: anim-slide-top, anim-fade-in;
+}
+
+.anim-duration-500 {
+  animation-duration: 500ms;
+}
+
+.anim-duration-700 {
+  animation-duration: 700ms;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out;
+}
+
+@keyframes shimmer-diagonal {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.8) 50%, transparent 70%);
+  animation: shimmer-diagonal 3s infinite;
+}
+
+.liquid-glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+}
+
+.liquid-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 1);
+}
+
+.glass-icon {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(240, 240, 255, 0.9));
+  box-shadow: 0 4px 16px rgba(31, 38, 135, 0.2), inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+@keyframes phone-modal-in {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes phone-modal-out {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100%); }
+}
+
+.animate-phone-modal-in {
+  animation: phone-modal-in 0.3s ease-out forwards;
+}
+
+.animate-phone-modal-out {
+  animation: phone-modal-out 0.3s ease-out forwards;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: linear-gradient(to bottom, var(--brand-50), var(--brand-200));
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, var(--brand-600), var(--brand-500), var(--brand-400));
+  border-radius: 10px;
+  border: 2px solid var(--brand-50);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, var(--brand-700), var(--brand-600), var(--brand-500));
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-500) var(--brand-50);
+}
+
+@keyframes swipe-button-text {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: var(--swipe-button-text-width) 0;
+  }
+}
+
+.section-container {
+  @apply max-w-7xl mx-auto px-4;
+}
+
+.bg-section {
+  background-color: var(--brand-section-bg);
+}
+
+.bg-section-subtle {
+  background-color: var(--brand-section-bg-subtle);
+}
+
+.section-heading {
+  @apply text-3xl md:text-4xl font-light tracking-wide;
+  color: var(--brand-heading);
+}
+
+.section-subheading {
+  @apply text-sm font-light tracking-widest;
+  color: var(--muted-foreground);
+}
+
+.hover-lift {
+  @apply transition-all duration-300;
+}
+.hover-lift:hover {
+  @apply -translate-y-1 shadow-lg;
+}
+
+.hover-glow {
+  @apply transition-shadow duration-300;
+}
+.hover-glow:hover {
+  box-shadow: 0 0 20px color-mix(in srgb, var(--brand-primary) 30%, transparent);
+}
+
+.hover-underline {
+  @apply relative inline-block;
+}
+.hover-underline::after {
+  content: "";
+  @apply absolute bottom-0 left-1/2 h-0.5 -translate-x-1/2 scale-x-0 transition-transform duration-300;
+  background-color: var(--brand-primary);
+  width: 80%;
+}
+.hover-underline:hover::after {
+  @apply scale-x-100;
+}
+
+.card-hover {
+  @apply transition-all duration-500;
+}
+.card-hover:hover {
+  @apply -translate-y-2 shadow-2xl;
+}
+
+.text-gradient-brand {
+  background: linear-gradient(to right, var(--brand-gradient-from), var(--brand-gradient-via, var(--brand-gradient-to)), var(--brand-gradient-to));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bg-gradient-brand {
+  background: linear-gradient(to right, var(--brand-gradient-from), var(--brand-gradient-to));
+}
+
+.bg-price-1 { background: linear-gradient(to bottom right, var(--brand-price-1-from), var(--brand-price-1-via), var(--brand-price-1-to)); }
+.bg-price-2 { background: linear-gradient(to bottom right, var(--brand-price-2-from), var(--brand-price-2-via), var(--brand-price-2-to)); }
+.bg-price-3 { background: linear-gradient(to bottom right, var(--brand-price-3-from), var(--brand-price-3-via), var(--brand-price-3-to)); }
+.bg-price-4 { background: linear-gradient(to bottom right, var(--brand-price-4-from), var(--brand-price-4-via), var(--brand-price-4-to)); }
+
+.shadow-price-1 { --tw-shadow-color: var(--brand-price-1-from); }
+.shadow-price-2 { --tw-shadow-color: var(--brand-price-2-from); }
+.shadow-price-3 { --tw-shadow-color: var(--brand-price-3-from); }
+.shadow-price-4 { --tw-shadow-color: var(--brand-price-4-from); }
+
+.bg-card-accent-1 { background-color: var(--brand-card-1-bg); }
+.bg-card-accent-2 { background-color: var(--brand-card-2-bg); }
+.bg-card-accent-3 { background-color: var(--brand-card-3-bg); }
+.bg-card-accent-4 { background-color: var(--brand-card-4-bg); }
+
+.text-card-accent-1 { color: var(--brand-card-1-icon); }
+.text-card-accent-2 { color: var(--brand-card-2-icon); }
+.text-card-accent-3 { color: var(--brand-card-3-icon); }
+.text-card-accent-4 { color: var(--brand-card-4-icon); }

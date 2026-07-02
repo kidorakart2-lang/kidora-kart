@@ -1,3 +1,4 @@
+import Cookies from "js-cookie";
 import { getAuthToken } from "@/lib/getAuthToken";
 const API_URL = process.env.NEXT_PUBLIC_API_URL + "api/website";
 
@@ -22,13 +23,16 @@ async function authFetch(
 
   if (response.status === 401) {
     try {
-      await fetch(`${API_URL}/user/refresh`, {
+      const refreshRes = await fetch(`${API_URL}/user/refresh`, {
         method: "POST",
         credentials: "include",
       });
-      const newToken = getAuthToken();
-      if (newToken) {
-        headers["Authorization"] = `Bearer ${newToken}`;
+      if (refreshRes.ok) {
+        const body = await refreshRes.json() as { _token?: string };
+        if (body._token) {
+          Cookies.set("userToken", body._token, { expires: 5, path: "/", sameSite: "lax" });
+          headers["Authorization"] = `Bearer ${body._token}`;
+        }
       }
       response = await fetch(`${API_URL}${url}`, {
         ...options,

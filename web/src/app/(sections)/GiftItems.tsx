@@ -67,7 +67,7 @@ const GiftItems = () => {
 
   return (
     <section
-      className="py-12 bg-[#f8f8f8]"
+      className="py-12 bg-section"
       id="gift-items"
       itemScope
       itemType="https://schema.org/ItemList"
@@ -129,7 +129,7 @@ const GiftItems = () => {
 
         {/* View More Button */}
         <div className="text-center mt-10">
-          <button className="bg-brand-800 hover:bg-brand-700 text-white px-8 py-3 rounded-full text-[15px] transition-all duration-300">
+          <button className="bg-brand-800 hover:bg-brand-700 text-background px-8 py-3 rounded-full text-[15px] transition-all duration-300">
             VIEW MORE
           </button>
         </div>

@@ -108,7 +108,7 @@ export const siteConfig: SiteConfig = {
     hoursWeekend: "10:00 AM - 10:00 PM",
   },
 
-  themeColor: "#F58E00",
+  themeColor: "#F58E00", // SSR fallback — overridden at runtime by ClientThemeColor from --brand-500 CSS var
   twitterHandle: "@jewellerywalla",
 
   categories: [
@@ -186,6 +186,15 @@ export const getStructuredAddress = () => ({
   postalCode: siteConfig.address.postalCode,
   addressCountry: siteConfig.address.country,
 });
+
+// Read theme-color from CSS variable at runtime (client-side only)
+export const getThemeColor = (): string => {
+  if (typeof window === "undefined") return siteConfig.themeColor;
+  return (
+    getComputedStyle(document.documentElement).getPropertyValue("--brand-500").trim() ||
+    siteConfig.themeColor
+  );
+};
 
 // Default metadata for pages
 export const defaultMetadata = {

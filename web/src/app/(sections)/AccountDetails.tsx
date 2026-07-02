@@ -108,7 +108,7 @@ const AccountDetailsContent = () => {
                 <div className="flex justify-end pt-2">
                     <button
                         type="submit"
-                        className="px-6 py-2.5 bg-brand-500 text-white text-sm md:text-base font-semibold rounded-lg shadow hover:bg-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-300 transition-all duration-300 transform hover:scale-105"
+                        className="px-6 py-2.5 bg-brand-500 text-background text-sm md:text-base font-semibold rounded-lg shadow hover:bg-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-300 transition-all duration-300 transform hover:scale-105"
                     >
                         Update Information
                     </button>

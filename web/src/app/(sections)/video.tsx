@@ -44,7 +44,7 @@ const FullVideoSection = () => {
       <div className="absolute inset-0 flex items-center">
         <div className="container mx-auto px-6 lg:px-12">
           <motion.div
-            className="max-w-2xl text-white"
+            className="max-w-2xl text-background"
             initial={{ opacity: 0, x: -80 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
@@ -90,7 +90,7 @@ const FullVideoSection = () => {
             >
               <Link
                 href="/category/new-arrivals"
-                className="group inline-flex items-center gap-3 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-medium py-4 px-8 rounded-full transition-all duration-500 overflow-hidden"
+                className="group inline-flex items-center gap-3 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-background font-medium py-4 px-8 rounded-full transition-all duration-500 overflow-hidden"
               >
                 <span className="relative z-10 text-base tracking-wide">
                   Shop Now

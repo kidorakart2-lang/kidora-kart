@@ -353,7 +353,7 @@ export default function Checkout() {
       <LoadingUi hidden={loading} />
 
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-8 bg-gradient-to-r from-brand-600 to-orange-600 bg-clip-text ">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-8 bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text ">
           Complete Your Order
         </h1>
 
@@ -392,7 +392,7 @@ export default function Checkout() {
                     <Button
                       size="sm"
                       onClick={loadProfileAddress}
-                      className="flex-1 sm:flex-none bg-brand-600 hover:bg-brand-700 text-white"
+                      className="flex-1 sm:flex-none bg-brand-600 hover:bg-brand-700 text-background"
                     >
                       Use Profile Address
                     </Button>
@@ -806,7 +806,7 @@ export default function Checkout() {
                           <AlertDialogAction
                             onClick={() => handlePayment(true)}
                             disabled={loading}
-                            className="bg-brand-600 hover:bg-brand-700 text-white"
+                            className="bg-brand-600 hover:bg-brand-700 text-background"
                           >
                             Continue
                           </AlertDialogAction>
@@ -949,7 +949,7 @@ export default function Checkout() {
             <AlertDialogFooter>
               <Button
                 onClick={() => setAlert({ title: "", open: false })}
-                className="w-full bg-brand-600 hover:bg-brand-700 text-white"
+                className="w-full bg-brand-600 hover:bg-brand-700 text-background"
               >
                 Okay
               </Button>

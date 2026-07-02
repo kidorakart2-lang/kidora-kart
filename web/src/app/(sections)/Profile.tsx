@@ -71,16 +71,16 @@ export default function AccountPage() {
     }
     dispatch(setProfile(user._data));
     setFormData({
-      name: user._data.name,
-      email: user._data.email,
-      gender: user._data.gender,
-      mobile: user._data.mobile,
-      street: user._data.address.street,
-      area: user._data.address.area,
-      city: user._data.address.city,
-      state: user._data.address.state,
-      pincode: user._data.address.pincode,
-      instructions: user._data.address.instructions,
+      name: user._data.name || "",
+      email: user._data.email || "",
+      gender: user._data.gender || "",
+      mobile: user._data.mobile || "",
+      street: user._data.address?.street || "",
+      area: user._data.address?.area || "",
+      city: user._data.address?.city || "",
+      state: user._data.address?.state || "",
+      pincode: user._data.address?.pincode || "",
+      instructions: user._data.address?.instructions || "",
     });
     setAvatar(user._data.avatar ?? null);
     setLoading(false);
@@ -273,7 +273,7 @@ export default function AccountPage() {
                     {/* Camera Button */}
                     <button
                       onClick={scrollToImageUpload}
-                      className="absolute bottom-2 right-2 bg-brand-600 hover:bg-brand-700 text-white p-2 rounded-full shadow-lg transform transition-all duration-300 hover:scale-110 active:scale-95"
+                      className="absolute bottom-2 right-2 bg-brand-600 hover:bg-brand-700 text-background p-2 rounded-full shadow-lg transform transition-all duration-300 hover:scale-110 active:scale-95"
                     >
                       <Camera size={16} />
                     </button>
@@ -347,7 +347,7 @@ export default function AccountPage() {
                                 />
                                 <button
                                   onClick={removePreviewImage}
-                                  className="absolute top-1 right-1 bg-destructive hover:bg-destructive/90 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                  className="absolute top-1 right-1 bg-destructive hover:bg-destructive/90 text-background p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                 >
                                   <X size={14} />
                                 </button>
@@ -628,7 +628,7 @@ export default function AccountPage() {
                         </div>
 
                         <div className="pt-6 flex gap-3">
-                          <Button className="bg-gradient-to-r from-brand-600 to-brand-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 active:scale-95">
+                          <Button className="bg-gradient-to-r from-brand-600 to-brand-700 text-background px-6 py-2.5 rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 active:scale-95">
                             Save Changes
                           </Button>
                         </div>

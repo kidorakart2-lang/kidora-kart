@@ -114,7 +114,7 @@ export default function GuestWishlist() {
           <Link
             href="/category/all"
             className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-600 to-brand-700 
-                     hover:from-brand-700 hover:to-brand-800 text-white font-medium py-3 px-8 
+                     hover:from-brand-700 hover:to-brand-800 text-background font-medium py-3 px-8 
                      rounded-full transition-all duration-300 shadow-lg hover:shadow-xl 
                      hover:shadow-brand-500/30 transform hover:scale-105"
           >
@@ -245,7 +245,7 @@ export default function GuestWishlist() {
                     className="absolute bottom-4 left-0 right-0 text-center opacity-0 
                              group-hover:opacity-100 transition-opacity duration-300"
                   >
-                    <span className="text-white text-sm font-medium">
+                    <span className="text-background text-sm font-medium">
                       Click to View Details
                     </span>
                   </motion.div>
@@ -315,7 +315,7 @@ export default function GuestWishlist() {
           <Link
             href="/category/all"
             className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-600 to-brand-700 
-                     hover:from-brand-700 hover:to-brand-800 text-white font-medium py-4 px-10 
+                     hover:from-brand-700 hover:to-brand-800 text-background font-medium py-4 px-10 
                      rounded-full transition-all duration-300 shadow-lg hover:shadow-xl 
                      hover:shadow-brand-500/30 transform hover:scale-105"
           >

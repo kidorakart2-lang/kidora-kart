@@ -178,7 +178,7 @@ function PasswordFormSheet({ open, onOpenChange, type = "change" }: { open: bool
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full mt-6 bg-gradient-to-r from-brand-400 via-brand-500 to-brand-700 text-white font-semibold py-3 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300 disabled:opacity-60"
+            className="w-full mt-6 bg-gradient-to-r from-brand-400 via-brand-500 to-brand-700 text-background font-semibold py-3 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300 disabled:opacity-60"
           >
             {isLoading ? "Processing..." : "Update Password"}
           </Button>

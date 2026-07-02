@@ -145,7 +145,7 @@ export default function HomePagePage() {
     const newSection: HomeSection = {
       _id: generateObjectId(),
       type: addType,
-      config: addConfig.heading !== undefined ? addConfig : { ...meta.defaults.config },
+      config: { ...meta.defaults.config, ...addConfig },
       order: sections.length,
     }
     setSections((prev) => [...prev, newSection])

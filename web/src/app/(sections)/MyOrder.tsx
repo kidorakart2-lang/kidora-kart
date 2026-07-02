@@ -337,7 +337,7 @@ export default function MyOrders() {
                               )
                             }
                             size="sm"
-                            className="bg-gradient-to-r from-brand-500 to-brand-600 text-white hover:from-brand-600 hover:to-brand-700"
+                            className="bg-gradient-to-r from-brand-500 to-brand-600 text-background hover:from-brand-600 hover:to-brand-700"
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             View Details
@@ -368,7 +368,7 @@ export default function MyOrders() {
               <ChevronLeft className="w-4 h-4 mr-1" />
               Previous
             </Button>
-            <span className="px-2 py-2 bg-gradient-to-r from-brand-500 to-orange-500 text-white rounded-lg flex shadow-md">
+            <span className="px-2 py-2 bg-gradient-to-r from-brand-500 to-brand-600 text-background rounded-lg flex shadow-md">
               Page {page}
             </span>
             <Button
@@ -413,7 +413,7 @@ export default function MyOrders() {
             <Button
               onClick={handleCancelOrder}
               disabled={!cancelReason.trim() || btnLoading}
-              className="bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700"
+              className="bg-gradient-to-r from-red-500 to-red-600 text-background hover:from-red-600 hover:to-red-700"
             >
               {!btnLoading ? (
                 <div className="flex items-center">

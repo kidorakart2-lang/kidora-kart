@@ -95,7 +95,7 @@ export default function Wishlist({ wishlist }: { wishlist: Record<string, unknow
           <Link
             href="/category/all"
             className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-600 to-brand-700 
-                     hover:from-brand-700 hover:to-brand-800 text-white font-medium py-3 px-8 
+                     hover:from-brand-700 hover:to-brand-800 text-background font-medium py-3 px-8 
                      rounded-full transition-all duration-300 shadow-lg hover:shadow-xl 
                      hover:shadow-brand-500/30 transform hover:scale-105"
           >
@@ -183,13 +183,13 @@ export default function Wishlist({ wishlist }: { wishlist: Record<string, unknow
                   <div className="absolute top-3 left-3 z-20">
                     {item.stock < 0 ? (
                       <span className="inline-flex items-center gap-1 bg-gradient-to-r from-brand-accent-500 to-red-600 
-                                     text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                                     text-background text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
                         <span className="w-1.5 h-1.5 bg-background rounded-full animate-pulse"></span>
                         Out of Stock
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-green-600 
-                                     text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                                     text-background text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
                         <span className="w-1.5 h-1.5 bg-background rounded-full"></span>
                         In Stock
                       </span>
@@ -229,7 +229,7 @@ export default function Wishlist({ wishlist }: { wishlist: Record<string, unknow
                       className="absolute bottom-4 left-0 right-0 text-center opacity-0 
                                group-hover:opacity-100 transition-opacity duration-300"
                     >
-                      <span className="text-white text-sm font-medium">Click to View Details</span>
+                      <span className="text-background text-sm font-medium">Click to View Details</span>
                     </motion.div>
                   </div>
 
@@ -287,7 +287,7 @@ export default function Wishlist({ wishlist }: { wishlist: Record<string, unknow
               <Link
                 href="/category/all"
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-600 to-brand-700 
-                         hover:from-brand-700 hover:to-brand-800 text-white font-medium py-4 px-10 
+                         hover:from-brand-700 hover:to-brand-800 text-background font-medium py-4 px-10 
                          rounded-full transition-all duration-300 shadow-lg hover:shadow-xl 
                          hover:shadow-brand-500/30 transform hover:scale-105"
               >

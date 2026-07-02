@@ -171,11 +171,12 @@ export const refreshUserToken = async (
       return fail(res, "User not found or deactivated", 401);
     }
 
-    await setSessionCookies(res, user, "user");
+    const newAccessToken = await setSessionCookies(res, user, "user");
 
     return res.status(200).json({
       _status: true,
       _message: "Token refreshed successfully",
+      _token: newAccessToken,
     });
   } catch (error) {
     console.error("Refresh token error:", error);

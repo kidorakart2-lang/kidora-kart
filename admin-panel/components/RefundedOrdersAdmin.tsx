@@ -108,7 +108,18 @@ const RefundedOrdersAdmin = () => {
         credentials: "include",
       });
 
-      const result = await response.json();
+      const text = await response.text();
+      let result: Record<string, unknown>;
+      try {
+        result = JSON.parse(text);
+      } catch {
+        toast({
+          title: "❌ Server error",
+          description: `Server returned ${response.status}: ${text.slice(0, 200)}`,
+          variant: "destructive",
+        });
+        return;
+      }
 
       if (result.success) {
         const syncData = result.data as {
@@ -157,13 +168,23 @@ const RefundedOrdersAdmin = () => {
         credentials: "include",
       });
 
-      const result = await response.json();
+      const text = await response.text();
+      let result: Record<string, unknown>;
+      try {
+        result = JSON.parse(text);
+      } catch {
+        setError(
+          `Server returned ${response.status}: ${text.slice(0, 200)}`,
+        );
+        return;
+      }
 
       if (result.success) {
-        setOrders(result.data.categorized);
-        setSummary(result.data.summary);
+        const data = result.data as { categorized?: Record<string, unknown[]>; summary?: Record<string, number> };
+        setOrders(data.categorized as CategorizedOrders);
+        setSummary(data.summary as OrdersSummary);
       } else {
-        setError(result.message || "Failed to fetch orders");
+        setError((result.message as string) || "Failed to fetch orders");
       }
     } catch (err: unknown) {
       setError(
@@ -195,7 +216,19 @@ const RefundedOrdersAdmin = () => {
         },
       );
 
-      const verifyResult = await verifyResponse.json();
+      const verifyText = await verifyResponse.text();
+      let verifyResult: Record<string, unknown>;
+      try {
+        verifyResult = JSON.parse(verifyText);
+      } catch {
+        toast({
+          title: "❌ Server error",
+          description: `Server returned ${verifyResponse.status}: ${verifyText.slice(0, 200)}`,
+          variant: "destructive",
+        });
+        setUpdating((prev) => ({ ...prev, [orderId]: false }));
+        return;
+      }
 
       if (!verifyResult.success) {
         const skipVerification = await confirm(
@@ -280,7 +313,18 @@ const RefundedOrdersAdmin = () => {
         }),
       });
 
-      const result = await response.json();
+      const patchText = await response.text();
+      let result: Record<string, unknown>;
+      try {
+        result = JSON.parse(patchText);
+      } catch {
+        toast({
+          title: "❌ Server error",
+          description: `Server returned ${response.status}: ${patchText.slice(0, 200)}`,
+          variant: "destructive",
+        });
+        return;
+      }
 
       if (result.success) {
         await fetchRefundedOrders();

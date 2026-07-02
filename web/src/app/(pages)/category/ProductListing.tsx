@@ -299,8 +299,7 @@ export default function ProductListing() {
           {hasMore && (
             <div
               ref={observerTarget}
-              className="h-20 mt-8 flex items-center justify-center"
-              style={{ border: "2px dashed #ccc", background: "#f9f9f9" }}
+              className="h-20 mt-8 flex items-center justify-center border-2 border-dashed border-border bg-muted"
             >
               {loadingMore ? (
                 <div className="text-center flex items-center justify-center gap-2">

@@ -61,7 +61,8 @@ import { openLoginModal, setNavigation } from "@/redux/features/uiSlice";
 import type { UiNavigationData } from "@/redux/features/uiSlice";
 import Cookies from "js-cookie";
 import { getUser } from "@/lib/fetchUser";
-import { logout, setProfile } from "@/redux/features/auth";
+import { getAuthToken } from "@/lib/getAuthToken";
+import { login, logout, setProfile } from "@/redux/features/auth";
 import { siteConfig } from "@/lib/utils";
 
 interface SubSubCategory {
@@ -141,6 +142,7 @@ export default function Header({ navigationData }: HeaderProps) {
     string | null;
 
   const dispatch = useDispatch();
+  const fetchedRef = useRef(false);
 
   const fetchUser = async () => {
     if (user && (user as Record<string, unknown>)._id) {
@@ -149,23 +151,25 @@ export default function Header({ navigationData }: HeaderProps) {
     const userData = await getUser();
     if (userData && typeof userData === "object" && "_data" in userData) {
       dispatch(setProfile((userData as { _data: unknown })._data));
+      dispatch(login(getAuthToken()));
     }
   };
 
-  // Fetch user on mount AND when isLoggedIn changes
-  // This handles: fresh page load with httpOnly cookie, login redirect, session restore
+  // Fetch user once on mount if a token cookie exists
   useEffect(() => {
-    if (pathName !== "/profile") {
-      fetchUser();
+    if (fetchedRef.current) return;
+    if (pathName === "/profile") return;
+    if (user && (user as Record<string, unknown>)._id) {
+      fetchedRef.current = true;
+      return;
     }
-  }, [isLoggedIn]);
-
-  // Also try on mount in case isLoggedIn is false but the httpOnly cookie exists
-  useEffect(() => {
-    // Only run if not already logged in
-    if (!isLoggedIn && pathName !== "/profile") {
-      fetchUser();
+    // Skip API call if no token cookie exists
+    if (!getAuthToken()) {
+      fetchedRef.current = true;
+      return;
     }
+    fetchedRef.current = true;
+    fetchUser();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -340,7 +344,7 @@ export default function Header({ navigationData }: HeaderProps) {
 
   return (
     <>
-      <div className="w-full text-center bg-gradient-to-r from-[var(--brand-primary-dark)] via-[var(--brand-primary-dark)] to-[var(--brand-primary-darker)] text-white text-sm py-2.5 relative overflow-hidden">
+      <div className="w-full text-center bg-gradient-to-r from-[var(--brand-primary-dark)] via-[var(--brand-primary-dark)] to-[var(--brand-primary-darker)] text-background text-sm py-2.5 relative overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,.1)_50%,transparent_75%,transparent_100%)] bg-[length:250%_250%] animate-shimmer"></div>
         <span className="relative z-10 flex items-center justify-center gap-2 font-medium">
           <Truck className="inline rotate-y-180" size={16} />

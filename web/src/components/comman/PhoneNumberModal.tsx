@@ -124,13 +124,13 @@ export default function PhoneNumberModal() {
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-brand-700 to-brand-800">
-        <div className="flex items-center gap-2 text-white">
+        <div className="flex items-center gap-2 text-background">
           <Phone size={18} />
           <span className="font-medium text-sm">Add Phone Number</span>
         </div>
         <button
           onClick={handleClose}
-          className="text-white/80 hover:text-white transition-colors"
+          className="text-background/80 hover:text-background transition-colors"
         >
           <X size={18} />
         </button>

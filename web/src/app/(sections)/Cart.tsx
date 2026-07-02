@@ -265,7 +265,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
           <button
             onClick={() => router.push("/category/new-arrival")}
             className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-600 to-brand-700 
-                     hover:from-brand-700 hover:to-brand-800 text-white font-medium py-3 px-8 
+                     hover:from-brand-700 hover:to-brand-800 text-background font-medium py-3 px-8 
                      rounded-full transition-all duration-300 shadow-lg hover:shadow-xl 
                      hover:shadow-brand-500/30 transform hover:scale-105"
           >
@@ -540,7 +540,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                     <Link href="/checkout?type=cart">
                       <button
                         className="w-full bg-gradient-to-r from-brand-600 to-brand-700 
-                                       hover:from-brand-700 hover:to-brand-800 text-white font-semibold 
+                                       hover:from-brand-700 hover:to-brand-800 text-background font-semibold 
                                        py-4 rounded-xl transition-all duration-300 shadow-lg 
                                        hover:shadow-xl hover:shadow-brand-500/30 transform hover:scale-[1.02]
                                        flex items-center justify-center gap-2"

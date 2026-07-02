@@ -188,7 +188,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-brand-100 to-orange-100 rounded-full mb-6 shadow-lg"
+            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-brand-100 to-brand-200 rounded-full mb-6 shadow-lg"
           >
             <AlertCircle className="w-10 h-10 text-brand-600" />
           </motion.div>
@@ -216,7 +216,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => router.push("/")}
-            className="bg-gradient-to-r from-brand-600 to-orange-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-shadow"
+            className="bg-gradient-to-r from-brand-600 to-brand-700 text-background px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-shadow"
           >
             Back to Home
           </motion.button>
@@ -679,7 +679,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                   type="button"
                   onClick={handleDecrement}
                   disabled={quantity <= 1}
-                  whileHover={{ backgroundColor: "rgba(251, 191, 36, 0.05)" }}
+                  whileHover={{ backgroundColor: "color-mix(in srgb, var(--brand-500) 5%, transparent)" }}
                   whileTap={{ scale: 0.95 }}
                   className="w-10 h-10 flex items-center justify-center text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                   aria-label="Decrease quantity"
@@ -693,7 +693,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                   type="button"
                   onClick={handleIncrement}
                   disabled={quantity >= (product.stock || 10)}
-                  whileHover={{ backgroundColor: "rgba(251, 191, 36, 0.05)" }}
+                  whileHover={{ backgroundColor: "color-mix(in srgb, var(--brand-500) 5%, transparent)" }}
                   whileTap={{ scale: 0.95 }}
                   className="w-10 h-10 flex items-center justify-center text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                   aria-label="Increase quantity"
@@ -762,7 +762,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                 disabled={!product.stock}
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full bg-gradient-to-r from-brand-600 to-brand-500 text-white py-4 px-6 rounded-full font-light flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl text-sm uppercase tracking-wider"
+                className="w-full bg-gradient-to-r from-brand-600 to-brand-500 text-background py-4 px-6 rounded-full font-light flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl text-sm uppercase tracking-wider"
               >
                 <span>Buy Now</span>
                 <ShoppingCart size={18} />
@@ -803,7 +803,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                 rotate: { duration: 25, repeat: Infinity, ease: "linear" },
                 scale: { duration: 5, repeat: Infinity, ease: "easeInOut" },
               }}
-              className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-brand-100/20 to-orange-100/20 rounded-full blur-3xl"
+              className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-brand-100/20 to-brand-200/20 rounded-full blur-3xl"
             />
 
             <div className="relative z-10">

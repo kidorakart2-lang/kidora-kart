@@ -71,7 +71,7 @@ const SignUpPage = () => {
 
       dispatch(register(data._token));
       dispatch(setProfile(data._data));
-      Cookies.set("userToken", data._token, { expires: 7, path: "/", sameSite: "lax" });
+      Cookies.set("userToken", data._token, { expires: 5, path: "/", sameSite: "lax" });
 
       // Sync guest cart and wishlist to server
       const guestCart = getGuestCartFromStorage();
@@ -133,7 +133,7 @@ const SignUpPage = () => {
                 </Label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User size={18} className="text-black z-10" />
+                    <User size={18} className="text-foreground z-10" />
                   </div>
                   <input
                     type="text"
@@ -163,7 +163,7 @@ const SignUpPage = () => {
                 </Label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail size={18} className="text-black z-10" />
+                    <Mail size={18} className="text-foreground z-10" />
                   </div>
                   <input
                     type="email"
@@ -207,7 +207,7 @@ const SignUpPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-3 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
+                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
                   loading
                     ? "bg-brand-400 cursor-not-allowed opacity-70"
                     : "bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"

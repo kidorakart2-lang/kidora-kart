@@ -81,7 +81,7 @@ export function HoldToConfirmButton({
       onTouchStart={handleMouseDown}
       onTouchEnd={handleMouseUp}
       disabled={isConfirmed || loading}
-      className={`relative w-full py-3.5 px-6 rounded-xl font-semibold text-white transition-all overflow-hidden ${
+      className={`relative w-full py-3.5 px-6 rounded-xl font-semibold text-background transition-all overflow-hidden ${
         isConfirmed
           ? "bg-gradient-to-r from-brand-700 to-brand-700 shadow-lg cursor-default"
           : "bg-gradient-to-r from-brand-600 to-brand-600 hover:from-brand-700 hover:to-brand-700 shadow-md hover:shadow-lg"

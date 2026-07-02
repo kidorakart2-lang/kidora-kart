@@ -56,7 +56,7 @@ export default function ImageSlider({
     <div className="space-y-4">
       {/* Main Image */}
       <motion.div
-        className="relative bg-gradient-to-br from-brand-50/50 to-yellow-50/50  overflow-hidden h-96 sm:h-[500px] shadow-2xl border border-brand-100/50 glass-effect"
+        className="relative bg-gradient-to-br from-brand-50/50 to-brand-100/50  overflow-hidden h-96 sm:h-[500px] shadow-2xl border border-brand-100/50 glass-effect"
         whileHover={!isMobile ? { scale: 1.01 } : {}}
         transition={{ duration: 0.2 }}
       >
@@ -88,7 +88,7 @@ export default function ImageSlider({
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 0.3, type: "spring" }}
-            className="absolute top-4 right-4 bg-gradient-to-r from-brand-500 to-orange-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg backdrop-blur-sm"
+            className="absolute top-4 right-4 bg-gradient-to-r from-brand-500 to-brand-600 text-background text-xs font-bold px-4 py-2 rounded-full shadow-lg backdrop-blur-sm"
           >
             NEW
           </motion.span>
@@ -122,7 +122,7 @@ export default function ImageSlider({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="absolute bottom-4 left-4 bg-black/40 text-white px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-md"
+          className="absolute bottom-4 left-4 bg-black/40 text-background px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-md"
         >
           {currentImage + 1} / {images.length}
         </motion.div>

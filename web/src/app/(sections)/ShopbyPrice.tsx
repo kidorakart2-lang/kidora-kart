@@ -74,7 +74,7 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
                 >
                   <div className="relative mb-4">
                     <div className={`relative p-4 rounded-full bg-price-${i}`}>
-                      <Icon className="w-8 h-8 text-white" />
+                      <Icon className="w-8 h-8 text-background" />
                     </div>
                   </div>
 

@@ -150,7 +150,7 @@ export default function RequirementModal() {
             <Link
               href="/profile"
               onClick={handleClose}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-brand-600 border border-transparent rounded-md shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-background bg-brand-600 border border-transparent rounded-md shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
             >
               Go to Profile
             </Link>

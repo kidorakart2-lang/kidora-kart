@@ -260,7 +260,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
           {/* Header with Write Review Button */}
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-8 md:p-10 border-b border-border">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-100 to-orange-100 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center">
                 <Star
                   size={20}
                   className="text-brand-600 fill-brand-600"
@@ -284,7 +284,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setIsModalOpen(true)}
-              className="px-6 py-3 bg-gradient-to-r from-brand-600 to-orange-600 text-white rounded-full font-light text-sm uppercase tracking-wider shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+              className="px-6 py-3 bg-gradient-to-r from-brand-600 to-brand-700 text-background rounded-full font-light text-sm uppercase tracking-wider shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
             >
               <Edit3 size={16} />
               <span>Write Review</span>
@@ -294,7 +294,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
           {/* Rating Summary */}
           <motion.div
             variants={itemVariants}
-            className="p-8 md:p-10 bg-gradient-to-br from-brand-50/30 to-orange-50/30"
+            className="p-8 md:p-10 bg-gradient-to-br from-brand-50/30 to-brand-100/30"
           >
             <div className="flex items-center gap-6 mb-4">
               <StarRating rating={Math.round(averageRating)} readOnly={true} />
@@ -309,7 +309,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                 initial={{ width: 0 }}
                 whileInView={{ width: `${(averageRating / 5) * 100}%` }}
                 transition={{ duration: 1.2, ease: "easeOut" }}
-                className="absolute h-full bg-gradient-to-r from-brand-500 to-orange-500 rounded-full"
+                className="absolute h-full bg-gradient-to-r from-brand-500 to-brand-600 rounded-full"
               />
             </div>
           </motion.div>
@@ -345,7 +345,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                   <div className="flex items-start gap-4 mb-4">
                     {/* Avatar */}
                     <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-100 to-orange-100 flex items-center justify-center text-brand-700 font-light text-lg">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center text-brand-700 font-light text-lg">
                         {review.userId?.avatar ? (
                           <img
                             src={review.userId.avatar}
@@ -526,7 +526,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                           disabled={isSubmitting}
                           whileHover={{ y: -2 }}
                           whileTap={{ scale: 0.98 }}
-                          className="flex-1 px-6 py-3 bg-gradient-to-r from-brand-600 to-orange-600 text-white rounded-full font-light text-sm uppercase tracking-wider shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                          className="flex-1 px-6 py-3 bg-gradient-to-r from-brand-600 to-brand-700 text-background rounded-full font-light text-sm uppercase tracking-wider shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                         >
                           {isSubmitting ? "Submitting..." : "Submit Review"}
                         </motion.button>

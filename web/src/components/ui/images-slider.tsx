@@ -144,7 +144,7 @@ export const ImagesSlider = ({
   const slide = resolvedSlides[currentIndex];
   const areImagesLoaded = loadedImages.length > 0;
   const buttonStyles = `
-  absolute z-50 p-2 rounded-full bg-black/30 hover:bg-black/50 text-white
+  absolute z-50 p-2 rounded-full bg-black/30 hover:bg-black/50 text-background
   transition-colors duration-300 backdrop-blur-sm
 `;
   return (

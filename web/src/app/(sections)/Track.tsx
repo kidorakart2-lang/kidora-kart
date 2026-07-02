@@ -74,10 +74,10 @@ export default function OrderTracking() {
       return "bg-destructive text-destructive-foreground";
     }
     if (isActive) {
-      return "bg-amber-500 text-white";
+      return "bg-brand-500 text-background";
     }
     if (isCompleted) {
-      return "bg-emerald-500 text-white";
+      return "bg-emerald-500 text-background";
     }
     return "bg-muted text-muted-foreground";
   };
@@ -112,7 +112,7 @@ export default function OrderTracking() {
           <h1 className="text-3xl text-foreground mb-2">Track Your Order</h1>
           <p className="text-muted-foreground font-sans mb-6">
             Enter your order details to see its current status. <br />
-            <span className="text-amber-500 text-sm">
+            <span className="text-brand-500 text-sm">
               or You Can Check your order status in Profile
             </span>
           </p>
@@ -133,7 +133,7 @@ export default function OrderTracking() {
             </div>
             <Button
               onClick={handleTrackOrder}
-              className="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-6 py-2 rounded-lg transition"
+              className="bg-brand-500 hover:bg-brand-600 text-background font-semibold px-6 py-2 rounded-lg transition"
             >
               Track Order
             </Button>
@@ -155,14 +155,14 @@ export default function OrderTracking() {
                 : isDelivered
                 ? "bg-gradient-to-r from-emerald-500 to-emerald-600"
                 : "bg-gradient-to-r from-brand-500 to-brand-600"
-            } p-6 text-white`}
+            } p-6 text-background`}
           >
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold mb-2">
                   Order #{orderDetails?.order?.orderId}
                 </h1>
-                <p className="text-white/90 flex items-center gap-2">
+                <p className="text-background/90 flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   Placed on{" "}
                   {new Date(orderDetails?.order?.createdAt ?? "").toLocaleDateString(
@@ -786,7 +786,7 @@ export default function OrderTracking() {
               />
               <Button
                 onClick={handleTrackOrder}
-                className="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-6 py-2 rounded-lg transition"
+                className="bg-brand-500 hover:bg-brand-600 text-background font-semibold px-6 py-2 rounded-lg transition"
               >
                 Track Order
               </Button>

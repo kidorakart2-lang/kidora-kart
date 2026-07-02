@@ -305,7 +305,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
         <AnimatePresence>
           {discountPercentage > 0 && (
             <motion.div
-              className="bg-gradient-to-br from-brand-accent-500 to-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1"
+              className="bg-gradient-to-br from-brand-accent-500 to-red-600 text-background px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1"
               initial={{ opacity: 0, scale: 0.8, x: -20 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
               exit={{ opacity: 0, scale: 0.8 }}
@@ -487,7 +487,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
           <Button
             disabled={loading || data.stock === 0}
             className="w-full bg-gradient-to-r from-brand-700 to-brand-800 hover:from-brand-800 hover:to-brand-900
-                     text-white py-6 rounded-xl text-sm font-semibold uppercase tracking-wider
+                     text-background py-6 rounded-xl text-sm font-semibold uppercase tracking-wider
                      flex items-center justify-center gap-2 shadow-lg
                       transition-all duration-300
                      transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
