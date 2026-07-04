@@ -10,7 +10,7 @@
     "build:api": "pnpm --filter api run build",
     "build:admin": "pnpm --filter admin-panel run build",
     "build:web": "pnpm --filter web run build",
-    "typecheck": "pnpm --filter api run typecheck && pnpm --filter admin-panel run typecheck",
+    "typecheck": "pnpm --filter api run typecheck && pnpm --filter admin-panel run typecheck && pnpm --filter web run typecheck",
     "lint": "pnpm --filter api run lint && pnpm --filter admin-panel run lint"
   },
   "devDependencies": {

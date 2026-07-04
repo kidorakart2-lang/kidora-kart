@@ -1,6 +1,37 @@
 import type { Request, Response } from "express";
 import Product from "../../models/product.js";
 import { success, fail } from "../../utils/responses.js";
+import { logger } from "../../lib/logger.js";
+
+const POPULATE_CATEGORY = {
+  path: "category",
+  select: "name slug",
+  match: { deletedAt: null, status: true },
+} as const;
+
+const POPULATE_SUBCATEGORY = {
+  path: "subCategory",
+  select: "name slug",
+  match: { deletedAt: null, status: true },
+} as const;
+
+const POPULATE_SUBSUBCATEGORY = {
+  path: "subSubCategory",
+  select: "name slug",
+  match: { deletedAt: null, status: true },
+} as const;
+
+const POPULATE_COLORS = {
+  path: "colors",
+  select: "name code",
+  match: { deletedAt: null, status: true },
+} as const;
+
+const POPULATE_MATERIAL = {
+  path: "material",
+  select: "name",
+  match: { deletedAt: null, status: true },
+} as const;
 
 const escapeRegex = (str: string): string =>
   str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -60,38 +91,18 @@ export const getSearchWithSuggestions = async (
 
     const productQuery = {
       $and: [
-        { $or: regexPatterns.flat() },
+        { $or: regexPatterns.flatMap((p) => p) },
         { deletedAt: null },
         { status: true },
       ],
     };
 
     const products = await Product.find(productQuery)
-      .populate({
-        path: "category",
-        select: "name slug",
-        match: { deletedAt: null, status: true },
-      })
-      .populate({
-        path: "subCategory",
-        select: "name slug",
-        match: { deletedAt: null, status: true },
-      })
-      .populate({
-        path: "subSubCategory",
-        select: "name slug",
-        match: { deletedAt: null, status: true },
-      })
-      .populate({
-        path: "colors",
-        select: "name code",
-        match: { deletedAt: null, status: true },
-      })
-      .populate({
-        path: "material",
-        select: "name",
-        match: { deletedAt: null, status: true },
-      })
+      .populate(POPULATE_CATEGORY)
+      .populate(POPULATE_SUBCATEGORY)
+      .populate(POPULATE_SUBSUBCATEGORY)
+      .populate(POPULATE_COLORS)
+      .populate(POPULATE_MATERIAL)
       .select(
         "name slug images price image stock discount_price colors material category subCategory subSubCategory",
       )
@@ -101,7 +112,7 @@ export const getSearchWithSuggestions = async (
 
     const suggestionQuery = {
       $and: [
-        { $or: regexPatterns.flat() },
+        { $or: regexPatterns.flatMap((p) => p) },
         { deletedAt: null },
         { status: true },
       ],
@@ -143,7 +154,7 @@ export const getSearchWithSuggestions = async (
         : "No products found",
     );
   } catch (err) {
-    console.error("Search error:", err);
+    logger.error({ err }, "Search error");
     return fail(
       res,
       err instanceof Error ? err.message : "Something went wrong",

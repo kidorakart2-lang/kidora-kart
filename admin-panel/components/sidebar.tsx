@@ -98,11 +98,11 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
           <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left duration-300">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">
-                J
+                T
               </span>
             </div>
             <span className="font-bold text-lg text-sidebar-foreground">
-              Jewellery Walla
+              Toy Shop
             </span>
           </div>
         )}

@@ -7,8 +7,8 @@ import QueryProvider from './QueryProvider'
 import { ThemeProvider } from '@/components/theme-provider'
 
 export const metadata: Metadata = {
-  title: 'Jewellery walla admin dashboard',
-  description: 'jewellery walla admin dashboard',
+  title: 'Toy Shop Admin Dashboard',
+  description: 'Toy Shop admin dashboard',
   robots: { index: false, follow: false, nocache: true },
 }
 

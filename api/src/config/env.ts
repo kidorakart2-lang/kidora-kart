@@ -1,5 +1,6 @@
 import { z } from "zod";
 import "dotenv/config";
+import { logger } from "../lib/logger.js";
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(5000),
@@ -14,7 +15,9 @@ const envSchema = z.object({
   MY_GMAIL: z.string().email().optional(),
   MY_GMAIL_PASSWORD: z.string().optional(),
   EMAIL_FROM_NAME: z.string().optional(),
-  APP_NAME: z.string().default("Jewellery Walla"),
+  SUPPORT_EMAIL: z.string().email().default("support@toyshop.com"),
+  CDN_HOST: z.string().default("cdn.toyshop.com"),
+  APP_NAME: z.string().default("Toy Shop"),
 
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 
@@ -57,7 +60,7 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error("❌ Invalid environment variables:", parsed.error.flatten().fieldErrors);
+  logger.error({ errors: parsed.error.flatten().fieldErrors }, "Invalid environment variables");
   process.exit(1);
 }
 

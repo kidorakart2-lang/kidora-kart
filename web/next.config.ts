@@ -5,7 +5,7 @@ const csp = `
   default-src 'self';
   script-src 'self' https://checkout.razorpay.com 'unsafe-inline' 'unsafe-eval';
   style-src 'self' 'unsafe-inline';
-  img-src 'self' data: blob: https://*.r2.dev https://cdn.jewellerywalla.com https://lh3.googleusercontent.com;
+  img-src 'self' data: blob: https://*.r2.dev https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.toyshop.com"} https://lh3.googleusercontent.com;
   font-src 'self' data:;
   connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"};
   frame-src https://*.razorpay.com;
@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "cdn.jewellerywalla.com",
+        hostname: process.env.NEXT_PUBLIC_CDN_HOST || "cdn.toyshop.com",
       },
     ],
     deviceSizes: [360, 640, 750, 1080, 1200, 1920],

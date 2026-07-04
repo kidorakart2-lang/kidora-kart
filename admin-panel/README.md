@@ -1,6 +1,6 @@
 # Admin Panel — Next.js Dashboard
 
-Next.js 16 admin dashboard with shadcn/ui components for managing the Jewellery Walla e-commerce platform.
+Next.js 16 admin dashboard with shadcn/ui components for managing the Toy Shop e-commerce platform.
 
 ## Tech Stack
 

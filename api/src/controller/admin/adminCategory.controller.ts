@@ -18,8 +18,10 @@ export const create = async (
     const slug = await generateUniqueSlug(category, categoryDoc.name);
     categoryDoc.slug = slug;
 
+    const categoryName = request.body?.name as string | undefined;
+
     if (request.file) {
-      const uploadResult = await uploadToR2(request.file, "categories");
+      const uploadResult = await uploadToR2(request.file, "categories", 80, categoryName);
       if (uploadResult.success) {
         categoryDoc.image = uploadResult.url;
       } else {
@@ -172,8 +174,10 @@ export const update = async (
     const id = request.params.id;
     const updateData: Record<string, unknown> = { ...request.body };
 
+    const categoryName = updateData.name as string | undefined;
+
     if (request.file) {
-      const uploadResult = await uploadToR2(request.file, "categories");
+      const uploadResult = await uploadToR2(request.file, "categories", 80, categoryName);
       if (uploadResult.success) {
         updateData.image = uploadResult.url;
       } else {

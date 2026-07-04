@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import Coupen from "../../models/coupen.js";
 import { success, fail } from "../../utils/responses.js";
+import { logger } from "../../lib/logger.js";
 
 export const coupenPopUp = async (req: Request, res: Response): Promise<Response> => {
   try {
@@ -14,7 +15,7 @@ export const coupenPopUp = async (req: Request, res: Response): Promise<Response
     }
     return success(res, coupen, "Coupen Found");
   } catch (error) {
-    console.error("Coupen Pop Up Error:", error);
+    logger.error({ err: error }, "Coupen Pop Up Error");
     return fail(res, "Couldnt Find Coupen", 500);
   }
 };
@@ -37,7 +38,7 @@ export const findCoupen = async (req: Request, res: Response): Promise<Response>
       .lean();
     return success(res, coupen, "Coupen Found");
   } catch (error) {
-    console.error("Coupen Pop Up Error:", error);
+    logger.error({ err: error }, "Coupen Pop Up Error");
     return fail(res, "Couldnt Find Coupen", 500);
   }
 };

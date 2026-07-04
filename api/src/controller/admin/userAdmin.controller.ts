@@ -7,6 +7,7 @@ import Order from "../../models/order.js";
 import Wishlist from "../../models/wishlist.js";
 import Reviews from "../../models/review.js";
 import auditLogModel from "../../models/auditLog.js";
+import { invalidateUserCache } from "../../middleware/authMiddleware.js";
 import { comparePassword, hashPassword } from "../../lib/bcrypt.js";
 import {
   createRefreshToken,
@@ -219,6 +220,8 @@ export const changeRole = async (
       "Admin changed user role",
     );
 
+    invalidateUserCache(user._id);
+
     auditLogModel.create({
       action: "role_change",
       adminId: requestingUser._id,
@@ -365,6 +368,7 @@ export const userDelete = async (
       await revokeAllUserRefreshTokens(userId);
     }
 
+    invalidateUserCache(userId);
     await userModel.findByIdAndDelete(userId);
 
     res.status(200).json({ _status: true, _message: "User permanently deleted successfully" });

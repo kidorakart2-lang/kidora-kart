@@ -25,7 +25,7 @@ export const productFaqController = async (
     const query: Record<string, unknown> = { deletedAt: null, status: true };
     const data = await productFaq.find(query).sort({ createdAt: -1 }).lean();
 
-    cache.set(cacheKey, data);
+    cache.set(cacheKey, data, 600); // 10 min — FAQ data rarely changes
 
     const filtered = productId
       ? (data as Record<string, unknown>[]).filter((item) => {

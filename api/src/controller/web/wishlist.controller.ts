@@ -4,6 +4,7 @@ import Wishlist from "../../models/wishlist.js";
 import Product from "../../models/product.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { success, fail } from "../../utils/responses.js";
+import { logger } from "../../lib/logger.js";
 
 export const getWishlist = asyncHandler(
   async (req: Request, res: Response) => {
@@ -87,7 +88,7 @@ export const addToWishlist = asyncHandler(
       );
     } catch (error) {
       await session.abortTransaction();
-      console.error("Error in addToWishlist:", error);
+      logger.error({ err: error }, "Error in addToWishlist");
       if (error instanceof Error && error.name === "ValidationError") {
       return fail(res, "Validation failed", 400);
     }
@@ -149,7 +150,7 @@ export const removeFromWishlist = asyncHandler(
       );
     } catch (error) {
       await session.abortTransaction();
-      console.error("Error in removeFromWishlist:", error);
+      logger.error({ err: error }, "Error in removeFromWishlist");
       return fail(
         res,
         "Failed to remove product from wishlist",

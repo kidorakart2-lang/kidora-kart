@@ -9,6 +9,7 @@ import swaggerUi from "swagger-ui-express";
 import "dotenv/config";
 import { env } from "./config/env.js";
 import { swaggerSpec } from "./config/swagger.js";
+import { logger } from "./lib/logger.js";
 
 import userRoutes from "./routes/web/user.route.js";
 import productRoutes from "./routes/web/product.routes.js";
@@ -51,9 +52,30 @@ import homePageAdminRoutes from "./routes/admin/homePage.routes.js";
 import auditLogRoutes from "./routes/admin/auditLog.routes.js";
 import { getCsrfToken } from "./controller/csrf.controller.js";
 
+// Hoisted body-parser instances — created once at startup, reused on every request
+const urlencodedParser = express.urlencoded({ extended: true, limit: "1mb" });
+const jsonParser = express.json({ limit: "1mb" });
+const rawJsonParser = raw({ type: "application/json" });
+
 const app = express();
 
-app.use(helmet());
+app.use(
+  helmet({
+    // Disable browser-only protections — not relevant for a JSON API
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false,
+    originAgentCluster: false,
+    referrerPolicy: false,
+    xDnsPrefetchControl: false,
+    xDownloadOptions: false,
+    xFrameOptions: false,
+    xPermittedCrossDomainPolicies: false,
+    // Keep: strictTransportSecurity (HSTS), xContentTypeOptions (nosniff),
+    //       hidePoweredBy (strip X-Powered-By), xXssProtection (=0)
+  }),
+);
 
 app.use(
   cors({
@@ -66,7 +88,7 @@ app.use(
 
 app.use(compression());
 
-app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+app.use(urlencodedParser);
 
 app.use(cookieParser());
 
@@ -82,9 +104,9 @@ function sanitize(obj: unknown): unknown {
 
 app.use((req, res, next) => {
   if (req.originalUrl === "/api/website/orders/webhooks/razorpay") {
-    raw({ type: "application/json" })(req, res, next);
+    rawJsonParser(req, res, next);
   } else {
-    express.json({ limit: "1mb" })(req, res, next);
+    jsonParser(req, res, next);
   }
 });
 
@@ -94,7 +116,7 @@ app.use((req, _res, next) => {
   if (req.body && !Buffer.isBuffer(req.body)) {
     req.body = sanitize(req.body) as typeof req.body;
   }
-  const q = sanitize({ ...req.query });
+  const q = sanitize(req.query);
   try { Object.defineProperty(req, "query", { value: q, configurable: true }); } catch {
     // non-configurable query — ignore
   }
@@ -125,14 +147,14 @@ app.use("/api/website/home-page", homePageRoutes);
 // Available in all environments in development; in production only when ENABLE_SWAGGER=true
 if (env.NODE_ENV === "development" || env.ENABLE_SWAGGER === true) {
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-    customSiteTitle: "Jewellery Walla API Docs",
+    customSiteTitle: `${env.APP_NAME} API Docs`,
     customCss: ".swagger-ui .topbar { display: none }",
   }));
   app.get("/api/docs.json", (_req, res) => {
     res.setHeader("Content-Type", "application/json");
     res.send(swaggerSpec);
   });
-  console.log("📖 Swagger docs available at /api/docs");
+  logger.info("📖 Swagger docs available at /api/docs");
 }
 
 app.use("/api/admin/logo", adminLogoRoutes);
@@ -167,7 +189,7 @@ app.use((_req, res) => {
 });
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error("Unhandled error:", err);
+  logger.error({ err }, "Unhandled error");
   res.status(500).json({ success: false, message: "Internal server error" });
 });
 
@@ -175,13 +197,13 @@ const PORT = env.PORT;
 mongoose
   .connect(env.NEW_DB_URL)
   .then(() => {
-    console.log("Connected to MongoDB");
+    logger.info("Connected to MongoDB");
     app.listen(PORT, () => {
-      console.log(`Server is working on port ${PORT}`);
+      logger.info({ port: PORT }, "Server started");
     });
   })
   .catch((err) => {
-    console.error("MongoDB connection error:", err);
+    logger.error({ err }, "MongoDB connection error");
     process.exit(1);
   });
 

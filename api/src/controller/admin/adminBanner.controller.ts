@@ -14,7 +14,7 @@ export const createBanner = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const data: Record<string, unknown> = { ...req.body };
+    const data = req.body as Record<string, unknown>;
 
     // Parse link field from body (sent as JSON string in FormData)
     if (req.body.link) {
@@ -28,8 +28,10 @@ export const createBanner = async (
       }
     }
 
+    const bannerName = (data.title as string) || (data.description as string) || undefined;
+
     if (req.file) {
-      const uploadResult = await uploadToR2(req.file, "banners");
+      const uploadResult = await uploadToR2(req.file, "banners", 85, bannerName);
       if (uploadResult.success) {
         data.image = uploadResult.url;
       } else {
@@ -129,7 +131,7 @@ export const updateBanner = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const data: Record<string, unknown> = { ...req.body };
+    const data = req.body as Record<string, unknown>;
 
     // Handle link field update
     if (req.body.link !== undefined) {
@@ -147,8 +149,10 @@ export const updateBanner = async (
       }
     }
 
+    const bannerName = (data.title as string) || (data.description as string) || undefined;
+
     if (req.file) {
-      const uploadResult = await uploadToR2(req.file, "banners");
+      const uploadResult = await uploadToR2(req.file, "banners", 85, bannerName);
       if (uploadResult.success) {
         data.image = uploadResult.url;
       } else {

@@ -9,6 +9,8 @@ import { sendEmail } from "../../lib/nodemailer.js";
 import { uploadToR2 } from "../../lib/cloudflare.js";
 import { env } from "../../config/env.js";
 import { success, fail } from "../../utils/responses.js";
+import { invalidateUserCache } from "../../middleware/authMiddleware.js";
+import { logger } from "../../lib/logger.js";
 import {
   createRefreshToken,
   verifyRefreshToken,
@@ -89,9 +91,8 @@ export const registerUser = async (
       password: hashed,
     });
 
-    const userObj = newUser.toObject();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _pw, ...userData } = userObj;
+    const userData = newUser.toObject();
+    delete (userData as { password?: string }).password;
 
     const accessToken = await setSessionCookies(res, newUser, "user");
 
@@ -102,7 +103,7 @@ export const registerUser = async (
       _token: accessToken,
     });
   } catch (error) {
-    console.error(error);
+    logger.error({ err: error }, "Register user error");
     return fail(res, "Internal Server Error", 500);
   }
 };
@@ -128,7 +129,8 @@ export const loginUser = async (
       return fail(res, "Invalid email or password", 401);
     }
 
-    const { password: _pw, ...userData } = user;
+    delete (user as { password?: string }).password;
+    const userData = user;
 
     const accessToken = await setSessionCookies(res, user, "user");
 
@@ -139,7 +141,7 @@ export const loginUser = async (
       _token: accessToken,
     });
   } catch (error) {
-    console.error(error);
+    logger.error({ err: error }, "Login user error");
     return fail(res, "Internal Server Error", 500);
   }
 };
@@ -177,7 +179,7 @@ export const refreshUserToken = async (
       _token: newAccessToken,
     });
   } catch (error) {
-    console.error("Refresh token error:", error);
+    logger.error({ err: error }, "Refresh token error");
     clearSessionCookies(res);
     return fail(res, "Session expired, please log in again", 401);
   }
@@ -189,7 +191,8 @@ export const getProfile = async (
 ): Promise<Response> => {
   if (!req.user) return fail(res, "Unauthorized", 401);
   try {
-    const { password: _pw, ...userData } = req.user.toObject();
+    const userData = req.user.toObject();
+    delete (userData as { password?: string }).password;
     return success(res, userData, "User profile Found");
   } catch (error) {
     return fail(res, "Internal Server Error", 500);
@@ -229,7 +232,7 @@ export const changePassword = async (
 
     return success(res, null, "Password changed successfully");
   } catch (error) {
-    console.error(error);
+    logger.error({ err: error }, "Change password error");
     return fail(res, "Internal Server Error", 500);
   }
 };
@@ -245,10 +248,10 @@ export const updateProfile = async (
     let avatarUrl: string | null = user.avatar ?? null;
     if (req.file) {
       try {
-        const result = await uploadToR2(req.file, "avatars");
+        const result = await uploadToR2(req.file, "avatars", 80, user.name || undefined);
         avatarUrl = result.url;
       } catch (uploadError) {
-        console.error("Avatar upload error:", uploadError);
+        logger.error({ err: uploadError }, "Avatar upload error");
         return fail(res, "Failed to upload avatar", 500);
       }
     }
@@ -279,9 +282,11 @@ export const updateProfile = async (
     user.avatar = avatarUrl;
     await user.save();
 
+    invalidateUserCache(user._id);
+
     return success(res, user, "User profile updated successfully");
   } catch (error) {
-    console.error(error);
+    logger.error({ err: error }, "Update profile error");
     return fail(res, "Internal Server Error", 500);
   }
 };
@@ -320,12 +325,12 @@ export const forgotPassword = async (
       subject: "Your Password Reset OTP",
       name: user.name || "User",
     }).catch((emailError) => {
-      console.error("Failed to send OTP email:", emailError);
+      logger.error({ err: emailError }, "Failed to send OTP email");
     });
 
     return;
   } catch (error) {
-    console.error("Forgot password error:", error);
+    logger.error({ err: error }, "Forgot password error");
     fail(res, "Internal Server Error", 500);
     return;
   }
@@ -356,7 +361,7 @@ export const verifyOtp = async (
       _token: newToken,
     });
   } catch (error) {
-    console.error("OTP verification error:", error);
+    logger.error({ err: error }, "OTP verification error");
     return fail(res, "Internal Server Error", 500);
   }
 };
@@ -384,7 +389,7 @@ export const resetPassword = async (
 
     return success(res, null, "Password reset successfully");
   } catch (error) {
-    console.error("Reset password error:", error);
+    logger.error({ err: error }, "Reset password error");
     return fail(res, "Internal Server Error", 500);
   }
 };
@@ -431,10 +436,10 @@ export const verifyUser = async (
       name: user.name || "User",
       verificationLink: `${env.FRONTEND_URL}/verify-email?token=${verificationToken}&otp=${otp}`,
     }).catch((emailError) => {
-      console.error("Failed to send verification email:", emailError);
+      logger.error({ err: emailError }, "Failed to send verification email");
     });
   } catch (error) {
-    console.error("Verify user error:", error);
+    logger.error({ err: error }, "Verify user error");
     fail(res, "Internal Server Error", 500);
     return;
   }
@@ -469,9 +474,10 @@ export const completeVerify = async (
       { new: true },
     );
     if (!result) return fail(res, "User not found", 404);
+    invalidateUserCache(decoded.userId!);
     return success(res, null, "Email verified successfully");
   } catch (error) {
-    console.error("Complete verify error:", error);
+    logger.error({ err: error }, "Complete verify error");
     if (error instanceof Error && error.name === "TokenExpiredError") {
       return fail(res, "Verification link has expired. Please request a new one.", 400);
     }
@@ -555,9 +561,8 @@ export const googleLogin = async (
       await user.save();
     }
 
-    const userObj = user.toObject();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userData } = userObj;
+    const userData = user.toObject();
+    delete (userData as { password?: string }).password;
 
     const accessToken = await setSessionCookies(res, user, "user");
 
@@ -568,7 +573,7 @@ export const googleLogin = async (
       _token: accessToken,
     });
   } catch (error) {
-    console.error("Google login error:", error);
+    logger.error({ err: error }, "Google login error");
     return fail(res, "Error during Google authentication", 500);
   }
 };
@@ -628,9 +633,8 @@ export const googleAuthCallback = async (
       await user.save();
     }
 
-    const userObj = user.toObject();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userData } = userObj;
+    const userData = user.toObject();
+    delete (userData as { password?: string }).password;
 
     const accessToken = await setSessionCookies(res, user, "user");
 
@@ -641,7 +645,7 @@ export const googleAuthCallback = async (
       _token: accessToken,
     });
   } catch (error) {
-    console.error("Google auth callback error:", error);
+    logger.error({ err: error }, "Google auth callback error");
     return fail(res, "Error during Google authentication", 500);
   }
 };
@@ -660,7 +664,7 @@ export const reLogin = async (
       _message: "Login successful",
     });
   } catch (error) {
-    console.error("Re-login error:", error);
+    logger.error({ err: error }, "Re-login error");
     return fail(res, "Error during re-login", 500);
   }
 };

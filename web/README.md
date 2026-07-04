@@ -1,6 +1,6 @@
 # Web — Storefront
 
-Next.js 16 customer-facing storefront for the Jewellery Walla e-commerce platform.
+Next.js 16 customer-facing storefront for the Toy Shop e-commerce platform.
 
 ## Tech Stack
 

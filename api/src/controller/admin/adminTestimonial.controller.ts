@@ -10,8 +10,10 @@ export const create = async (
   try {
     const data = new testimonial(request.body);
 
+    const testimonialName = (request.body?.name as string) || (request.body?.title as string) || undefined;
+
     if (request.file) {
-      const uploadResult = await uploadToR2(request.file, "testimonials");
+      const uploadResult = await uploadToR2(request.file, "testimonials", 80, testimonialName);
       if (uploadResult.success) {
         data.image = uploadResult.url;
       } else {
@@ -163,8 +165,10 @@ export const update = async (
     const id = request.params.id;
     const data: Record<string, unknown> = { ...request.body };
 
+    const testimonialName = (data.name as string) || (data.title as string) || undefined;
+
     if (request.file) {
-      const uploadResult = await uploadToR2(request.file, "testimonials");
+      const uploadResult = await uploadToR2(request.file, "testimonials", 80, testimonialName);
       if (uploadResult.success) {
         data.image = uploadResult.url;
       } else {

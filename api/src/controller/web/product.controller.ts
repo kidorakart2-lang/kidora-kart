@@ -6,44 +6,77 @@ import SubSubCategory from "../../models/subSubCategory.js";
 import Material from "../../models/material.js";
 import cache from "../../lib/cache.js";
 import { success, fail } from "../../utils/responses.js";
+import { logger } from "../../lib/logger.js";
 
 const PRODUCT_SELECT =
   "name slug images price image stock discount_price colors material sizes category subCategory subSubCategory";
 
-const productListPopulate = () => [
-  {
-    path: "category",
-    select: "name slug",
-    match: { deletedAt: null, status: true },
+const POPULATE_CATEGORY = {
+  path: "category",
+  select: "name slug",
+  match: { deletedAt: null, status: true },
+} as const;
+
+const POPULATE_SUBCATEGORY = {
+  path: "subCategory",
+  select: "name slug",
+  match: { deletedAt: null, status: true },
+} as const;
+
+const POPULATE_SUBSUBCATEGORY = {
+  path: "subSubCategory",
+  select: "name slug",
+  match: { deletedAt: null, status: true },
+} as const;
+
+const POPULATE_COLORS = {
+  path: "colors",
+  select: "name code",
+  match: { deletedAt: null, status: true },
+  options: { sort: { order: -1 } },
+} as const;
+
+const POPULATE_MATERIAL = {
+  path: "material",
+  select: "name",
+  match: { deletedAt: null, status: true },
+  options: { sort: { order: -1 } },
+} as const;
+
+const POPULATE_SIZES = {
+  path: "sizes",
+  select: "name",
+  match: { deletedAt: null, status: true },
+  options: { sort: { order: -1 } },
+} as const;
+
+const POPULATE_CATEGORY_GIFT = {
+  path: "category",
+  match: {
+    name: { $regex: "gift items", $options: "i" },
+    deletedAt: null,
+    status: true,
   },
-  {
-    path: "subCategory",
-    select: "name slug",
-    match: { deletedAt: null, status: true },
+  select: "name slug",
+} as const;
+
+const POPULATE_SUBCATEGORY_GIFT = {
+  path: "subCategory",
+  match: {
+    name: { $regex: "gift items", $options: "i" },
+    deletedAt: null,
+    status: true,
   },
-  {
-    path: "subSubCategory",
-    select: "name slug",
-    match: { deletedAt: null, status: true },
-  },
-  {
-    path: "colors",
-    select: "name code",
-    match: { deletedAt: null, status: true },
-    options: { sort: { order: -1 } },
-  },
-  {
-    path: "material",
-    select: "name",
-    match: { deletedAt: null, status: true },
-    options: { sort: { order: -1 } },
-  },
-  {
-    path: "sizes",
-    select: "name",
-    match: { deletedAt: null, status: true },
-    options: { sort: { order: -1 } },
-  },
+  select: "name slug",
+} as const;
+
+const PRODUCT_POPULATE = [
+  POPULATE_CATEGORY,
+  POPULATE_SUBCATEGORY,
+  POPULATE_SUBSUBCATEGORY,
+  POPULATE_COLORS,
+  POPULATE_MATERIAL,
+  POPULATE_SIZES,
 ];
 
 export const getOne = async (req: Request, res: Response): Promise<Response> => {
@@ -54,39 +87,7 @@ export const getOne = async (req: Request, res: Response): Promise<Response> => 
       status: true,
       deletedAt: null,
     })
-      .populate({
-        path: "colors",
-        select: "name code",
-        match: { deletedAt: null, status: true },
-        options: { sort: { order: -1 } },
-      })
-      .populate({
-        path: "material",
-        select: "name",
-        match: { deletedAt: null, status: true },
-        options: { sort: { order: -1 } },
-      })
-      .populate({
-        path: "sizes",
-        select: "name",
-        match: { deletedAt: null, status: true },
-        options: { sort: { order: -1 } },
-      })
-      .populate({
-        path: "category",
-        select: "name slug",
-        match: { deletedAt: null, status: true },
-      })
-      .populate({
-        path: "subCategory",
-        select: "name slug",
-        match: { deletedAt: null, status: true },
-      })
-      .populate({
-        path: "subSubCategory",
-        select: "name slug",
-        match: { deletedAt: null, status: true },
-      })
+      .populate(PRODUCT_POPULATE)
       .lean();
 
     if (!product) throw new Error("Product not found");
@@ -149,21 +150,9 @@ export const getByCategory = async (
 
     const [products, total] = await Promise.all([
       Product.find(query)
-        .populate({
-          path: "category",
-          select: "name slug",
-          match: { deletedAt: null, status: true },
-        })
-        .populate({
-          path: "subCategory",
-          select: "name slug",
-          match: { deletedAt: null, status: true },
-        })
-        .populate({
-          path: "subSubCategory",
-          select: "name slug",
-          match: { deletedAt: null, status: true },
-        })
+        .populate(POPULATE_CATEGORY)
+        .populate(POPULATE_SUBCATEGORY)
+        .populate(POPULATE_SUBSUBCATEGORY)
         .select(PRODUCT_SELECT)
         .sort(sort)
         .limit(cappedLimit)
@@ -293,7 +282,7 @@ export const getProductByFilter = async (
         ],
       }));
 
-      query.$or = regexPatterns.map((p) => p.$or).flat();
+      query.$or = regexPatterns.flatMap((p) => p.$or);
     }
 
     if (isFeatured !== undefined) query.isFeatured = isFeatured;
@@ -364,7 +353,7 @@ export const getProductByFilter = async (
     const [total, products] = await Promise.all([
       Product.countDocuments(query),
       Product.find(query)
-        .populate(productListPopulate())
+        .populate(PRODUCT_POPULATE)
         .select(PRODUCT_SELECT)
         .limit(cappedLimit)
         .skip(skip)
@@ -393,7 +382,7 @@ export const getProductByFilter = async (
 export const getAll = async (_req: Request, res: Response): Promise<Response> => {
   try {
     const products = await Product.find({ deletedAt: null, status: true })
-      .populate(productListPopulate())
+      .populate(PRODUCT_POPULATE)
       .select(PRODUCT_SELECT)
       .sort({ order: -1, createdAt: -1 })
       .lean();
@@ -427,7 +416,7 @@ export const relatedProducts = async (
         subSubCategory: { $in: subSubCategoryIds },
       })
         .limit(10)
-        .populate(productListPopulate())
+        .populate(PRODUCT_POPULATE)
         .select(PRODUCT_SELECT)
         .sort({ order: -1, createdAt: -1 })
         .lean();
@@ -448,11 +437,11 @@ export const relatedProducts = async (
         _id: { $nin: existingProductIds },
       })
         .limit(remainingLimit)
-        .populate(productListPopulate())
+        .populate(PRODUCT_POPULATE)
         .select(PRODUCT_SELECT)
         .lean();
 
-      products = [...products, ...subCategoryProducts];
+      products.push(...subCategoryProducts);
     }
 
     return success(res, products, "Related products fetched successfully");
@@ -467,8 +456,10 @@ export const relatedProducts = async (
 };
 
 const fetchFeaturedList = async (filter: Record<string, unknown>, limit: number) => {
-  return Product.find({ ...filter, deletedAt: null, status: true })
-    .populate(productListPopulate())
+  filter.deletedAt = null;
+  filter.status = true;
+  return Product.find(filter)
+    .populate(PRODUCT_POPULATE)
     .select(PRODUCT_SELECT)
     .sort({ order: -1, createdAt: -1 })
     .limit(limit)
@@ -554,18 +545,8 @@ export const featuredForFooter = async (
       .populate("category", "name slug")
       .populate("subCategory", "name slug")
       .populate("subSubCategory", "name slug")
-      .populate({
-        path: "colors",
-        select: "name code",
-        match: { deletedAt: null, status: true },
-        options: { sort: { order: -1 } },
-      })
-      .populate({
-        path: "material",
-        select: "name",
-        match: { deletedAt: null, status: true },
-        options: { sort: { order: -1 } },
-      })
+      .populate(POPULATE_COLORS)
+      .populate(POPULATE_MATERIAL)
       .select(
         "name slug images price image stock discount_price colors material category subCategory subSubCategory",
       )
@@ -616,122 +597,35 @@ export const tabProducts = async (
 
     const [goldProducts, silverProducts, giftProducts] = await Promise.all([
       Product.find({ deletedAt: null, status: true, material: goldMat._id })
-        .populate({
-          path: "material",
-          match: { deletedAt: null, status: true },
-          select: "name",
-        })
-        .populate({
-          path: "category",
-          select: "name slug",
-          match: { deletedAt: null, status: true },
-        })
-        .populate({
-          path: "subCategory",
-          select: "name slug",
-          match: { deletedAt: null, status: true },
-        })
-        .populate({
-          path: "subSubCategory",
-          select: "name slug",
-          match: { deletedAt: null, status: true },
-        })
-        .populate({
-          path: "colors",
-          select: "name code",
-          match: { deletedAt: null, status: true },
-          options: { sort: { order: -1 } },
-        })
-        .populate({
-          path: "sizes",
-          select: "name",
-          match: { deletedAt: null, status: true },
-          options: { sort: { order: -1 } },
-        })
+        .populate(POPULATE_MATERIAL)
+        .populate(POPULATE_CATEGORY)
+        .populate(POPULATE_SUBCATEGORY)
+        .populate(POPULATE_SUBSUBCATEGORY)
+        .populate(POPULATE_COLORS)
+        .populate(POPULATE_SIZES)
         .select(PRODUCT_SELECT)
         .sort({ order: -1, createdAt: -1 })
         .limit(4)
         .lean(),
 
       Product.find({ deletedAt: null, status: true, material: silverMat._id })
-        .populate({
-          path: "material",
-          match: { deletedAt: null, status: true },
-          select: "name",
-        })
-        .populate({
-          path: "category",
-          select: "name slug",
-          match: { deletedAt: null, status: true },
-        })
-        .populate({
-          path: "subCategory",
-          select: "name slug",
-          match: { deletedAt: null, status: true },
-        })
-        .populate({
-          path: "subSubCategory",
-          select: "name slug",
-          match: { deletedAt: null, status: true },
-        })
-        .populate({
-          path: "colors",
-          select: "name code",
-          match: { deletedAt: null, status: true },
-          options: { sort: { order: -1 } },
-        })
-        .populate({
-          path: "sizes",
-          select: "name",
-          match: { deletedAt: null, status: true },
-          options: { sort: { order: -1 } },
-        })
+        .populate(POPULATE_MATERIAL)
+        .populate(POPULATE_CATEGORY)
+        .populate(POPULATE_SUBCATEGORY)
+        .populate(POPULATE_SUBSUBCATEGORY)
+        .populate(POPULATE_COLORS)
+        .populate(POPULATE_SIZES)
         .sort({ order: -1, createdAt: -1 })
         .limit(4)
         .lean(),
 
       Product.find({ deletedAt: null, status: true, isGift: true })
-        .populate({
-          path: "category",
-          match: {
-            name: { $regex: "gift items", $options: "i" },
-            deletedAt: null,
-            status: true,
-          },
-          select: "name slug",
-        })
-        .populate({
-          path: "subCategory",
-          match: {
-            name: { $regex: "gift items", $options: "i" },
-            deletedAt: null,
-            status: true,
-          },
-          select: "name slug",
-        })
-        .populate({
-          path: "subSubCategory",
-          select: "name slug",
-          match: { deletedAt: null, status: true },
-        })
-        .populate({
-          path: "colors",
-          select: "name code",
-          match: { deletedAt: null, status: true },
-          options: { sort: { order: -1 } },
-        })
-        .populate({
-          path: "material",
-          select: "name",
-          match: { deletedAt: null, status: true },
-          options: { sort: { order: -1 } },
-        })
-        .populate({
-          path: "sizes",
-          select: "name",
-          match: { deletedAt: null, status: true },
-          options: { sort: { order: -1 } },
-        })
+        .populate(POPULATE_CATEGORY_GIFT)
+        .populate(POPULATE_SUBCATEGORY_GIFT)
+        .populate(POPULATE_SUBSUBCATEGORY)
+        .populate(POPULATE_COLORS)
+        .populate(POPULATE_MATERIAL)
+        .populate(POPULATE_SIZES)
         .sort({ order: -1, createdAt: -1 })
         .limit(4)
         .lean(),
@@ -797,14 +691,14 @@ export const getBySearch = async (
 
     const query = {
       $and: [
-        { $or: regexPatterns.map((pattern) => pattern.$or).flat() },
+        { $or: regexPatterns.flatMap((pattern) => pattern.$or) },
         { deletedAt: null },
         { status: true },
       ],
     };
 
     const products = await Product.find(query)
-      .populate(productListPopulate())
+      .populate(PRODUCT_POPULATE)
       .select(PRODUCT_SELECT)
       .sort({ order: -1, createdAt: -1 })
       .limit(parsedLimit)
@@ -812,7 +706,7 @@ export const getBySearch = async (
 
     return success(res, products, "Products fetched successfully");
   } catch (err) {
-    console.error("Search error:", err);
+    logger.error({ err }, "Search error");
     return fail(
       res,
       err instanceof Error ? err.message : "Something went wrong",

@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { sendEmail } from "../../lib/nodemailer.js";
+import { logger } from "../../lib/logger.js";
 import { env } from "../../config/env.js";
 import { success, fail } from "../../utils/responses.js";
 
@@ -23,7 +24,7 @@ export const contact = async (req: Request, res: Response): Promise<Response> =>
         subject: `New Contact Form Submission from ${name}`,
         replyTo: email,
       }).catch((emailError) => {
-        console.error("Failed to send contact email:", emailError);
+        logger.error({ err: emailError }, "Failed to send contact email");
       });
     }
 
@@ -33,7 +34,7 @@ export const contact = async (req: Request, res: Response): Promise<Response> =>
       "Thank you for contacting us! We will get back to you soon.",
     );
   } catch (error) {
-    console.error("Contact form error:", error);
+    logger.error({ err: error }, "Contact form error");
     return fail(
       res,
       "An error occurred while processing your request",

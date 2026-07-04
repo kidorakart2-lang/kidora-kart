@@ -1,6 +1,6 @@
-# Jewellery Walla — Monorepo
+# Toy Shop — Monorepo
 
-A full-stack jewellery e-commerce platform built with pnpm workspaces.
+A full-stack toy e-commerce platform built with pnpm workspaces.
 
 ## Projects
 

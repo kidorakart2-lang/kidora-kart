@@ -1,19 +1,20 @@
 import swaggerJsdoc from "swagger-jsdoc";
+import { env } from "./env.js";
 
 const options: swaggerJsdoc.Options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "Jewellery Walla API",
+      title: `${env.APP_NAME} API`,
       version: "1.0.0",
       description:
-        "REST API for Jewellery Walla e-commerce platform. Supports website (public) and admin endpoints.\n\n" +
+        `REST API for ${env.APP_NAME} e-commerce platform. Supports website (public) and admin endpoints.\n\n` +
         "**Base URLs:**\n" +
         "- Web routes: `/api/website/...`\n" +
         "- Admin routes: `/api/admin/...`",
       contact: {
         name: "Support",
-        email: "support@jewellerywalla.com",
+        email: env.SUPPORT_EMAIL,
       },
     },
     servers: [

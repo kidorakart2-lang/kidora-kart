@@ -13,7 +13,8 @@ export const create = async (
     if (request.body.icon) {
       data.image = request.body.icon as string;
     } else if (request.file) {
-      const uploadResult = await uploadToR2(request.file, "whyChooseUs");
+      const whyChooseUsName = (request.body?.title as string) || undefined;
+      const uploadResult = await uploadToR2(request.file, "whyChooseUs", 80, whyChooseUsName);
       if (uploadResult.success) {
         data.image = uploadResult.url;
       } else {
@@ -168,7 +169,8 @@ export const update = async (
     if (request.body.icon) {
       updateData.image = request.body.icon;
     } else if (request.file) {
-      const uploadResult = await uploadToR2(request.file, "whyChooseUs");
+      const whyChooseUsName = (updateData.title as string) || undefined;
+      const uploadResult = await uploadToR2(request.file, "whyChooseUs", 80, whyChooseUsName);
       if (uploadResult.success) {
         updateData.image = uploadResult.url;
       } else {

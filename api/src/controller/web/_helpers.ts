@@ -15,6 +15,8 @@ interface CacheListOptions {
   /** Provide a custom data fetcher (e.g. for nav which joins multiple models). */
   fetcher?: (req: Request) => Promise<unknown>;
   message?: string;
+  /** TTL in seconds. Defaults to NodeCache stdTTL (300s). */
+  ttl?: number;
 }
 
 /**
@@ -38,7 +40,11 @@ export const buildCacheListController =
         ? await options.fetcher(req)
         : await model.find(options.query ?? { deletedAt: null, status: true }).lean();
 
-      cache.set(options.cacheKey, data);
+      if (options.ttl != null) {
+        cache.set(options.cacheKey, data, options.ttl);
+      } else {
+        cache.set(options.cacheKey, data);
+      }
       return success(res, data, options.message ?? "Data fetched successfully");
     } catch (error) {
       return fail(

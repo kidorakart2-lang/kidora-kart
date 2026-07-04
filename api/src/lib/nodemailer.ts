@@ -4,6 +4,7 @@ import ejs from "ejs";
 import { promisify } from "util";
 import { fileURLToPath } from "url";
 import { env } from "../config/env.js";
+import { logger } from "./logger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -123,10 +124,10 @@ export const sendEmail = async (
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent: ${info.messageId}`);
+    logger.info({ messageId: info.messageId }, "Email sent");
     return info;
   } catch (error) {
-    console.error("❌ Error sending email:", error);
+    logger.error({ err: error }, "Error sending email");
     throw error;
   }
 };

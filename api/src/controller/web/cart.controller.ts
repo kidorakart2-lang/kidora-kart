@@ -4,6 +4,7 @@ import Cart from "../../models/cart.js";
 import Product from "../../models/product.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { success, fail } from "../../utils/responses.js";
+import { logger } from "../../lib/logger.js";
 
 // Get user's cart
 export const getCart = asyncHandler(async (req: Request, res: Response) => {
@@ -159,7 +160,7 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
     );
   } catch (error) {
     await session.abortTransaction();
-    console.error("Error in addToCart:", error);
+    logger.error({ err: error }, "Error in addToCart");
     if (error instanceof Error && error.name === "ValidationError") {
       return fail(res, "Validation failed", 400);
     }
@@ -240,7 +241,7 @@ export const updateCartItem = asyncHandler(
       );
     } catch (error) {
       await session.abortTransaction();
-      console.error("Error in updateCartItem:", error);
+      logger.error({ err: error }, "Error in updateCartItem");
       return fail(
         res,
         "Failed to update cart",
@@ -294,7 +295,7 @@ export const removeFromCart = asyncHandler(
       );
     } catch (error) {
       await session.abortTransaction();
-      console.error("Error in removeFromCart:", error);
+      logger.error({ err: error }, "Error in removeFromCart");
       return fail(
         res,
         "Failed to remove item from cart",
@@ -329,7 +330,8 @@ export const clearCart = asyncHandler(async (req: Request, res: Response) => {
     return success(res, null, "Cart cleared successfully");
   } catch (error) {
     await session.abortTransaction();
-    console.error("Error in clearCart:", error);      return fail(
+    logger.error({ err: error }, "Error in clearCart");
+      return fail(
         res,
         "Failed to clear cart",
         500,

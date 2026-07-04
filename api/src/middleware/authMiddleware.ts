@@ -4,6 +4,7 @@ import User from "../models/user.js";
 import { env } from "../config/env.js";
 import type { JwtPayload } from "../types/jwt.js";
 import { generateToken } from "../lib/jwt.js";
+import cache from "../lib/cache.js";
 import {
   createRefreshToken,
   verifyRefreshToken,
@@ -13,6 +14,28 @@ import {
   clearRefreshTokenCookie,
 } from "../lib/tokens.js";
 
+const USER_CACHE_TTL = 30; // seconds — short enough to avoid stale data, long enough to skip repeated lookups
+const userCacheKey = (id: string): string => `user_${id}`;
+
+/** Cache-aware user lookup. Returns cached user if fresh, otherwise fetches from DB. */
+async function getCachedUser(userId: string) {
+  const cacheKey = userCacheKey(userId);
+  const cached = cache.get(cacheKey);
+  if (cached !== undefined) return cached as any;
+  const user = await User.findById(userId).select("-password");
+  if (user) {
+    cache.set(cacheKey, user, USER_CACHE_TTL);
+  }
+  return user;
+}
+
+/** Invalidate cached user data so the next lookup fetches fresh from DB. */
+export function invalidateUserCache(userId: unknown): void {
+  if (userId != null) {
+    cache.del(userCacheKey(String(userId)));
+  }
+}
+
 const extractAndVerifyToken = async (
   req: Request,
   res: Response,
@@ -21,7 +44,7 @@ const extractAndVerifyToken = async (
 ): Promise<void> => {
   try {
     const decoded = jwt.verify(token, env.JWT_SECRET) as unknown as JwtPayload;
-    const user = await User.findById(decoded._id).select("-password");
+    const user = await getCachedUser(decoded._id);
     if (user) {
       req.user = user;
     }
@@ -97,7 +120,7 @@ async function attemptAutoRefresh(
   // Revoke old refresh token (rotation)
   await revokeRefreshToken(result.tokenHash);
 
-  const user = await User.findById(result.userId).select("-password");
+  const user = await getCachedUser(result.userId);
   if (!user || user.deletedAt) {
     res.status(401).json({
       _status: false,

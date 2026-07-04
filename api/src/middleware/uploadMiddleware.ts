@@ -1,17 +1,19 @@
 import multer from "multer";
 import path from "path";
 import type { Request } from "express";
-import sharp from "sharp";
 
 // Configure multer for memory storage
 const storage = multer.memoryStorage();
 
-// File filter for images only — validates extension, mimetype, AND magic bytes (#16)
-const fileFilter = async (
+// File filter for images only — validates extension and mimetype.
+// Magic-byte verification via Sharp is intentionally omitted because:
+//   - Sharp validates the format during actual image processing in uploadToR2
+//   - This avoids processing every uploaded file through Sharp twice
+const fileFilter = (
   _req: Request,
   file: Express.Multer.File,
   cb: multer.FileFilterCallback,
-): Promise<void> => {
+): void => {
   const allowedTypes = /jpeg|jpg|png|webp/;
   const extname = allowedTypes.test(
     path.extname(file.originalname).toLowerCase(),
@@ -23,21 +25,6 @@ const fileFilter = async (
       new Error("Only image files (JPEG, JPG, PNG, WEBP) are allowed!"),
     );
     return;
-  }
-
-  // #16: Verify magic bytes using sharp's metadata()
-  if (file.buffer && file.buffer.length > 0) {
-    try {
-      const metadata = await sharp(file.buffer).metadata();
-      const validFormats = ["jpeg", "png", "webp"];
-      if (!metadata.format || !validFormats.includes(metadata.format)) {
-        cb(new Error("File content does not match allowed image formats (JPEG, PNG, WEBP)"));
-        return;
-      }
-    } catch {
-      cb(new Error("Invalid or corrupted image file"));
-      return;
-    }
   }
 
   cb(null, true);

@@ -1048,7 +1048,7 @@ export default function ProductsPage() {
               {formData.additionalImagePreviews?.map(
                 (url: string, index: number) =>
                   url &&
-                  url.startsWith("https://cdn.jewellerywalla.com/") && (
+                  url.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.toyshop.com"}/`) && (
                     <div key={index} className="flex items-center space-x-2">
                       <input
                         type="text"

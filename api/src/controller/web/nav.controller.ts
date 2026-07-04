@@ -63,7 +63,7 @@ export const navController = async (
       };
     });
 
-    cache.set(cacheKey, navigationData);
+    cache.set(cacheKey, navigationData, 600); // 10 min — nav structure rarely changes
     return success(res, navigationData, "Data fetched successfully");
   } catch (error) {
     return fail(

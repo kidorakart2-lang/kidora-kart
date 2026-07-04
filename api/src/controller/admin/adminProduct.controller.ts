@@ -6,9 +6,18 @@ import SubCategory from "../../models/subCategory.js";
 import { logger } from "../../lib/logger.js";
 import SubSubCategory from "../../models/subSubCategory.js";
 import Size from "../../models/size.js";
-import { uploadToR2, deleteFromR2 } from "../../lib/cloudflare.js";
+import { uploadToR2, deleteFromR2, getPublicUrlBase } from "../../lib/cloudflare.js";
 import { generateUniqueSlug } from "../../lib/slugFunc.js";
 import cache from "../../lib/cache.js";
+
+const POPULATE_PRODUCT = [
+  { path: "colors", select: "name code" },
+  { path: "material", select: "name" },
+  { path: "category", select: "name slug" },
+  { path: "subCategory", select: "name slug" },
+  { path: "subSubCategory", select: "name slug" },
+  { path: "sizes", select: "name" },
+];
 
 const invalidateProductCaches = (): void => {
   cache.del("newArrivals");
@@ -42,9 +51,11 @@ export const create = async (
 
     const files = request.files as Express.Multer.File[] | undefined;
     const filesObj = files as unknown as Record<string, Express.Multer.File[]> | undefined;
+    const productName = updateData.name as string | undefined;
+
     if (filesObj) {
       if (filesObj.image && filesObj.image[0]) {
-        const uploadResult = await uploadToR2(filesObj.image[0], "products", 85);
+        const uploadResult = await uploadToR2(filesObj.image[0], "products", 85, productName);
         if (uploadResult.success) {
           updateData.image = uploadResult.url;
         } else {
@@ -55,7 +66,7 @@ export const create = async (
       if (filesObj.images && filesObj.images.length > 0) {
         const imageUrls: string[] = [];
         for (const file of filesObj.images) {
-          const uploadResult = await uploadToR2(file, "products");
+          const uploadResult = await uploadToR2(file, "products", 80, productName);
           if (uploadResult.success) {
             imageUrls.push(uploadResult.url);
           }
@@ -242,19 +253,11 @@ export const getOne = async (
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let product: any;
-    const populateFields = [
-      { path: "colors", select: "name code" },
-      { path: "material", select: "name" },
-      { path: "category", select: "name slug" },
-      { path: "subCategory", select: "name slug" },
-      { path: "subSubCategory", select: "name slug" },
-      { path: "sizes", select: "name" },
-    ];
 
     if (mongoose.Types.ObjectId.isValid(id)) {
-      product = await Product.findById(id).populate(populateFields).lean();
+      product = await Product.findById(id).populate(POPULATE_PRODUCT).lean();
     } else {
-      product = await Product.findOne({ slug }).populate(populateFields).lean();
+      product = await Product.findOne({ slug }).populate(POPULATE_PRODUCT).lean();
     }
 
     if (!product) {
@@ -296,12 +299,12 @@ export const update = async (
       throw new Error("Product not found");
     }
 
-    // #29: Delete removed images from Cloudflare R2
-    const R2_CDN_BASE = "https://cdn.jewellerywalla.com/";
+    const r2PublicBase = getPublicUrlBase();
+
     if (removeImagesUrl.length > 0) {
       for (const imageUrl of removeImagesUrl) {
-        if (typeof imageUrl === "string" && imageUrl.startsWith(R2_CDN_BASE)) {
-          const fileName = imageUrl.slice(R2_CDN_BASE.length);
+        if (typeof imageUrl === "string" && imageUrl.startsWith(r2PublicBase)) {
+          const fileName = imageUrl.slice(r2PublicBase.length);
           deleteFromR2(fileName).catch((err) =>
             logger.error({ err, fileName }, "Failed to delete R2 image"),
           );
@@ -310,9 +313,11 @@ export const update = async (
     }
 
     const filesObj = request.files as unknown as Record<string, Express.Multer.File[]> | undefined;
+    const productName = existingProduct.name || (updateData.name as string | undefined);
+
     if (filesObj) {
       if (filesObj.image && filesObj.image[0]) {
-        const uploadResult = await uploadToR2(filesObj.image[0], "products");
+        const uploadResult = await uploadToR2(filesObj.image[0], "products", 80, productName);
         if (uploadResult.success) {
           updateData.image = uploadResult.url;
         } else {
@@ -331,7 +336,7 @@ export const update = async (
         }
 
         for (const file of filesObj.images) {
-          const uploadResult = await uploadToR2(file, "products");
+          const uploadResult = await uploadToR2(file, "products", 80, productName);
           if (uploadResult?.success && uploadResult?.url) {
             (updateData.images as string[]).push(uploadResult.url);
           }
@@ -584,12 +589,7 @@ export const getByCategory = async (
         { subSubCategory: { $in: subSubCategoryIds } },
       ],
     })
-      .populate("colors", "name code")
-      .populate("material", "name")
-      .populate("category", "name slug")
-      .populate("subCategory", "name slug")
-      .populate("subSubCategory", "name slug")
-      .populate("sizes", "name")
+      .populate(POPULATE_PRODUCT)
       .select("name slug images price discount_price stock status category subCategory subSubCategory colors material sizes order createdAt")
       .sort(sort)
       .limit(cappedLimit)
@@ -663,11 +663,8 @@ export const getProductByFilter = async (
     }
 
     const products = await Product.find(query)
-      .populate("category", "name slug")
-      .populate("subCategory", "name slug")
-      .populate("subSubCategory", "name slug")
-      .populate("sizes", "name")
-      .select("name slug images price discount_price stock category subCategory subSubCategory sizes")
+      .populate(POPULATE_PRODUCT)
+      .select("name slug images price discount_price stock category subCategory subSubCategory colors material sizes")
       .limit(Math.min(Number(limit), 100))
       .sort("-createdAt")
       .lean();

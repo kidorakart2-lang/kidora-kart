@@ -11,8 +11,10 @@ export const create = async (
   try {
     const subCatDoc = new subCategory(request.body);
 
+    const subCatName = request.body?.name as string | undefined;
+
     if (request.file) {
-      const uploadResult = await uploadToR2(request.file, "subcategories");
+      const uploadResult = await uploadToR2(request.file, "subcategories", 80, subCatName);
       if (uploadResult.success) {
         subCatDoc.image = uploadResult.url;
       } else {
@@ -180,8 +182,10 @@ export const update = async (
     const id = request.params.id;
     const updateData: Record<string, unknown> = { ...request.body };
 
+    const subCatName = updateData.name as string | undefined;
+
     if (request.file) {
-      const uploadResult = await uploadToR2(request.file, "subcategories");
+      const uploadResult = await uploadToR2(request.file, "subcategories", 80, subCatName);
       if (uploadResult.success) {
         updateData.image = uploadResult.url;
       } else {

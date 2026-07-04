@@ -328,7 +328,7 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
               <div className="text-center space-y-2">
                 <p className="font-semibold">Thank you for your order!</p>
                 <p className="text-sm text-gray-600">
-                  Questions about your order? Contact us at support@jewellerywalla.com
+                  Questions about your order? Contact us at {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@toyshop.com"}
                 </p>
                 <p className="text-xs text-gray-500 mt-4">
                   This is a computer-generated invoice and does not require a

@@ -20,7 +20,7 @@ export const homePageController = async (
       return success(res, { sections: [], version: 1 }, "Home page fetched");
     }
 
-    cache.set(CACHE_KEY, page);
+    cache.set(CACHE_KEY, page, 600); // 10 min — home page structure rarely changes
     return success(res, page, "Home page fetched");
   } catch (error) {
     return fail(

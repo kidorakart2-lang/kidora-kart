@@ -8,7 +8,7 @@ export const create = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const data: Record<string, unknown> = { ...req.body };
+    const data = req.body as Record<string, unknown>;
 
     if (req.file) {
       const uploadResult = await uploadToR2(req.file, "logos");
@@ -72,7 +72,7 @@ export const update = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const data: Record<string, unknown> = { ...req.body };
+    const data = req.body as Record<string, unknown>;
 
     const existingLogo = await logoModal.findById(req.params.id).select("_id logo").lean();
     if (!existingLogo) {

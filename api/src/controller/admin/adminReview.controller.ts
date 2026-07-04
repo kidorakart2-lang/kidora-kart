@@ -1,6 +1,9 @@
 import type { Request, Response } from "express";
 import Reviews from "../../models/review.js";
 
+const POPULATE_USER = { path: "userId", select: "name email" } as const;
+const POPULATE_PRODUCT = { path: "productId", select: "name slug images" } as const;
+
 export const getAllReviews = async (
   req: Request,
   res: Response,
@@ -18,8 +21,8 @@ export const getAllReviews = async (
     }
 
     const reviews = await Reviews.find(query)
-      .populate("userId", "name email")
-      .populate("productId", "name slug images")
+      .populate(POPULATE_USER)
+      .populate(POPULATE_PRODUCT)
       .select("_id userId productId rating review status images createdAt")
       .sort("-createdAt")
       .lean();
@@ -44,8 +47,8 @@ export const getReviewById = async (
   try {
     const { id } = req.params;
     const review = await Reviews.findById(id)
-      .populate("userId", "name email")
-      .populate("productId", "name slug images")
+      .populate(POPULATE_USER)
+      .populate(POPULATE_PRODUCT)
       .lean();
     if (!review) {
       res.status(404).json({
