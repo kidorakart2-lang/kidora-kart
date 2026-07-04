@@ -14,6 +14,7 @@ const csp = `
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  cacheComponents: true,
   cacheLife: CACHE,
   images: {
     formats: ["image/avif", "image/webp"],

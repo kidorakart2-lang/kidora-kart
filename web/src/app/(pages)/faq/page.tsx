@@ -1,6 +1,7 @@
 import FAQPage from "@/app/(sections)/FAQ";
 import React from "react";
 import { siteConfig } from "@/lib/utils";
+import { cacheLife, cacheTag } from "next/cache";
 import { TAG_FAQ } from "@/lib/revalidation-tags";
 
 export const metadata = {
@@ -19,10 +20,13 @@ export const metadata = {
 };
 
 async function GetFaq() {
+  "use cache";
+  cacheLife("faq");
+  cacheTag(TAG_FAQ);
+
   try {
     const response = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "api/website/faq",
-      { next: { tags: [TAG_FAQ] } }
     );
     const data = await response.json();
     return data._data;

@@ -80,7 +80,6 @@ export const view = async (
     }
     if (orCondition.length > 0) filter.$or = orCondition;
 
-    await testimonial.find(filter).countDocuments();
     const ress = await testimonial
       .find(filter)
       .select("_id name image description rating status order")

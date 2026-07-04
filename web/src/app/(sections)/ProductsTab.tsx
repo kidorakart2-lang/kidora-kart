@@ -1,4 +1,5 @@
-import React, { cache } from "react";
+import React from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductCard from "@/components/comman/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -8,15 +9,14 @@ import { Sparkles, ArrowRight } from "lucide-react";
 import type { ProductData } from "@/types";
 import { TAG_PRODUCTS } from "@/lib/revalidation-tags";
 
-const getProducts = cache(async (q: string) => {
+async function getProducts(q: string) {
+  "use cache";
+  cacheLife("search");
+  cacheTag(TAG_PRODUCTS);
+
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}api/website/product/get-by-search?search=${q}&limit=8`,
-      {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        next: { tags: [TAG_PRODUCTS] },
-      }
+      `${process.env.NEXT_PUBLIC_API_URL}api/website/product/get-by-search?search=${q}&limit=8`
     );
     if (!response.ok ) return [];
     const data = await response.json();
@@ -24,7 +24,7 @@ const getProducts = cache(async (q: string) => {
   } catch {
     return [];
   }
-});
+}
 
 export default async function ProductsTab() {
   const [payalData, necklaceData, braceletData] = await Promise.all([

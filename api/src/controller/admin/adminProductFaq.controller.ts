@@ -83,9 +83,7 @@ export const view = async (req: Request, res: Response): Promise<void> => {
     }
     if (orCondition.length > 0) filter.$or = orCondition;
 
-    const totalRecords = await productFaq
-      .find(filter as FilterQuery<typeof productFaq>)
-      .countDocuments();
+    const totalRecords = await productFaq.countDocuments(filter as FilterQuery<typeof productFaq>);
     const data = await productFaq
       .find(filter as FilterQuery<typeof productFaq>)
       .select("_id products entries status createdAt")

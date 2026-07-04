@@ -1,6 +1,7 @@
-import { cache } from "react"
+import { cacheLife, cacheTag } from "next/cache"
 import BannerSingle from "./BannerSingle"
 import BannerSlider from "./BannerSlider"
+import { TAG_HOMEPAGE } from "@/lib/revalidation-tags"
 
 interface BannerItem {
   _id?: string
@@ -8,18 +9,21 @@ interface BannerItem {
   link?: { url?: string | null; type?: string }
 }
 
-const GetBanners = cache(async () => {
+async function GetBanners() {
+  "use cache";
+  cacheLife("homepage");
+  cacheTag(TAG_HOMEPAGE);
+
   try {
     const res = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "api/website/banner",
-      { next: { revalidate: 3600 } },
     )
     const data = await res.json()
     return (data._data as BannerItem[]) ?? []
   } catch {
     return []
   }
-})
+}
 
 export default async function DefaultBanner() {
   const banners = await GetBanners()

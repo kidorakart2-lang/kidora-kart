@@ -92,7 +92,6 @@ export const view = async (
     }
     if (orCondition.length > 0) filter.$or = orCondition;
 
-    await subCategory.find(filter).countDocuments();
     const ress = await subCategory
       .find(filter)
       .select("_id name slug image category status order")

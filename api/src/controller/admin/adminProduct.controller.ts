@@ -24,6 +24,7 @@ const invalidateProductCaches = (): void => {
   cache.del("trendingProducts");
   cache.del("featuredForFooter");
   cache.del("tabProducts");
+  cache.del("bestSellers");
 };
 
 const collectValidationMessages = (err: unknown): string[] => {
@@ -216,13 +217,15 @@ export const view = async (
       ];
     }
 
-    const total = await Product.countDocuments(query);
-    const products = await Product.find(query)
-      .select("name slug images price discount_price stock status isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material sizes createdAt order")
-      .sort(sort as string)
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    const [total, products] = await Promise.all([
+      Product.countDocuments(query),
+      Product.find(query)
+        .select("name slug images price discount_price stock status isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material sizes createdAt order")
+        .sort(sort as string)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+    ]);
     response.send({
       _status: true,
       _message: "Products fetched successfully",

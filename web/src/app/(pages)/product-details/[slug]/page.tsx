@@ -1,5 +1,6 @@
 import { siteConfig, defaultMetadata } from "@/lib/utils";
 import { notFound } from "next/navigation";
+import { cacheLife, cacheTag } from "next/cache";
 import { productTag, TAG_PRODUCTS } from "@/lib/revalidation-tags";
 import ProductDetailsPage from "./ProductDetail";
 
@@ -246,9 +247,12 @@ export async function generateProductSchema(product: ProductDetail, productUrl: 
 }
 
 async function getProducts(slug: string) {
+  "use cache";
+  cacheLife("products");
+  cacheTag(productTag(slug), TAG_PRODUCTS);
+
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}api/website/product/details/${slug}`,
-    { next: { tags: [productTag(slug), TAG_PRODUCTS] } },
   );
 
   if (!response.ok) {

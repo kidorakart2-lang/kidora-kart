@@ -1,17 +1,17 @@
 import SimpleLoading from "@/components/comman/SimpleLoading";
+import { cacheLife, cacheTag } from "next/cache";
 import { TAG_SEARCH } from "@/lib/revalidation-tags";
 import { Suspense } from "react";
 import Search from "./Search";
 
-const getProducts = async (q: string) => {
+async function getProducts(q: string) {
+  "use cache";
+  cacheLife("search");
+  cacheTag(TAG_SEARCH);
+
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}api/website/product/get-by-search?search=${q}`,
-      {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        next: { tags: [TAG_SEARCH] },
-      }
     );
     const data = await response.json();
     if (!response.ok || !data._status) return null;
@@ -19,7 +19,7 @@ const getProducts = async (q: string) => {
   } catch {
     return null;
   }
-};
+}
 
 interface PageProps {
   searchParams: Promise<{ q?: string }>;

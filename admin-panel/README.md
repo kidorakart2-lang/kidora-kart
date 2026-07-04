@@ -77,6 +77,26 @@ admin-panel/
 
 > The middleware only gates UI routing — real auth enforcement is on the API side.
 
+## Environment Variables
+
+Copy `admin-panel/.env.example` to `.env.local`:
+
+```
+NEXT_PUBLIC_BACKEND_URL=http://localhost:5000/
+NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
+REVALIDATE_SECRET=your-random-secret-here
+NEXT_PUBLIC_SUPPORT_EMAIL=support@toyshop.com
+NEXT_PUBLIC_CDN_HOST=cdn.toyshop.com
+```
+
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_BACKEND_URL` | Backend API base URL for all CRUD requests |
+| `NEXT_PUBLIC_FRONTEND_URL` | Web frontend URL for cache revalidation POSTs |
+| `REVALIDATE_SECRET` | Shared secret with web frontend — sent as `Authorization: Bearer` to `/api/revalidate` |
+| `NEXT_PUBLIC_SUPPORT_EMAIL` | Support email displayed in order receipts |
+| `NEXT_PUBLIC_CDN_HOST` | CDN hostname for image URL validation |
+
 ## Agent Skills
 
 The following `.agents/skills/` are relevant to this project:
@@ -97,11 +117,12 @@ The following `.agents/skills/` are relevant to this project:
 | S4 | 🔴 | Role change lacks audit log + self-demotion guard |
 | S7 | 🟠 | Role change re-authentication needed |
 | S8 | 🟠 | No CSRF protection on state-changing endpoints |
-| S9 | 🟠 | Avatar `|| ""` broken image fallback |
+| S9 | 🟠 | Avatar `\|\| ""` broken image fallback |
 | S16 | 🟡 | `setTimeout` in export buttons instead of loading state |
 | P3 | 🟠 | 13 files still use axios directly — centralized `api` client not adopted |
 | P11 | 🟡 | OrderReceipt injects `<style jsx global>` per render |
 | B18 | 🟢 | `optimizePackageImports` not configured in next.config.ts |
+
 ## Status
 
 - ✅ 0 `.js`/`.jsx` files (fully TypeScript)
@@ -109,3 +130,4 @@ The following `.agents/skills/` are relevant to this project:
 - ✅ `next build` succeeds
 - ✅ Mobile hamburger menu (Sheet overlay)
 - ✅ Centralized API client (`lib/api.ts`) — not yet adopted by pages
+- ✅ Brand identity env-ified (support email, CDN host, metadata)

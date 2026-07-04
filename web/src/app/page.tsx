@@ -1,12 +1,14 @@
 import dynamic from "next/dynamic";
+import { Suspense } from "react";
 import DefaultBanner from "./(sections)/DefaultBanner";
 import GenderCategorySection from "./(sections)/GenderCategorySection";
 import ShopByPrice from "./(sections)/ShopbyPrice";
 import TabProducts from "./(sections)/TabProducts";
 import WhyChooseUs from "./(sections)/WhyChooseUs";
 import { siteConfig } from "@/lib/utils";
-import { cache } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import ProductsTab from "./(sections)/ProductsTab";
+import { Skeleton } from "@/components/ui/skeleton";
 import DynamicSections, { getHomeSections } from "./(sections)/DynamicSections";
 import type { HomeSection } from "./(sections)/DynamicSections";
 import {
@@ -85,6 +87,8 @@ export const metadata = {
 };
 
 // Structured Data for Local Business
+
+export const experimental_ppr = true;
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "JewelryStore",
@@ -128,34 +132,30 @@ const jsonLd = {
   ],
 };
 
-const GetTestimonials = cache(async () => {
+async function GetTestimonials() {
+  "use cache";
+  cacheLife("testimonials");
+  cacheTag(TAG_TESTIMONIALS, TAG_HOMEPAGE);
+
   try {
     const response = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "api/website/testimonial",
-      {
-        next: {
-          tags: [TAG_TESTIMONIALS, TAG_HOMEPAGE],
-          revalidate: 3600,
-        },
-      }
     );
     const data = await response.json();
     return data._data;
   } catch {
     return null;
   }
-});
+}
 
-const getTabsData = cache(async () => {
+async function getTabsData() {
+  "use cache";
+  cacheLife("tabs");
+  cacheTag(TAG_TABS, TAG_PRODUCTS);
+
   try {
     const response = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "api/website/product/tab-products",
-      {
-        next: {
-          tags: [TAG_TABS, TAG_PRODUCTS],
-          revalidate: 3600,
-        },
-      }
     );
     if (!response.ok) return [];
     const data = await response.json();
@@ -163,61 +163,124 @@ const getTabsData = cache(async () => {
   } catch {
     return [];
   }
-});
+}
 
-const getNewArrivals = cache(async () => {
+async function getNewArrivals() {
+  "use cache";
+  cacheLife("products");
+  cacheTag(TAG_PRODUCTS, TAG_HOMEPAGE);
+
   try {
     const response = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "api/website/product/new-arrivals",
-      {
-        next: {
-          tags: [TAG_PRODUCTS, TAG_HOMEPAGE],
-          revalidate: 3600,
-        },
-      }
     );
     const data = await response.json();
     return data._data;
   } catch {
     return [];
   }
-});
+}
 
-const getBestSellers = cache(async () => {
+async function getBestSellers() {
+  "use cache";
+  cacheLife("best-sellers");
+  cacheTag(TAG_BEST_SELLERS, TAG_PRODUCTS);
+
   try {
     const response = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "api/website/product/best-sellers",
-      {
-        next: {
-          tags: [TAG_BEST_SELLERS, TAG_PRODUCTS],
-          revalidate: 3600,
-        },
-      }
     );
     const data = await response.json();
     return data._data;
   } catch {
     return [];
   }
-});
+}
 
-const getTrendingProducts = cache(async () => {
+async function getTrendingProducts() {
+  "use cache";
+  cacheLife("products");
+  cacheTag(TAG_PRODUCTS, TAG_HOMEPAGE);
+
   try {
     const response = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "api/website/product/trending-products",
-      {
-        next: {
-          tags: [TAG_PRODUCTS, TAG_HOMEPAGE],
-          revalidate: 3600,
-        },
-      }
     );
     const data = await response.json();
     return data._data;
   } catch {
     return [];
   }
-});
+}
+
+// ── PPR-compatible wrapper components ───────────────────────────────
+// Each component fetches its own data inside a Suspense boundary so the
+// static page shell can render immediately while dynamic sections stream in.
+
+async function NewArrivalsSection() {
+  const data = await getNewArrivals();
+  return <Slider data={data} heading="New Arrivals" />;
+}
+
+async function BestSellersSection() {
+  const data = await getBestSellers();
+  return <Slider data={data} heading="Best Sellers Products" />;
+}
+
+async function TrendingSection() {
+  const data = await getTrendingProducts();
+  return <Slider data={data} heading="Trending Products" />;
+}
+
+async function TabProductsSection() {
+  const data = await getTabsData();
+  return <TabProducts data={data} />;
+}
+
+async function TestimonialSection() {
+  const data = await GetTestimonials();
+  return <Testimonial data={data} />;
+}
+
+// ── Skeleton fallbacks for dynamic sections ──────────────────────────
+
+function SliderSkeleton({ heading }: { heading: string }) {
+  return (
+    <section className="relative py-10 overflow-hidden bg-section">
+      <div className="section-container">
+        <div className="text-center mb-14">
+          <Skeleton className="h-8 w-64 mx-auto mb-4" />
+        </div>
+        <div className="h-96 bg-muted animate-pulse rounded-lg mx-4" />
+      </div>
+    </section>
+  );
+}
+
+function TabProductsSkeleton() {
+  return (
+    <section className="py-5 lg:py-12 bg-section relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6">
+        <Skeleton className="h-8 w-48 mx-auto mb-8" />
+        <div className="h-64 bg-muted animate-pulse rounded-lg" />
+      </div>
+    </section>
+  );
+}
+
+function TestimonialSkeleton() {
+  return (
+    <section className="relative mx-auto w-full overflow-hidden py-10 lg:py-16 bg-section-subtle">
+      <div className="section-container">
+        <div className="text-center mb-12">
+          <Skeleton className="h-6 w-32 mx-auto mb-4" />
+          <Skeleton className="h-10 w-80 mx-auto" />
+        </div>
+        <div className="h-80 bg-muted animate-pulse rounded-xl mx-4" />
+      </div>
+    </section>
+  );
+}
 
 export default async function Home() {
   // Check if there are any dynamic sections configured
@@ -240,15 +303,11 @@ export default async function Home() {
   }
 
   // ── DEFAULT FALLBACK LAYOUT ──
-  // When no dynamic sections are configured, show the original hardcoded layout
-  const [testimonials, tabsData, newArrivals, trendingProducts, bestSellersProducts] =
-    await Promise.all([
-      GetTestimonials(),
-      getTabsData(),
-      getNewArrivals(),
-      getTrendingProducts(),
-      getBestSellers()
-    ]);
+  // When no dynamic sections are configured, show the original hardcoded layout.
+  // Static sections (DefaultBanner, RoundCategorySlider, GenderCategorySection,
+  // ShopByPrice, WhyChooseUs, ProductsTab) render immediately as part of the
+  // PPR static shell. Data-heavy sections are wrapped in <Suspense> so their
+  // content streams in as cached data resolves.
 
   return (
     <>
@@ -263,18 +322,32 @@ export default async function Home() {
       <RoundCategorySlider />
       <GenderCategorySection />
       <ShopByPrice />
-      <TabProducts data={tabsData} />
+
+      <Suspense fallback={<TabProductsSkeleton />}>
+        <TabProductsSection />
+      </Suspense>
+
       <WhyChooseUs />
-      <Slider data={newArrivals} heading="New Arrivals" />
+
+      <Suspense fallback={<SliderSkeleton heading="New Arrivals" />}>
+        <NewArrivalsSection />
+      </Suspense>
+
       <FullVideoSection />
-      <Slider data={bestSellersProducts} heading="Best Sellers Products" />
+
+      <Suspense fallback={<SliderSkeleton heading="Best Sellers Products" />}>
+        <BestSellersSection />
+      </Suspense>
+
       <ProductsTab />
 
-      <Slider
-        data={trendingProducts}
-        heading="Trending Products"
-      />
-      <Testimonial data={testimonials} />
+      <Suspense fallback={<SliderSkeleton heading="Trending Products" />}>
+        <TrendingSection />
+      </Suspense>
+
+      <Suspense fallback={<TestimonialSkeleton />}>
+        <TestimonialSection />
+      </Suspense>
     </>
   );
 }

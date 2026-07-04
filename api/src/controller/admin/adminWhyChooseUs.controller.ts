@@ -81,7 +81,6 @@ export const view = async (
     }
     if (orCondition.length > 0) filter.$or = orCondition;
 
-    await whyChooseUs.find(filter).countDocuments();
     const ress = await whyChooseUs
       .find(filter)
       .select("_id title description image icon status order")

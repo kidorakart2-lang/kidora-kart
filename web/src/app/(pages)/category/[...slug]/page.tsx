@@ -1,6 +1,6 @@
-export const revalidate = 3600;
 import ProductListing from "../ProductListing";
-import React, { cache } from "react";
+import React from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { siteConfig } from "@/lib/utils";
 import { TAG_FILTERS } from "@/lib/revalidation-tags";
 import FilterSidebar from "../FilterSidebar";
@@ -30,14 +30,13 @@ export const metadata = {
   },
 };
 
-const getColor = cache(async (): Promise<ColorItem[]> => {    const color = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}api/website/color`,
-      {
-        next: {
-          tags: [TAG_FILTERS],
-          revalidate: 600,
-        },
-      }
+async function getColor(): Promise<ColorItem[]> {
+  "use cache";
+  cacheLife("filters");
+  cacheTag(TAG_FILTERS);
+
+  const color = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}api/website/color`,
   );
 
   const data = await color.json();
@@ -45,23 +44,22 @@ const getColor = cache(async (): Promise<ColorItem[]> => {    const color = awai
     return [];
   }
   return data._data;
-});
+}
 
-const getMaterial = cache(async (): Promise<MaterialItem[]> => {    const material = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}api/website/material`,
-      {
-        next: {
-          tags: [TAG_FILTERS],
-          revalidate: 600,
-        },
-      }
+async function getMaterial(): Promise<MaterialItem[]> {
+  "use cache";
+  cacheLife("filters");
+  cacheTag(TAG_FILTERS);
+
+  const material = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}api/website/material`,
   );
   const data = await material.json();
   if (!material.ok || !data._status) {
     return [];
   }
   return data._data;
-});
+}
 
 export default async function page({ params, searchParams }: CategoryPageProps) {
   const allParams = await params;
@@ -74,8 +72,10 @@ export default async function page({ params, searchParams }: CategoryPageProps) 
   const subCategorySlug = slug[1] || "";
   const subSubCategorySlug = slug[2] || "";
 
-  const color = await getColor();
-  const material = await getMaterial();
+  const [color, material] = await Promise.all([
+    getColor(),
+    getMaterial(),
+  ]);
 
   // Build BreadcrumbList JSON-LD from URL hierarchy
   const breadcrumbItems = [

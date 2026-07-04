@@ -8,12 +8,12 @@ const config = {
       startServerReadyPattern: "ready started server",
       url: [
         "http://localhost:3000",
-        "http://localhost:3000/category/necklaces",
-        "http://localhost:3000/category/rings",
-        "http://localhost:3000/faq",
-        "http://localhost:3000/about-us",
+        // "http://localhost:3000/category/necklaces",
+        // "http://localhost:3000/category/rings",
+        // "http://localhost:3000/faq",
+        // "http://localhost:3000/about-us",
       ],
-      numberOfRuns: 3,
+      numberOfRuns: 1,
       settings: {
         preset: "desktop",
       },

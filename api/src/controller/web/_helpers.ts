@@ -38,7 +38,7 @@ export const buildCacheListController =
 
       const data = options.fetcher
         ? await options.fetcher(req)
-        : await model.find(options.query ?? { deletedAt: null, status: true }).lean();
+        : await model.find(options.query ?? { deletedAt: null, status: true }).select("-__v -deletedAt").lean();
 
       if (options.ttl != null) {
         cache.set(options.cacheKey, data, options.ttl);

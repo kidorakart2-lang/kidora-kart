@@ -23,7 +23,7 @@ export const productFaqController = async (
     }
 
     const query: Record<string, unknown> = { deletedAt: null, status: true };
-    const data = await productFaq.find(query).sort({ createdAt: -1 }).lean();
+    const data = await productFaq.find(query).sort({ createdAt: -1 }).select("-__v -deletedAt").lean();
 
     cache.set(cacheKey, data, 600); // 10 min — FAQ data rarely changes
 

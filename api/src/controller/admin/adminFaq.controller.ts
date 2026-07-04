@@ -64,7 +64,6 @@ export const view = async (
     }
     if (orCondition.length > 0) filter.$or = orCondition;
 
-    await faqs.find(filter).countDocuments();
     const ress = await faqs
       .find(filter)
       .select("_id question answer status order")

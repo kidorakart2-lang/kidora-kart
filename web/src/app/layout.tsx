@@ -5,7 +5,7 @@ import { Client } from "@/redux/provider/Client";
 import { Toaster } from "sonner";
 import MainLayout from "@/components/comman/MainLayout";
 import { siteConfig, defaultMetadata, getStructuredAddress } from "@/lib/utils";
-import { cache } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { TAG_NAVIGATION, TAG_FEATURED_PRODUCTS } from "@/lib/revalidation-tags";
 import ScrollToTop from "@/components/ui/scroll-to-top";
 import RequirementModal from "@/components/comman/RequirementModal";
@@ -154,16 +154,14 @@ function WebsiteSchema() {
 //   return data;
 // });
 
-const getNavigation = cache(async () => {
+async function getNavigation() {
+  "use cache";
+  cacheLife("navigation");
+  cacheTag(TAG_NAVIGATION);
+
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}api/website/nav`,
-      {
-        next: {
-          revalidate: 3600,
-          tags: [TAG_NAVIGATION],
-        },
-      },
     );
 
     if (!response.ok) {
@@ -180,18 +178,16 @@ const getNavigation = cache(async () => {
   } catch {
     return null;
   }
-});
+}
 
-const getFeaturedProducts = cache(async () => {
+async function getFeaturedProducts() {
+  "use cache";
+  cacheLife("products");
+  cacheTag(TAG_FEATURED_PRODUCTS);
+
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}api/website/product/featured-for-footer`,
-      {
-        next: {
-          revalidate: 600,
-          tags: [TAG_FEATURED_PRODUCTS],
-        },
-      },
     );
 
     if (!response.ok) {
@@ -208,7 +204,7 @@ const getFeaturedProducts = cache(async () => {
   } catch {
     return null;
   }
-});
+}
 
 export default async function RootLayout({
   children,

@@ -84,13 +84,28 @@ web/src/
 4. Refresh token rotation: 15min JWT + 7-day revocable refresh token
 5. Logout clears httpOnly cookie server-side
 
+## Environment Variables
+
+Copy `web/.env.example` to `.env.local`:
+
+```
+NEXT_PUBLIC_API_URL=http://localhost:5000/
+REVALIDATE_SECRET=your-random-secret-here
+NEXT_PUBLIC_CDN_HOST=cdn.toyshop.com
+```
+
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_API_URL` | Backend API base URL for server component data fetching |
+| `REVALIDATE_SECRET` | Shared secret with admin panel — validates `/api/revalidate` requests |
+| `NEXT_PUBLIC_CDN_HOST` | CDN hostname used in Content-Security-Policy header and next/image remotePatterns |
+
 ## SEO & Schema
 
 - Dynamic sitemap (build-time via next-sitemap)
 - robots.txt (blocks AI scrapers)
-- JSON-LD: Product, Organization, JewelryStore, BreadcrumbList, FAQPage, ItemList
+- JSON-LD: Product, Organization, Store, BreadcrumbList, FAQPage, ItemList
 - Open Graph + Twitter Card metadata on all pages
-- Geo-location tags for local SEO (Jodhpur, Rajasthan)
 
 ## Agent Skills
 
@@ -105,20 +120,3 @@ The following `.agents/skills/` are relevant to this project:
 | `vercel-react-view-transitions` | View Transition API for smooth page transitions |
 | `security-review` | OWASP scanning for JWT, XSS, CSP, OAuth |
 | `ponytail` | Minimal-solution mode |
-
-## Status
-
-- ✅ Fully TypeScript (0 `.js`/`.jsx` files in src/)
-- ✅ `tsc --noEmit` + `next build` pass
-- ✅ JWT stored in httpOnly cookie (XSS-protected)
-- ✅ CSP and security headers configured
-- ✅ Image Optimization enabled (WebP/AVIF via Next.js)
-- ✅ Dynamic imports for heavy packages (Swiper, motion)
-- ✅ Sitemap generated at build time
-- ✅ BreadcrumbList + aggregateRating JSON-LD
-- ✅ Scroll restoration — no global `scroll-behavior: smooth` (Next.js handles natively)
-- ✅ GDPR cookie consent banner added
-- ✅ axe-core dev-time a11y audit wired in
-- ✅ Lighthouse CI config with budgets
-- ⏳ Real business phone/email/postal code needed in utils.ts
-- ⏳ OG image verification needed (files exist, verify correctness)

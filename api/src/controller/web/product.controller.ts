@@ -87,6 +87,7 @@ export const getOne = async (req: Request, res: Response): Promise<Response> => 
       status: true,
       deletedAt: null,
     })
+      .select("-__v -deletedAt")
       .populate(PRODUCT_POPULATE)
       .lean();
 

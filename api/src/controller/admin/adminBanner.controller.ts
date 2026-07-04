@@ -102,7 +102,7 @@ export const getAllBanner = async (
       filter.$or = orCondition;
     }
 
-    const totalRecords = await bannerModal.find(filter as FilterQuery<typeof bannerModal>).countDocuments();
+    const totalRecords = await bannerModal.countDocuments(filter as FilterQuery<typeof bannerModal>);
     const banner = await bannerModal
       .find(filter as FilterQuery<typeof bannerModal>)
       .sort({ order: "asc", _id: "desc" })
@@ -234,13 +234,15 @@ export const linkOptionsProducts = async (req: Request, res: Response): Promise<
       ];
     }
 
-    const total = await Product.countDocuments(filter);
-    const products = await Product.find(filter)
-      .select("_id name slug")
-      .sort({ name: 1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
+    const [total, products] = await Promise.all([
+      Product.countDocuments(filter),
+      Product.find(filter)
+        .select("_id name slug")
+        .sort({ name: 1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+    ]);
 
     res.json({
       _status: true,

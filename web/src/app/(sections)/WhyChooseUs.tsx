@@ -1,19 +1,18 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Gem, Gift, ShieldCheck, Sparkles } from "lucide-react";
-import { cache, Suspense } from "react";
+import { Suspense } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { TAG_HOMEPAGE } from "@/lib/revalidation-tags";
 
-const getWhyChooseUs = cache(async () => {
+async function getWhyChooseUs() {
+  "use cache";
+  cacheLife("homepage");
+  cacheTag(TAG_HOMEPAGE);
+
   try {
     const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/whyChooseUs",
-      {
-        next: {
-          tags: [TAG_HOMEPAGE],
-          revalidate: 3600,
-        },
-      }
+      process.env.NEXT_PUBLIC_API_URL + "api/website/whyChooseUs"
     );
     const data = await response.json();
     if (response.ok) {
@@ -22,7 +21,7 @@ const getWhyChooseUs = cache(async () => {
   } catch {
     return null;
   }
-});
+}
 
 const iconMap: Record<string, typeof Gem> = {
   Gem,

@@ -1,4 +1,4 @@
-import { cache } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import dynamic from "next/dynamic";
 import BannerSingle from "./BannerSingle";
 import BannerSlider from "./BannerSlider";
@@ -44,18 +44,21 @@ export interface HomeSection {
   order: number;
 }
 
-const getHomeSections = cache(async () => {
+async function getHomeSections() {
+  "use cache";
+  cacheLife("homepage");
+  cacheTag(TAG_HOMEPAGE);
+
   try {
     const res = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "api/website/home-page",
-      { next: { tags: [TAG_HOMEPAGE], revalidate: 3600 } },
     );
     const data = await res.json();
     return (data._data?.sections ?? []) as HomeSection[];
   } catch {
     return [];
   }
-});
+}
 
 export { getHomeSections };
 
@@ -228,18 +231,21 @@ interface BannerItem {
   link?: { url?: string | null; type?: string }
 }
 
-const getWebsiteBanners = cache(async () => {
+async function getWebsiteBanners() {
+  "use cache";
+  cacheLife("homepage");
+  cacheTag(TAG_HOMEPAGE);
+
   try {
     const res = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "api/website/banner",
-      { next: { tags: [TAG_HOMEPAGE], revalidate: 3600 } },
     )
     const data = await res.json()
     return (data._data as BannerItem[]) ?? []
   } catch {
     return []
   }
-})
+}
 
 async function BannerFromConfig({
   selectedBannerIds,
@@ -270,10 +276,13 @@ async function BannerFromConfig({
 }
 
 async function fetchProducts(source: string, limit: number) {
+  "use cache";
+  cacheLife("products");
+  cacheTag(TAG_PRODUCTS);
+
   try {
     const res = await fetch(
       process.env.NEXT_PUBLIC_API_URL + `api/website/product/${source}?limit=${limit}`,
-      { next: { tags: [TAG_PRODUCTS], revalidate: 3600 } },
     );
     if (!res.ok) return [];
     const data = await res.json();
@@ -284,10 +293,13 @@ async function fetchProducts(source: string, limit: number) {
 }
 
 async function fetchProductsBySearch(term: string) {
+  "use cache";
+  cacheLife("search");
+  cacheTag(TAG_PRODUCTS);
+
   try {
     const res = await fetch(
       process.env.NEXT_PUBLIC_API_URL + `api/website/product/get-by-search?search=${encodeURIComponent(term)}&limit=8`,
-      { next: { tags: [TAG_PRODUCTS], revalidate: 3600 } },
     );
     if (!res.ok) return [];
     const data = await res.json();
@@ -298,10 +310,13 @@ async function fetchProductsBySearch(term: string) {
 }
 
 async function fetchTestimonials() {
+  "use cache";
+  cacheLife("testimonials");
+  cacheTag(TAG_TESTIMONIALS, TAG_HOMEPAGE);
+
   try {
     const res = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "api/website/testimonial",
-      { next: { tags: [TAG_TESTIMONIALS, TAG_HOMEPAGE], revalidate: 3600 } },
     );
     const data = await res.json();
     return data._data;
