@@ -34,6 +34,8 @@ const colorSchema = new Schema(
   { timestamps: true },
 );
 
+colorSchema.index({ deletedAt: 1, status: 1, order: -1 });
+
 export type IColor = InferSchemaType<typeof colorSchema>;
 
 const ColorModel: Model<IColor> = mongoose.model<IColor>("colors", colorSchema);

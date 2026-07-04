@@ -72,7 +72,10 @@ export const view = async (
     }
     if (orCondition.length > 0) filter.$or = orCondition;
 
-    const ress = await size.find(filter).sort({ order: "asc", _id: "desc" });
+    const ress = await size.find(filter)
+      .select("_id name status order")
+      .sort({ order: "asc", _id: "desc" })
+      .lean();
 
     response.status(200).json({
       _status: true,
@@ -102,7 +105,7 @@ export const destroy = async (
       return;
     }
 
-    const existing = await size.findById(request.body.id);
+    const existing = await size.findById(request.body.id).select("_id deletedAt").lean();
     if (!existing) {
       response.status(404).json({ _status: false, _message: "No Data Found", _data: null });
       return;
@@ -148,7 +151,7 @@ export const details = async (
       return;
     }
 
-    const result = await size.findById({ _id: request.body.id });
+    const result = await size.findById({ _id: request.body.id }).lean();
     if (!result) {
       response.status(404).json({
         _status: false,

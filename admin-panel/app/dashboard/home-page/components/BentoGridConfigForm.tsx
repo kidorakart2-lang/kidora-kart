@@ -183,6 +183,7 @@ function BentoCellEditor({
     let subtitle = ""
     let linkType = "category"
     let linkTarget = item._id || ""
+    let linkExternalUrl = ""
 
     switch (sourceType) {
       case "product":
@@ -191,18 +192,38 @@ function BentoCellEditor({
         linkTarget = item.slug || item._id
         break
       case "category":
-      case "subCategory":
-      case "subSubCategory":
         subtitle = item.description || ""
         linkType = "category"
         linkTarget = item.slug || item._id
         break
+      case "subCategory":
+        subtitle = item.description || ""
+        linkType = "category"
+        const parentCatSlug = item.category?.[0]?.slug || ""
+        linkTarget = parentCatSlug ? `${parentCatSlug}/${item.slug}` : item.slug
+        break
+      case "subSubCategory":
+        subtitle = item.description || ""
+        linkType = "category"
+        const parentSubCatSlug = item.subCategory?.[0]?.slug || ""
+        const grandParentCatSlug = item.subCategory?.[0]?.category?.[0]?.slug || ""
+        if (grandParentCatSlug && parentSubCatSlug) {
+          linkTarget = `${grandParentCatSlug}/${parentSubCatSlug}/${item.slug}`
+        } else if (parentSubCatSlug) {
+          linkTarget = `${parentSubCatSlug}/${item.slug}`
+        } else {
+          linkTarget = item.slug
+        }
+        break
       case "banner":
         subtitle = item.description || ""
-        linkType = item.link?.type || "external"
-        linkTarget = item.link?.target || ""
         if (item.link?.type === "external") {
-          linkTarget = item.link?.externalUrl || ""
+          linkType = "external"
+          linkExternalUrl = item.link?.externalUrl || ""
+          linkTarget = ""
+        } else {
+          linkType = item.link?.type || "category"
+          linkTarget = item.link?.target || ""
         }
         break
     }
@@ -215,6 +236,7 @@ function BentoCellEditor({
       subtitle,
       linkType,
       linkTarget,
+      linkExternalUrl,
     })
   }
 

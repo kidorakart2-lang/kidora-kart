@@ -72,7 +72,7 @@ export const create = async (
         ? updateData.category
         : [updateData.category];
       for (const catId of categoryIds) {
-        const categoryExists = await Category.findById(catId as string);
+        const categoryExists = await Category.findById(catId as string).select("_id").lean();
         if (!categoryExists) {
           throw new Error(`Category with ID ${catId} not found`);
         }
@@ -84,7 +84,7 @@ export const create = async (
         ? updateData.subCategory
         : [updateData.subCategory];
       for (const subCatId of subCategoryIds) {
-        const subCategoryExists = await SubCategory.findById(subCatId as string);
+        const subCategoryExists = await SubCategory.findById(subCatId as string).select("_id").lean();
         if (!subCategoryExists) {
           throw new Error(`SubCategory with ID ${subCatId} not found`);
         }
@@ -96,7 +96,7 @@ export const create = async (
         ? updateData.subSubCategory
         : [updateData.subSubCategory];
       for (const subSubCatId of subSubCategoryIds) {
-        const subSubCategoryExists = await SubSubCategory.findById(subSubCatId as string);
+        const subSubCategoryExists = await SubSubCategory.findById(subSubCatId as string).select("_id").lean();
         if (!subSubCategoryExists) {
           throw new Error(`SubSubCategory with ID ${subSubCatId} not found`);
         }
@@ -106,7 +106,7 @@ export const create = async (
     if (updateData.sizes) {
       const sizeIds = Array.isArray(updateData.sizes) ? updateData.sizes : [updateData.sizes];
       for (const sizeId of sizeIds) {
-        const sizeExists = await Size.findById(sizeId as string);
+        const sizeExists = await Size.findById(sizeId as string).select("_id").lean();
         if (!sizeExists) {
           throw new Error(`Size with ID ${sizeId} not found`);
         }
@@ -144,7 +144,13 @@ export const view = async (
       search,
       sort = "-createdAt",
       inStock,
+      page: rawPage,
+      limit: rawLimit,
     } = request.query as Record<string, string | undefined>;
+
+    const page = Math.max(1, Number(request.body?.page ?? rawPage ?? 1));
+    const limit = Math.min(Math.max(1, Number(request.body?.limit ?? rawLimit ?? 50)), 200);
+    const skip = (page - 1) * limit;
 
     const isDeletedAt = (request.body?.isDeletedAt ?? request.query?.isDeletedAt) as string | undefined;
 
@@ -199,13 +205,25 @@ export const view = async (
       ];
     }
 
-    const products = await Product.find(query).sort(sort as string);
+    const total = await Product.countDocuments(query);
+    const products = await Product.find(query)
+      .select("name slug images price discount_price stock status isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material sizes createdAt order")
+      .sort(sort as string)
+      .skip(skip)
+      .limit(limit)
+      .lean();
     response.send({
       _status: true,
       _message: "Products fetched successfully",
       _data: products,
+      _pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
     });
-  } catch (err) {
+  } catch (_err) {
     response.send({
       _status: false,
       _message: "Something went wrong",
@@ -234,9 +252,9 @@ export const getOne = async (
     ];
 
     if (mongoose.Types.ObjectId.isValid(id)) {
-      product = await Product.findById(id).populate(populateFields);
+      product = await Product.findById(id).populate(populateFields).lean();
     } else {
-      product = await Product.findOne({ slug }).populate(populateFields);
+      product = await Product.findOne({ slug }).populate(populateFields).lean();
     }
 
     if (!product) {
@@ -271,7 +289,9 @@ export const update = async (
     const updateData: Record<string, unknown> = { ...request.body };
     const removeImagesUrl: string[] = (updateData.removeImagesUrl as string[]) ?? [];
 
-    const existingProduct = await Product.findOne({ _id: id, deletedAt: null });
+    const existingProduct = await Product.findOne({ _id: id, deletedAt: null })
+      .select("name images category subCategory subSubCategory sizes slug")
+      .lean();
     if (!existingProduct) {
       throw new Error("Product not found");
     }
@@ -432,7 +452,10 @@ export const update = async (
       }
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {});
+    const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    });
     invalidateProductCaches();
     response.send({
       _status: true,
@@ -451,9 +474,27 @@ export const update = async (
 export const destroy = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const product = await Product.findById(id);
 
-    if (!product) {
+    // Try soft-delete first (covers the common case in 1 query instead of 2)
+    const softDeleted = await Product.findOneAndUpdate(
+      { _id: id, deletedAt: null },
+      { deletedAt: new Date() },
+      { new: true, projection: { _id: 1 } },
+    );
+
+    if (softDeleted) {
+      invalidateProductCaches();
+      res.send({
+        _status: true,
+        _message: "Product deleted successfully",
+        _data: null,
+      });
+      return;
+    }
+
+    // Product not found or already soft-deleted → try permanent delete
+    const deleted = await Product.findByIdAndDelete(id);
+    if (!deleted) {
       res.send({
         _status: false,
         _message: "Product not found",
@@ -461,26 +502,10 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
       });
       return;
     }
-    if (product.deletedAt) {
-      // Already soft-deleted → permanently delete
-      await Product.findByIdAndDelete(id);
-      invalidateProductCaches();
-      res.send({
-        _status: true,
-        _message: "Product permanently deleted",
-        _data: null,
-      });
-      return;
-    }
-    await Product.findByIdAndUpdate(
-      id,
-      { deletedAt: new Date() },
-      { new: true },
-    );
     invalidateProductCaches();
     res.send({
       _status: true,
-      _message: "Product deleted successfully",
+      _message: "Product permanently deleted",
       _data: null,
     });
   } catch (err) {
@@ -565,9 +590,11 @@ export const getByCategory = async (
       .populate("subCategory", "name slug")
       .populate("subSubCategory", "name slug")
       .populate("sizes", "name")
+      .select("name slug images price discount_price stock status category subCategory subSubCategory colors material sizes order createdAt")
       .sort(sort)
       .limit(cappedLimit)
-      .skip(skip);
+      .skip(skip)
+      .lean();
 
     const total = await Product.countDocuments({
       category: { $in: categoryIds },
@@ -640,8 +667,10 @@ export const getProductByFilter = async (
       .populate("subCategory", "name slug")
       .populate("subSubCategory", "name slug")
       .populate("sizes", "name")
+      .select("name slug images price discount_price stock category subCategory subSubCategory sizes")
       .limit(Math.min(Number(limit), 100))
-      .sort("-createdAt");
+      .sort("-createdAt")
+      .lean();
 
     response.send({
       _status: true,

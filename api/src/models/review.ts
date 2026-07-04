@@ -23,6 +23,10 @@ const reviewSchema = new Schema(
   { timestamps: true },
 );
 
+reviewSchema.index({ productId: 1, userId: 1 });
+reviewSchema.index({ productId: 1, status: 1, deletedAt: 1 });
+reviewSchema.index({ userId: 1, deletedAt: 1 });
+
 export type IReview = InferSchemaType<typeof reviewSchema>;
 
 const Review: Model<IReview> = mongoose.model<IReview>("Reviews", reviewSchema);

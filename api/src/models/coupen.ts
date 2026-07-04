@@ -69,8 +69,9 @@ const coupenSchema = new Schema(
   { timestamps: true },
 );
 
-coupenSchema.index({ code: 1 });
-coupenSchema.index({ userId: 1 });
+coupenSchema.index({ code: 1, status: 1, deletedAt: 1 });
+coupenSchema.index({ userId: 1, status: 1, deletedAt: 1 });
+coupenSchema.index({ status: 1, deletedAt: 1 });
 
 export type ICoupen = InferSchemaType<typeof coupenSchema>;
 

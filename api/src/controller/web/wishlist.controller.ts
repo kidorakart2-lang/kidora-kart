@@ -174,7 +174,9 @@ export const checkInWishlist = asyncHandler(
     const wishlist = await Wishlist.findOne({
       user: userId,
       products: productId,
-    });
+    })
+      .select("_id")
+      .lean();
 
     return success(res, { isInWishlist: !!wishlist }, "Wishlist status retrieved");
   },

@@ -47,6 +47,11 @@ const envSchema = z.object({
     .transform((val) => val.split(",").map((s) => s.trim())),
 
   REVALIDATE_SECRET: z.string().optional(),
+
+  ENABLE_SWAGGER: z
+    .string()
+    .optional()
+    .transform((val) => val === "true"),
 });
 
 const parsed = envSchema.safeParse(process.env);

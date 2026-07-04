@@ -56,12 +56,27 @@ async function getWishlist() {
 }
 
 
+function serverItemToSlice(item: Record<string, unknown>) {
+  return {
+    productId: (item.product as Record<string, unknown>)?._id as string ?? "",
+    product: item.product as Record<string, unknown> ?? null,
+    quantity: (item.quantity as number) ?? 1,
+    colorId: ((item.color as Record<string, unknown>)?._id as string) ?? null,
+    sizeId: ((item.size as Record<string, unknown>)?._id as string) ?? null,
+    isGuest: false,
+  };
+}
+
 export async function fetchAndDispatchCart(dispatch: AppDispatch) {
   try {
     const [cartData] = await Promise.all([getCart()]);
 
     if (cartData && cartData._data?.items?.length > 0) {
-      dispatch(updateFullCart(cartData._data || []));
+      dispatch(updateFullCart({
+        items: cartData._data.items.map(serverItemToSlice),
+        totalPrice: cartData._data.totalPrice ?? 0,
+        totalItems: cartData._data.totalItems ?? cartData._data.items.length,
+      }));
     }
 
     return { cart: cartData };

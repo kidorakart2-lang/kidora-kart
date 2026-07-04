@@ -59,6 +59,37 @@ interface OrdersSummary {
   mismatched?: number;
 }
 
+interface ApiResponse {
+  success?: boolean;
+  message?: string;
+  error?: string;
+  data?: Record<string, unknown>;
+  verified?: boolean;
+}
+
+interface VerifyResponse {
+  success?: boolean;
+  message?: string;
+  error?: string;
+  data?: {
+    razorpayStatus?: {
+      status?: string;
+      mappedStatus?: string;
+      amount?: number;
+      refundId?: string;
+    };
+  };
+}
+
+interface UpdateResponse {
+  success?: boolean;
+  message?: string;
+  data?: {
+    suggestion?: string;
+  };
+  verified?: boolean;
+}
+
 const RefundedOrdersAdmin = () => {
   const [orders, setOrders] = useState<CategorizedOrders>({
     pending: [],
@@ -109,25 +140,10 @@ const RefundedOrdersAdmin = () => {
       });
 
       const text = await response.text();
-      let result: Record<string, unknown>;
-      try {
-        result = JSON.parse(text);
-      } catch {
-        toast({
-          title: "❌ Server error",
-          description: `Server returned ${response.status}: ${text.slice(0, 200)}`,
-          variant: "destructive",
-        });
-        return;
-      }
+      const responseData: { success?: boolean; message?: string; data?: { total?: number; updated?: number; alreadyUpToDate?: number; failed?: unknown[] } } = JSON.parse(text);
 
-      if (result.success) {
-        const syncData = result.data as {
-          total?: number;
-          updated?: number;
-          alreadyUpToDate?: number;
-          failed?: unknown[];
-        };
+      if (responseData.success) {
+        const syncData = responseData.data;
         toast({
           title: "✅ Sync Completed",
           description:
@@ -140,7 +156,7 @@ const RefundedOrdersAdmin = () => {
       } else {
         toast({
           title: "❌ Sync failed",
-          description: result.message || "Unknown error",
+          description: responseData.message || "Unknown error",
           variant: "destructive",
         });
       }
@@ -169,9 +185,9 @@ const RefundedOrdersAdmin = () => {
       });
 
       const text = await response.text();
-      let result: Record<string, unknown>;
+      let responseData: { success?: boolean; message?: string; data?: { categorized?: CategorizedOrders; summary?: OrdersSummary } };
       try {
-        result = JSON.parse(text);
+        responseData = JSON.parse(text);
       } catch {
         setError(
           `Server returned ${response.status}: ${text.slice(0, 200)}`,
@@ -179,12 +195,12 @@ const RefundedOrdersAdmin = () => {
         return;
       }
 
-      if (result.success) {
-        const data = result.data as { categorized?: Record<string, unknown[]>; summary?: Record<string, number> };
-        setOrders(data.categorized as CategorizedOrders);
-        setSummary(data.summary as OrdersSummary);
+      if (responseData.success) {
+        const data = responseData.data;
+        if (data?.categorized) setOrders(data.categorized);
+        if (data?.summary) setSummary(data.summary);
       } else {
-        setError((result.message as string) || "Failed to fetch orders");
+        setError(responseData.message || "Failed to fetch orders");
       }
     } catch (err: unknown) {
       setError(
@@ -217,7 +233,19 @@ const RefundedOrdersAdmin = () => {
       );
 
       const verifyText = await verifyResponse.text();
-      let verifyResult: Record<string, unknown>;
+      let verifyResult: {
+        success?: boolean;
+        error?: string;
+        message?: string;
+        data?: {
+          razorpayStatus?: {
+            status?: string;
+            mappedStatus?: string;
+            amount?: number;
+            refundId?: string;
+          };
+        };
+      };
       try {
         verifyResult = JSON.parse(verifyText);
       } catch {
@@ -248,12 +276,7 @@ const RefundedOrdersAdmin = () => {
       }
 
       // Step 2: Show verification results and ask for confirmation
-      const razorpayStatus = verifyResult.data.razorpayStatus as {
-        status?: string;
-        mappedStatus?: string;
-        amount?: number;
-        refundId?: string;
-      };
+      const razorpayStatus = verifyResult.data?.razorpayStatus ?? {};
 
       let confirmDescription = `Current DB Status: ${order?.cancellation?.refundStatus || "Unknown"}\n`;
       confirmDescription += `Razorpay Status: ${razorpayStatus.status} (${razorpayStatus.mappedStatus})\n`;
@@ -314,9 +337,14 @@ const RefundedOrdersAdmin = () => {
       });
 
       const patchText = await response.text();
-      let result: Record<string, unknown>;
+      let updateResult: {
+        success?: boolean;
+        verified?: boolean;
+        message?: string;
+        data?: { suggestion?: string };
+      };
       try {
-        result = JSON.parse(patchText);
+        updateResult = JSON.parse(patchText);
       } catch {
         toast({
           title: "❌ Server error",
@@ -326,17 +354,17 @@ const RefundedOrdersAdmin = () => {
         return;
       }
 
-      if (result.success) {
+      if (updateResult.success) {
         await fetchRefundedOrders();
         toast({
-          title: result.verified
+          title: updateResult.verified
             ? "✅ Refund status updated and verified with Razorpay!"
             : "✅ Refund status updated (verification skipped)",
         });
       } else {
         toast({
           title: "❌ Failed to update",
-          description: result.data?.suggestion || result.message || "Unknown error",
+          description: updateResult.data?.suggestion || updateResult.message || "Unknown error",
           variant: "destructive",
         });
       }

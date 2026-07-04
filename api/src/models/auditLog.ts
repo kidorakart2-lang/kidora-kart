@@ -39,6 +39,10 @@ const auditLogSchema = new Schema(
   },
 );
 
+auditLogSchema.index({ adminId: 1, createdAt: -1 });
+auditLogSchema.index({ action: 1, createdAt: -1 });
+auditLogSchema.index({ targetId: 1 });
+
 export type IAuditLog = InferSchemaType<typeof auditLogSchema>;
 
 const auditLogModel: Model<IAuditLog> = mongoose.model<IAuditLog>("audit_logs", auditLogSchema);

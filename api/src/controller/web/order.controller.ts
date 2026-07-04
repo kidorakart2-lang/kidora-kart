@@ -4,7 +4,6 @@ import crypto from "crypto";
 import Order from "../../models/order.js";
 import Product from "../../models/product.js";
 import Cart from "../../models/cart.js";
-import User from "../../models/user.js";
 import { sendEmail } from "../../lib/nodemailer.js";
 import { hashOtp } from "../../lib/jwt.js";
 import { env } from "../../config/env.js";
@@ -179,7 +178,9 @@ export const createOrder = async (
           return;
         }
 
-        const product = await Product.findById(item.productId);
+        const product = await Product.findById(item.productId)
+          .select("stock name discount_price description images code isPersonalized")
+          .lean();
         if (!product) {
           res.status(404).json({ success: false, message: "Product not found" });
           return;
@@ -232,7 +233,9 @@ export const createOrder = async (
       const cartItemsString = JSON.stringify(orderItems.map(i => ({ product: String(i.productId), quantity: i.quantity })));
       orderHash = crypto.createHash("sha256").update(cartItemsString).digest("hex");
 
-      const existingOrder = await Order.findOne({ idempotencyKey, userId });
+      const existingOrder = await Order.findOne({ idempotencyKey, userId })
+        .select("idempotencyHash orderId pricing.total")
+        .lean();
       if (existingOrder) {
         if (existingOrder.idempotencyHash && existingOrder.idempotencyHash !== orderHash) {
           res.status(409).json({ success: false, message: "Cart contents have changed since idempotency key was created" });
@@ -289,7 +292,9 @@ export const createOrder = async (
         "keyPattern" in err &&
         (err as { keyPattern: Record<string, unknown> }).keyPattern?.idempotencyKey
       ) {
-        const existingOrder = await Order.findOne({ idempotencyKey, userId });
+        const existingOrder = await Order.findOne({ idempotencyKey, userId })
+          .select("orderId pricing.total")
+          .lean();
         if (existingOrder) {
           res.status(200).json({
             success: true,
@@ -318,8 +323,7 @@ export const createOrder = async (
 
     enqueue(async () => {
       try {
-        const user = await User.findById(userId);
-        if (!user) return;
+        const user = req.user!;
         if (!user.mobile) {
           user.mobile = Number(shippingAddress.phone);
           user.isMobileVerified = true;
@@ -1194,7 +1198,7 @@ async function handleRefundProcessed(refundData: { id: string }): Promise<void> 
     order.cancellation.refundedAt = new Date();
     await order.save();
 
-    await sendEmail(order.shippingAddress?.email ?? "", "RefundProcessed", {
+    sendEmail(order.shippingAddress?.email ?? "", "RefundProcessed", {
       user: {
         name: order.shippingAddress?.fullName ?? "Customer",
         email: order.shippingAddress?.email ?? "",
@@ -1208,7 +1212,9 @@ async function handleRefundProcessed(refundData: { id: string }): Promise<void> 
         shippingAddress: order.shippingAddress,
         pendingStatus: !!order.payment?.status,
       },
-    });
+    }).catch((err) =>
+      logger.error(err, "Failed to send refund processed email"),
+    );
   }
 }
 

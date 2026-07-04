@@ -77,7 +77,7 @@ export const registerUser = async (
       return fail(res, "All fields are required", 400);
     }
 
-    const existing = await User.findOne({ email });
+    const existing = await User.findOne({ email }).select("_id").lean();
     if (existing) {
       return fail(res, "User already exists", 409);
     }
@@ -123,14 +123,12 @@ export const loginUser = async (
       return fail(res, "All fields are required", 400);
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("email password name").lean();
     if (!user || !(await comparePassword(password, user.password))) {
       return fail(res, "Invalid email or password", 401);
     }
 
-    const userObj = user.toObject();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _pw, ...userData } = userObj;
+    const { password: _pw, ...userData } = user;
 
     const accessToken = await setSessionCookies(res, user, "user");
 
@@ -165,7 +163,7 @@ export const refreshUserToken = async (
     // Rotate refresh token
     await revokeRefreshToken(result.tokenHash);
 
-    const user = await User.findById(result.userId).select("-password");
+    const user = await User.findById(result.userId).select("_id name email deletedAt").lean();
     if (!user || user.deletedAt) {
       clearSessionCookies(res);
       return fail(res, "User not found or deactivated", 401);
@@ -191,9 +189,8 @@ export const getProfile = async (
 ): Promise<Response> => {
   if (!req.user) return fail(res, "Unauthorized", 401);
   try {
-    const user = await User.findById(req.user._id).select("-password");
-    if (!user) return fail(res, "User not found", 404);
-    return success(res, user, "User profile Found");
+    const { password: _pw, ...userData } = req.user.toObject();
+    return success(res, userData, "User profile Found");
   } catch (error) {
     return fail(res, "Internal Server Error", 500);
   }
@@ -205,7 +202,7 @@ export const changePassword = async (
 ): Promise<Response> => {
   if (!req.user) return fail(res, "Unauthorized", 401);
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select("password");
     if (!user) return fail(res, "User not found", 404);
 
     const { oldPassword, newPassword } = req.body as {
@@ -243,8 +240,7 @@ export const updateProfile = async (
 ): Promise<Response> => {
   if (!req.user) return fail(res, "Unauthorized", 401);
   try {
-    const user = await User.findById(req.user._id);
-    if (!user) return fail(res, "User not found", 404);
+    const user = req.user;
 
     let avatarUrl: string | null = user.avatar ?? null;
     if (req.file) {
@@ -293,44 +289,45 @@ export const updateProfile = async (
 export const forgotPassword = async (
   req: Request,
   res: Response,
-): Promise<Response> => {
-  if (!req.body || !req.body.email) {
-    return fail(res, "Email is required", 400);
+): Promise<void> => {    if (!req.body || !req.body.email) {
+    fail(res, "Email is required", 400);
+    return;
   }
 
   try {
     const { email } = req.body as { email?: string };
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("name").lean();
     if (!user) {
-      return success(
+      success(
         res,
         null,
         "We have sent you an OTP to your email. Please check your email to reset your password.",
       );
+      return;
     }
 
     const otp = generateOtp();
     const token = generatePasswordResetToken(email!, otp);
 
-    try {
-      await sendEmail(email!, "passwordReset", {
-        otp,
-        subject: "Your Password Reset OTP",
-        name: user.name || "User",
-      });
-    } catch (emailError) {
-      console.error("Failed to send OTP email:", emailError);
-      return fail(res, "Failed to send OTP. Please try again later.", 500);
-    }
-
-    return res.status(200).json({
+    res.status(200).json({
       _status: true,
       _message: "OTP sent to your email",
       _token: token,
     });
+
+    sendEmail(email!, "passwordReset", {
+      otp,
+      subject: "Your Password Reset OTP",
+      name: user.name || "User",
+    }).catch((emailError) => {
+      console.error("Failed to send OTP email:", emailError);
+    });
+
+    return;
   } catch (error) {
     console.error("Forgot password error:", error);
-    return fail(res, "Internal Server Error", 500);
+    fail(res, "Internal Server Error", 500);
+    return;
   }
 };
 
@@ -369,20 +366,20 @@ export const resetPassword = async (
   res: Response,
 ): Promise<Response> => {
   if (!req.user) return fail(res, "Not authorized", 401);
-  const userEmail = req.user.email;
   try {
     const { newPassword } = req.body as { newPassword?: string };
     if (!newPassword) return fail(res, "newPassword is required", 400);
     if (newPassword.length < 6) return fail(res, "Password must be at least 6 characters", 400);
 
-    const userData = await User.findOne({ email: userEmail });
-    if (!userData) return fail(res, "Account Not Found", 404);
-
-    userData.password = await hashPassword(newPassword);
-    await userData.save();
+    const result = await User.findByIdAndUpdate(
+      req.user._id,
+      { password: await hashPassword(newPassword) },
+      { new: true, runValidators: true },
+    );
+    if (!result) return fail(res, "Account Not Found", 404);
 
     // Revoke all sessions on password reset
-    await revokeAllUserRefreshTokens(String(userData._id));
+    await revokeAllUserRefreshTokens(String(req.user._id));
     clearSessionCookies(res);
 
     return success(res, null, "Password reset successfully");
@@ -395,13 +392,17 @@ export const resetPassword = async (
 export const verifyUser = async (
   req: Request,
   res: Response,
-): Promise<Response> => {
-  if (!req.user) return fail(res, "Unauthorized", 401);
+): Promise<void> => {
+  if (!req.user) {
+    fail(res, "Unauthorized", 401);
+    return;
+  }
 
   try {
     const user = req.user;
     if (user.isEmailVerified) {
-      return fail(res, "Your account is already verified", 200);
+      fail(res, "Your account is already verified", 200);
+      return;
     }
 
     const email = user.email;
@@ -418,25 +419,24 @@ export const verifyUser = async (
       { expiresIn: "10m" } as SignOptions,
     );
 
-    try {
-      await sendEmail(email, "verifyEmail", {
-        otp,
-        subject: "Verify Your Email",
-        name: user.name || "User",
-        verificationLink: `${env.FRONTEND_URL}/verify-email?token=${verificationToken}&otp=${otp}`,
-      });
-      return res.status(200).json({
-        _status: true,
-        _message: "Verification email sent successfully",
-        _token: verificationToken,
-      });
-    } catch (emailError) {
+    res.status(200).json({
+      _status: true,
+      _message: "Verification email sent successfully",
+      _token: verificationToken,
+    });
+
+    sendEmail(email, "verifyEmail", {
+      otp,
+      subject: "Verify Your Email",
+      name: user.name || "User",
+      verificationLink: `${env.FRONTEND_URL}/verify-email?token=${verificationToken}&otp=${otp}`,
+    }).catch((emailError) => {
       console.error("Failed to send verification email:", emailError);
-      return fail(res, "Failed to send verification email. Please try again later.", 500);
-    }
+    });
   } catch (error) {
     console.error("Verify user error:", error);
-    return fail(res, "Internal Server Error", 500);
+    fail(res, "Internal Server Error", 500);
+    return;
   }
 };
 
@@ -463,11 +463,12 @@ export const completeVerify = async (
       return fail(res, "Invalid OTP", 400);
     }
 
-    const user = await User.findById(decoded.userId);
-    if (!user) return fail(res, "User not found", 404);
-
-    user.isEmailVerified = true;
-    await user.save();
+    const result = await User.findByIdAndUpdate(
+      decoded.userId,
+      { isEmailVerified: true },
+      { new: true },
+    );
+    if (!result) return fail(res, "User not found", 404);
     return success(res, null, "Email verified successfully");
   } catch (error) {
     console.error("Complete verify error:", error);

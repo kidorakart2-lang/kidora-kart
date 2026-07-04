@@ -199,7 +199,7 @@ export function VideoSection({
                     size="lg"
                     className="group relative overflow-hidden rounded-full px-8 py-6 text-base font-medium tracking-wide shadow-lg hover:shadow-xl transition-all duration-300"
                   >
-                    <span className="relative z-10 flex items-center gap-2 text-white">
+                    <span className="relative z-10 flex items-center gap-2 text-background">
                       {buttonText}
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </span>

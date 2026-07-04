@@ -30,6 +30,8 @@ const sizeSchema = new Schema(
   { timestamps: true },
 );
 
+sizeSchema.index({ deletedAt: 1, status: 1, order: -1 });
+
 export type ISize = InferSchemaType<typeof sizeSchema>;
 
 const SizeModel: Model<ISize> = mongoose.model<ISize>("sizes", sizeSchema);

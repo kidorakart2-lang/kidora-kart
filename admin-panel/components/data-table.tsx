@@ -61,6 +61,12 @@ export interface DataTableProps<T extends BaseItem> {
   selectOption?: { value: string; label: string }[];
   dateOption?: boolean;
   searchPlaceholder?: string;
+  /** When provided, use server-side pagination — totalItems overrides data.length for total count */
+  externalPagination?: {
+    totalItems: number;
+    currentPage: number;
+    onPageChange: (page: number) => void;
+  };
 }
 
 function DataTableContent<T extends BaseItem>({
@@ -71,6 +77,7 @@ function DataTableContent<T extends BaseItem>({
   selectOption,
   dateOption,
   searchPlaceholder = "Search...",
+  externalPagination,
 }: DataTableProps<T>) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -114,18 +121,24 @@ function DataTableContent<T extends BaseItem>({
   // Handle page change
   const handlePageChange = useCallback(
     (newPage: number) => {
-      setCurrentPage(newPage);
-      updatePageInUrl(newPage);
+      if (externalPagination) {
+        externalPagination.onPageChange(newPage);
+      } else {
+        setCurrentPage(newPage);
+        updatePageInUrl(newPage);
+      }
     },
-    [updatePageInUrl],
+    [externalPagination, updatePageInUrl],
   );
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(
-    startIndex,
-    startIndex + itemsPerPage,
-  );
+  const totalItems = externalPagination?.totalItems ?? filteredData.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = ((externalPagination?.currentPage ?? currentPage) - 1) * itemsPerPage;
+  // When using external pagination, data is already the current page from the server
+  // When using client-side pagination, slice from the filtered data
+  const paginatedData = externalPagination
+    ? data
+    : filteredData.slice(startIndex, startIndex + itemsPerPage);
 
   const handleSelectChange = (value: string) => {
     setSelectedOption(value);

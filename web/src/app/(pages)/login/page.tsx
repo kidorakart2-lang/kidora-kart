@@ -1,6 +1,8 @@
 import React from "react";
 import Login from "@/app/(sections)/Login";
 import { siteConfig } from "@/lib/utils";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: `Login - ${siteConfig.name}`,
@@ -11,7 +13,13 @@ export const metadata = {
   },
 };
 
-export default function page() {
+export default async function page() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("userToken");
+  if (token) {
+    redirect("/");
+  }
+
   return (
     <div>
       <Login />

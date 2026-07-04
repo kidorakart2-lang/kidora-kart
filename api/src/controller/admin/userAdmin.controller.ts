@@ -46,7 +46,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       res.status(400).json({ _status: false, _message: "All fields are required" });
       return;
     }
-    const user = await userModel.findOne({ email, role: "admin" });
+    const user = await userModel.findOne({ email, role: "admin" })
+      .select("_id email password role name")
+      .lean();
     if (!user) {
       res.status(401).json({ _status: false, _message: "Invalid credentials" });
       return;
@@ -87,7 +89,9 @@ export const refreshAdminToken = async (req: Request, res: Response): Promise<vo
 
     await revokeRefreshToken(result.tokenHash);
 
-    const user = await userModel.findById(result.userId).select("-password");
+    const user = await userModel.findById(result.userId)
+      .select("_id name email deletedAt")
+      .lean();
     if (!user || user.deletedAt) {
       clearSessionCookiesAdmin(res);
       res.status(401).json({ _status: false, _message: "User not found or deactivated" });
@@ -137,21 +141,23 @@ export const getFullDetails = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = await userModel.findById(req.params.id);
-    const cart = await Cart.find({ user: req.params.id })
-      .populate("items.product", "name images image discount_price price slug")
-      .populate("items.color");
-    const orders = await Order.find({ userId: req.params.id })
-      .populate("items.productId", "name images slug")
-      .select("-payment.razorpay.signature");
-    const wishlist = await Wishlist.find({ user: req.params.id }).populate(
-      "products",
-      "name price discount_price images slug stock",
-    );
-    const reviews = await Reviews.find({ userId: req.params.id }).populate(
-      "productId",
-      "name images slug",
-    );
+    const [user, cart, orders, wishlist, reviews] = await Promise.all([
+      userModel.findById(req.params.id).select("-password").lean(),
+      Cart.find({ user: req.params.id })
+        .populate("items.product", "name images image discount_price price slug")
+        .populate("items.color", "name code")
+        .lean(),
+      Order.find({ userId: req.params.id })
+        .populate("items.productId", "name images slug")
+        .select("-payment.razorpay.signature")
+        .lean(),
+      Wishlist.find({ user: req.params.id })
+        .populate("products", "name price discount_price images slug stock")
+        .lean(),
+      Reviews.find({ userId: req.params.id })
+        .populate("productId", "name images slug")
+        .lean(),
+    ]);
     res.status(200).json({
       _status: true,
       _message: "User details found",
@@ -213,7 +219,7 @@ export const changeRole = async (
       "Admin changed user role",
     );
 
-    await auditLogModel.create({
+    auditLogModel.create({
       action: "role_change",
       adminId: requestingUser._id,
       adminEmail: requestingUser.email,
@@ -221,7 +227,9 @@ export const changeRole = async (
       targetEmail: user.email,
       details: { roleBefore: user.role, roleAfter: role },
       ip: req.ip,
-    });
+    }).catch((err) =>
+      logger.error({ err }, "Failed to create audit log"),
+    );
 
     res.status(200).json({
       _status: true,
@@ -269,13 +277,15 @@ export const verifyPassword = async (
       return;
     }
 
-    await auditLogModel.create({
+    auditLogModel.create({
       action: "login",
       adminId: requestingUser._id,
       adminEmail: requestingUser.email,
       details: { purpose: "role_change_verification" },
       ip: req.ip,
-    });
+    }).catch((err) =>
+      logger.error({ err }, "Failed to create audit log"),
+    );
 
     res.status(200).json({
       _status: true,
@@ -304,7 +314,7 @@ export const createUser = async (
       return;
     }
 
-    const existing = await userModel.findOne({ email });
+    const existing = await userModel.findOne({ email }).select("_id").lean();
     if (existing) {
       res.status(409).json({ _status: false, _message: "A user with this email already exists" });
       return;
@@ -340,7 +350,9 @@ export const userDelete = async (
 ): Promise<void> => {
   try {
     const userId = req.params.id;
-    const user = await userModel.findById(userId);
+    const user = await userModel.findById(userId)
+      .select("_id email role")
+      .lean();
 
     if (!user) {
       res.status(404).json({ _status: false, _message: "User not found" });
@@ -355,9 +367,11 @@ export const userDelete = async (
 
     await userModel.findByIdAndDelete(userId);
 
+    res.status(200).json({ _status: true, _message: "User permanently deleted successfully" });
+
     const requestingUser = req.user;
     if (requestingUser) {
-      await auditLogModel.create({
+      auditLogModel.create({
         action: "user_delete",
         adminId: requestingUser._id,
         adminEmail: requestingUser.email,
@@ -365,10 +379,10 @@ export const userDelete = async (
         targetEmail: user.email,
         details: { role: user.role },
         ip: req.ip,
-      });
+      }).catch((err) =>
+        logger.error({ err }, "Failed to create audit log"),
+      );
     }
-
-    res.status(200).json({ _status: true, _message: "User permanently deleted successfully" });
   } catch (error) {
     logger.error({ err: error }, "Error in userDelete");
     res.status(500).json({ _status: false, _message: "Error deleting user" });

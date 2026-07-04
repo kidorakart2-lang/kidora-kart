@@ -29,6 +29,8 @@ const materialSchema = new Schema(
   { timestamps: true },
 );
 
+materialSchema.index({ deletedAt: 1, status: 1, order: -1 });
+
 export type IMaterial = InferSchemaType<typeof materialSchema>;
 
 const MaterialModel: Model<IMaterial> = mongoose.model<IMaterial>(

@@ -10,6 +10,8 @@ import {
   Code2,
   CircleDollarSign,
   Tag,
+  Circle,
+  Square,
 } from "lucide-react"
 import type { HomeSection } from "./types"
 
@@ -28,9 +30,17 @@ export const SECTION_TYPES = [
     value: "round-categories",
     label: "Round Categories",
     description: "Circular category image carousel",
-    icon: LayoutGrid,
+    icon: Circle,
     color: "bg-emerald-100 text-emerald-700",
     defaults: { config: { heading: "Discover Our Collection" }, title: "Round Categories" },
+  },
+  {
+    value: "square-categories",
+    label: "Square Categories",
+    description: "Square category image carousel",
+    icon: Square,
+    color: "bg-emerald-100 text-emerald-700",
+    defaults: { config: { heading: "Discover Our Collection" }, title: "Square Categories" },
   },
   {
     value: "category-grid",

@@ -88,10 +88,12 @@ export const view = async (req: Request, res: Response): Promise<void> => {
       .countDocuments();
     const data = await productFaq
       .find(filter as FilterQuery<typeof productFaq>)
+      .select("_id products entries status createdAt")
       .sort({ createdAt: "desc", _id: "desc" })
       .limit(limitValue)
       .skip(skipValue)
-      .populate("products", "name slug");
+      .populate("products", "name slug")
+      .lean();
 
     res.json({
       _status: true,
@@ -110,7 +112,8 @@ export const details = async (req: Request, res: Response): Promise<void> => {
   try {
     const result = await productFaq
       .findById(req.body.id)
-      .populate("products", "name slug");
+      .populate("products", "name slug")
+      .lean();
     success(res, result, result ? "FAQ Set Found" : "No FAQ Set Found");
   } catch (err) {
     fail(res, "Internal Server Error", 500);
@@ -150,7 +153,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
 
 export const destroy = async (req: Request, res: Response): Promise<void> => {
   try {
-    const existing = await productFaq.findById(req.params.id);
+    const existing = await productFaq.findById(req.params.id).select("_id deletedAt").lean();
     if (!existing) {
       fail(res, "FAQ Set Not Found", 404);
       return;

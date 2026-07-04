@@ -16,12 +16,14 @@ export const contact = async (req: Request, res: Response): Promise<Response> =>
     }
 
     if (env.MY_GMAIL) {
-      await sendEmail(env.MY_GMAIL, "contactEmail", {
+      sendEmail(env.MY_GMAIL, "contactEmail", {
         name,
         email,
         message,
         subject: `New Contact Form Submission from ${name}`,
         replyTo: email,
+      }).catch((emailError) => {
+        console.error("Failed to send contact email:", emailError);
       });
     }
 

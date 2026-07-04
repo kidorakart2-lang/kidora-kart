@@ -4,7 +4,12 @@ import { useEffect, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { initializeGuestCart } from "@/redux/features/cart";
 import { initializeGuestWishlist } from "@/redux/features/wishlist";
+import { login, setProfile } from "@/redux/features/auth";
 import { getAuthToken } from "@/lib/getAuthToken";
+import {
+  fetchAndDispatchCart,
+  fetchAndDispatchWishlist,
+} from "@/lib/fetchCartWislist";
 
 /**
  * Proactively refresh the user's access token every 10 minutes
@@ -17,9 +22,6 @@ function useTokenRefresh() {
 
   const doRefresh = useCallback(async () => {
     if (!isLogin) return;
-    // Only attempt refresh if the js-readable userToken cookie exists.
-    // Both cookies now share the same 5-day lifetime, so this is a reliable
-    // proxy for the httpOnly refresh-token cookie being present too.
     if (!getAuthToken()) return;
     try {
       await fetch(
@@ -27,7 +29,6 @@ function useTokenRefresh() {
         {
           method: "POST",
           credentials: "include",
-          // Fire-and-forget — middleware handles edge cases
         },
       );
     } catch {
@@ -40,7 +41,6 @@ function useTokenRefresh() {
 
     refreshIntervalRef.current = setInterval(doRefresh, 10 * 60 * 1000);
 
-    // Also refresh on page visibility change (user returns after idle)
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
         doRefresh();
@@ -58,19 +58,52 @@ function useTokenRefresh() {
 }
 
 /**
- * This component initializes guest cart and wishlist from localStorage
- * when the app mounts and user is not logged in.
- * It should be placed inside the Redux Provider.
+ * Restore the Redux auth state from the userToken cookie on page load.
+ * sessionStorage is cleared on tab close, so redux-persist loses the auth
+ * state. This effect detects that scenario and re-hydrates Redux so the
+ * Header, Profile, Wishlist, etc. all see the user as logged in.
  */
+function useAuthBootstrap() {
+  const dispatch = useDispatch();
+  const isLogin = useSelector((state: { auth: { isLogin: boolean } }) => state.auth.isLogin);
+  const bootstrapped = useRef(false);
+
+  useEffect(() => {
+    if (bootstrapped.current) return;
+    const token = getAuthToken();
+    if (!token || isLogin) return;
+
+    bootstrapped.current = true;
+    dispatch(login(token));
+
+    fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}api/website/user/profile`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
+      },
+    )
+      .then((r) => r.json())
+      .then((data) => {
+        if (data._status) {
+          dispatch(setProfile(data._data));
+        }
+      })
+      .catch(() => {});
+
+    fetchAndDispatchCart(dispatch);
+    fetchAndDispatchWishlist(dispatch);
+  }, [dispatch, isLogin]);
+}
+
 export default function GuestDataInitializer({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch();
   const isLogin = useSelector((state: { auth: { isLogin: boolean } }) => state.auth.isLogin);
 
-  // Proactive token refresh
   useTokenRefresh();
+  useAuthBootstrap();
 
   useEffect(() => {
-    // Only initialize guest data if not logged in
     if (!isLogin && !getAuthToken()) {
       dispatch(initializeGuestCart());
       dispatch(initializeGuestWishlist());

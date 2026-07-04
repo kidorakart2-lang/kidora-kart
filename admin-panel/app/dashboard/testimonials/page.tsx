@@ -264,14 +264,14 @@ export default function TestimonialsPage() {
                   <Avatar className="h-12 w-12 ring-2 ring-primary/20 transition-all duration-300 group-hover:ring-primary/50">
                     <AvatarImage
                       src={testimonial.image || "/placeholder.svg"}
-                      alt={testimonial.title}
+                      alt={testimonial.title || ""}
                     />
                     <AvatarFallback>
-                      {testimonial.title.charAt(0)}
+                      {testimonial.title?.charAt(0) || "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold">{testimonial.title}</h3>
+                    <h3 className="font-semibold">{testimonial.title || "Untitled"}</h3>
                     <p className="text-sm text-muted-foreground">
                       {testimonial.description}
                     </p>

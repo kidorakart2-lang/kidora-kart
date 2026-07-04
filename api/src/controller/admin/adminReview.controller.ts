@@ -18,9 +18,11 @@ export const getAllReviews = async (
     }
 
     const reviews = await Reviews.find(query)
-      .populate("userId")
-      .populate("productId")
-      .sort("-createdAt");
+      .populate("userId", "name email")
+      .populate("productId", "name slug images")
+      .select("_id userId productId rating review status images createdAt")
+      .sort("-createdAt")
+      .lean();
     res.status(200).json({
       _status: true,
       _message: "All reviews fetched successfully",
@@ -42,8 +44,9 @@ export const getReviewById = async (
   try {
     const { id } = req.params;
     const review = await Reviews.findById(id)
-      .populate("userId")
-      .populate("productId");
+      .populate("userId", "name email")
+      .populate("productId", "name slug images")
+      .lean();
     if (!review) {
       res.status(404).json({
         _status: false,
@@ -104,7 +107,9 @@ export const deleteReview = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const review = await Reviews.findById(id);
+    const review = await Reviews.findById(id)
+      .select("_id deletedAt userId")
+      .lean();
     if (!review) {
       res.status(404).json({
         _status: false,
@@ -134,8 +139,7 @@ export const deleteReview = async (
       return;
     }
     // Soft delete for user-attached reviews
-    review.deletedAt = new Date();
-    await review.save();
+    await Reviews.findByIdAndUpdate(id, { deletedAt: new Date() });
     res.status(200).json({
       _status: true,
       _message: "Review marked as deleted successfully",

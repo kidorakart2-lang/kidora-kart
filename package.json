@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "concurrently -n api,admin,web -c blue,green,yellow \"pnpm --filter api run dev\" \"pnpm --filter admin-panel run dev\" \"pnpm --filter web run dev\"",
+    "dev:web": "pnpm --filter web run dev",
+    "dev:admin": "pnpm --filter admin-panel run dev",
     "build": "pnpm --filter api run build && pnpm --filter admin-panel run build && pnpm --filter web run build",
     "build:api": "pnpm --filter api run build",
     "build:admin": "pnpm --filter admin-panel run build",

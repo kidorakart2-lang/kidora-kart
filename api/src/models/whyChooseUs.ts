@@ -13,6 +13,8 @@ const whyChooseUsSchema = new Schema(
   },
 );
 
+whyChooseUsSchema.index({ deletedAt: 1, status: 1 });
+
 export type IWhyChooseUs = InferSchemaType<typeof whyChooseUsSchema>;
 
 const WhyChooseUs: Model<IWhyChooseUs> = mongoose.model<IWhyChooseUs>(

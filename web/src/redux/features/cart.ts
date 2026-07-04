@@ -128,7 +128,9 @@ export const cartSlice = createSlice({
         (total, item) => total + item.quantity,
         0
       );
-      saveGuestCartToStorage(state.cartItems);
+      if (state.cartItems.length === 0 || state.cartItems.some((item) => item.isGuest)) {
+        saveGuestCartToStorage(state.cartItems);
+      }
     },
     updateQuantity: (state, action) => {
       const { productId, quantity, colorId, sizeId } = action.payload;
@@ -161,7 +163,9 @@ export const cartSlice = createSlice({
           (total, item) => total + item.quantity,
           0
         );
-        saveGuestCartToStorage(state.cartItems);
+        if (state.cartItems.length === 0 || state.cartItems.some((item) => item.isGuest)) {
+          saveGuestCartToStorage(state.cartItems);
+        }
       }
     },
     updateFullCart: (state, action) => {

@@ -57,29 +57,6 @@ const createSafeStorage = (): PersistConfig<RootState>["storage"] => {
   };
 };
 
-// Strip heavy product data from cart items before persisting
-const cartItemTransform = createTransform(
-  (inboundState: Record<string, unknown>) => {
-    if (Array.isArray(inboundState.cartItems)) {
-      return {
-        ...inboundState,
-        cartItems: inboundState.cartItems.map(
-          (item: Record<string, unknown>) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            colorId: item.colorId,
-            sizeId: item.sizeId,
-            isGuest: item.isGuest,
-          })
-        ),
-      };
-    }
-    return inboundState;
-  },
-  (outboundState: Record<string, unknown>) => outboundState,
-  { whitelist: ["cart"] }
-);
-
 // Strip auth token before persisting — token lives only in the cookie
 const authTokenFilter = createTransform(
   (inboundState: Record<string, unknown>) => {
@@ -99,7 +76,6 @@ const persistConfig: PersistConfig<RootState> = {
   whitelist: ["cart", "wishlist", "auth"],
   transforms: [
     ...(encryptTransform ? [encryptTransform] : []),
-    cartItemTransform,
     authTokenFilter,
   ],
 };

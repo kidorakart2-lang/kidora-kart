@@ -157,9 +157,22 @@ const fetchSubSubCategories = async () => {
   }
 };
 
-const fetchProducts = async (isDeletedAt?: string) => {
-  const data = await api.post<Product[]>("/api/admin/product/view", { isDeletedAt });
-  return data || [];
+interface PaginatedResponse<T> {
+  _data: T[];
+  _pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+const fetchProducts = async (isDeletedAt?: string, page: number = 1, limit: number = 50) => {
+  const response = await api.postRaw<PaginatedResponse<Product>>("/api/admin/product/view", { isDeletedAt, page, limit });
+  return {
+    products: response._data || [],
+    pagination: response._pagination,
+  };
 };
 
 const deleteProduct = async (id: string) => {
@@ -234,16 +247,21 @@ export default function ProductsPage() {
   });
 
   const [deletedFilter, setDeletedFilter] = useState<string>("active");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 50;
 
   const {
-    data: products = [],
+    data: fetchResult,
     isLoading,
     isError,
-  } = useQuery<Product[]>({
-    queryKey: ["products", deletedFilter],
-    queryFn: () => fetchProducts(deletedFilter === "active" ? undefined : deletedFilter),
+  } = useQuery({
+    queryKey: ["products", deletedFilter, currentPage],
+    queryFn: () => fetchProducts(deletedFilter === "active" ? undefined : deletedFilter, currentPage, pageSize),
     staleTime: 2 * 60 * 1000,
   });
+
+  const products = fetchResult?.products ?? [];
+  const totalItems = fetchResult?.pagination?.total ?? products.length;
 
   // Mutations
   const deleteMutation = useMutation({
@@ -697,6 +715,11 @@ export default function ProductsPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
         searchPlaceholder="Search products..."
+        externalPagination={{
+          totalItems,
+          currentPage,
+          onPageChange: (page) => setCurrentPage(page),
+        }}
       />
 
       <Drawer

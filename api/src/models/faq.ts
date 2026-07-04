@@ -30,6 +30,8 @@ const faqSchema = new Schema(
   { timestamps: true },
 );
 
+faqSchema.index({ deletedAt: 1, status: 1, order: -1 });
+
 export type IFaq = InferSchemaType<typeof faqSchema>;
 
 const FaqModel: Model<IFaq> = mongoose.model<IFaq>("faqs", faqSchema);

@@ -94,7 +94,10 @@ export const view = async (
     const ress = await subSubCategory
       .find(filter)
       .sort({ order: "asc", _id: "desc" })
-      .populate("subCategory")
+      .populate({
+        path: "subCategory",
+        populate: { path: "category", select: "slug name" },
+      })
       .lean();
 
     response.send({
@@ -116,7 +119,7 @@ export const destroy = async (
   response: Response,
 ): Promise<void> => {
   try {
-    const existing = await subSubCategory.findById(request.body.id);
+    const existing = await subSubCategory.findById(request.body.id).select("_id deletedAt").lean();
     if (!existing) {
       response.send({ _status: false, _message: "No Data Found", _data: null });
       return;

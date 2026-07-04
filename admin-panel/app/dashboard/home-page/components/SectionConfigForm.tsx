@@ -31,6 +31,7 @@ export default function SectionConfigForm({ type, config, onChange }: Props) {
       return <BannerConfigForm config={config} onChange={onChange} />
 
     case "round-categories":
+    case "square-categories":
     case "shop-by-price":
       return (
         <div className="space-y-2">

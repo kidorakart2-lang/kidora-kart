@@ -120,15 +120,17 @@ export const getByCategory = async (
     const cappedLimit = Math.min(Number(limit), 100);
     const skip = (Number(page) - 1) * cappedLimit;
 
-    const category = categorySlug
-      ? await Category.findOne({ slug: categorySlug })
-      : null;
-    const subCategory = subCategorySlug
-      ? await SubCategory.findOne({ slug: subCategorySlug })
-      : null;
-    const subSubCategory = subSubCategorySlug
-      ? await SubSubCategory.findOne({ slug: subSubCategorySlug })
-      : null;
+    const [category, subCategory, subSubCategory] = await Promise.all([
+      categorySlug
+        ? Category.findOne({ slug: categorySlug }).select("_id").lean()
+        : Promise.resolve(null),
+      subCategorySlug
+        ? SubCategory.findOne({ slug: subCategorySlug }).select("_id").lean()
+        : Promise.resolve(null),
+      subSubCategorySlug
+        ? SubSubCategory.findOne({ slug: subSubCategorySlug }).select("_id").lean()
+        : Promise.resolve(null),
+    ]);
 
     const filters: Record<string, unknown>[] = [];
     if (category) filters.push({ category: { $in: [category._id] } });
@@ -143,29 +145,32 @@ export const getByCategory = async (
       });
     }
 
-    const products = await Product.find({
-      $or: filters,
-      deletedAt: null,
-      status: true,
-    })
-      .populate({ path: "category", match: { deletedAt: null, status: true } })
-      .populate({
-        path: "subCategory",
-        match: { deletedAt: null, status: true },
-      })
-      .populate({
-        path: "subSubCategory",
-        match: { deletedAt: null, status: true },
-      })
-      .sort(sort)
-      .limit(cappedLimit)
-      .skip(skip);
+    const query = { $or: filters, deletedAt: null, status: true };
 
-    const total = await Product.countDocuments({
-      $or: filters,
-      deletedAt: null,
-      status: true,
-    });
+    const [products, total] = await Promise.all([
+      Product.find(query)
+        .populate({
+          path: "category",
+          select: "name slug",
+          match: { deletedAt: null, status: true },
+        })
+        .populate({
+          path: "subCategory",
+          select: "name slug",
+          match: { deletedAt: null, status: true },
+        })
+        .populate({
+          path: "subSubCategory",
+          select: "name slug",
+          match: { deletedAt: null, status: true },
+        })
+        .select(PRODUCT_SELECT)
+        .sort(sort)
+        .limit(cappedLimit)
+        .skip(skip)
+        .lean(),
+      Product.countDocuments(query),
+    ]);
 
     return success(res, products, "Products fetched successfully", 200, {
       _pagination: {
@@ -298,40 +303,44 @@ export const getProductByFilter = async (
     if (isUpsell !== undefined) query.isUpsell = isUpsell;
     if (isOnSale !== undefined) query.isOnSale = isOnSale;
 
-    if (categorySlug) {
-      const categories = await Category.find({
-        slug: Array.isArray(categorySlug)
-          ? { $in: categorySlug }
-          : categorySlug,
-      })
-        .select("_id")
-        .lean();
-      if (categories.length > 0) {
-        query.category = { $in: categories.map((c) => c._id) };
+    if (categorySlug || subCategorySlug || subSubCategorySlug) {
+      const [cats, subCats, subSubCats] = await Promise.all([
+        categorySlug
+          ? Category.find({
+              slug: Array.isArray(categorySlug)
+                ? { $in: categorySlug }
+                : categorySlug,
+            })
+              .select("_id")
+              .lean()
+          : Promise.resolve([]),
+        subCategorySlug
+          ? SubCategory.find({
+              slug: Array.isArray(subCategorySlug)
+                ? { $in: subCategorySlug }
+                : subCategorySlug,
+            })
+              .select("_id")
+              .lean()
+          : Promise.resolve([]),
+        subSubCategorySlug
+          ? SubSubCategory.find({
+              slug: Array.isArray(subSubCategorySlug)
+                ? { $in: subSubCategorySlug }
+                : subSubCategorySlug,
+            })
+              .select("_id")
+              .lean()
+          : Promise.resolve([]),
+      ]);
+      if (cats.length > 0) {
+        query.category = { $in: cats.map((c) => c._id) };
       }
-    }
-    if (subCategorySlug) {
-      const subCategories = await SubCategory.find({
-        slug: Array.isArray(subCategorySlug)
-          ? { $in: subCategorySlug }
-          : subCategorySlug,
-      })
-        .select("_id")
-        .lean();
-      if (subCategories.length > 0) {
-        query.subCategory = { $in: subCategories.map((c) => c._id) };
+      if (subCats.length > 0) {
+        query.subCategory = { $in: subCats.map((c) => c._id) };
       }
-    }
-    if (subSubCategorySlug) {
-      const subSubCategories = await SubSubCategory.find({
-        slug: Array.isArray(subSubCategorySlug)
-          ? { $in: subSubCategorySlug }
-          : subSubCategorySlug,
-      })
-        .select("_id")
-        .lean();
-      if (subSubCategories.length > 0) {
-        query.subSubCategory = { $in: subSubCategories.map((c) => c._id) };
+      if (subSubCats.length > 0) {
+        query.subSubCategory = { $in: subSubCats.map((c) => c._id) };
       }
     }
     if (colorIds && colorIds.length > 0) query.colors = { $in: colorIds };
@@ -349,17 +358,19 @@ export const getProductByFilter = async (
       query.discount_price = { $lte: Number(priceTo) };
     }
 
-    const total = await Product.countDocuments(query);
     const cappedLimit = Math.min(Number(limit), 100);
     const skip = Math.max(0, (Number(page) - 1) * cappedLimit);
 
-    const products = await Product.find(query)
-      .populate(productListPopulate())
-      .select(PRODUCT_SELECT)
-      .limit(cappedLimit)
-      .skip(skip)
-      .sort({ order: -1, createdAt: -1 })
-      .lean();
+    const [total, products] = await Promise.all([
+      Product.countDocuments(query),
+      Product.find(query)
+        .populate(productListPopulate())
+        .select(PRODUCT_SELECT)
+        .limit(cappedLimit)
+        .skip(skip)
+        .sort({ order: -1, createdAt: -1 })
+        .lean(),
+    ]);
 
     return success(res, products, "Products Found", 200, {
       _pagination: {
@@ -438,6 +449,7 @@ export const relatedProducts = async (
       })
         .limit(remainingLimit)
         .populate(productListPopulate())
+        .select(PRODUCT_SELECT)
         .lean();
 
       products = [...products, ...subCategoryProducts];

@@ -75,7 +75,9 @@ export const view = async (
 
     const ress = await color
       .find(filter)
-      .sort({ order: "asc", _id: "desc" });
+      .select("_id name code status order")
+      .sort({ order: "asc", _id: "desc" })
+      .lean();
 
     response.status(200).json({
       _status: true,
@@ -105,7 +107,7 @@ export const destroy = async (
       return;
     }
 
-    const existing = await color.findById(request.body.id);
+    const existing = await color.findById(request.body.id).select("_id deletedAt").lean();
     if (!existing) {
       response.status(404).json({ _status: false, _message: "No Data Found", _data: null });
       return;
@@ -152,7 +154,7 @@ export const details = async (
       return;
     }
 
-    const result = await color.findById({ _id: request.body.id });
+    const result = await color.findById({ _id: request.body.id }).lean();
     if (!result) {
       response.status(404).json({
         _status: false,

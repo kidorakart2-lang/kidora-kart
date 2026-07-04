@@ -30,20 +30,33 @@ Document all **public / customer-facing** API routes under `/api/website/*`.
 | Why Choose Us | `GET /api/website/whyChooseUs` | ✅ Done |
 | Wishlist | `GET /wishlist/view`, `POST /add`, `PUT /remove/:productId`, `POST /check/:productId` | ✅ Done |
 
-### 🔜 Phase 2 — Admin Routes (planned)
-Document all **admin** routes under `/api/admin/*`. This phase will add JSDoc annotations and schemas for admin endpoints including:
-- Product CRUD
-- Category / SubCategory / SubSubCategory CRUD
-- Banner CRUD
-- Order management
-- User management
-- Home page sections
-- Dashboard / analytics
-- Audit logs
-- Colors, Materials, Sizes
-- FAQs, Testimonials, Reviews
-- Why Choose Us, Logos
-- Product FAQs
+### ✅ Phase 2 — Admin Routes (done)
+Document all **admin** routes under `/api/admin/*`. Added JSDoc annotations and schemas for all admin endpoints:
+- ✅ Admin login & user management
+- ✅ Product CRUD
+- ✅ Category / SubCategory / SubSubCategory CRUD
+- ✅ Banner CRUD
+- ✅ Order management & refund processing
+- ✅ Home page sections
+- ✅ Dashboard / analytics
+- ✅ Audit logs
+- ✅ Colors, Materials, Sizes
+- ✅ FAQs, Testimonials, Reviews
+- ✅ Why Choose Us, Logos
+- ✅ Product FAQs
+- ✅ CSRF token endpoint
+- ✅ Banner link options
+
+### ✅ Phase 3 — Refinement & Coverage (completed)
+
+Completed quality-of-life improvements to documentation:
+- ✅ Added **error response schemas** (401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal) to all 19 web route files and all 20 admin route files
+- ✅ Added **rate-limit headers** (`Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`) to the suggestion and send-email-otp endpoints
+- ✅ Documented **security schemes** (`BearerAuth`, `CookieAuth`, `AdminCookieAuth`, `CsrfToken`) used across all authenticated endpoints
+- ✅ Swagger config (`api/src/config/swagger.ts`) includes all shared schemas, security components, and header components
+- ✅ Error response `$ref` paths verified consistent across all route files
+- ✅ `NODE_ENV`-gated visibility: Swagger disabled in production unless `ENABLE_SWAGGER=true`
+- ✅ Typecheck: clean, zero errors after all additions
 
 ---
 

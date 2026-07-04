@@ -17,18 +17,17 @@ export const navController = async (
       return success(res, cached, "Data fetched successfully");
     }
 
-    const categories = await Category.find({
-      deletedAt: null,
-      status: true,
-    }).lean();
-    const subCategories = await SubCategory.find({
-      deletedAt: null,
-      status: true,
-    }).lean();
-    const subSubCategories = await SubSubCategory.find({
-      deletedAt: null,
-      status: true,
-    }).lean();
+    const [categories, subCategories, subSubCategories] = await Promise.all([
+      Category.find({ deletedAt: null, status: true })
+        .select("_id name slug parentSubCategory image")
+        .lean(),
+      SubCategory.find({ deletedAt: null, status: true })
+        .select("_id name slug category image")
+        .lean(),
+      SubSubCategory.find({ deletedAt: null, status: true })
+        .select("_id name slug subCategory image")
+        .lean(),
+    ]);
 
     const navigationData = categories.map((category) => {
       const categorySubCategories = subCategories

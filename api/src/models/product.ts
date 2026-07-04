@@ -118,12 +118,33 @@ const productSchema = new Schema(
   },
 );
 
-productSchema.index({ slug: 1 });
-productSchema.index({ category: 1 });
-productSchema.index({ subCategory: 1 });
-productSchema.index({ subSubCategory: 1 });
-productSchema.index({ colors: 1 });
-productSchema.index({ material: 1 });
+// Primary query indexes
+productSchema.index({ slug: 1, status: 1, deletedAt: 1 });
+productSchema.index({ deletedAt: 1, status: 1, order: -1, createdAt: -1 });
+
+// Category hierarchy indexes
+productSchema.index({ category: 1, status: 1, deletedAt: 1, order: -1, createdAt: -1 });
+productSchema.index({ subCategory: 1, status: 1, deletedAt: 1, order: -1, createdAt: -1 });
+productSchema.index({ subSubCategory: 1, status: 1, deletedAt: 1, order: -1, createdAt: -1 });
+
+// Filter indexes
+productSchema.index({ colors: 1, status: 1, deletedAt: 1 });
+productSchema.index({ material: 1, status: 1, deletedAt: 1 });
+
+// Feature flag indexes
+productSchema.index({ deletedAt: 1, status: 1, isNewArrival: 1, order: -1, createdAt: -1 });
+productSchema.index({ deletedAt: 1, status: 1, isBestSeller: 1, order: -1, createdAt: -1 });
+productSchema.index({ deletedAt: 1, status: 1, isFeatured: 1, order: -1, createdAt: -1 });
+productSchema.index({ deletedAt: 1, status: 1, isUpsell: 1, order: -1, createdAt: -1 });
+productSchema.index({ deletedAt: 1, status: 1, isOnSale: 1, order: -1, createdAt: -1 });
+
+// Price filter index
+productSchema.index({ deletedAt: 1, status: 1, discount_price: 1, order: -1, createdAt: -1 });
+
+// Common indexes
+productSchema.index({ name: 1 });
+productSchema.index({ code: 1 });
+productSchema.index({ order: -1, createdAt: -1 });
 
 export type IProduct = InferSchemaType<typeof productSchema>;
 

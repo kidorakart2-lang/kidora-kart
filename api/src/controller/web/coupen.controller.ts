@@ -5,7 +5,9 @@ import { success, fail } from "../../utils/responses.js";
 export const coupenPopUp = async (req: Request, res: Response): Promise<Response> => {
   try {
     const coupenId = req.params.id;
-    const coupen = await Coupen.findById(coupenId);
+    const coupen = await Coupen.findById(coupenId)
+      .select("_id code discount type expiryDate minAmount status isUsed userId")
+      .lean();
     if (!coupen) return fail(res, "Coupen Not Found", 404);
     if (coupen.expiryDate && new Date(coupen.expiryDate) < new Date()) {
       return fail(res, "Coupon has expired", 400);
@@ -30,7 +32,9 @@ export const findCoupen = async (req: Request, res: Response): Promise<Response>
         { expiryDate: null },
         { expiryDate: { $gte: new Date() } },
       ],
-    });
+    })
+      .select("_id code discount type expiryDate minAmount userId")
+      .lean();
     return success(res, coupen, "Coupen Found");
   } catch (error) {
     console.error("Coupen Pop Up Error:", error);

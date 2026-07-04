@@ -21,7 +21,7 @@ export const createReview = async (req: Request, res: Response): Promise<Respons
       return fail(res, "Product ID, rating, and comment are required", 400);
     }
 
-    const existingReview = await Review.findOne({ userId, productId });
+    const existingReview = await Review.findOne({ userId, productId }).select("_id").lean();
     if (existingReview) {
       return fail(res, "You have already reviewed this product", 400);
     }

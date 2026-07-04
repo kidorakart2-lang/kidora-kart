@@ -46,6 +46,8 @@ const categorySchema = new Schema(
 
 categorySchema.index({ slug: 1 }, { unique: true });
 categorySchema.index({ name: 1 }, { unique: true });
+categorySchema.index({ deletedAt: 1, status: 1, order: -1 });
+categorySchema.index({ slug: 1, status: 1, deletedAt: 1 });
 
 export type ICategory = InferSchemaType<typeof categorySchema>;
 

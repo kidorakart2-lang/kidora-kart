@@ -13,6 +13,8 @@ const testimonialSchema = new Schema(
   { timestamps: true },
 );
 
+testimonialSchema.index({ deletedAt: 1, status: 1 });
+
 export type ITestimonial = InferSchemaType<typeof testimonialSchema>;
 
 const Testimonial: Model<ITestimonial> = mongoose.model<ITestimonial>(

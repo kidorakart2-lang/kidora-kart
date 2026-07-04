@@ -155,7 +155,9 @@ export const verifyRefundStatus = async (
 
     const order = await Order.findOne({
       $or: [{ orderId }, { _id: orderId }],
-    });
+    })
+      .select("orderId payment.razorpay.paymentId cancellation.refundId cancellation.refundStatus status payment.status pricing.total")
+      .lean();
 
     if (!order) {
       res.status(404).json({
@@ -266,7 +268,9 @@ export const updateRefundStatus = async (
 
     const order = await Order.findOne({
       $or: [{ orderId }, { _id: orderId }],
-    });
+    })
+      .select("orderId _id payment.razorpay.paymentId payment.razorpay.orderId cancellation.refundId cancellation.refundStatus cancellation.refundedAt status payment.status notes.internal")
+      .lean();
 
     if (!order) {
       res.status(404).json({
@@ -381,7 +385,9 @@ export const syncRefundStatusesFromRazorpay = async (
           "cancellation.refundStatus": { $ne: "completed" },
         },
       ],
-    });
+    })
+      .select("orderId _id payment.razorpay.paymentId cancellation.refundId cancellation.refundStatus cancellation.refundedAt status payment.status")
+      .lean();
 
     const results = {
       total: orders.length,
@@ -510,7 +516,9 @@ export const bulkUpdateRefundStatus = async (
     if (refundStatus === "completed") {
       const orders = await Order.find({
         _id: { $in: orderIds },
-      }).lean();
+      })
+        .select("_id orderId payment.razorpay.paymentId cancellation.refundId")
+        .lean();
 
       const updatedIds: string[] = [];
       const verifiedOrders: typeof orders = [];
@@ -824,14 +832,16 @@ export const confirmPendingPayment = async (
         email: string;
       };
       if (populatedUser && populatedUser.email) {
-        await sendEmail(populatedUser.email, "orderConfirmed", {
+        sendEmail(populatedUser.email, "orderConfirmed", {
           userName: populatedUser.name,
           orderId: order.orderId,
           orderDate: new Date(order.createdAt).toLocaleDateString(),
           totalAmount: order.pricing?.total ?? 0,
           items: order.items,
           shippingAddress: order.shippingAddress,
-        });
+        }).catch((err) =>
+          logger.error(err, "Failed to send order confirmation email"),
+        );
       }
     } catch (emailError) {
       logger.error(emailError, "Failed to send order confirmation email");

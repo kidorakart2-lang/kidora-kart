@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 import DefaultBanner from "./(sections)/DefaultBanner";
-import MenWomen from "./(sections)/MenWomen";
+import GenderCategorySection from "./(sections)/GenderCategorySection";
 import ShopByPrice from "./(sections)/ShopbyPrice";
 import TabProducts from "./(sections)/TabProducts";
 import WhyChooseUs from "./(sections)/WhyChooseUs";
@@ -261,7 +261,7 @@ export default async function Home() {
 
       <DefaultBanner />
       <RoundCategorySlider />
-      <MenWomen />
+      <GenderCategorySection />
       <ShopByPrice />
       <TabProducts data={tabsData} />
       <WhyChooseUs />

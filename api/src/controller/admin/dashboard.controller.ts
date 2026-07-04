@@ -106,7 +106,8 @@ export const getRecentActivity = async (
       .sort({ createdAt: -1 })
       .limit(10)
       .populate("userId", "name email avatar")
-      .select("orderId pricing.total pricing.status createdAt");
+      .select("orderId pricing.total pricing.status createdAt")
+      .lean();
 
     const recentUsers = await User.find({
       createdAt: { $gte: oneWeekAgo },
@@ -114,7 +115,8 @@ export const getRecentActivity = async (
     })
       .sort({ createdAt: -1 })
       .limit(10)
-      .select("name email createdAt avatar");
+      .select("name email createdAt avatar")
+      .lean();
 
     res.status(200).json({
       success: true,

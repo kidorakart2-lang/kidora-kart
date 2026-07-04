@@ -50,7 +50,9 @@ export const view = async (req: Request, res: Response): Promise<void> => {
 
     const logos = await logoModal
       .find(filter)
-      .sort({ createdAt: "desc" });
+      .select("_id logo linkText linkUrl status createdAt")
+      .sort({ createdAt: "desc" })
+      .lean();
     res.status(200).json({
       _status: true,
       _message: "Logos Found",
@@ -72,7 +74,7 @@ export const update = async (
   try {
     const data: Record<string, unknown> = { ...req.body };
 
-    const existingLogo = await logoModal.findById(req.params.id);
+    const existingLogo = await logoModal.findById(req.params.id).select("_id logo").lean();
     if (!existingLogo) {
       res.status(404).json({
         _status: false,
@@ -114,7 +116,9 @@ export const destroy = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const logo = await logoModal.findById(req.params.id);
+    const logo = await logoModal.findById(req.params.id)
+      .select("_id deletedAt")
+      .lean();
     if (!logo) {
       res.status(404).json({
         _status: false,
@@ -130,8 +134,7 @@ export const destroy = async (
       res.status(200).json({ _status: true, _message: "Logo Permanently Deleted", _data: null });
       return;
     }
-    logo.deletedAt = new Date();
-    await logo.save();
+    await logoModal.findByIdAndUpdate(req.params.id, { deletedAt: new Date() });
     cache.del("logoData");
     res.status(200).json({
       _status: true,

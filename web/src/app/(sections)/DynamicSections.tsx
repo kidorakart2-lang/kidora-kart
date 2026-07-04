@@ -18,7 +18,10 @@ const Testimonial = dynamic(() => import("./Testimonial"), {
 const RoundCategorySlider = dynamic(() => import("./RoundCategorySlider"), {
   loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-6" />,
 });
-const MenWomen = dynamic(() => import("./MenWomen"), {
+const SquareCategorySlider = dynamic(() => import("./SquareCategorySlider"), {
+  loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-6" />,
+});
+const GenderCategorySection = dynamic(() => import("./GenderCategorySection"), {
   loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-6" />,
 });
 const ShopByPrice = dynamic(() => import("./ShopbyPrice"), {
@@ -103,9 +106,12 @@ async function DynamicSection({ section }: { section: HomeSection }) {
     case "round-categories":
       return <RoundCategorySlider heading={cfg.heading as string | undefined} />;
 
+    case "square-categories":
+      return <SquareCategorySlider heading={cfg.heading as string | undefined} />;
+
     case "category-grid":
       return (
-        <MenWomen
+        <GenderCategorySection
           heading={cfg.heading as string | undefined}
           sourceType={cfg.categorySourceType as string | undefined}
           selectedItemIds={cfg.categorySelectedIds as string[] | undefined}

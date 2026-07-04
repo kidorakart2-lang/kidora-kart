@@ -26,6 +26,18 @@ import {
 } from "@/redux/features/cart";
 import type { ProductData } from "@/types";
 import type { RootState } from "@/redux/store/store";
+import type { CartSliceItem } from "@/redux/features/cart";
+
+function serverItemToSlice(item: CartApiItem): CartSliceItem {
+  return {
+    productId: item.product._id as string ?? "",
+    product: item.product as unknown as Record<string, unknown> ?? null,
+    quantity: item.quantity ?? 1,
+    colorId: (item.color?._id as string) ?? null,
+    sizeId: (item.size?._id as string) ?? null,
+    isGuest: false,
+  };
+}
 
 interface CartApiItem {
   _id: string;
@@ -60,7 +72,11 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
       setFetchedCart(null);
       fetchKey.current = false;
       if (cart?._data?.items?.length) {
-        dispatch(updateFullCart(cart._data));
+        dispatch(updateFullCart({
+          items: cart._data.items.map(serverItemToSlice),
+          totalPrice: cart._data.totalPrice,
+          totalItems: cart._data.totalItems,
+        }));
       }
       return;
     }
@@ -79,7 +95,11 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
       .then((data) => {
         if (data?._data?.items?.length) {
           setFetchedCart(data);
-          dispatch(updateFullCart(data._data));
+          dispatch(updateFullCart({
+            items: data._data.items.map(serverItemToSlice),
+            totalPrice: data._data.totalPrice,
+            totalItems: data._data.totalItems,
+          }));
         }
       })
       .catch(() => {});

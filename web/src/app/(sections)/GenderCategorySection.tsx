@@ -116,17 +116,13 @@ export default function GenderCategorySection({
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/50" />
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-4 tracking-wider">
+                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-sans font-light text-white mb-4 tracking-wider">
                     {item.name}
                   </h3>
 
                   <div className="relative overflow-hidden">
                     <button
                       className="px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/30 text-white font-light tracking-widest text-sm"
-                      style={{
-                        backgroundColor: "color-mix(in srgb, white 10%, transparent)",
-                        borderColor: "color-mix(in srgb, white 30%, transparent)",
-                      }}
                     >
                       <span className="relative z-10">SHOP NOW</span>
                     </button>
@@ -204,17 +200,13 @@ export default function GenderCategorySection({
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/50" />
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-4 tracking-wider">
+                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-sans font-light text-white mb-4 tracking-wider">
                     {subCategory.name}
                   </h3>
 
                   <div className="relative overflow-hidden">
                     <button
                       className="px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/30 text-white font-light tracking-widest text-sm"
-                      style={{
-                        backgroundColor: "color-mix(in srgb, white 10%, transparent)",
-                        borderColor: "color-mix(in srgb, white 30%, transparent)",
-                      }}
                     >
                       <span className="relative z-10">SHOP NOW</span>
                     </button>

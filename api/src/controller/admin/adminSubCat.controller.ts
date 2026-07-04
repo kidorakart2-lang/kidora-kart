@@ -93,8 +93,10 @@ export const view = async (
     await subCategory.find(filter).countDocuments();
     const ress = await subCategory
       .find(filter)
+      .select("_id name slug image category status order")
       .sort({ order: "asc", _id: "desc" })
-      .populate("category");
+      .populate("category", "name slug")
+      .lean();
 
     response.send({
       _status: true,
@@ -115,7 +117,7 @@ export const destroy = async (
   response: Response,
 ): Promise<void> => {
   try {
-    const existing = await subCategory.findById(request.body.id);
+    const existing = await subCategory.findById(request.body.id).select("_id deletedAt").lean();
     if (!existing) {
       response.send({ _status: false, _message: "No Data Found", _data: null });
       return;
@@ -155,7 +157,7 @@ export const details = async (
   response: Response,
 ): Promise<void> => {
   try {
-    const result = await subCategory.findById({ _id: request.body.id });
+    const result = await subCategory.findById({ _id: request.body.id }).lean();
     response.send({
       _status: !!result,
       _message: result ? "Data Found" : "No Data Found",

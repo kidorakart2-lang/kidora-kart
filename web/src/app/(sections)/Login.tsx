@@ -124,13 +124,13 @@ const LoginPage = () => {
         // Clear guest data from localStorage
         dispatch(clearGuestCart());
         dispatch(clearGuestWishlist());
-
-        // Fetch updated cart and wishlist from server
-        await Promise.all([
-          fetchAndDispatchCart(dispatch),
-          fetchAndDispatchWishlist(dispatch),
-        ]);
       }
+
+      // Always fetch fresh cart and wishlist from server after login
+      await Promise.all([
+        fetchAndDispatchCart(dispatch),
+        fetchAndDispatchWishlist(dispatch),
+      ]);
 
       router.push(returnTo || "/");
     } catch (error) {

@@ -52,6 +52,9 @@ const subCategorySchema = new Schema(
 
 subCategorySchema.index({ slug: 1 }, { unique: true });
 subCategorySchema.index({ name: 1 }, { unique: true });
+subCategorySchema.index({ deletedAt: 1, status: 1, order: -1 });
+subCategorySchema.index({ slug: 1, status: 1, deletedAt: 1 });
+subCategorySchema.index({ category: 1, status: 1, deletedAt: 1 });
 
 export type ISubCategory = InferSchemaType<typeof subCategorySchema>;
 

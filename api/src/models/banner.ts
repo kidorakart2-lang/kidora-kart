@@ -26,6 +26,8 @@ const bannerSchema = new Schema(
   { timestamps: true },
 );
 
+bannerSchema.index({ status: 1, deletedAt: 1, order: -1 });
+
 export type IBanner = InferSchemaType<typeof bannerSchema>;
 
 const BannerModel: Model<IBanner> = mongoose.model<IBanner>(

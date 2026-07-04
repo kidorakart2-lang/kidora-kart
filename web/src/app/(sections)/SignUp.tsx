@@ -87,13 +87,13 @@ const SignUpPage = () => {
         // Clear guest data from localStorage
         dispatch(clearGuestCart());
         dispatch(clearGuestWishlist());
-
-        // Fetch updated cart and wishlist from server
-        await Promise.all([
-          fetchAndDispatchCart(dispatch),
-          fetchAndDispatchWishlist(dispatch),
-        ]);
       }
+
+      // Always fetch fresh cart and wishlist from server after signup
+      await Promise.all([
+        fetchAndDispatchCart(dispatch),
+        fetchAndDispatchWishlist(dispatch),
+      ]);
 
       router.push(returnTo || "/profile?tab=profile");
     } catch (err: unknown) {

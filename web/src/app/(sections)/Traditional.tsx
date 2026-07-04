@@ -80,10 +80,10 @@ const TraditionalJewellery = () => {
                   <span className="text-brand-300 text-sm font-medium tracking-wider mb-1 block">
                     {item.subtitle}
                   </span>
-                  <h3 className="text-white text-xl font-semibold mb-3">
+                  <h3 className="text-background text-xl font-semibold mb-3">
                     {item.title}
                   </h3>
-                  <button className="text-white text-sm font-medium border-b border-transparent hover:border-white transition-all duration-300">
+                  <button className="text-background text-sm font-medium border-b border-transparent hover:border-background transition-all duration-300">
                     Explore Collection →
                   </button>
                 </div>

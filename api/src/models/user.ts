@@ -104,6 +104,12 @@ const userSchema = new Schema(
   },
 );
 
+// Auth indexes
+userSchema.index({ email: 1 });
+userSchema.index({ email: 1, role: 1 });
+userSchema.index({ googleId: 1 });
+userSchema.index({ deletedAt: 1, status: 1 });
+
 export type IUser = InferSchemaType<typeof userSchema>;
 
 const userModel: Model<IUser> = mongoose.model<IUser>("users", userSchema);

@@ -4,9 +4,11 @@ import cors from "cors";
 import compression from "compression";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import swaggerUi from "swagger-ui-express";
 
 import "dotenv/config";
 import { env } from "./config/env.js";
+import { swaggerSpec } from "./config/swagger.js";
 
 import userRoutes from "./routes/web/user.route.js";
 import productRoutes from "./routes/web/product.routes.js";
@@ -53,10 +55,6 @@ const app = express();
 
 app.use(helmet());
 
-app.use(compression());
-
-app.use(express.urlencoded({ extended: true }));
-
 app.use(
   cors({
     origin: env.CORS_ORIGINS,
@@ -65,6 +63,10 @@ app.use(
     credentials: true,
   }),
 );
+
+app.use(compression());
+
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 app.use(cookieParser());
 
@@ -78,19 +80,25 @@ function sanitize(obj: unknown): unknown {
   }, {} as Record<string, unknown>);
 }
 
-app.use((req, _res, next) => {
-  if (req.body) req.body = sanitize(req.body) as typeof req.body;
-  const q = sanitize({ ...req.query });
-  try { Object.defineProperty(req, "query", { value: q, configurable: true }); } catch {}
-  next();
-});
-
 app.use((req, res, next) => {
   if (req.originalUrl === "/api/website/orders/webhooks/razorpay") {
     raw({ type: "application/json" })(req, res, next);
   } else {
-    express.json()(req, res, next);
+    express.json({ limit: "1mb" })(req, res, next);
   }
+});
+
+// Body sanitization — runs after all body parsers so JSON bodies are sanitized too.
+// Skips Buffer bodies (e.g. webhook raw payload) to avoid corrupting binary data.
+app.use((req, _res, next) => {
+  if (req.body && !Buffer.isBuffer(req.body)) {
+    req.body = sanitize(req.body) as typeof req.body;
+  }
+  const q = sanitize({ ...req.query });
+  try { Object.defineProperty(req, "query", { value: q, configurable: true }); } catch {
+    // non-configurable query — ignore
+  }
+  next();
 });
 
 app.use("/api/website/logo", logoRoutes);
@@ -112,6 +120,20 @@ app.use("/api/website/result", suggestionRoutes);
 app.use("/api/website/coupen", coupenRoutes);
 app.use("/api/website/product-faq", productFaqRoutes);
 app.use("/api/website/home-page", homePageRoutes);
+
+// ── Swagger Docs ──
+// Available in all environments in development; in production only when ENABLE_SWAGGER=true
+if (env.NODE_ENV === "development" || env.ENABLE_SWAGGER === true) {
+  app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customSiteTitle: "Jewellery Walla API Docs",
+    customCss: ".swagger-ui .topbar { display: none }",
+  }));
+  app.get("/api/docs.json", (_req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    res.send(swaggerSpec);
+  });
+  console.log("📖 Swagger docs available at /api/docs");
+}
 
 app.use("/api/admin/logo", adminLogoRoutes);
 app.use("/api/admin/banner", adminBannerRoutes);
@@ -137,6 +159,11 @@ app.get("/api/admin/csrf-token", getCsrfToken);
 
 app.get("/", (_req, res) => {
   res.send("server started");
+});
+
+// 404 handler — must be after all routes
+app.use((_req, res) => {
+  res.status(404).json({ success: false, message: "Route not found" });
 });
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

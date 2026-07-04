@@ -92,7 +92,10 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
       _id: productId,
       status: true,
       deletedAt: null,
-    }).session(session);
+    })
+      .select("stock")
+      .session(session)
+      .lean();
 
     if (!product) {
       await session.abortTransaction();
@@ -213,7 +216,10 @@ export const updateCartItem = asyncHandler(
         return fail(res, "Item not found in cart", 404);
       }
 
-      const product = await Product.findById(item.product).session(session);
+      const product = await Product.findById(item.product)
+        .select("stock")
+        .session(session)
+        .lean();
 
       if (!product || product.stock < quantity) {
         await session.abortTransaction();

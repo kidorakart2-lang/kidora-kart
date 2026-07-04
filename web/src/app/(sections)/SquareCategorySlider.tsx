@@ -23,7 +23,7 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
 
   return (
     <section className="w-full py-6 bg-section">
-      <div className="text-center mb-8 font-sans mt-4">
+      <div className="text-center mb-8 font-serif mt-4">
         <div className="inline-flex items-center justify-center gap-3 mb-2">
           <h2 className="text-3xl sm:text-4xl md:text-5xl text-gradient-brand relative inline-block font-light tracking-wide">
             {heading || "Discover Our Collection"}
@@ -52,9 +52,9 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
             speed={1000}
             breakpoints={{
               320: { slidesPerView: 2, spaceBetween: 10 },
-              480: { slidesPerView: 3.4, spaceBetween: 15 },
-              768: { slidesPerView: 5, spaceBetween: 15 },
-              1024: { slidesPerView: 7, spaceBetween: 20 },
+              480: { slidesPerView: 2.4, spaceBetween: 15 },
+              768: { slidesPerView: 3, spaceBetween: 15 },
+              1024: { slidesPerView: 4, spaceBetween: 20 },
             }}
             className="category-swiper"
           >
@@ -67,7 +67,7 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
                     itemType="https://schema.org/Thing"
                   >
                     <div
-                      className="relative w-full h-full overflow-hidden flex items-center justify-center rounded-full"
+                      className="relative w-full h-full overflow-hidden flex items-center justify-center"
                       style={{
                         border: "2px solid var(--brand-border, color-mix(in srgb, var(--brand-primary) 50%, transparent))",
                       }}
@@ -77,12 +77,12 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
                         alt={subCat.name}
                         fill
                         sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        className="object-cover rounded-full"
+                        className="object-cover"
                         itemProp="image"
                       />
 
-                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-full">
-                          <p className="text-base sm:text-lg md:text-xl font-semibold text-white text-center px-2 drop-shadow-lg"
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <p className="text-base sm:text-lg md:text-xl font-semibold text-background text-center px-2 drop-shadow-lg"
                             itemProp="name"
                         >
                           {subCat.name}

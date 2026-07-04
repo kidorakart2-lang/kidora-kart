@@ -25,7 +25,15 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { Plus, Save, Loader2, Monitor, LayoutGrid, X } from "lucide-react"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet"
+import { Plus, Save, Loader2, Monitor, LayoutGrid } from "lucide-react"
 
 import type { HomeSection, SectionConfig } from "./types"
 import { SECTION_TYPES, getTypeMeta } from "./constants"
@@ -288,71 +296,52 @@ export default function HomePagePage() {
         </div>
       )}
 
-      {/* ── Edit Dialog ── */}
-      {editDialogOpen && editingSection && (
-        <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="flex flex-col w-[95vw] max-w-5xl max-h-[90vh] border bg-background shadow-2xl rounded-xl">
-            <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b">
-              <h2 className="text-lg font-semibold">Edit Section</h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => {
-                  setEditDialogOpen(false)
-                  setEditingSection(null)
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+      {/* ── Edit Sheet ── */}
+      <Sheet open={editDialogOpen && !!editingSection} onOpenChange={(open) => { if (!open) { setEditDialogOpen(false); setEditingSection(null) } }}>
+        <SheetContent side="right" className="w-full sm:max-w-lg md:max-w-xl lg:max-w-2xl">
+          <SheetHeader>
+            <SheetTitle>Edit Section</SheetTitle>
+          </SheetHeader>
 
-            <div className="flex-1 overflow-y-auto px-6 py-4">
-              <div className="space-y-4 max-w-3xl mx-auto">
-                <div className="space-y-2">
-                  <Label>Section Type</Label>
-                  <Select value={editType} onValueChange={setEditType}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SECTION_TYPES.map((t) => (
-                        <SelectItem key={t.value} value={t.value}>
-                          {t.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+          <div className="flex-1 overflow-y-auto px-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Section Type</Label>
+                <Select value={editType} onValueChange={setEditType}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SECTION_TYPES.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                <div className="border-t pt-4">
-                  <Label className="mb-3 block">Configuration</Label>
-                  <SectionConfigForm
-                    type={editingSection.type === "banner" ? "banner" : editType}
-                    config={editConfig}
-                    onChange={setEditConfig}
-                  />
-                </div>
+              <div className="border-t pt-4">
+                <Label className="mb-3 block">Configuration</Label>
+                <SectionConfigForm
+                  type={editingSection?.type === "banner" ? "banner" : editType}
+                  config={editConfig}
+                  onChange={setEditConfig}
+                />
               </div>
             </div>
-
-            <div className="shrink-0 flex items-center justify-end gap-2 px-6 py-4 border-t">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setEditDialogOpen(false)
-                  setEditingSection(null)
-                }}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleSaveEdit}>
-                Save Changes
-              </Button>
-            </div>
           </div>
-        </div>
-      )}
+
+          <SheetFooter className="flex-row justify-end gap-2">
+            <SheetClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </SheetClose>
+            <Button onClick={handleSaveEdit}>
+              Save Changes
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       {/* ── Preview Dialog ── */}
       <PreviewDialog
@@ -363,79 +352,58 @@ export default function HomePagePage() {
         onDeviceChange={setPreviewDevice}
       />
 
-      {/* ── Add Section Dialog ── */}
-      {addDialogOpen && (
-        <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="flex flex-col w-[95vw] max-w-5xl max-h-[90vh] border bg-background shadow-2xl rounded-xl">
-            <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b">
-              <h2 className="text-lg font-semibold">Add Section</h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => {
-                  setAddDialogOpen(false)
-                  setAddType("round-categories")
-                  setAddConfig({})
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+      {/* ── Add Section Sheet ── */}
+      <Sheet open={addDialogOpen} onOpenChange={(open) => { if (!open) { setAddDialogOpen(false); setAddType("round-categories"); setAddConfig({}) } }}>
+        <SheetContent side="right" className="w-full sm:max-w-lg md:max-w-xl lg:max-w-2xl">
+          <SheetHeader>
+            <SheetTitle>Add Section</SheetTitle>
+          </SheetHeader>
 
-            <div className="flex-1 overflow-y-auto px-6 py-4">
-              <div className="space-y-4 max-w-3xl mx-auto">
-                <div className="space-y-2">
-                  <Label>Section Type</Label>
-                  <Select value={addType} onValueChange={(v) => setAddType(v)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SECTION_TYPES.map((t) => (
-                        <SelectItem key={t.value} value={t.value}>
-                          <span className="flex items-center gap-2">
-                            <t.icon className="h-4 w-4" />
-                            {t.label}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {getTypeMeta(addType).description}
-                  </p>
-                </div>
+          <div className="flex-1 overflow-y-auto px-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Section Type</Label>
+                <Select value={addType} onValueChange={(v) => setAddType(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SECTION_TYPES.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        <span className="flex items-center gap-2">
+                          <t.icon className="h-4 w-4" />
+                          {t.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {getTypeMeta(addType).description}
+                </p>
+              </div>
 
-                <div className="border-t pt-4">
-                  <Label className="mb-3 block">Configuration</Label>
-                  <SectionConfigForm
-                    type={addType}
-                    config={addConfig}
-                    onChange={setAddConfig}
-                  />
-                </div>
+              <div className="border-t pt-4">
+                <Label className="mb-3 block">Configuration</Label>
+                <SectionConfigForm
+                  type={addType}
+                  config={addConfig}
+                  onChange={setAddConfig}
+                />
               </div>
             </div>
-
-            <div className="shrink-0 flex items-center justify-end gap-2 px-6 py-4 border-t">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setAddDialogOpen(false)
-                  setAddType("round-categories")
-                  setAddConfig({})
-                }}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleAddSection}>
-                Add Section
-              </Button>
-            </div>
           </div>
-        </div>
-      )}
+
+          <SheetFooter className="flex-row justify-end gap-2">
+            <SheetClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </SheetClose>
+            <Button onClick={handleAddSection}>
+              Add Section
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

@@ -171,7 +171,7 @@ function PromoBannerPreview({ config }: { config: SectionConfig }) {
 
   return (
     <div
-      className="rounded-lg p-6 flex flex-col items-center justify-center text-white relative overflow-hidden"
+      className="rounded-lg p-6 flex flex-col items-center justify-center text-background relative overflow-hidden"
       style={{
         background: resolvedImage
           ? `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${resolvedImage}) center/cover`
@@ -183,7 +183,7 @@ function PromoBannerPreview({ config }: { config: SectionConfig }) {
       )}
       {loading && (
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-sky-500 flex items-center justify-center">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-background/30 border-t-background" />
         </div>
       )}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.2),transparent_60%)]" />
@@ -194,15 +194,15 @@ function PromoBannerPreview({ config }: { config: SectionConfig }) {
             {config.heading || "Promo Banner"}
           </p>
           {config.subtitle && (
-            <p className="text-xs text-white/70 mt-1 relative z-10">{config.subtitle}</p>
+            <p className="text-xs text-background/70 mt-1 relative z-10">{config.subtitle}</p>
           )}
           {config.buttonText && (
-            <div className="mt-2 px-4 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-medium relative z-10">
+            <div className="mt-2 px-4 py-1 bg-background/20 backdrop-blur-sm rounded-full text-xs font-medium relative z-10">
               {config.buttonText}
             </div>
           )}
           {resolvedImage ? (
-            <p className="text-[10px] text-white/50 mt-2 relative z-10">Banner image loaded</p>
+            <p className="text-[10px] text-background/50 mt-2 relative z-10">Banner image loaded</p>
           ) : config.selectedBannerId ? (
             <p className="text-[10px] text-amber-300 mt-2 relative z-10">Could not load banner image</p>
           ) : null}
@@ -228,14 +228,14 @@ function SectionPreviewContent({
       return (
         <div className="rounded-lg h-36 flex items-center justify-center relative overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.15),transparent_60%)]" />
-          <div className="text-center text-white relative z-10">
+          <div className="text-center text-background relative z-10">
             {selectedIds.length > 0 ? (
               <>
                 <LayoutGrid className="h-5 w-5 mx-auto mb-1" />
                 <p className="text-sm font-semibold tracking-tight">
                   {bannerMode === "slider" ? "Banner Slider" : "Single Banner"}
                 </p>
-                <p className="text-xs text-white/70 mt-1">
+                <p className="text-xs text-background/70 mt-1">
                   {selectedIds.length} banner{selectedIds.length > 1 ? "s" : ""} selected
                 </p>
               </>
@@ -245,7 +245,7 @@ function SectionPreviewContent({
                 <p className="text-sm font-semibold tracking-tight">
                   {bannerMode === "slider" ? "Banner Slider" : "Single Banner"}
                 </p>
-                <p className="text-xs text-white/70 mt-1">No banners selected yet</p>
+                <p className="text-xs text-background/70 mt-1">No banners selected yet</p>
               </>
             )}
           </div>
@@ -263,6 +263,25 @@ function SectionPreviewContent({
             {["Ring", "Earring", "Necklace", "Bracelet"].map((cat) => (
               <div key={cat} className="flex flex-col items-center gap-1.5">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 ring-2 ring-emerald-100 flex items-center justify-center">
+                  <span className="text-lg">{["💍", "✨", "📿", "💎"][cat === "Ring" ? 0 : cat === "Earring" ? 1 : cat === "Necklace" ? 2 : 3]}</span>
+                </div>
+                <span className="text-[10px] text-gray-500">{cat}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+
+    case "square-categories":
+      return (
+        <div className="space-y-3">
+          {config.heading && (
+            <p className="text-sm font-medium text-center text-gray-700">{config.heading}</p>
+          )}
+          <div className="flex justify-center gap-4">
+            {["Ring", "Earring", "Necklace", "Bracelet"].map((cat) => (
+              <div key={cat} className="flex flex-col items-center gap-1.5">
+                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-emerald-100 to-emerald-200 ring-2 ring-emerald-100 flex items-center justify-center">
                   <span className="text-lg">{["💍", "✨", "📿", "💎"][cat === "Ring" ? 0 : cat === "Earring" ? 1 : cat === "Necklace" ? 2 : 3]}</span>
                 </div>
                 <span className="text-[10px] text-gray-500">{cat}</span>
@@ -405,34 +424,94 @@ function SectionPreviewContent({
 
     case "bento-grid": {
       const layout = (config.layout as string) || "featured-large"
-      const cells = (config.cells as { image?: string; title?: string }[] | undefined) ?? []
+      const cells = (config.cells as { image?: string; title?: string; subtitle?: string }[] | undefined) ?? []
       const layoutMeta = BENTO_LAYOUTS.find((l) => l.value === layout)
+
+      const cellBox = (i: number, className = "") => {
+        const cell = cells[i]
+        return (
+          <div
+            key={i}
+            className={`relative rounded-lg bg-card border border-border overflow-hidden ${className}`}
+          >
+            {cell?.image ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={cell.image}
+                  alt={cell.title || ""}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-2">
+                  {cell.title && (
+                    <p className="text-[9px] font-semibold text-foreground truncate">{cell.title}</p>
+                  )}
+                  {cell.subtitle && (
+                    <p className="text-[7px] text-muted-foreground truncate">{cell.subtitle}</p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                {cell?.title ? (
+                  <span className="text-[9px] text-muted-foreground font-medium truncate px-1">
+                    {cell.title}
+                  </span>
+                ) : (
+                  <ImageIcon className="h-4 w-4 text-muted-foreground/40" />
+                )}
+              </div>
+            )}
+          </div>
+        )
+      }
+
+      const grid =
+        layout === "featured-large" ? (
+          <div className="grid grid-cols-3 gap-1.5 h-[120px]">
+            {cellBox(0, "col-span-2 row-span-2")}
+            {cellBox(1)}
+            {cellBox(2)}
+          </div>
+        ) : layout === "featured-wide" ? (
+          <div className="grid grid-cols-2 gap-1.5">
+            {cellBox(0, "col-span-2 h-16")}
+            <div className="grid grid-cols-2 gap-1.5">
+              {cellBox(1, "h-16")}
+              {cellBox(2, "h-16")}
+            </div>
+          </div>
+        ) : layout === "two-col" ? (
+          <div className="grid grid-cols-2 gap-1.5 h-[100px]">
+            {cellBox(0)}
+            {cellBox(1)}
+          </div>
+        ) : layout === "three-col" ? (
+          <div className="grid grid-cols-3 gap-1.5 h-[80px]">
+            {cellBox(0)}
+            {cellBox(1)}
+            {cellBox(2)}
+          </div>
+        ) : layout === "four-col" ? (
+          <div className="grid grid-cols-2 gap-1.5 h-[100px]">
+            {Array.from({ length: 4 }, (_, i) => cellBox(i, "h-full"))}
+          </div>
+        ) : (
+          <div className="flex gap-1.5">
+            {layoutMeta &&
+              Array.from({ length: layoutMeta.cells }, (_, i) => cellBox(i, "flex-1 h-12"))}
+          </div>
+        )
+
       return (
         <div className="space-y-2">
           {config.heading && (
-            <p className="text-sm font-medium text-center text-gray-700">{config.heading}</p>
+            <p className="text-sm font-medium text-foreground">{config.heading}</p>
           )}
-          <div className="flex gap-1.5">
-            {layoutMeta &&
-              Array.from({ length: layoutMeta.cells }, (_, i) => (
-                <div
-                  key={i}
-                  className={`flex-1 h-12 rounded-lg bg-gradient-to-b from-pink-200 to-pink-100 flex items-center justify-center ${
-                    layout === "featured-large" && i === 0 ? "flex-[2]" : ""
-                  } ${layout === "featured-wide" && i === 0 ? "h-12" : ""}`}
-                >
-                  {cells[i]?.title ? (
-                    <span className="text-[8px] text-pink-600 font-medium truncate px-1">
-                      {cells[i]?.title}
-                    </span>
-                  ) : (
-                    <ImageIcon className="h-4 w-4 text-pink-300" />
-                  )}
-                </div>
-              ))}
-          </div>
+          {grid}
           <p className="text-[10px] text-muted-foreground">
-            Layout: {layoutMeta?.label || layout} · {layoutMeta?.cells || 0} cells
+            Layout: {layoutMeta?.label || layout} · {cells.filter(c => c.image).length}/{cells.length} cells with images
           </p>
         </div>
       )
@@ -443,22 +522,22 @@ function SectionPreviewContent({
 
     case "video":
       return (
-        <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-lg p-6 flex flex-col items-center justify-center text-white relative overflow-hidden">
+        <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-lg p-6 flex flex-col items-center justify-center text-background relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.2),transparent_60%)]" />
           <Film className="h-6 w-6 mb-2 relative z-10" />
           <p className="text-sm font-semibold relative z-10">
             {config.heading || "Video Section"}
           </p>
           {config.subtitle && (
-            <p className="text-xs text-white/70 mt-1 relative z-10">{config.subtitle}</p>
+            <p className="text-xs text-background/70 mt-1 relative z-10">{config.subtitle}</p>
           )}
           {config.buttonText && (
-            <div className="mt-2 px-4 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-medium relative z-10">
+            <div className="mt-2 px-4 py-1 bg-background/20 backdrop-blur-sm rounded-full text-xs font-medium relative z-10">
               {config.buttonText}
             </div>
           )}
           {config.videoUrl && (
-            <p className="text-[10px] text-white/50 mt-2 relative z-10 truncate max-w-full">
+            <p className="text-[10px] text-background/50 mt-2 relative z-10 truncate max-w-full">
               Video: {config.videoUrl}
             </p>
           )}

@@ -74,7 +74,9 @@ export const view = async (
 
     const ress = await material
       .find(filter)
-      .sort({ order: "asc", _id: "desc" });
+      .select("_id name status order")
+      .sort({ order: "asc", _id: "desc" })
+      .lean();
 
     response.status(200).json({
       _status: true,
@@ -104,7 +106,7 @@ export const destroy = async (
       return;
     }
 
-    const existing = await material.findById(request.body.id);
+    const existing = await material.findById(request.body.id).select("_id deletedAt").lean();
     if (!existing) {
       response.status(404).json({ _status: false, _message: "No Data Found", _data: null });
       return;
@@ -150,7 +152,7 @@ export const details = async (
       return;
     }
 
-    const result = await material.findById({ _id: request.body.id });
+    const result = await material.findById({ _id: request.body.id }).lean();
     if (!result) {
       response.status(404).json({
         _status: false,
