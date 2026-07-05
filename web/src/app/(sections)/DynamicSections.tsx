@@ -33,7 +33,7 @@ const PromoBannerSection = dynamic(() => import("./PromoBannerSection").then((m)
 const VideoSection = dynamic(() => import("./VideoSection").then((m) => ({ default: m.VideoSection })), {
   loading: () => <div className="h-[65vh] bg-muted animate-pulse mx-auto" />,
 });
-const BentoGrid = dynamic(() => import("./BentoGrid"), {
+const BentoGrid = dynamic(() => import("@/components/bento"), {
   loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
 });
 

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { LoadingUi } from "./Cart";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import {
   Package,
   CheckCircle,

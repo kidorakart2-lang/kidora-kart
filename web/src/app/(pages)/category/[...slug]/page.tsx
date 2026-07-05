@@ -7,11 +7,6 @@ import FilterSidebar from "../FilterSidebar";
 import { ChevronRight } from "lucide-react";
 import type { ColorItem, MaterialItem } from "@/types";
 
-interface CategoryPageProps {
-  params: Promise<{ slug: string[] }>;
-  searchParams: Promise<{ q?: string }>;
-}
-
 export const metadata = {
   title: `Shop Jewellery Online - ${siteConfig.name} | Gold, Silver & Diamond Collection`,
   description: `Browse our extensive collection of premium jewellery in Jodhpur. Shop rings, necklaces, earrings, bracelets, bangles, and more. Gold, silver, and diamond jewellery with traditional Rajasthani craftsmanship.`,
@@ -29,6 +24,78 @@ export const metadata = {
     canonical: `${siteConfig.url}/category`,
   },
 };
+
+// ── Generate static params for all category routes at build time ──────
+// Fetches the full navigation tree and extracts all product category paths.
+// This enables PPR to prerender a static shell for every category page.
+
+export async function generateStaticParams() {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}api/website/nav`,
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    const categories = data._data as {
+      slug: string;
+      status?: boolean;
+      deletedAt?: string | null;
+      subCategories?: {
+        slug: string;
+        status?: boolean;
+        deletedAt?: string | null;
+        subSubCategories?: {
+          slug: string;
+          status?: boolean;
+          deletedAt?: string | null;
+        }[];
+      }[];
+    }[];
+
+    if (!Array.isArray(categories)) return [];
+
+    const nonProductSlugs = new Set([
+      "home",
+      "track-your-order",
+      "contact-us",
+      "new-arrivals",
+      "gift-items",
+      "personalized-jewellery",
+    ]);
+
+    const params: { slug: string[] }[] = [];
+
+    for (const cat of categories) {
+      // status is undefined by default — treat as active unless explicitly false
+      if (cat.status === false || cat.deletedAt) continue;
+      if (nonProductSlugs.has(cat.slug)) continue;
+
+      // Top-level category: /category/{slug}
+      params.push({ slug: [cat.slug] });
+
+      if (!cat.subCategories?.length) continue;
+
+      for (const sub of cat.subCategories) {
+        if (sub.status === false || sub.deletedAt) continue;
+
+        // Sub-category: /category/{cat}/{sub}
+        params.push({ slug: [cat.slug, sub.slug] });
+
+        if (!sub.subSubCategories?.length) continue;
+
+        for (const subsub of sub.subSubCategories) {
+          if (subsub.status === false || subsub.deletedAt) continue;
+          // Sub-sub-category: /category/{cat}/{sub}/{subsub}
+          params.push({ slug: [cat.slug, sub.slug, subsub.slug] });
+        }
+      }
+    }
+
+    return params;
+  } catch {
+    return [];
+  }
+}
 
 async function getColor(): Promise<ColorItem[]> {
   "use cache";
@@ -61,12 +128,17 @@ async function getMaterial(): Promise<MaterialItem[]> {
   return data._data;
 }
 
-export default async function page({ params, searchParams }: CategoryPageProps) {
+export default async function page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string[] }>;
+  searchParams: Promise<{ q?: string }>;
+}) {
   const allParams = await params;
   const allSearchParams = await searchParams;
   const query = allSearchParams?.q;
   const slug = await allParams.slug;
-  console.log(allParams);
 
   const categorySlug = slug[0];
   const subCategorySlug = slug[1] || "";

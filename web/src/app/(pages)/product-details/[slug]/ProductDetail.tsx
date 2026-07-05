@@ -13,7 +13,7 @@ import {
   Award,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 import ProductReviews from "@/components/product/product-reviews";
 import ImageSlider from "@/components/product/image-slider";

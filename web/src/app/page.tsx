@@ -87,8 +87,6 @@ export const metadata = {
 };
 
 // Structured Data for Local Business
-
-export const experimental_ppr = true;
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "JewelryStore",

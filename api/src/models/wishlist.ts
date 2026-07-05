@@ -18,8 +18,6 @@ const wishlistSchema = new Schema(
   { timestamps: true },
 );
 
-wishlistSchema.index({ user: 1 });
-
 export type IWishlist = InferSchemaType<typeof wishlistSchema>;
 
 const Wishlist: Model<IWishlist> = mongoose.model<IWishlist>(

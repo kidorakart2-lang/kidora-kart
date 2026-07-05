@@ -20,7 +20,7 @@ export const metadata = {
     url: `${siteConfig.url}/story`,
     type: 'article',
     publishedTime: '2023-01-01T00:00:00.000Z',
-    modifiedTime: new Date().toISOString(),
+    modifiedTime: '2023-01-01T00:00:00.000Z',
     section: 'About Us',
     authors: [siteConfig.name],
     tags: ['Jewellery', 'Jodhpur', 'Success Story', 'Jewellery Making'],
@@ -34,7 +34,7 @@ export const metadata = {
     'fb:app_id': siteConfig.social?.facebookAppId || '',
     'og:site_name': siteConfig.name,
     'article:published_time': '2023-01-01T00:00:00.000Z',
-    'article:modified_time': new Date().toISOString(),
+    'article:modified_time': '2023-01-01T00:00:00.000Z',
     'article:section': 'About Us',
     'article:tag': ['Jewellery', 'Jodhpur', 'Success Story', 'Jewellery Making'],
   },
@@ -62,7 +62,7 @@ export function generateJsonLd() {
       }
     },
     'datePublished': '2023-01-01T00:00:00.000Z',
-    'dateModified': new Date().toISOString(),
+    'dateModified': '2023-01-01T00:00:00.000Z',
     'mainEntityOfPage': {
       '@type': 'WebPage',
       '@id': `${siteConfig.url}/story`

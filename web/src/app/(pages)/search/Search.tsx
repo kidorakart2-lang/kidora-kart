@@ -2,7 +2,7 @@
 
 import ProductCard from "@/components/comman/ProductCard";
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { Search as SearchIcon, Sparkles, Package } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

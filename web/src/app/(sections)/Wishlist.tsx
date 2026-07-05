@@ -1,5 +1,5 @@
 "use client";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { X, Heart, ChevronRight, Sparkles, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import { getAuthToken } from "@/lib/getAuthToken";

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Playfair_Display, Montserrat } from 'next/font/google';
 
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });

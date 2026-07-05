@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { Gift, Sparkles, Check, AlertCircle, Type, Heart } from "lucide-react";
 import { usePathname } from "next/navigation";
 

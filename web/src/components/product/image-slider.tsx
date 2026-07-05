@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import type { Variants } from "framer-motion";
-import { motion, AnimatePresence } from "framer-motion";
+import type { Variants } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ImageZoom from "./image-zoom";
 import { Swiper, SwiperSlide } from "swiper/react";

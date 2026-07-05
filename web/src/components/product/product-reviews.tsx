@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, type FormEvent } from "react";
 import { Award, Check, Edit3, Star, ChevronUp, ChevronDown, Shield } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

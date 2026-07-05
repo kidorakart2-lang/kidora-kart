@@ -4,7 +4,7 @@ import { Skeleton } from "../ui/skeleton";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Sparkles } from "lucide-react";
 import type { ProductData } from "@/types";
 

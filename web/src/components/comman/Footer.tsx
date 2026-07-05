@@ -98,9 +98,9 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
                   <Icon className="w-5 h-5 text-[var(--brand-primary-foreground)]" />
                 </div>
                 <div className="min-w-0">
-                  <h4 className="font-semibold text-sm text-foreground truncate">
+                  <p className="font-semibold text-sm text-foreground truncate">
                     {title}
-                  </h4>
+                  </p>
                   <p className="text-xs text-muted-foreground truncate">{desc}</p>
                 </div>
               </div>
@@ -310,7 +310,7 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
                       <h5 className="font-medium text-sm text-foreground truncate group-hover:text-[var(--brand-primary-dark)] transition-colors">
                         {product.name}
                       </h5>
-                      <p className="text-sm font-bold text-[var(--brand-primary)] flex items-center">
+                      <p className="text-sm font-bold text-[var(--brand-primary-dark)] flex items-center">
                         <IndianRupee size={12} /> {product.discount_price}
                       </p>
                     </div>

@@ -10,7 +10,9 @@ const csp = `
   connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"};
   frame-src https://*.razorpay.com;
   frame-ancestors 'none';
-`.replace(/\s{2,}/g, " ").trim();
+`
+  .replace(/\s{2,}/g, " ")
+  .trim();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -29,7 +31,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: process.env.NEXT_PUBLIC_CDN_HOST || "cdn.toyshop.com",
+        hostname: "cdn.jewellerywalla.com",
+      },
+      {
+        protocol: "https",
+        hostname: process.env.NEXT_PUBLIC_CDN_HOST || "cdn.jewellerywalla.com",
       },
     ],
     deviceSizes: [360, 640, 750, 1080, 1200, 1920],
@@ -44,38 +50,59 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
         ],
       },
       {
         source: "/category/:path*",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=300, stale-while-revalidate=3600" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=300, stale-while-revalidate=3600",
+          },
         ],
       },
       {
         source: "/product-details/:path*",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=300, stale-while-revalidate=3600" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=300, stale-while-revalidate=3600",
+          },
         ],
       },
       {
         source: "/(about-us|contact-us|faq|story|our-policy|order-track)",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, stale-while-revalidate=86400",
+          },
         ],
       },
       {
         source: "/",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=900, stale-while-revalidate=3600" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=900, stale-while-revalidate=3600",
+          },
         ],
       },
       {
         source: "/(cart|checkout|order-success|profile)",
         headers: [
-          { key: "Cache-Control", value: "private, no-cache, no-store, must-revalidate" },
+          {
+            key: "Cache-Control",
+            value: "private, no-cache, no-store, must-revalidate",
+          },
         ],
       },
       // Allow the admin panel (cross-origin) to call the revalidation endpoint.
@@ -86,7 +113,10 @@ const nextConfig: NextConfig = {
         headers: [
           { key: "Access-Control-Allow-Origin", value: "*" },
           { key: "Access-Control-Allow-Methods", value: "POST, OPTIONS" },
-          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "Content-Type, Authorization",
+          },
         ],
       },
     ];

@@ -28,6 +28,24 @@ interface ProductDetailsPageProps {
   params: Promise<{ slug: string }>;
 }
 
+// ── Generate static params for all product pages at build time ──────
+// Fetches all product slugs so PPR can prerender a static shell for each.
+
+export async function generateStaticParams() {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}api/website/product/all`,
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    const products = data._data as { slug: string }[];
+    if (!Array.isArray(products)) return [];
+    return products.map((p) => ({ slug: p.slug }));
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: ProductDetailsPageProps) {
   const allParams = await params;
   const { slug } = allParams;
@@ -177,9 +195,7 @@ export async function generateProductSchema(product: ProductDetail, productUrl: 
         url: productUrl,
         priceCurrency: currency,
         price: price,
-        priceValidUntil: new Date(
-          Date.now() + 30 * 24 * 60 * 60 * 1000
-        ).toISOString(),
+        // TODO: add priceValidUntil derived from product.updatedAt/createdAt once added to API response
         itemCondition: "https://schema.org/NewCondition",
         availability: availability,
         seller: {

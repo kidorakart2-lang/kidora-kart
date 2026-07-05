@@ -50,7 +50,6 @@ const subSubCategorySchema = new Schema(
   },
 );
 
-subSubCategorySchema.index({ slug: 1 }, { unique: true });
 subSubCategorySchema.index({ name: 1 }, { unique: true });
 subSubCategorySchema.index({ deletedAt: 1, status: 1, order: -1 });
 subSubCategorySchema.index({ slug: 1, status: 1, deletedAt: 1 });

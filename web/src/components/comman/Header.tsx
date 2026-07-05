@@ -104,6 +104,7 @@ interface MobileLinkProps {
 
 interface SearchBarProps {
   className?: string;
+  inputId?: string;
 }
 
 interface HeaderProps {
@@ -548,7 +549,7 @@ export default function Header({ navigationData }: HeaderProps) {
                 : "max-h-0 opacity-0 overflow-hidden"
             }`}
           >
-            <SearchBar className="relative" />
+            <SearchBar className="relative" inputId="mobile-search" />
           </div>
         </div>
 
@@ -661,7 +662,7 @@ export default function Header({ navigationData }: HeaderProps) {
   );
 }
 
-const SearchBar = ({ className }: SearchBarProps) => {
+const SearchBar = ({ className, inputId }: SearchBarProps) => {
   const [suggestions, setSuggestions] = useState<Partial<SuggestionData>>({});
   const value = useSelector((state: RootState) => state.ui.searchValue);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
@@ -739,6 +740,7 @@ const SearchBar = ({ className }: SearchBarProps) => {
           "Find Gift Items",
         ]}
         onSubmit={handleSubmit}
+        inputId={inputId}
       />
       <Search
         size={20}

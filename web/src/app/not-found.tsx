@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Home, ArrowRight } from "lucide-react";
 import { siteConfig } from "@/lib/utils";
+import { CopyrightYear } from "@/components/CopyrightYear";
 
 export default function NotFound() {
   return (
@@ -36,7 +37,7 @@ export default function NotFound() {
 
         <div className="mt-16 text-muted-foreground/60 text-sm">
           <p>
-            &copy; {new Date().getFullYear()} Jewellery Walla. All rights reserved.
+            &copy; <CopyrightYear /> Jewellery Walla. All rights reserved.
           </p>
         </div>
       </div>

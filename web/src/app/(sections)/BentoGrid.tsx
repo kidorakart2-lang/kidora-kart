@@ -64,19 +64,19 @@ function CellLink({
 function CellImage({ cell }: { cell: BentoCell }) {
   if (!cell.image) {
     return (
-      <div className="flex h-full min-h-[10rem] items-center justify-center rounded-xl bg-neutral-100 dark:bg-neutral-800">
+      <div className="flex h-full items-center justify-center rounded-xl bg-neutral-100 dark:bg-neutral-800">
         <span className="text-3xl text-neutral-300 dark:text-neutral-600">✦</span>
       </div>
     );
   }
 
   return (
-    <div className="relative p-0 h-full min-h-[10rem] w-full overflow-hidden rounded-xl">
+    <div className="relative h-full w-full overflow-hidden rounded-xl">
       <Image
         src={cell.image}
         alt={cell.title || ""}
         fill
-        className="object-cover"
+        className="object-contain p-4"
         sizes="(max-width: 768px) 100vw, 50vw"
       />
     </div>
@@ -121,9 +121,9 @@ export default function BentoGridSection({
             <CellLink key={i} cell={cell} className={cn(getColSpan(i), getRowSpan(i))}>
               <BentoGridItem
                 title={cell.title}
-                description={cell.subtitle}
+                description={cell.subtitle || "Collection →"}
                 header={<CellImage cell={cell} />}
-                className="h-full cursor-pointer p-2"
+                className="h-full cursor-pointer p-3"
               />
             </CellLink>
           ))}

@@ -1,7 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import React from "react"
-import type { Slide } from "@/components/ui/images-slider"
+import type { Slide } from "./BannerSlider"
 
 interface BannerSingleProps {
   slide: Slide

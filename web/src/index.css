@@ -63,14 +63,6 @@ body[data-scroll-locked] {
   }
 }
 
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
 @keyframes enterFlip {
   0% {
     opacity: 0;
@@ -190,17 +182,24 @@ body[data-scroll-lock="true"] {
   @apply bg-gradient-to-br from-brand-950/20 via-brand-900/20 to-brand-accent-950/20;
 }
 
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
 @keyframes shimmer {
   0% {
-    background-position: -1000px 0;
+    transform: translateX(-100%);
   }
   100% {
-    background-position: 1000px 0;
+    transform: translateX(100%);
   }
 }
 
-.animate-shimmer {
-  animation: shimmer 2s infinite;
+.animate-shimmer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
   background: linear-gradient(
     to right,
     transparent 0%,
@@ -208,7 +207,7 @@ body[data-scroll-lock="true"] {
     rgba(255, 255, 255, 0.3) 60%,
     transparent 100%
   );
-  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
 }
 .animate-slide-in {
   animation: slide-in 0.3s ease-out forwards;

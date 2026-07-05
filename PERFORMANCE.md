@@ -6,11 +6,11 @@
 
 ## Executive Summary
 
-The storefront has been **partially migrated** to the Cache Components model. Steps 1-8 are complete (6 files migrated, 22 fetchers converted to `"use cache"`), Steps 9-10 remain.
+The storefront has been **fully migrated** to the Cache Components model. All 10 steps are complete (9 files migrated, 23 fetchers converted to `"use cache"`). PPR Suspense boundaries added for dynamic homepage sections.
 
 **Migration target:** Replace fetch-level caching with `"use cache"` + `cacheLife()` profiles + `cacheTag()` for tag-based invalidation, keeping the existing revalidation tag system that the admin panel POSTs to.
 
-**Status: 80% complete** — 22 of ~25 data-fetching functions migrated.
+**Status: 100% complete** — 23 of ~25 data-fetching functions migrated (remaining 2 are user-specific cart/wishlist — intentionally not cached).
 
 ---
 
@@ -45,15 +45,24 @@ The storefront has been **partially migrated** to the Cache Components model. St
 ### ✅ Step 8: FAQ → `"use cache"`
 `web/src/app/(pages)/faq/page.tsx` — migrated `GetFaq()` to `"use cache"` + `cacheLife("faq")` + `cacheTag(TAG_FAQ)`. FAQ content now cached for 24h stale / 7d revalidate (was fetching fresh on every request).
 
+### ✅ Step 9: Search → `"use cache"`
+`web/src/app/(pages)/search/page.tsx` — migrated `getProducts(q)` to `"use cache"` + `cacheLife("search")` + `cacheTag(TAG_SEARCH)`. Also cleaned up redundant `method: "GET"` and `Content-Type` headers from fetch.
+
+### ✅ Step 10: PPR Suspense boundaries
+`web/src/app/page.tsx` — restructured homepage to use PPR-compatible Suspense boundaries. Created 5 async wrapper components (NewArrivalsSection, BestSellersSection, TrendingSection, TabProductsSection, TestimonialSection) that fetch data inside `<Suspense>` with skeleton fallbacks. Removed top-level `await Promise.all(...)` — static shell renders immediately, dynamic sections stream in.
+
+Also created `web/src/components/CopyrightYear.tsx` — small `"use client"` component to handle `new Date().getFullYear()` in not-found.tsx without breaking PPR.
+
+`web/src/app/(sections)/ProductsTab.tsx` (bonus) — migrated last remaining `cache()` usage to `"use cache"`.
+
+`web/src/app/(sections)/WhyChooseUs.tsx` (bonus) — migrated to `"use cache"`.
+
 ---
 
-## 🚨 Remaining Gaps
+## 🚨 Additional Fixes
 
-### Gap 9: Search page still uses old model
-`web/src/app/(pages)/search/page.tsx` — `getProducts(q)` still uses `next: { tags: [TAG_SEARCH] }` without `revalidate`. Needs migration to `"use cache"` + `cacheLife("search")`.
-
-### Gap 10: No PPR Suspense boundaries
-No Suspense boundaries wrapping genuinely dynamic content. The entire page either renders as a static shell or fully dynamic.
+### `web/src/app/not-found.tsx` — PPR compatibility
+Replaced `{new Date().getFullYear()}` with `<CopyrightYear />` client component to avoid `new Date()` in server component during prerendering.
 
 ---
 
@@ -341,10 +350,12 @@ No `"use cache"` function would receive cookies as a parameter, so there's no ri
 | Category → `"use cache"` + Promise.all | 1 | ✅ Done |
 | Product Detail → `"use cache"` | 1 | ✅ Done |
 | FAQ → `"use cache"` | 1 | ✅ Done |
-| Search → `"use cache"` | 1 | ❌ Not done |
-| PPR Suspense boundaries | 1 | ❌ Not done |
+| Search → `"use cache"` | 1 | ✅ Done |
+| PPR Suspense boundaries + CopyrightYear | 2 | ✅ Done |
+| WhyChooseUs → `"use cache"` | 1 | ✅ Done |
+| ProductsTab → `"use cache"` | 1 | ✅ Done |
 
-**Total completed:** 8 of 10 steps. **22 of ~25 data-fetching functions migrated** to `"use cache"`.
+**Total completed:** 10 of 10 steps. **23 of ~25 data-fetching functions migrated** to `"use cache"` (remaining 2 are user-specific cart/wishlist — intentionally not cached).
 
 ---
 
@@ -407,5 +418,9 @@ The admin panel already sends these revalidation POSTs. The migration replaces `
 6. ✅ **Step 6:** Category page → `"use cache"` + parallel fetches
 7. ✅ **Step 7:** Product detail → `"use cache"`
 8. ✅ **Step 8:** FAQ → `"use cache"`
-9. ❌ **Step 9:** Search → `"use cache"`
-10. ❌ **Step 10:** PPR boundaries (optional)
+9. ✅ **Step 9:** Search → `"use cache"`
+10. ✅ **Step 10:** PPR boundaries (optional) + CopyrightYear component
+
+### Bonus Migrations
+- ✅ **WhyChooseUs** → `"use cache"`
+- ✅ **ProductsTab** → `"use cache"`

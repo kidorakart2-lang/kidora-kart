@@ -11,7 +11,7 @@ import Link from "next/link";
 
 export default function RoundCategorySlider({ heading }: { heading?: string }) {
   const navigation = useSelector((state: RootState) => state.ui.navigation);
-  const categories = (navigation as { _data?: CategoryData[] })._data ?? [];
+  const categories = (navigation as { _data?: CategoryData[] })?._data ?? [];
 
   const allSubCategories: (SubCategoryData & { parentSlug: string })[] =
     categories.flatMap((cat: CategoryData) =>

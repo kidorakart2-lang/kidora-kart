@@ -4,6 +4,7 @@ import "@/index.css";
 import { Client } from "@/redux/provider/Client";
 import { Toaster } from "sonner";
 import MainLayout from "@/components/comman/MainLayout";
+import { Suspense } from "react";
 import { siteConfig, defaultMetadata, getStructuredAddress } from "@/lib/utils";
 import { cacheLife, cacheTag } from "next/cache";
 import { TAG_NAVIGATION, TAG_FEATURED_PRODUCTS } from "@/lib/revalidation-tags";
@@ -14,7 +15,9 @@ import PhoneNumberModal from "@/components/comman/PhoneNumberModal";
 import CookieConsent from "@/components/comman/CookieConsent";
 import AxeAccessibility from "@/components/comman/AxeAccessibility";
 import ThemeColorMeta from "@/components/comman/ThemeColorMeta";
-import { MotionConfig } from "framer-motion";
+import dynamic from "next/dynamic";
+
+const MotionProvider = dynamic(() => import("@/components/MotionProvider"));
 
 const lato = Lato({
   subsets: ["latin"],
@@ -245,8 +248,9 @@ export default async function RootLayout({
           Skip to main content
         </a>
         <ThemeColorMeta />
+        <Suspense>
         <Client>
-          <MotionConfig reducedMotion="user">
+          <MotionProvider>
           <MainLayout navigationData={navigation} featuredProducts={featuredProducts ?? []}>
             {children}
           </MainLayout>
@@ -257,8 +261,9 @@ export default async function RootLayout({
           <PhoneNumberModal />
           <CookieConsent />
           <AxeAccessibility />
-          </MotionConfig>
+          </MotionProvider>
         </Client>
+        </Suspense>
       </body>
     </html>
   );

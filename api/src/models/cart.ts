@@ -38,8 +38,6 @@ const cartSchema = new Schema(
   { timestamps: true },
 );
 
-cartSchema.index({ user: 1 });
-
 export type ICart = InferSchemaType<typeof cartSchema>;
 export type CartItem = ICart["items"][number];
 

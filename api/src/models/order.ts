@@ -203,8 +203,7 @@ const orderSchema = new Schema(
 );
 
 orderSchema.index({ userId: 1, createdAt: -1 });
-orderSchema.index({ orderId: 1 });
-orderSchema.index({ "payment.status": 1 });
+
 orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ "payment.razorpay.orderId": 1 });
 orderSchema.index({ "payment.razorpay.paymentId": 1 });
