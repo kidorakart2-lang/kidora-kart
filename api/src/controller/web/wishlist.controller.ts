@@ -57,7 +57,7 @@ export const addToWishlist = asyncHandler(
         _id: productId,
         status: true,
         deletedAt: null,
-      }).session(session);
+      }).lean().session(session);
 
       if (!product) {
         await session.abortTransaction();

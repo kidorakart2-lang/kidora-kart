@@ -1,4 +1,5 @@
 import { getAuthToken } from "@/lib/getAuthToken";
+import { clearAuthCookies } from "@/lib/clearAuthCookies";
 
 export const getUser = async () => {
   const token = getAuthToken();
@@ -16,6 +17,10 @@ export const getUser = async () => {
         credentials: "include",
       }
     );
+    if (response.status === 401) {
+      clearAuthCookies();
+      return null;
+    }
     if (!response.ok) {
       return null;
     }

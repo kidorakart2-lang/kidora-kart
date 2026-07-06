@@ -426,7 +426,6 @@ router.post("/verify-otp", uploadNone, verifyOtp);
 
 router.post(
   "/reset-password",
-  protect,
   rateLimit.passwordReset,
   uploadNone,
   resetPassword,

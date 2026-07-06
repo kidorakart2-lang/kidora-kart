@@ -2,11 +2,9 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { UserDetails } from "@/types";
 
 const initialState: {
-  user: string | null;
   isLogin: boolean;
   details: UserDetails;
 } = {
-  user: null,
   isLogin: false,
   details: {},
 };
@@ -16,17 +14,14 @@ export const authSlice = createSlice({
   initialState,
 
   reducers: {
-    login: (state, action) => {
-      state.user = action.payload;
+    login: (state) => {
       state.isLogin = true;
     },
     logout: (state) => {
-      state.user = null;
       state.details = {};
       state.isLogin = false;
     },
-    register: (state, action) => {
-      state.user = action.payload;
+    register: (state) => {
       state.isLogin = true;
     },
     setProfile: (state, action) => {

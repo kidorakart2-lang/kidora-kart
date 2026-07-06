@@ -82,7 +82,7 @@ export const view = async (
 
     const ress = await testimonial
       .find(filter)
-      .select("_id name image description rating status order")
+      .select("_id title image description rating status order address")
       .sort({ order: "asc", _id: "desc" })
       .lean();
 

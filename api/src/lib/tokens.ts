@@ -71,14 +71,30 @@ export async function revokeAllUserRefreshTokens(userId: string): Promise<void> 
 
 // ── Cookie config helpers ──
 
-export function accessTokenCookieOptions(type?: "admin" | "user" | "delivery") {
-  const maxAge = type === "admin"
-    ? 2 * 60 * 60 * 1000   // 2 hours
-    : 1 * 60 * 60 * 1000;  // 1 hour
+export function accessTokenCookieOptions(_type?: "admin" | "user" | "delivery") {
+  const maxAge = 7 * 24 * 60 * 60 * 1000;  // 7 days, matching token expiry
   return {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
     sameSite: "strict" as const,
+    maxAge,
+    path: "/",
+  };
+}
+
+/**
+ * Non-httpOnly version of the access token cookie, readable by client-side
+ * JavaScript (js-cookie). Set alongside the httpOnly variant during auto-refresh
+ * so `getAuthToken()` on the client sees the new token immediately.
+ * This does NOT reduce security: Login.tsx already sets a non-httpOnly userToken
+ * via `Cookies.set()`, so this token is already readable by JS in the browser.
+ */
+export function clientAccessTokenCookieOptions() {
+  const maxAge = 7 * 24 * 60 * 60 * 1000;  // 7 days, matching token expiry
+  return {
+    httpOnly: false,
+    secure: env.NODE_ENV === "production",
+    sameSite: "lax" as const,
     maxAge,
     path: "/",
   };

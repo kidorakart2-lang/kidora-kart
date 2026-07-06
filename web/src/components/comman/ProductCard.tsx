@@ -4,14 +4,12 @@ import Image from "next/image";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { getAuthToken } from "@/lib/getAuthToken";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../../redux/features/cart";
 import { useSelector } from "react-redux";
 import { addToWishlist, removeFromWishlist } from "@/redux/features/wishlist";
-import { openLoginModal } from "@/redux/features/uiSlice";
 import type { ProductData } from "@/types";
 import type { RootState } from "@/redux/store/store";
 
@@ -22,32 +20,20 @@ export default function ProductCard({ data }: { data: ProductData }) {
 
   const cartObj = {
     productId: data?._id,
+    slug: data?.slug,
     quantity:
       cartItem && typeof cartItem.quantity === "number" ? cartItem.quantity : 1,
     colorId: data?.colors?.[0]?._id,
     sizeId: data?.sizes?.[0]?._id || null,
-    product: {
-      _id: data?._id,
-      name: data?.name,
-      image: data?.image,
-      price: data?.price,
-      discount_price: data?.discount_price,
-      slug: data?.slug,
-      stock: data?.stock,
-      colors: data?.colors,
-      sizes: data?.sizes,
-    },
   };
 
   const [loading, setLoading] = useState(false);
-  const [src, setSrc] = useState<string | undefined>(data?.image);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const isWishlisted = useSelector((state: RootState) =>
     (state.wishlist?.wishlistItems ?? []).find((item) => item._id === data?._id)
   );
 
-  const [slideDirection, setSlideDirection] = useState(1);
   const dispatch = useDispatch();
 
   const displayPrice = data?.price;
@@ -63,13 +49,6 @@ export default function ProductCard({ data }: { data: ProductData }) {
 
   const handleImageHover = (hovered: boolean) => {
     setIsHovered(hovered);
-    if (hovered && data?.images && data?.images.length > 0) {
-      setSlideDirection(1);
-      setSrc(data?.images[0]);
-    } else if (!hovered) {
-      setSlideDirection(-1);
-      setSrc(data?.image);
-    }
   };
 
   const handleWishlistToggle = async () => {
@@ -147,10 +126,6 @@ export default function ProductCard({ data }: { data: ProductData }) {
             dispatch(
               addToWishlist({
                 _id: data?._id,
-                name: data?.name,
-                image: data?.image,
-                price: data?.price,
-                discount_price: data?.discount_price,
                 slug: data?.slug,
               })
             );
@@ -168,10 +143,6 @@ export default function ProductCard({ data }: { data: ProductData }) {
         dispatch(
           addToWishlist({
             _id: data?._id,
-            name: data?.name,
-            image: data?.image,
-            price: data?.price,
-            discount_price: data?.discount_price,
             slug: data?.slug,
             isGuest: true,
           })
@@ -223,50 +194,11 @@ export default function ProductCard({ data }: { data: ProductData }) {
     }
   };
 
-  const cardVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.4,
-        ease: "easeOut" as const,
-      },
-    },
-  };
-
-  const imageSlideVariants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 20 : -20,
-      opacity: 1,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-      transition: {
-        x: { type: "spring" as const, stiffness: 300, damping: 30 },
-        opacity: { duration: 0.3 },
-      },
-    },
-    exit: (direction: number) => ({
-      x: direction > 0 ? -20 : 20,
-      opacity: 1,
-      transition: {
-        x: { type: "spring" as const, stiffness: 300, damping: 30 },
-        opacity: { duration: 0.3 },
-      },
-    }),
-  };
-
   return (
-    <motion.article
-      className="group relative bg-background rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 border border-border hover:border-brand-200"
+    <article
+      className="group relative bg-background rounded-2xl overflow-hidden shadow-md hover:-translate-y-2 hover:shadow-2xl transition-all duration-500 border border-border"
       itemScope
       itemType="https://schema.org/Product"
-      variants={cardVariants}
-      initial="initial"
-      animate="animate"
-      whileHover={{ y: -8, transition: { duration: 0.3 } }}
       role="article"
       aria-label={`Product: ${data.name}`}
     >
@@ -293,34 +225,22 @@ export default function ProductCard({ data }: { data: ProductData }) {
         <meta itemProp="url" content={`/product-details/${data.slug}`} />
       </div>
 
-      {/* Gradient Overlay on Hover */}
-      <div
-        className="absolute inset-0 bg-gradient-to-t from-black/0 via-transparent to-transparent
-                    group-hover:from-black/10 transition-all duration-500 pointer-events-none z-[1]"
-      ></div>
-
       {/* Top Actions Bar */}
       <div className="absolute top-3 left-3 right-3 z-20 flex justify-between items-start">
         {/* Discount Badge */}
-        <AnimatePresence>
-          {discountPercentage > 0 && (
-            <motion.div
-              className="bg-gradient-to-br from-brand-accent-500 to-red-600 text-background px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1"
-              initial={{ opacity: 0, scale: 0.8, x: -20 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.3 }}
-              role="status"
-              aria-label={`${discountPercentage} percent discount`}
-            >
-              <Sparkles className="w-3 h-3" />
-              {discountPercentage}% OFF
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {discountPercentage > 0 && (
+          <div
+            className="bg-gradient-to-br from-brand-accent-500 to-destructive text-background px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 animate-in fade-in slide-in-from-left duration-300"
+            role="status"
+            aria-label={`${discountPercentage} percent discount`}
+          >
+            <Sparkles className="w-3 h-3" />
+            {discountPercentage}% OFF
+          </div>
+        )}
 
         {/* Wishlist Button */}
-        <motion.button
+        <button
           disabled={wishlistLoading}
           aria-label={
             isWishlisted
@@ -329,12 +249,11 @@ export default function ProductCard({ data }: { data: ProductData }) {
           }
            aria-pressed={!!isWishlisted}
           className={`w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-border
-                   hover:bg-background hover:border-brand-400 flex items-center justify-center
+                   hover:bg-background flex items-center justify-center
                    transition-all duration-300 shadow-lg hover:shadow-xl
+                   hover:scale-110 active:scale-90
                    ${wishlistLoading ? "opacity-50 cursor-not-allowed" : ""}`}
           onClick={handleWishlistToggle}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
           type="button"
         >
           <Heart
@@ -345,7 +264,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
             }`}
             aria-hidden="true"
           />
-        </motion.button>
+        </button>
       </div>
 
       {/* Image Container */}
@@ -360,50 +279,61 @@ export default function ProductCard({ data }: { data: ProductData }) {
           onMouseEnter={() => handleImageHover(true)}
           onMouseLeave={() => handleImageHover(false)}
         >
-          <AnimatePresence initial={false} custom={slideDirection} mode="wait">
-            <motion.div
-              custom={slideDirection}
-              variants={imageSlideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              className="absolute inset-0"
+          {/* Main image */}
+          <div
+            className={`absolute inset-0 transition-opacity duration-500 ${
+              isHovered && data?.images != null && data.images.length > 0 ? "opacity-0" : "opacity-100"
+            }`}
+          >
+            <Image
+              width={500}
+              height={500}
+              src={data?.image ?? ""}
+              alt={`${data.name} - Product image`}
+              className="w-full h-full object-cover cursor-pointer group-hover:scale-110 transition-transform duration-700"
+              itemProp="image"
+              title={data.name}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            />
+          </div>
+          {/* Hover image */}
+          {data?.images != null && data.images.length > 0 && (
+            <div
+              className={`absolute inset-0 transition-opacity duration-500 ${
+                isHovered ? "opacity-100" : "opacity-0"
+              }`}
             >
               <Image
                 width={500}
                 height={500}
-                src={src ?? ""}
-                alt={`${data.name} - Product image`}
+                src={data.images[0]}
+                alt={`${data.name} - Product image hover`}
                 className="w-full h-full object-cover cursor-pointer group-hover:scale-110 transition-transform duration-700"
                 itemProp="image"
                 title={data.name}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
-            </motion.div>
-          </AnimatePresence>
+            </div>
+          )}
 
           {/* Quick View Overlay */}
-          <motion.div
-            className="absolute inset-0 bg-black/10  flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-            transition={{ duration: 0.3 }}
+          <div
+            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
+              isHovered ? "opacity-100" : "opacity-0"
+            }`}
             style={{ pointerEvents: isHovered ? "auto" : "none" }}
           >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{
-                scale: isHovered ? 1 : 0.8,
-                opacity: isHovered ? 1 : 0,
-              }}
-              transition={{ duration: 0.3 }}
-              className="bg-background rounded-full px-6 py-3 flex items-center gap-2 shadow-xl"
+            <div
+              className={`bg-background rounded-full px-6 py-3 flex items-center gap-2 shadow-xl transition-all duration-300 ${
+                isHovered ? "scale-100 opacity-100" : "scale-90 opacity-0"
+              }`}
             >
               <Eye className="w-5 h-5 text-brand-700" />
               <span className="text-sm font-semibold text-foreground">
                 Quick View
               </span>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
       </Link>
 
@@ -411,42 +341,27 @@ export default function ProductCard({ data }: { data: ProductData }) {
       <div className="p-5">
         {/* Category */}
         {data.subCategory && data.subCategory.length > 0 && (
-          <motion.p
-            className="text-[10px] uppercase tracking-wider text-brand-700 font-bold mb-2 flex items-center gap-1"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.15, duration: 0.3 }}
-          >
+          <p className="text-[10px] uppercase tracking-wider text-brand-700 font-bold mb-2 flex items-center gap-1">
             <span className="w-1 h-1 bg-brand-700 rounded-full"></span>
             <span itemProp="category">
               {data.subCategory.map((cat) => cat.name).join(", ")}
             </span>
-          </motion.p>
+          </p>
         )}
 
         {/* Product Name */}
         <Link href={`/product-details/${data.slug}`} prefetch={false}>
-          <motion.h3
+          <h3
             className="text-base sm:text-lg font-semibold text-foreground mb-3 line-clamp-2
                      group-hover:text-brand-700 transition-colors cursor-pointer leading-tight"
             itemProp="name"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.3 }}
           >
             {data.name}
-          </motion.h3>
+          </h3>
         </Link>
 
         {/* Pricing */}
-        <motion.div
-          className="mb-4"
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.25, duration: 0.3 }}
-          role="group"
-          aria-label="Product pricing"
-        >
+        <div className="mb-4" role="group" aria-label="Product pricing">
           <div className="flex items-baseline gap-2 mb-1">
             {displayCurrentPrice && (
               <span
@@ -474,23 +389,17 @@ export default function ProductCard({ data }: { data: ProductData }) {
               Save ₹{savings}
             </span>
           )}
-        </motion.div>
+        </div>
 
         {/* Add to Cart Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.3 }}
-          role="group"
-          aria-label="Product actions"
-        >
+        <div role="group" aria-label="Product actions">
           <Button
             disabled={loading || data.stock === 0}
             className="w-full bg-gradient-to-r from-brand-700 to-brand-800 hover:from-brand-800 hover:to-brand-900
                      text-background py-6 rounded-xl text-sm font-semibold uppercase tracking-wider
                      flex items-center justify-center gap-2 shadow-lg
                       transition-all duration-300
-                     transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
+                     active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
                      group-hover:shadow-2xl"
             onClick={handleAddToCart}
             aria-label={`Add ${data.name} to cart`}
@@ -505,9 +414,9 @@ export default function ProductCard({ data }: { data: ProductData }) {
                 : "Add to Cart"}
             </span>
           </Button>
-        </motion.div>
+        </div>
       </div>
 
-    </motion.article>
+    </article>
   );
 }

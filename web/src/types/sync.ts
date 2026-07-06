@@ -6,8 +6,7 @@ export interface CartSyncItem {
 }
 
 export interface WishlistSyncItem {
-  _id?: string;
-  productId?: string;
+  _id: string;
 }
 
 export interface SyncResult {
@@ -18,7 +17,7 @@ export interface SyncResult {
 
 export interface CartItem {
   productId: string;
-  product?: Record<string, unknown> | null;
+  slug: string | null;
   quantity: number;
   colorId: string | null;
   sizeId: string | null;
@@ -27,6 +26,6 @@ export interface CartItem {
 
 export interface WishlistItem {
   _id: string;
-  productId?: string;
+  slug: string | null;
   isGuest?: boolean;
 }

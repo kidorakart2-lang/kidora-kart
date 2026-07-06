@@ -14,7 +14,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { removeFromWishlist } from "@/redux/features/wishlist";
-import { saveGuestWishlistToStorage } from "@/lib/syncGuestData";
 import { toast } from "sonner";
 import type { WishlistProduct } from "@/types";
 import type { RootState } from "@/redux/store/store";

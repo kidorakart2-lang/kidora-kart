@@ -17,6 +17,7 @@ const csp = `
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   cacheComponents: true,
+  optimizePackageImports: ["lucide-react"],
   cacheLife: CACHE,
   images: {
     formats: ["image/avif", "image/webp"],

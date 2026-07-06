@@ -1,16 +1,10 @@
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import DefaultBanner from "./(sections)/DefaultBanner";
-import GenderCategorySection from "./(sections)/GenderCategorySection";
-import ShopByPrice from "./(sections)/ShopbyPrice";
-import TabProducts from "./(sections)/TabProducts";
-import WhyChooseUs from "./(sections)/WhyChooseUs";
 import { siteConfig } from "@/lib/utils";
 import { cacheLife, cacheTag } from "next/cache";
-import ProductsTab from "./(sections)/ProductsTab";
 import { Skeleton } from "@/components/ui/skeleton";
-import DynamicSections, { getHomeSections } from "./(sections)/DynamicSections";
-import type { HomeSection } from "./(sections)/DynamicSections";
+import { getHomeSections, type HomeSection } from "@/lib/home-data";
 import {
   TAG_PRODUCTS,
   TAG_HOMEPAGE,
@@ -29,6 +23,24 @@ const Testimonial = dynamic(() => import("./(sections)/Testimonial"), {
   loading: () => <div className="h-80 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
 });
 const FullVideoSection = dynamic(() => import("./(sections)/video"), {
+  loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
+});
+const DynamicSections = dynamic(() => import("./(sections)/DynamicSections"), {
+  loading: () => null,
+});
+const GenderCategorySection = dynamic(() => import("./(sections)/GenderCategorySection"), {
+  loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
+});
+const ShopByPrice = dynamic(() => import("./(sections)/ShopbyPrice"), {
+  loading: () => <div className="h-48 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
+});
+const TabProducts = dynamic(() => import("./(sections)/TabProducts"), {
+  loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
+});
+const WhyChooseUs = dynamic(() => import("./(sections)/WhyChooseUs"), {
+  loading: () => <div className="h-48 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
+});
+const ProductsTab = dynamic(() => import("./(sections)/ProductsTab"), {
   loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
 });
 
@@ -280,42 +292,15 @@ function TestimonialSkeleton() {
   );
 }
 
-export default async function Home() {
-  // Check if there are any dynamic sections configured
-  const homeSections: HomeSection[] = await getHomeSections();
-  const hasDynamicSections = homeSections.some((s) => !s.config?.hidden);
+// ── Default fallback layout — renders immediately as static shell ──
+// Renders all hardcoded sections. Data-heavy sections are inside Suspense
+// boundaries so they stream in as cached data resolves.
+// When dynamic sections are NOT configured, this is the final layout.
+// When they ARE configured, this gets replaced by DynamicSections via streaming.
 
-  if (hasDynamicSections) {
-    // Dynamic layout from admin panel — render all sections in order
-    // Banner is included as a normal section and may appear anywhere in the order
-    return (
-      <>
-        <h1 className="sr-only">{siteConfig.name} - Best Jewellery Store in {siteConfig.address.city}</h1>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        <DynamicSections />
-      </>
-    );
-  }
-
-  // ── DEFAULT FALLBACK LAYOUT ──
-  // When no dynamic sections are configured, show the original hardcoded layout.
-  // Static sections (DefaultBanner, RoundCategorySlider, GenderCategorySection,
-  // ShopByPrice, WhyChooseUs, ProductsTab) render immediately as part of the
-  // PPR static shell. Data-heavy sections are wrapped in <Suspense> so their
-  // content streams in as cached data resolves.
-
+function DefaultLayoutSections() {
   return (
     <>
-      {/* Add Structured Data */}
-      <h1 className="sr-only">{siteConfig.name} - Best Jewellery Store in {siteConfig.address.city}</h1>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
       <DefaultBanner />
       <RoundCategorySlider />
       <GenderCategorySection />
@@ -345,6 +330,44 @@ export default async function Home() {
 
       <Suspense fallback={<TestimonialSkeleton />}>
         <TestimonialSection />
+      </Suspense>
+    </>
+  );
+}
+
+// ── Streaming layout router ────────────────────────────────────────
+// Fetches sections config in the background (behind Suspense).
+// Renders DynamicSections if configured, otherwise the default layout.
+// Since getHomeSections() uses "use cache", calling it again here is free
+// if it was already fetched (cache hit from same render).
+
+async function StreamingLayoutRouter() {
+  const homeSections: HomeSection[] = await getHomeSections();
+  const hasDynamicSections = homeSections.some((s) => !s.config?.hidden);
+
+  if (hasDynamicSections) {
+    return <DynamicSections />;
+  }
+
+  return <DefaultLayoutSections />;
+}
+
+// ── Home page ────────────────────────────────────────────────────────
+// The page renders immediately — no blocking await on getHomeSections().
+// The default layout streams in as its Suspense boundaries resolve.
+// A lightweight Suspense wrapper checks for dynamic sections in the background.
+
+export default async function Home() {
+  return (
+    <>
+      <h1 className="sr-only">{siteConfig.name} - Best Jewellery Store in {siteConfig.address.city}</h1>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      <Suspense fallback={<DefaultLayoutSections />}>
+        <StreamingLayoutRouter />
       </Suspense>
     </>
   );

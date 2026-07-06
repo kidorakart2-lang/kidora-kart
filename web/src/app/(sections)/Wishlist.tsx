@@ -4,21 +4,65 @@ import { X, Heart, ChevronRight, Sparkles, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import { getAuthToken } from "@/lib/getAuthToken";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { LoadingUi } from "./Cart";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setWishlist } from "@/redux/features/wishlist";
+import { useProductsByIds } from "@/lib/useProduct";
 import type { WishlistProduct } from "@/types";
+import type { RootState } from "@/redux/store/store";
+
+interface WishlistDisplayItem {
+  _id: string;
+  name: string;
+  image: string;
+  price: number;
+  discount_price?: number;
+  slug: string;
+  originalPrice?: number;
+  stock: number;
+}
 
 export default function Wishlist({ wishlist }: { wishlist: Record<string, unknown> | null }) {
-  const [items, setItems] = useState<WishlistProduct[]>([]);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const removeFromWishlist = async (id: string) => {
+  // Read Redux wishlist items for guest/fallback path
+  const reduxWishlistItems = useSelector(
+    (state: RootState) => state.wishlist?.wishlistItems ?? []
+  );
+  const hasServerData = !!wishlist;
+
+  // Collect product IDs from Redux wishlist items for guest batch fetch
+  const wishlistIds = useMemo(() => {
+    if (hasServerData) return [];
+    return [...new Set(reduxWishlistItems.map((item) => item._id).filter(Boolean))];
+  }, [hasServerData, reduxWishlistItems]);
+
+  const { productMap, isLoading: guestProductsLoading } = useProductsByIds(wishlistIds);
+
+  // Build display items from fetched product data for guest/fallback
+  const guestItems: WishlistDisplayItem[] = useMemo(() => {
+    if (hasServerData) return [];
+    return reduxWishlistItems.map((item) => {
+      const fetched = item._id ? productMap.get(item._id) : undefined;
+      return {
+        _id: item._id,
+        name: fetched?.name ?? "Loading...",
+        image: fetched?.image ?? "/placeholder.svg",
+        price: fetched?.price ?? 0,
+        discount_price: fetched?.discount_price,
+        slug: item.slug ?? "",
+        stock: fetched?.stock ?? 0,
+        originalPrice: fetched?.price,
+      };
+    });
+  }, [hasServerData, reduxWishlistItems, productMap]);
+
+  const removeFromWishlist = async (id: string): Promise<void> => {
     setWishlistLoading(true);
     try {
       const response = await fetch(
@@ -38,9 +82,9 @@ export default function Wishlist({ wishlist }: { wishlist: Record<string, unknow
       const responseData = await response.json();
       if (response.ok || responseData._status) {
         router.push("/wishlist");
-        return toast.success(responseData._message);
+        toast.success(responseData._message);
       } else {
-        return toast.error(responseData._message);
+        toast.error(responseData._message);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong");
@@ -51,11 +95,27 @@ export default function Wishlist({ wishlist }: { wishlist: Record<string, unknow
 
   useEffect(() => {
     if (!wishlist || wishlist == null) return;
-    setItems((wishlist?.items ?? wishlist) as WishlistProduct[]);
     dispatch(setWishlist(wishlist));
   }, [wishlist, dispatch]);
 
-  if (!wishlist || items.length === 0) {
+  // Determine which items to render: SSR data (server) or guest items with TanStack Query
+  const displayItems: WishlistDisplayItem[] = hasServerData
+    ? ((wishlist?.items ?? wishlist) as WishlistProduct[]).map((item) => ({
+        _id: item._id,
+        name: item.name,
+        image: item.image ?? "/placeholder.svg",
+        price: item.price,
+        discount_price: item.discount_price,
+        slug: item.slug,
+        originalPrice: item.originalPrice,
+        stock: item.stock ?? 0,
+      }))
+    : guestItems;
+
+  const isLoading = hasServerData ? false : guestProductsLoading;
+
+  // ── Empty state ──────────────────────────────────────────────────
+  if (displayItems.length === 0 && !isLoading) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -108,6 +168,16 @@ export default function Wishlist({ wishlist }: { wishlist: Record<string, unknow
     );
   }
 
+  // ── Loading state ────────────────────────────────────────────────
+  if (isLoading) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <LoadingUi hidden={false} />
+      </div>
+    );
+  }
+
+  // ── Wishlist grid ────────────────────────────────────────────────
   return (
     <>
       <section id="wishlist" className="py-12 md:py-16 bg-gradient-to-b from-brand-50/30 via-white to-brand-50/30">
@@ -138,146 +208,21 @@ export default function Wishlist({ wishlist }: { wishlist: Record<string, unknow
             </div>
 
             <p className="text-muted-foreground text-base md:text-lg font-light">
-              {items.length} {items.length === 1 ? "item" : "items"} saved for later
+              {displayItems.length} {displayItems.length === 1 ? "item" : "items"} saved for later
             </p>
           </motion.div>
 
           {/* Wishlist Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             <AnimatePresence mode="popLayout">
-              {items.map((item, index) => (
-                <motion.article
-                  key={item._id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{
-                    opacity: 0,
-                    scale: 0.8,
-                    transition: { duration: 0.3 },
-                  }}
-                  transition={{
-                    duration: 0.4,
-                    delay: index * 0.05,
-                    layout: { duration: 0.3 },
-                  }}
-                  className="group relative bg-background rounded-2xl overflow-hidden shadow-md 
-                           hover:shadow-2xl transition-all duration-500 border border-border 
-                           hover:border-brand-200"
-                >
-                  {/* Remove Button */}
-                  <motion.button
-                    onClick={() => removeFromWishlist(item._id)}
-                    className="absolute top-3 right-3 z-20 w-10 h-10 bg-background/90 backdrop-blur-sm 
-                             rounded-full shadow-lg border border-border flex items-center 
-                             justify-center hover:bg-background hover:border-brand-accent-400 hover:scale-110 
-                             transition-all duration-300"
-                    whileHover={{ rotate: 90 }}
-                    whileTap={{ scale: 0.9 }}
-                    aria-label="Remove from wishlist"
-                  >
-                    <X className="w-5 h-5 text-muted-foreground group-hover:text-brand-accent-500 transition-colors" />
-                  </motion.button>
-
-                  {/* Stock Badge */}
-                  <div className="absolute top-3 left-3 z-20">
-                    {item.stock < 0 ? (
-                      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-brand-accent-500 to-red-600 
-                                     text-background text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
-                        <span className="w-1.5 h-1.5 bg-background rounded-full animate-pulse"></span>
-                        Out of Stock
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-green-600 
-                                     text-background text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
-                        <span className="w-1.5 h-1.5 bg-background rounded-full"></span>
-                        In Stock
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Image Container */}
-                  <div 
-                    className="relative h-72 sm:h-80 bg-gradient-to-br from-brand-50 to-slate-50 
-                             overflow-hidden cursor-pointer"
-                    onClick={() => router.push(`/product-details/${item.slug}`)}
-                  >
-                    <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      transition={{ duration: 0.6 }}
-                      className="w-full h-full"
-                    >
-                      <Image
-                        src={item.image ?? "/placeholder.svg"}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      />
-                    </motion.div>
-
-                    {/* Hover Overlay */}
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent 
-                               opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    />
-                    
-                    {/* Quick View Text */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      whileHover={{ opacity: 1, y: 0 }}
-                      className="absolute bottom-4 left-0 right-0 text-center opacity-0 
-                               group-hover:opacity-100 transition-opacity duration-300"
-                    >
-                      <span className="text-background text-sm font-medium">Click to View Details</span>
-                    </motion.div>
-                  </div>
-
-                  {/* Product Details */}
-                  <div className="p-6">
-                    <h3 
-                      className="text-lg font-semibold text-foreground mb-3 line-clamp-2 
-                               group-hover:text-brand-700 transition-colors cursor-pointer 
-                               leading-tight min-h-[3.5rem]"
-                      onClick={() => router.push(`/product-details/${item.slug}`)}
-                    >
-                      {item.name}
-                    </h3>
-
-                    {/* Pricing */}
-                    <div className="space-y-2">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-foreground">
-                          ₹{item.price.toFixed(2)}
-                        </span>
-                        {item.originalPrice != null && item.originalPrice > item.price && (
-                          <span className="text-sm text-muted-foreground line-through">
-                            ₹{item.originalPrice.toFixed(2)}
-                          </span>
-                        )}
-                      </div>
-                      
-                      {item.originalPrice != null && item.originalPrice > item.price && (
-                        <div className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 
-                                      text-xs font-semibold px-2 py-1 rounded-md">
-                          <Sparkles className="w-3 h-3" />
-                          {Math.round((1 - item.price / item.originalPrice) * 100)}% OFF
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Bottom Shine Effect */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r 
-                               from-transparent via-brand-400 to-transparent opacity-0 
-                               group-hover:opacity-100 transition-opacity duration-500"></div>
-                </motion.article>
+              {displayItems.map((item, index) => (
+                <WishlistCard key={item._id} item={item} index={index} onRemove={removeFromWishlist} />
               ))}
             </AnimatePresence>
           </div>
 
           {/* Continue Shopping Button */}
-          {items.length > 0 && (
+          {displayItems.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -302,6 +247,137 @@ export default function Wishlist({ wishlist }: { wishlist: Record<string, unknow
 
       <LoadingUi hidden={wishlistLoading} />
     </>
+  );
+}
+
+function WishlistCard({ item, index, onRemove }: { item: WishlistDisplayItem; index: number; onRemove: (id: string) => Promise<void> }) {
+  const router = useRouter();
+  return (
+    <motion.article
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{
+        opacity: 0,
+        scale: 0.8,
+        transition: { duration: 0.3 },
+      }}
+      transition={{
+        duration: 0.4,
+        delay: index * 0.05,
+        layout: { duration: 0.3 },
+      }}
+      className="group relative bg-background rounded-2xl overflow-hidden shadow-md 
+               hover:shadow-2xl transition-all duration-500 border border-border 
+               hover:border-brand-200"
+    >
+      {/* Remove Button */}
+      <motion.button
+        onClick={() => onRemove(item._id)}
+        className="absolute top-3 right-3 z-20 w-10 h-10 bg-background/90 backdrop-blur-sm 
+                 rounded-full shadow-lg border border-border flex items-center 
+                 justify-center hover:bg-background hover:border-brand-accent-400 hover:scale-110 
+                 transition-all duration-300"
+        whileHover={{ rotate: 90 }}
+        whileTap={{ scale: 0.9 }}
+        aria-label="Remove from wishlist"
+      >
+        <X className="w-5 h-5 text-muted-foreground group-hover:text-brand-accent-500 transition-colors" />
+      </motion.button>
+
+      {/* Stock Badge */}
+      <div className="absolute top-3 left-3 z-20">
+        {item.stock < 0 ? (
+          <span className="inline-flex items-center gap-1 bg-gradient-to-r from-brand-accent-500 to-red-600 
+                         text-background text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+            <span className="w-1.5 h-1.5 bg-background rounded-full animate-pulse"></span>
+            Out of Stock
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-green-600 
+                         text-background text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+            <span className="w-1.5 h-1.5 bg-background rounded-full"></span>
+            In Stock
+          </span>
+        )}
+      </div>
+
+      {/* Image Container */}
+      <div 
+        className="relative h-72 sm:h-80 bg-gradient-to-br from-brand-50 to-slate-50 
+                 overflow-hidden cursor-pointer"
+        onClick={() => router.push(`/product-details/${item.slug}`)}
+      >
+        <motion.div
+          whileHover={{ scale: 1.1 }}
+          transition={{ duration: 0.6 }}
+          className="w-full h-full"
+        >
+          <Image
+            src={item.image ?? "/placeholder.svg"}
+            alt={item.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        </motion.div>
+
+        {/* Hover Overlay */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent 
+                   opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        />
+        
+        {/* Quick View Text */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileHover={{ opacity: 1, y: 0 }}
+          className="absolute bottom-4 left-0 right-0 text-center opacity-0 
+                   group-hover:opacity-100 transition-opacity duration-300"
+        >
+          <span className="text-background text-sm font-medium">Click to View Details</span>
+        </motion.div>
+      </div>
+
+      {/* Product Details */}
+      <div className="p-6">
+        <h3 
+          className="text-lg font-semibold text-foreground mb-3 line-clamp-2 
+                   group-hover:text-brand-700 transition-colors cursor-pointer 
+                   leading-tight min-h-[3.5rem]"
+          onClick={() => router.push(`/product-details/${item.slug}`)}
+        >
+          {item.name}
+        </h3>
+
+        {/* Pricing */}
+        <div className="space-y-2">
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-foreground">
+              ₹{item.price.toFixed(2)}
+            </span>
+            {item.originalPrice != null && item.originalPrice > item.price && (
+              <span className="text-sm text-muted-foreground line-through">
+                ₹{item.originalPrice.toFixed(2)}
+              </span>
+            )}
+          </div>
+          
+          {item.originalPrice != null && item.originalPrice > item.price && (
+            <div className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 
+                          text-xs font-semibold px-2 py-1 rounded-md">
+              <Sparkles className="w-3 h-3" />
+              {Math.round((1 - item.price / item.originalPrice) * 100)}% OFF
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Shine Effect */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r 
+                   from-transparent via-brand-400 to-transparent opacity-0 
+                   group-hover:opacity-100 transition-opacity duration-500"></div>
+    </motion.article>
   );
 }
 

@@ -22,6 +22,7 @@ export interface ProductData {
   description?: string;
   category?: string;
   material?: string;
+  isPersonalized?: boolean;
   subCategory?: { _id: string; name: string }[];
   colors?: { _id: string; name: string; code?: string }[];
   sizes?: { _id: string; name: string }[];

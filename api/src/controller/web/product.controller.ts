@@ -656,6 +656,45 @@ export const tabProducts = async (
   }
 };
 
+/**
+ * POST /api/website/product/batch
+ * Accepts { ids: string[] } and returns matching products.
+ * Useful for guest cart/wishlist — fetch multiple products in one request.
+ */
+export const getByIds = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  try {
+    const { ids } = req.body as { ids?: string[] };
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return success(res, [], "No product IDs provided");
+    }
+
+    // Cap to 50 IDs to prevent abuse
+    const cappedIds = ids.slice(0, 50);
+
+    const products = await Product.find({
+      _id: { $in: cappedIds },
+      deletedAt: null,
+      status: true,
+    })
+      .populate(PRODUCT_POPULATE)
+      .select(PRODUCT_SELECT)
+      .lean();
+
+    return success(res, products, "Products fetched successfully");
+  } catch (err) {
+    return fail(
+      res,
+      err instanceof Error ? err.message : "Something went wrong",
+      500,
+      [],
+    );
+  }
+};
+
 export const getBySearch = async (
   req: Request,
   res: Response,

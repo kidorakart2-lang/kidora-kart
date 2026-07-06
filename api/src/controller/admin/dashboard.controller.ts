@@ -3,6 +3,29 @@ import User from "../../models/user.js";
 import Order from "../../models/order.js";
 import Product from "../../models/product.js";
 import { logger } from "../../lib/logger.js";
+
+interface MonthlyRevenue {
+  _id: { year: number; month: number };
+  revenue: number;
+  orders: number;
+}
+
+interface OrderStatusCount {
+  _id: string;
+  count: number;
+}
+
+interface CategorySalesCount {
+  _id: string;
+  name: string;
+  sales: number;
+}
+
+interface UserGrowthItem {
+  _id: { year: number; month: number };
+  count: number;
+}
+
 export const getDashboardStats = async (
   _req: Request,
   res: Response,
@@ -10,6 +33,7 @@ export const getDashboardStats = async (
   try {
     const now = new Date();
     const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const sixMonthsAgo = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
 
     const [
       totalProducts,
@@ -18,7 +42,10 @@ export const getDashboardStats = async (
       totalRevenueResult,
       lastWeekUsers,
       lastWeekOrders,
-      // lastWeekRevenue — referenced in original code but unused
+      monthlyRevenue,
+      orderStatusCounts,
+      categorySales,
+      userGrowth,
     ] = await Promise.all([
       Product.countDocuments({ deletedAt: null }),
       User.countDocuments({ isDeleted: { $ne: true } }),
@@ -52,13 +79,88 @@ export const getDashboardStats = async (
           },
         },
       ]),
+      // Monthly revenue trend (last 6 months)
+      Order.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: sixMonthsAgo },
+            isDeleted: { $ne: true },
+            status: { $nin: ["cancelled", "returned"] },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: "$createdAt" },
+              month: { $month: "$createdAt" },
+            },
+            revenue: { $sum: "$pricing.total" },
+            orders: { $sum: 1 },
+          },
+        },
+        { $sort: { "_id.year": 1, "_id.month": 1 } },
+      ]),
+      // Order status distribution
+      Order.aggregate([
+        {
+          $match: {
+            isDeleted: { $ne: true },
+          },
+        },
+        {
+          $group: {
+            _id: "$status",
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+      // Top categories by product sales
+      Order.aggregate([
+        { $unwind: "$items" },
+        {
+          $match: {
+            isDeleted: { $ne: true },
+            status: { $nin: ["cancelled", "returned"] },
+          },
+        },
+        {
+          $group: {
+            _id: "$items.name",
+            sales: { $sum: "$items.quantity" },
+            revenue: { $sum: "$items.subtotal" },
+          },
+        },
+        { $sort: { sales: -1 } },
+        { $limit: 10 },
+      ]),
+      // User growth (last 6 months)
+      User.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: sixMonthsAgo },
+            isDeleted: { $ne: true },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: "$createdAt" },
+              month: { $month: "$createdAt" },
+            },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { "_id.year": 1, "_id.month": 1 } },
+      ]),
     ]);
 
-    const totalRevenue = (totalRevenueResult[0] as Record<string, unknown>)?.total ?? 0;
-    const lastWeekOrdersData = (lastWeekOrders[0] as Record<string, unknown>) ?? {
+    const totalRevenue = (totalRevenueResult[0] as { total?: number } | undefined)?.total ?? 0;
+    const lastWeekOrdersData = (lastWeekOrders[0] as { count?: number; revenue?: number } | undefined) ?? {
       count: 0,
       revenue: 0,
     };
+
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     const stats = {
       totals: {
@@ -74,19 +176,38 @@ export const getDashboardStats = async (
         startDate: oneWeekAgo,
         endDate: now,
       },
+      charts: {
+        revenueTrend: (monthlyRevenue as MonthlyRevenue[]).map((m) => ({
+          month: monthNames[m._id.month - 1],
+          revenue: m.revenue,
+          orders: m.orders,
+        })),
+        orderStatus: (orderStatusCounts as OrderStatusCount[]).map((s) => ({
+          status: s._id,
+          value: s.count,
+        })),
+        topCategories: (categorySales as CategorySalesCount[]).map((c) => ({
+          name: c.name,
+          sales: c.sales,
+        })),
+        userGrowth: (userGrowth as UserGrowthItem[]).map((m) => ({
+          month: monthNames[m._id.month - 1],
+          users: m.count,
+        })),
+      },
     };
 
     res.status(200).json({
-      success: true,
-      message: "Dashboard statistics retrieved successfully",
-      data: stats,
+      _status: true,
+      _message: "Dashboard statistics retrieved successfully",
+      _data: stats,
     });
   } catch (error) {
     logger.error({ err: error }, "Error in getDashboardStats");
     res.status(500).json({
-      success: false,
-      message: "Error retrieving dashboard statistics",
-      error: "Internal Server Error",
+      _status: false,
+      _message: "Error retrieving dashboard statistics",
+      _error: "Internal Server Error",
     });
   }
 };
@@ -119,9 +240,9 @@ export const getRecentActivity = async (
       .lean();
 
     res.status(200).json({
-      success: true,
-      message: "Recent activity retrieved successfully",
-      data: {
+      _status: true,
+      _message: "Recent activity retrieved successfully",
+      _data: {
         recentOrders,
         recentUsers,
       },
@@ -129,9 +250,9 @@ export const getRecentActivity = async (
   } catch (error) {
     logger.error({ err: error }, "Error in getRecentActivity");
     res.status(500).json({
-      success: false,
-      message: "Error retrieving recent activity",
-      error: "Internal Server Error",
+      _status: false,
+      _message: "Error retrieving recent activity",
+      _error: "Internal Server Error",
     });
   }
 };

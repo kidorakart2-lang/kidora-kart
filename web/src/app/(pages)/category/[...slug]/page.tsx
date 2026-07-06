@@ -7,6 +7,10 @@ import FilterSidebar from "../FilterSidebar";
 import { ChevronRight } from "lucide-react";
 import type { ColorItem, MaterialItem } from "@/types";
 
+// ISR: revalidate at most every hour 
+// IT ISNT SUPPORTED WITH nextConfig.cacheComponents setting do not USE IT 
+// export const revalidate = 3600;
+
 export const metadata = {
   title: `Shop Jewellery Online - ${siteConfig.name} | Gold, Silver & Diamond Collection`,
   description: `Browse our extensive collection of premium jewellery in Jodhpur. Shop rings, necklaces, earrings, bracelets, bangles, and more. Gold, silver, and diamond jewellery with traditional Rajasthani craftsmanship.`,

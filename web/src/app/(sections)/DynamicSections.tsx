@@ -1,13 +1,15 @@
-import { cacheLife, cacheTag } from "next/cache";
 import dynamic from "next/dynamic";
 import BannerSingle from "./BannerSingle";
 import BannerSlider from "./BannerSlider";
 import WhyChooseUs from "./WhyChooseUs";
 import {
-  TAG_PRODUCTS,
-  TAG_HOMEPAGE,
-  TAG_TESTIMONIALS,
-} from "@/lib/revalidation-tags";
+  getHomeSections,
+  getWebsiteBanners,
+  fetchProducts,
+  fetchProductsBySearch,
+  fetchTestimonials,
+  type HomeSection,
+} from "@/lib/home-data";
 
 const Slider = dynamic(() => import("./Slider"), {
   loading: () => <div className="h-96 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
@@ -37,30 +39,7 @@ const BentoGrid = dynamic(() => import("@/components/bento"), {
   loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
 });
 
-export interface HomeSection {
-  _id: string;
-  type: string;
-  config: Record<string, unknown>;
-  order: number;
-}
 
-async function getHomeSections() {
-  "use cache";
-  cacheLife("homepage");
-  cacheTag(TAG_HOMEPAGE);
-
-  try {
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/home-page",
-    );
-    const data = await res.json();
-    return (data._data?.sections ?? []) as HomeSection[];
-  } catch {
-    return [];
-  }
-}
-
-export { getHomeSections };
 
 export default async function DynamicSections() {
   const sections = await getHomeSections();
@@ -221,31 +200,7 @@ async function ProductsTabSection({
   return <Slider data={products} heading={heading || searchTerm} />;
 }
 
-// ── Data fetching helpers ──
-
-// ── Banner helpers ──
-
-interface BannerItem {
-  _id?: string
-  image: string
-  link?: { url?: string | null; type?: string }
-}
-
-async function getWebsiteBanners() {
-  "use cache";
-  cacheLife("homepage");
-  cacheTag(TAG_HOMEPAGE);
-
-  try {
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/banner",
-    )
-    const data = await res.json()
-    return (data._data as BannerItem[]) ?? []
-  } catch {
-    return []
-  }
-}
+// ── Banner helper ──
 
 async function BannerFromConfig({
   selectedBannerIds,
@@ -273,54 +228,4 @@ async function BannerFromConfig({
   }
 
   return <BannerSlider slides={slides} />
-}
-
-async function fetchProducts(source: string, limit: number) {
-  "use cache";
-  cacheLife("products");
-  cacheTag(TAG_PRODUCTS);
-
-  try {
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + `api/website/product/${source}?limit=${limit}`,
-    );
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data._data ?? [];
-  } catch {
-    return [];
-  }
-}
-
-async function fetchProductsBySearch(term: string) {
-  "use cache";
-  cacheLife("search");
-  cacheTag(TAG_PRODUCTS);
-
-  try {
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + `api/website/product/get-by-search?search=${encodeURIComponent(term)}&limit=8`,
-    );
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data._data ?? [];
-  } catch {
-    return [];
-  }
-}
-
-async function fetchTestimonials() {
-  "use cache";
-  cacheLife("testimonials");
-  cacheTag(TAG_TESTIMONIALS, TAG_HOMEPAGE);
-
-  try {
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/testimonial",
-    );
-    const data = await res.json();
-    return data._data;
-  } catch {
-    return null;
-  }
 }

@@ -4,25 +4,38 @@ import { useQuery } from "@tanstack/react-query";
 import { StatCard } from "@/components/stat-card";
 import { RecentActivity } from "@/components/recent-activity";
 import { RecentOrders } from "@/components/recent-orders";
+import {
+  RevenueLineChart,
+  OrderStatusChart,
+  MonthlyBarChart,
+  CategoryBarChart,
+  UserGrowthChart,
+  type ChartData,
+  type RevenueTrendItem,
+  type OrderStatusItem,
+  type TopCategoryItem,
+  type UserGrowthItem,
+} from "@/components/dashboard-charts";
 import { ShoppingCart, Users, Package, IndianRupee, AlertCircle, RefreshCw } from "lucide-react";
-import RefundedOrdersAdmin from "@/components/RefundedOrdersAdmin";
 import PendingPaymentFix from "@/components/PendingPaymentFix";
 import { api, ApiClientError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 
-
 interface DashboardStats {
-  lastWeek?: {
-    newUsers?: number;
-    newOrders?: number;
-    revenue?: number;
+  lastWeek: {
+    newUsers: number;
+    newOrders: number;
+    revenue: number;
+    startDate: string;
+    endDate: string;
   };
-  totals?: {
-    users?: number;
-    orders?: number;
-    products?: number;
-    revenue?: number;
+  totals: {
+    users: number;
+    orders: number;
+    products: number;
+    revenue: number;
   };
+  charts: ChartData;
 }
 
 interface ActivityItem {
@@ -46,28 +59,20 @@ interface OrderActivityItem {
 }
 
 interface ActivityData {
-  recentUsers?: ActivityItem[];
-  recentOrders?: OrderActivityItem[];
+  recentUsers: ActivityItem[];
+  recentOrders: OrderActivityItem[];
 }
 
 export default function DashboardPage() {
-  const fetchDashboardStats = async (): Promise<DashboardStats> => {
-    return api.post("/api/admin/dashboard/get-dashboard-stats", {});
-  };
-
-  const fetchRecentActivity = async (): Promise<ActivityData> => {
-    return api.post("/api/admin/dashboard/get-recent-activity", {});
-  };
-
   const {
     data: stats,
     isLoading: statsLoading,
     isError: statsError,
     error: statsErrorObj,
     refetch: refetchStats,
-  } = useQuery({
+  } = useQuery<DashboardStats>({
     queryKey: ["dashboard-stats"],
-    queryFn: fetchDashboardStats,
+    queryFn: () => api.post("/api/admin/dashboard/get-dashboard-stats", {}),
     staleTime: 60 * 60 * 1000,
     retry: 1,
   });
@@ -78,15 +83,21 @@ export default function DashboardPage() {
     isError: activityError,
     error: activityErrorObj,
     refetch: refetchActivity,
-  } = useQuery({
+  } = useQuery<ActivityData>({
     queryKey: ["dashboard-activity"],
-    queryFn: fetchRecentActivity,
+    queryFn: () => api.post("/api/admin/dashboard/get-recent-activity", {}),
     staleTime: 60 * 60 * 1000,
     retry: 1,
   });
 
   const isLoading = statsLoading || activityLoading;
   const hasError = statsError || activityError;
+
+  const chartData: ChartData | null = stats?.charts ?? null;
+  const revenueTrend: RevenueTrendItem[] = chartData?.revenueTrend ?? [];
+  const orderStatus: OrderStatusItem[] = chartData?.orderStatus ?? [];
+  const topCategories: TopCategoryItem[] = chartData?.topCategories ?? [];
+  const userGrowth: UserGrowthItem[] = chartData?.userGrowth ?? [];
 
   if (isLoading) {
     return (
@@ -141,6 +152,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
+      {/* ── KPI Summary Cards ── */}
       <div className="space-y-8">
         <div>
           <h2 className="text-xl font-semibold mb-4">Last Week</h2>
@@ -206,12 +218,29 @@ export default function DashboardPage() {
 
       <PendingPaymentFix />
 
-      <div>
-        <RefundedOrdersAdmin />
+      {/* ── Charts Grid ── */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <RevenueLineChart data={revenueTrend} />
+        </div>
+        <div>
+          <OrderStatusChart data={orderStatus} />
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <RecentActivity activity={activity?.recentUsers} />
+        <MonthlyBarChart data={revenueTrend} />
+        <UserGrowthChart data={userGrowth} />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <CategoryBarChart data={topCategories} />
+        <div>
+          <RecentActivity activity={activity?.recentUsers} />
+        </div>
+      </div>
+
+      <div>
         <RecentOrders activity={activity?.recentOrders} />
       </div>
     </div>

@@ -274,6 +274,77 @@ body[data-scroll-lock="true"] {
   padding: 20px 0;
 }
 
+.banner-swiper .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background-color: color-mix(in srgb, var(--brand-primary) 40%, white);
+  opacity: 0.8;
+  will-change: transform;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.banner-swiper .swiper-pagination-bullet:hover {
+  background-color: color-mix(in srgb, var(--brand-primary) 70%, white);
+}
+
+/* ── VideoSection decorative animations ── */
+@keyframes decorCircle1 {
+  0% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.2) rotate(180deg); }
+  100% { transform: scale(1) rotate(360deg); }
+}
+@keyframes decorCircle2 {
+  0% { transform: scale(1) rotate(360deg); }
+  50% { transform: scale(1.3) rotate(180deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+@keyframes decorSparkle {
+  0%, 100% { transform: translateY(0); opacity: 0.3; }
+  50% { transform: translateY(-20px); opacity: 0.6; }
+}
+@keyframes videoFadeInLeft {
+  from { opacity: 0; transform: translateX(-80px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes videoFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-decor-circle-1 {
+  animation: decorCircle1 8s linear infinite;
+}
+.animate-decor-circle-2 {
+  animation: decorCircle2 6s linear infinite;
+}
+.animate-decor-sparkle {
+  animation: decorSparkle 3s ease-in-out infinite;
+}
+.animate-video-fade-in-left {
+  animation: videoFadeInLeft 1s ease-out both;
+}
+.animate-video-fade-in {
+  animation: videoFadeIn 0.8s ease-out both;
+}
+
+.banner-swiper .swiper-pagination-bullet-active {
+  background-color: var(--brand-primary);
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.banner-swiper .swiper-button-next,
+.banner-swiper .swiper-button-prev {
+  color: var(--brand-primary) !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-color: var(--brand-primary) !important;
+}
+
+.banner-swiper .swiper-button-next::after,
+.banner-swiper .swiper-button-prev::after {
+  font-size: 18px;
+}
+
 .delay-700 {
   animation-delay: 700ms;
 }

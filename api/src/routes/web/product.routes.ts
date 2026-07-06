@@ -270,6 +270,7 @@ import {
   trendingProducts,
   bestSellers,
   featuredForFooter,
+  getByIds,
 } from "../../controller/web/product.controller.js";
 import { uploadNone } from "../../middleware/uploadMiddleware.js";
 
@@ -294,5 +295,8 @@ router.get("/featured-for-footer", featuredForFooter);
 
 // sitemap products
 router.get("/all", getAll);
+
+// batch fetch by IDs (POST to allow body)
+router.post("/batch", uploadNone, getByIds);
 
 export default router;

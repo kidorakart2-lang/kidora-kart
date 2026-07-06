@@ -102,6 +102,7 @@ const renderTemplate = async (
     ...data,
     year: new Date().getFullYear(),
     appName: env.APP_NAME,
+    appUrl: env.APP_URL,
   });
 
   return { subject: template.subject, html };

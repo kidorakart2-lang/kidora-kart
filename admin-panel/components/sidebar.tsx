@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -23,11 +23,15 @@ import {
   Bot,
   House,
   History,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import type { LucideIcon } from "lucide-react";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const LOGO_CACHE_KEY = "admin-sidebar-logo";
 
 interface MenuItem {
   icon: LucideIcon;
@@ -63,9 +67,9 @@ const menuItems: MenuItem[] = [
   { icon: Star, label: "Why Choose Us", href: "/dashboard/why-choose-us" },
   { icon: Palette, label: "Materials & Colors", href: "/dashboard/materials" },
   { icon: Ruler, label: "Sizes", href: "/dashboard/sizes" },
-  { icon: Bot, label: "AI Helpers", href: "/dashboard/ai-helpers" },
   { icon: House, label: "Home Page", href: "/dashboard/home-page" },
   { icon: HelpCircle, label: "Product FAQs", href: "/dashboard/product-faqs" },
+  { icon: Sparkles, label: "AI Responses", href: "/dashboard/ai-responses" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ];
 
@@ -75,7 +79,9 @@ interface SidebarProps {
 
 export function Sidebar({ onCollapsedChange }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const pathname = usePathname();
+  const fetchedRef = useRef(false);
 
   const isMobile = useIsMobile();
 
@@ -91,15 +97,54 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
     }
   }, [isMobile]);
 
+  useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
+    const cached = sessionStorage.getItem(LOGO_CACHE_KEY);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed?.[0]?.logo) {
+          setLogoUrl(parsed[0].logo);
+          return;
+        }
+      } catch { /* ignore */ }
+    }
+
+    fetch(`${BACKEND_URL}api/website/logo`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        const url = data?._data?.[0]?.logo;
+        if (url) {
+          sessionStorage.setItem(LOGO_CACHE_KEY, JSON.stringify(data._data));
+          setLogoUrl(url);
+        }
+      })
+      .catch(() => { /* fallback to static icon */ });
+  }, []);
+
   const sidebarContent = (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
         {!collapsed && !isMobile && (
-          <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left duration-300">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">
-                T
-              </span>
+          <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left duration-300 overflow-hidden">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt="Logo"
+                  className="w-full h-full object-contain rounded-lg"
+                />
+              ) : (
+                <div className="w-full h-full bg-primary rounded-lg flex items-center justify-center">
+                  <span className="text-primary-foreground font-bold text-sm">T</span>
+                </div>
+              )}
             </div>
             <span className="font-bold text-lg text-sidebar-foreground">
               Toy Shop

@@ -14,6 +14,7 @@ import {
   verifyRefreshToken,
   revokeRefreshToken,
   accessTokenCookieOptions,
+  clientAccessTokenCookieOptions,
   refreshTokenCookieOptions,
   clearAccessTokenCookie,
   clearRefreshTokenCookie,
@@ -27,7 +28,10 @@ async function setSessionCookies(
   const accessToken = generateToken(user, "admin");
   const refresh = await createRefreshToken(String(user._id), "admin");
 
+  // httpOnly cookie for server-side auth
   res.cookie("adminToken", accessToken, accessTokenCookieOptions("admin"));
+  // non-httpOnly cookie so client-side js-cookie sees the new token
+  res.cookie("adminToken", accessToken, clientAccessTokenCookieOptions());
   res.cookie("adminRefreshToken", refresh.tokenValue, refreshTokenCookieOptions(refresh.expiresAt));
 }
 

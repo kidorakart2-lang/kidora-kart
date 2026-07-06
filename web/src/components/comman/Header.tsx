@@ -152,7 +152,7 @@ export default function Header({ navigationData }: HeaderProps) {
     const userData = await getUser();
     if (userData && typeof userData === "object" && "_data" in userData) {
       dispatch(setProfile((userData as { _data: unknown })._data));
-      dispatch(login(getAuthToken()));
+      dispatch(login());
     }
   };
 

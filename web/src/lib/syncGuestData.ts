@@ -1,7 +1,6 @@
 "use client";
 
-import { toast } from "sonner";
-import type { CartSyncItem, WishlistSyncItem, SyncResult, CartItem, WishlistItem } from "@/types";
+import type { CartSyncItem, WishlistSyncItem, SyncResult } from "@/types";
 
 /**
  * Sync guest cart items to the server after login
@@ -76,7 +75,7 @@ export async function syncGuestWishlistToServer(token: string, guestWishlistItem
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            productId: item._id || item.productId,
+            productId: item._id,
           }),
         }
       );
@@ -105,76 +104,3 @@ export async function syncGuestWishlistToServer(token: string, guestWishlistItem
   return { success: failed === 0, synced, failed };
 }
 
-/**
- * Get guest cart items from localStorage
- */
-export function getGuestCartFromStorage(): CartItem[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const stored = localStorage.getItem("guestCart");
-    return stored ? (JSON.parse(stored) as CartItem[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Save guest cart items to localStorage
- */
-export function saveGuestCartToStorage(cartItems: CartItem[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem("guestCart", JSON.stringify(cartItems));
-  } catch {
-    // Storage might be full or disabled
-  }
-}
-
-/**
- * Clear guest cart from localStorage
- */
-export function clearGuestCartStorage(): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.removeItem("guestCart");
-  } catch {
-    // Ignore errors
-  }
-}
-
-/**
- * Get guest wishlist items from localStorage
- */
-export function getGuestWishlistFromStorage(): WishlistItem[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const stored = localStorage.getItem("guestWishlist");
-    return stored ? (JSON.parse(stored) as WishlistItem[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Save guest wishlist items to localStorage
- */
-export function saveGuestWishlistToStorage(wishlistItems: WishlistItem[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem("guestWishlist", JSON.stringify(wishlistItems));
-  } catch {
-    // Storage might be full or disabled
-  }
-}
-
-/**
- * Clear guest wishlist from localStorage
- */
-export function clearGuestWishlistStorage(): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.removeItem("guestWishlist");
-  } catch {
-    // Ignore errors
-  }
-}

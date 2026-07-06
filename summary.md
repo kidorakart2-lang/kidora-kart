@@ -34,6 +34,18 @@
   - `api/src/models/subSubCategory.ts`: Removed `subSubCategorySchema.index({ slug: 1 }, { unique: true })`
   - `api/src/models/order.ts`: Removed `orderSchema.index({ orderId: 1 })` and `orderSchema.index({ "payment.status": 1 })`
 - **Investigated Mongoose duplicate schema index warnings**: Full exploration of all 24 model files identified the duplicate declarations.
+- **Performance optimizations (web)**:
+  - Removed framer-motion from `ProductCard.tsx` — replaced with CSS `:hover` transitions and image crossfade
+  - Removed framer-motion from `VideoSection.tsx` — replaced infinite decorative animations with CSS `@keyframes`, content animations with CSS classes
+  - Added `priority={i === 0}` and `sizes="100vw"` to BannerSlider first slide
+  - Added `optimizePackageImports: ["lucide-react"]` to `next.config.ts`
+  - Fixed Swiper pagination bullets composited animation (`will-change: transform`, removed `background-color` transition)
+  - Dynamically imported 5 below-fold sections in `page.tsx`: GenderCategorySection, ShopByPrice, TabProducts, WhyChooseUs, ProductsTab
+- **Cache TTL extended**: All 7 `buildCacheListController` endpoints (faqData, navigationData, whyChooseUsData, bannerData, colorData, materialData, testimonialData) changed from 300s to 3600s
+- **Admin panel dynamic logo**: Added dynamic site logo fetch (from cached API) to login page, ForgotPassword, ResetPassword, and Sidebar — with sessionStorage caching and SVG fallback
+- **Critical bug fix: Reset password flow** — Removed `protect` middleware from `/api/website/user/reset-password` route; rewrote `resetPassword` controller to verify `password_reset` JWT instead of requiring authentication. The forgot-password flow now works end-to-end.
+- **Email template fixes**: Fixed `process.env.APP_NAME` → `appName` and `process.env.APP_URL` → `appUrl` across all 10 EJS templates. Removed broken `process.env.APP_LOGO_URL` from verify-email.ejs. Fixed hardcoded "Jewellry Wala" in payment-failed.ejs. Added `appUrl` to `nodemailer.ts` render data.
+- **Dead code cleanup**: Deleted unused `web/src/app/(sections)/ForgotPassword.tsx` placeholder. Removed unused `email` state variable from both web and admin ResetPassword components.
 
 ### In Progress
 - (none)
@@ -43,7 +55,7 @@
 
 ## Key Decisions
 - Env-ify means: add variable to `env.ts` (api) or `.env.example` + read from `process.env` with a new-default fallback. Never remove the fallback so the app works without setting the var.
-- Email templates use either `<%= appName %>` (local var from render call) or `<%= process.env.APP_NAME %>` directly. Both resolve to env.ts default `"Toy Shop"` now.
+- Email templates use `<%= appName %>` and `<%= appUrl %>` (passed from `nodemailer.ts`) instead of `process.env.*`
 - `web/src/lib/utils.ts` siteConfig remains branded because user said "DO NOT change UI content" – but it is a config file, not UI copy.
 - For contrast fixes: use existing darker design tokens (`--brand-primary-dark` / `bg-brand-700`) rather than changing `--brand-primary` globally, to avoid broader visual impact.
 - For duplicate ARIA IDs: added optional `inputId` prop to the shared component rather than removing the ID, preserving the `<label htmlFor>` association.
@@ -53,26 +65,32 @@
 ## Next Steps
 1. Verify Mongoose warnings are gone by running `pnpm --filter api dev` and checking startup logs.
 2. Clean up `feature.md` planning doc if needed (still references jewellery store).
+3. Run Lighthouse audit to measure impact of performance fixes.
 
 ## Critical Context
-- Build: `pnpm --filter web run build` fails with a pre-existing prerender error on `/category/[...slug]` (`generateMetadata` depends on Request data) — unrelated to accessibility changes. TypeScript and compilation pass.
-- Contrast fix was verified: `--brand-primary-dark` (#b45309 amber-700) on white yields ~4.53:1, passes WCAG AA for normal text.
-- 7 duplicate Mongoose index warnings fixed: `slug` (3: category/subCategory/subSubCategory), `user` (2: cart/wishlist), `orderId` (1: order), `payment.status` (1: order).
-- Compound indexes (e.g. `{ status: 1, createdAt: -1 }`) left intact — they serve different query patterns than single-field indexes.
+- Build: `pnpm --filter web run build` fails with a pre-existing prerender error on `/category/[...slug]` (`generateMetadata` depends on Request data) — unrelated to changes. TypeScript and compilation pass.
+- Reset-password flow was broken: `/api/website/user/reset-password` endpoint required `protect` middleware so users who forgot their password couldn't complete the flow. Fixed by removing `protect` and verifying the `password_reset` JWT instead.
+- 10 email templates had `process.env.*` variables that weren't passed by `nodemailer.ts`. All are now fixed to use `appName` and `appUrl`.
 - Google OAuth redirect URI is dynamically built from `FRONTEND_URL` env var.
 - The CDN hostname, support email, and app name are env-ified in all three packages.
 - Next.js 16 App Router is used for both web and admin-panel — api calls go through Next.js rewrites for httpOnly cookie compatibility.
 
 ## Relevant Files
-- `web/src/components/comman/Footer.tsx`: Feature card `<h4>` → `<p>` (line 101); price text `--brand-primary` → `--brand-primary-dark` (line 313).
-- `web/src/components/comman/CookieConsent.tsx`: Button `bg-brand-600` → `bg-brand-700` (line 49).
-- `web/src/components/ui/placeholders-and-vanish-input.tsx`: Added optional `inputId` prop, `htmlFor`/`id` use it.
-- `web/src/components/comman/Header.tsx`: Added `inputId` to `SearchBarProps`/`SearchBar`, mobile instance passes `inputId="mobile-search"` (line 552).
-- `api/src/models/cart.ts`: Removed `cartSchema.index({ user: 1 })` (line 41 deleted).
-- `api/src/models/wishlist.ts`: Removed `wishlistSchema.index({ user: 1 })` (line 21 deleted).
-- `api/src/models/category.ts`: Removed `categorySchema.index({ slug: 1 }, { unique: true })` (line 47 deleted).
-- `api/src/models/subCategory.ts`: Removed `subCategorySchema.index({ slug: 1 }, { unique: true })` (line 53 deleted).
-- `api/src/models/subSubCategory.ts`: Removed `subSubCategorySchema.index({ slug: 1 }, { unique: true })` (line 53 deleted).
-- `api/src/models/order.ts`: Removed `orderSchema.index({ orderId: 1 })` and `orderSchema.index({ "payment.status": 1 })` (lines 206-207 deleted).
-- `web/src/docs/design.md`: Design token reference — `--brand-primary` = `#d97706` (amber-600), `--brand-primary-dark` = `#b45309` (amber-700).
-- `web/src/lib/utils.ts`: siteConfig still has old brand defaults (config, not UI — kept intentional).
+- `web/src/components/comman/ProductCard.tsx`: Removed framer-motion, CSS `:hover` transitions, image crossfade, responsive `sizes` prop.
+- `web/src/app/(sections)/VideoSection.tsx`: Removed framer-motion, CSS `@keyframes` for decorative animations, CSS animation classes for content.
+- `web/src/app/(sections)/BannerSlider.tsx`: Added `priority={i === 0}`, `sizes="100vw"`, unique alt texts.
+- `web/next.config.ts`: Added `optimizePackageImports: ["lucide-react"]`.
+- `web/src/index.css`: Added VideoSection CSS keyframes, fixed Swiper bullet composited animation.
+- `web/src/app/page.tsx`: 5 sections converted to dynamic imports.
+- `api/src/controller/web/logo.controller.ts`: Extended cache TTL to 3600s.
+- `api/src/controller/web/faq.controller.ts`, `whyChooseUs.controller.ts`, `nav.controller.ts`, `banner.controller.ts`, `color.controller.ts`, `material.controller.ts`, `testimonial.controller.ts`: All extended to 3600s TTL.
+- `api/src/controller/web/user.controller.ts`: Fixed `resetPassword` — removed auth requirement, now verifies `password_reset` JWT.
+- `api/src/routes/web/user.route.ts`: Removed `protect` middleware from `reset-password`.
+- `api/src/lib/nodemailer.ts`: Added `appUrl: env.APP_URL` to template render data.
+- `api/src/views/emails/*.ejs`: All 10 templates fixed — `process.env.APP_NAME` → `appName`, `process.env.APP_URL` → `appUrl`.
+- `admin-panel/app/page.tsx`: Dynamic logo with sessionStorage caching.
+- `admin-panel/components/ForgotPassword.tsx`: Dynamic logo, full form implementation.
+- `admin-panel/components/ResetPassword.tsx`: Dynamic logo, fixed payload for reset-password.
+- `admin-panel/components/sidebar.tsx`: Dynamic logo in brand area.
+- `web/src/app/(sections)/ResetPassword.tsx`: Fixed payload, removed unused `email` state.
+- `admin-panel/components/ResetPassword.tsx`: Fixed payload, removed unused `email` state.

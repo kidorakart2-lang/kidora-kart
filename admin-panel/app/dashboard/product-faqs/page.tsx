@@ -14,6 +14,7 @@ import { Drawer } from "@/components/drawer"
 import { ExportButtons } from "@/components/export-buttons"
 import { AlertDialogUse } from "@/components/alert-dialog"
 import { Plus, Pencil, Trash2, Eye, EyeOff, Search, X, CopyPlus } from "lucide-react"
+import AiAssistButton from "@/components/ai-assist-button"
 import {
   Select,
   SelectContent,
@@ -513,13 +514,32 @@ export default function ProductFAQsPage() {
                   onChange={(e) => updateEntry(i, "question", e.target.value)}
                   required
                 />
-                <Textarea
-                  placeholder={`Answer ${i + 1}`}
-                  value={entry.answer}
-                  onChange={(e) => updateEntry(i, "answer", e.target.value)}
-                  required
-                  rows={2}
-                />
+                <div className="flex items-start gap-2">
+                  <Textarea
+                    placeholder={`Answer ${i + 1}`}
+                    value={entry.answer}
+                    onChange={(e) => updateEntry(i, "answer", e.target.value)}
+                    required
+                    rows={2}
+                    className="flex-1"
+                  />
+                  {entry.question.trim() && (
+                    <AiAssistButton
+                      context={{
+                        name:
+                          products
+                            .filter((p) => selectedProductIds.includes(p._id))
+                            .map((p) => p.name || p.productName || p.title || "")
+                            .filter(Boolean)
+                            .join(", ") || "Product",
+                        question: entry.question,
+                      }}
+                      onResult={(text) => updateEntry(i, "answer", text)}
+                      label="Generate Answer"
+                      page="faq-answer"
+                    />
+                  )}
+                </div>
                 <Input
                   type="number"
                   placeholder="Order"

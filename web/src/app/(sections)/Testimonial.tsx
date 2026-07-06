@@ -29,12 +29,12 @@ const Testimonial = ({ data }: { data: any[] | null | undefined }) => {
 
   return (
     <section
-      className="relative mx-auto w-full overflow-hidden py-10 lg:py-16 bg-section-subtle"
+      className="relative mx-auto w-full  overflow-hidden py-10 lg:py-16 bg-section-subtle"
       itemScope
       itemType="https://schema.org/Review"
     >
-      <div className="section-container relative z-10">
-        <div className="text-center mb-12 lg:mb-16">
+      <div className="section-container relative z-10 max-w-5xl">
+        <div className="text-center mb-12 lg:mb-16 ">
           <div className="inline-flex items-center gap-2 mb-4">
             <Quote className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
             <span className="text-sm font-medium tracking-wider uppercase" style={{ color: "var(--muted-foreground)" }}>
@@ -138,17 +138,21 @@ const Testimonial = ({ data }: { data: any[] | null | undefined }) => {
           )}
 
           <div className="flex justify-center gap-4 mt-12">
-            <button className="swiper-button-prev static w-12 h-12 rounded-full bg-card border-2 transition-colors duration-300 flex items-center justify-center after:content-none"
+            <button
+              className="swiper-button-prev static w-12 h-12 rounded-full bg-card border-2 transition-colors duration-300 flex items-center justify-center after:content-none"
               style={{ borderColor: "var(--brand-primary)", color: "var(--brand-primary)" }}
+              aria-label="Previous testimonial"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <button className="swiper-button-next static w-12 h-12 rounded-full bg-card border-2 transition-colors duration-300 flex items-center justify-center after:content-none"
+            <button
+              className="swiper-button-next static w-12 h-12 rounded-full bg-card border-2 transition-colors duration-300 flex items-center justify-center after:content-none"
               style={{ borderColor: "var(--brand-primary)", color: "var(--brand-primary)" }}
+              aria-label="Next testimonial"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>

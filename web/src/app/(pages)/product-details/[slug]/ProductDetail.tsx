@@ -299,10 +299,6 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             dispatch(
               addToWishlist({
                 _id: product?._id,
-                name: product?.name,
-                image: product?.image,
-                price: product?.price,
-                discount_price: product?.discount_price,
                 slug: product?.slug,
               })
             );
@@ -320,10 +316,6 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
         dispatch(
           addToWishlist({
             _id: product?._id,
-            name: product?.name,
-            image: product?.image,
-            price: product?.price,
-            discount_price: product?.discount_price,
             slug: product?.slug,
             isGuest: true,
           })
@@ -339,20 +331,12 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
   const handleDecrement = () => setQuantity((prev) => Math.max(1, prev - 1));
 
   const handleBuyNow = async () => {
-    const selectedColorObj = product.colors?.find(
-      (c) => c._id === selectedColor
-    );
-    const selectedSizeObj = product.sizes?.find((s) => s._id === selectedSize);
-
     const buyNowItem = {
       productId: product._id,
+      slug: product.slug,
       quantity: quantity,
       colorId: selectedColor,
       sizeId: selectedSize,
-      colorCode: selectedColorObj?.code || null,
-      colorName: selectedColorObj?.name || null,
-      sizeName: selectedSizeObj?.name || null,
-      product: product,
     };
     dispatch(setBuyNowItem(buyNowItem));
     router.push("/checkout?type=direct");
@@ -403,20 +387,10 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
 
   const cartObj = {
     productId: product._id,
+    slug: product.slug,
     quantity: quantity,
     colorId: selectedColor,
     sizeId: selectedSize,
-    product: {
-      _id: product._id,
-      name: product.name,
-      image: product.image,
-      price: product.price,
-      discount_price: product.discount_price,
-      slug: product.slug,
-      stock: product.stock,
-      colors: product.colors,
-      sizes: product.sizes,
-    },
   };
 
   const handleAddToCart = async (e: React.FormEvent) => {

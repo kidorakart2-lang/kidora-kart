@@ -88,4 +88,5 @@ const fetchBanners = async (_req: Request) => {
 export const bannerController = buildCacheListController(Banner, {
   cacheKey: "bannerData",
   fetcher: fetchBanners,
+  ttl: 3600, // 1 hour — banners rarely change, cache invalidated on admin CRUD
 });

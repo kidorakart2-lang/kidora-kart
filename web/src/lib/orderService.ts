@@ -1,5 +1,6 @@
 import Cookies from "js-cookie";
 import { getAuthToken } from "@/lib/getAuthToken";
+import { clearAuthCookies } from "@/lib/clearAuthCookies";
 const API_URL = process.env.NEXT_PUBLIC_API_URL + "api/website";
 
 async function authFetch(
@@ -30,9 +31,12 @@ async function authFetch(
       if (refreshRes.ok) {
         const body = await refreshRes.json() as { _token?: string };
         if (body._token) {
-          Cookies.set("userToken", body._token, { expires: 5, path: "/", sameSite: "lax" });
+          Cookies.set("userToken", body._token, { expires: 7, path: "/", sameSite: "lax" });
           headers["Authorization"] = `Bearer ${body._token}`;
         }
+      } else {
+        // Refresh endpoint itself failed — session is dead, clear cookies
+        clearAuthCookies();
       }
       response = await fetch(`${API_URL}${url}`, {
         ...options,
@@ -40,7 +44,8 @@ async function authFetch(
         credentials: "include",
       });
     } catch {
-      // Refresh failed — will reject with the original 401
+      // Refresh request failed (network error) — clear cookies so stale token isn't reused
+      clearAuthCookies();
     }
   }
 

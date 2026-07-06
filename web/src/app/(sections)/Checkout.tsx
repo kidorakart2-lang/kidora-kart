@@ -8,8 +8,10 @@ import {
 } from "@/lib/orderService";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
+import { useMemo } from "react";
 import type { RootState } from "@/redux/store/store";
 import OrederSummery from "@/components/comman/OrederSummery";
+import { useProductsBySlugs, useProduct } from "@/lib/useProduct";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -35,12 +37,17 @@ import {
 } from "@/components/ui/select";
 import { getAuthToken } from "@/lib/getAuthToken";
 import { openLoginModal } from "@/redux/features/uiSlice";
-import type { CheckoutFormData, OrderSummaryCartItem } from "@/types";
+import { useProfileBootstrap } from "@/hooks/useProfileBootstrap";
+import type { CheckoutFormData, OrderSummaryCartItem, ProductData } from "@/types";
 
 import { INDIAN_STATES, siteConfig } from "@/lib/utils";
 
 export default function Checkout() {
   const searchParams = useSearchParams();
+
+  // Ensure profile data is loaded if a valid cookie exists
+  useProfileBootstrap();
+
   const [alert, setAlert] = useState({
     title: "",
     open: false,
@@ -52,12 +59,68 @@ export default function Checkout() {
   const buyNowItem = useSelector((state: RootState) => state.cart.buyNowItem);
   const cartItemsState = useSelector((state: RootState) => state.cart.cartItems);
 
-  const cartItems =
-    purchaseType === "direct"
-      ? Array.isArray(buyNowItem)
-        ? buyNowItem
-        : [buyNowItem]
-      : cartItemsState;
+  // Fetch product details for buy-now and cart items via TanStack Query
+  const directSlug = purchaseType === "direct" ? buyNowItem.slug : null;
+  const cartSlugs = useMemo(() => {
+    if (purchaseType !== "cart") return [];
+    return [...new Set(cartItemsState.map((item) => item.slug).filter((s): s is string => !!s))];
+  }, [purchaseType, cartItemsState]);
+
+  const { data: directProduct, isLoading: directLoading } = useProduct(directSlug);
+  const { productMap, isLoading: cartLoading } = useProductsBySlugs(cartSlugs);
+
+  // Build enriched cart items (merge Redux state with fetched product data)
+  const cartItems = useMemo(() => {
+    if (purchaseType === "direct") {
+      const rawItems = Array.isArray(buyNowItem) ? buyNowItem : [buyNowItem];
+      return rawItems.map((item) => {
+        const fetched = directProduct ?? undefined;
+        const color = fetched?.colors?.find((c) => c._id === item.colorId);
+        const size = item.sizeId
+          ? fetched?.sizes?.find((s) => s._id === item.sizeId)
+          : undefined;
+        return {
+          _id: item.productId,
+          product: (fetched ?? {
+            _id: item.productId,
+            name: "Loading...",
+            image: "/placeholder.svg",
+            price: 0,
+            slug: item.slug ?? "",
+            stock: 0,
+          }) as ProductData,
+          quantity: item.quantity,
+          colorId: item.colorId ?? undefined,
+          sizeId: item.sizeId || undefined,
+          colorCode: color?.code,
+          colorName: color?.name,
+          sizeName: size?.name,
+          isPersonalized: fetched?.isPersonalized ?? false,
+        };
+      });
+    }
+    return cartItemsState.map((item) => {
+      const fetched = item.slug ? productMap.get(item.slug) : undefined;
+      const color = fetched?.colors?.find((c) => c._id === item.colorId);
+      const size = item.sizeId
+        ? fetched?.sizes?.find((s) => s._id === item.sizeId)
+        : undefined;
+      return {
+        _id: `${item.productId}_${item.colorId ?? ""}_${item.sizeId ?? ""}`,
+        product: (fetched ?? {
+          _id: item.productId,
+          name: "Loading...",
+          image: "/placeholder.svg",
+          price: 0,
+          slug: item.slug ?? "",
+          stock: 0,
+        }) as ProductData,
+        quantity: item.quantity,
+        color: color ? { _id: color._id, code: color.code ?? "#000", name: color.name } : undefined,
+        size: size ? { _id: size._id, name: size.name } : undefined,
+      };
+    });
+  }, [purchaseType, buyNowItem, cartItemsState, directProduct, productMap]);
 
   const router = useRouter();
   const dispatch = useDispatch();
@@ -72,7 +135,7 @@ export default function Checkout() {
   }, [purchaseType]);
 
   const totalAmount = cartItems?.reduce(
-    (total, item) => total + item?.product?.discount_price * item.quantity,
+    (total, item) => total + (item?.product?.discount_price || item?.product?.price || 0) * item.quantity,
     0,
   );
 

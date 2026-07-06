@@ -4,21 +4,22 @@ import type { JwtPayload, PasswordResetJwtPayload } from "../types/jwt.js";
 
 /**
  * Generate an access token.
- * Admin tokens last 2 hours, user/delivery tokens last 1 hour.
- * The proactive refresh (every 10 min) keeps tokens fresh, so these
- * durations are generous and reduce the chance of mid-session expiry.
+ * Admin tokens last 7 days, user/delivery tokens last 7 days.
+ * Refresh tokens live longer (5-10 days) and are rotated on each use.
+ * Increasing the access token duration reduces the chance of mid-session
+ * expiry during checkout or cart operations.
  * Payload contains only _id — no PII (name, email, role) to minimize leak surface.
  * Role is re-read from DB on every request via req.user (auth middleware).
  */
 export const generateToken = (
   user: { _id: unknown },
-  type?: "admin" | "user" | "delivery",
+  _type?: "admin" | "user" | "delivery",
 ): string => {
   const payload: JwtPayload = {
     _id: String(user._id),
   };
-  const expiry = type === "admin" ? "2h" : "1h";
-  const options: SignOptions = { expiresIn: expiry };
+  // All user types get 7-day tokens to avoid mid-session expiry during checkout
+  const options: SignOptions = { expiresIn: "7d" };
   return jwt.sign(payload, env.JWT_SECRET, options);
 };
 

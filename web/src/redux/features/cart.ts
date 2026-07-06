@@ -1,15 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { toast } from "sonner";
 import { logout } from "./auth";
-import {
-  getGuestCartFromStorage,
-  saveGuestCartToStorage,
-  clearGuestCartStorage,
-} from "@/lib/syncGuestData";
 
 export interface CartSliceItem {
   productId: string;
-  product?: Record<string, unknown> | null;
+  slug: string | null;
   quantity: number;
   colorId: string | null;
   sizeId: string | null;
@@ -22,32 +17,12 @@ export interface CartState {
   totalQuantity: number;
   buyNowItem: {
     productId: string | null;
-    product: Record<string, unknown> | null;
+    slug: string | null;
     quantity: number;
     colorId: string | null;
     sizeId: string | null;
   };
 }
-
-// Load initial state from localStorage for guest users
-const loadInitialState = (): CartState => {
-  const guestCart: CartSliceItem[] = getGuestCartFromStorage() as CartSliceItem[];
-  return {
-    cartItems: guestCart,
-    totalPrice: 0,
-    totalQuantity: guestCart.reduce(
-      (total: number, item: CartSliceItem) => total + (item.quantity || 1),
-      0
-    ),
-    buyNowItem: {
-      productId: null,
-      product: null,
-      quantity: 1,
-      colorId: null,
-      sizeId: null,
-    },
-  };
-};
 
 const initialState: CartState = {
   cartItems: [],
@@ -55,7 +30,7 @@ const initialState: CartState = {
   totalQuantity: 0,
   buyNowItem: {
     productId: null,
-    product: null,
+    slug: null,
     quantity: 1,
     colorId: null,
     sizeId: null,
@@ -66,20 +41,10 @@ export const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    // Initialize cart from localStorage (call on app mount)
-    initializeGuestCart: (state) => {
-      const guestCart = getGuestCartFromStorage();
-      if (guestCart.length > 0) {
-        state.cartItems = guestCart;
-        state.totalQuantity = guestCart.reduce(
-          (total, item) => total + (item.quantity || 1),
-          0
-        );
-      }
-    },
     addToCart: (state, action) => {
       const {
         productId,
+        slug,
         quantity = 1,
         colorId,
         sizeId,
@@ -99,20 +64,21 @@ export const cartSlice = createSlice({
         }
         existingItem.quantity += quantity;
       } else {
+        // Construct a clean object — do NOT spread action.payload so no
+        // extra fields (like a full product document) can sneak in.
         state.cartItems.push({
-          ...action.payload,
-          quantity: quantity,
+          productId,
+          slug,
+          quantity,
+          colorId,
+          sizeId,
+          isGuest,
         });
       }
       state.totalQuantity = state.cartItems.reduce(
         (total, item) => total + item.quantity,
         0
       );
-
-      // Persist to localStorage for guest users
-      if (isGuest) {
-        saveGuestCartToStorage(state.cartItems);
-      }
     },
     removeFromCart: (state, action) => {
       const { productId, colorId, sizeId } = action.payload;
@@ -128,9 +94,6 @@ export const cartSlice = createSlice({
         (total, item) => total + item.quantity,
         0
       );
-      if (state.cartItems.length === 0 || state.cartItems.some((item) => item.isGuest)) {
-        saveGuestCartToStorage(state.cartItems);
-      }
     },
     updateQuantity: (state, action) => {
       const { productId, quantity, colorId, sizeId } = action.payload;
@@ -163,9 +126,6 @@ export const cartSlice = createSlice({
           (total, item) => total + item.quantity,
           0
         );
-        if (state.cartItems.length === 0 || state.cartItems.some((item) => item.isGuest)) {
-          saveGuestCartToStorage(state.cartItems);
-        }
       }
     },
     updateFullCart: (state, action) => {
@@ -174,12 +134,23 @@ export const cartSlice = createSlice({
       state.totalPrice = action.payload.totalPrice;
     },
     setBuyNowItem: (state, action) => {
-      state.buyNowItem = action.payload;
-      sessionStorage.setItem("buyNowProduct", JSON.stringify(action.payload));
+      // Strip any extra payload fields (e.g. "product", "colorCode", "colorName") —
+      // persist only the lean shape so redux-persist doesn't bloat sessionStorage.
+      const { productId, slug, quantity, colorId, sizeId } = action.payload;
+      state.buyNowItem = { productId, slug, quantity, colorId, sizeId };
     },
-    // Clear guest cart from localStorage (call after syncing to server)
-    clearGuestCart: () => {
-      clearGuestCartStorage();
+    // Clear guest cart state (call after syncing to server)
+    clearGuestCart: (state) => {
+      state.cartItems = [];
+      state.totalPrice = 0;
+      state.totalQuantity = 0;
+      state.buyNowItem = {
+        productId: null,
+        slug: null,
+        quantity: 1,
+        colorId: null,
+        sizeId: null,
+      };
     },
   },
   extraReducers: (builder) => {
@@ -189,7 +160,7 @@ export const cartSlice = createSlice({
       state.totalQuantity = 0;
       state.buyNowItem = {
         productId: null,
-        product: null,
+        slug: null,
         quantity: 1,
         colorId: null,
         sizeId: null,
@@ -204,7 +175,6 @@ export const {
   updateQuantity,
   updateFullCart,
   setBuyNowItem,
-  initializeGuestCart,
   clearGuestCart,
 } = cartSlice.actions;
 export default cartSlice.reducer;

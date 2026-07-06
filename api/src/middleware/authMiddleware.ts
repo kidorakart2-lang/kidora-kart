@@ -10,6 +10,7 @@ import {
   verifyRefreshToken,
   revokeRefreshToken,
   accessTokenCookieOptions,
+  clientAccessTokenCookieOptions,
   refreshTokenCookieOptions,
   clearRefreshTokenCookie,
 } from "../lib/tokens.js";
@@ -140,10 +141,17 @@ async function attemptAutoRefresh(
   const refreshCookieName =
     tokenType === "user" ? "userRefreshToken" : "adminRefreshToken";
 
+  // Set httpOnly cookies for server-side auth
   res.cookie(
     accessCookieName,
     newAccessToken,
     accessTokenCookieOptions(tokenType),
+  );
+  // Set non-httpOnly cookie so client-side js-cookie (getAuthToken()) sees the new token
+  res.cookie(
+    accessCookieName,
+    newAccessToken,
+    clientAccessTokenCookieOptions(),
   );
   res.cookie(
     refreshCookieName,

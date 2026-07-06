@@ -2,10 +2,8 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import {
   persistStore,
   persistReducer,
-  createTransform,
   type PersistConfig,
 } from "redux-persist";
-import encryptTransform from "@/lib/persistTransform";
 import authReducer from "../features/auth";
 import cartReducer from "../features/cart";
 import wishlistReducer from "../features/wishlist";
@@ -34,20 +32,20 @@ const createSafeStorage = (): PersistConfig<RootState>["storage"] => {
     };
   }
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { default: storageSession } = require("redux-persist/lib/storage/session");
+  const { default: storage } = require("redux-persist/lib/storage");
   return {
-    ...storageSession,
+    ...storage,
     setItem: async (key: string, value: string) => {
       try {
-        await storageSession.setItem(key, value);
+        await storage.setItem(key, value);
       } catch (err) {
         if (err instanceof DOMException && err.name === "QuotaExceededError") {
           console.warn("Storage quota exceeded, clearing persisted state");
-          await storageSession.removeItem("persist:root");
+          await storage.removeItem("persist:root");
           try {
-            await storageSession.setItem(key, value);
+            await storage.setItem(key, value);
           } catch {
-            console.warn("Still unable to store after clearing, persisting disabled");
+            // console.warn("Still unable to store after clearing, persisting disabled");
           }
         } else {
           throw err;
@@ -57,27 +55,12 @@ const createSafeStorage = (): PersistConfig<RootState>["storage"] => {
   };
 };
 
-// Strip auth token before persisting — token lives only in the cookie
-const authTokenFilter = createTransform(
-  (inboundState: Record<string, unknown>) => {
-    const { user: _user, ...rest } = inboundState;
-    return rest;
-  },
-  (outboundState: Record<string, unknown>) => {
-    return { ...outboundState, user: null };
-  },
-  { whitelist: ["auth"] }
-);
-
 // Configuration for redux-persist
+// ponytail: no encryption transform — auth isLogin/details aren't sensitive, tokens are in httpOnly cookies
 const persistConfig: PersistConfig<RootState> = {
   key: "root",
   storage: createSafeStorage(),
   whitelist: ["cart", "wishlist", "auth"],
-  transforms: [
-    ...(encryptTransform ? [encryptTransform] : []),
-    authTokenFilter,
-  ],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

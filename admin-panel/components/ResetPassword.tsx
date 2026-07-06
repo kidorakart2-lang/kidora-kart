@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
@@ -13,12 +13,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Loader2, Lock } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+
+const BACKEND_URL =
+  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_BACKEND_URL) ||
+  "http://localhost:5000/";
+
+const LOGO_CACHE_KEY = "admin-login-logo";
 
 export default function ResetPassword() {
   const router = useRouter();
@@ -28,7 +34,41 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<string>("request");
-  const [email, setEmail] = useState("");
+
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const fetchedRef = useRef(false);
+
+  // Fetch logo on mount with sessionStorage caching
+  useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
+    const cached = sessionStorage.getItem(LOGO_CACHE_KEY);
+    if (cached) {
+      setLogoUrl(cached);
+      return;
+    }
+
+    const base = BACKEND_URL.endsWith("/") ? BACKEND_URL : BACKEND_URL + "/";
+    fetch(base + "api/website/logo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json._status && Array.isArray(json._data) && json._data.length > 0) {
+          const url = json._data[0].logo;
+          if (url) {
+            sessionStorage.setItem(LOGO_CACHE_KEY, url);
+            setLogoUrl(url);
+          }
+        }
+      })
+      .catch(() => {
+        // Silently fall back to the SVG icon
+      });
+  }, []);
 
   const returnTo = searchParams.get("returnTo");
 
@@ -40,7 +80,6 @@ export default function ResetPassword() {
       toast.error("Please enter your email address");
       return;
     }
-    setEmail(emailValue);
 
     setIsLoading(true);
     try {
@@ -135,6 +174,12 @@ export default function ResetPassword() {
 
     setIsLoading(true);
     try {
+      const resetToken = Cookies.get("resetToken");
+      if (!resetToken) {
+        toast.error("Session expired. Please restart the password reset process.");
+        return;
+      }
+
       const response = await fetch(
         "/api/website/user/reset-password",
         {
@@ -143,10 +188,8 @@ export default function ResetPassword() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            otp,
-            token: Cookies.get("resetToken"),
+            token: resetToken,
             newPassword,
-            email,
           }),
         },
       );
@@ -188,8 +231,30 @@ export default function ResetPassword() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
-            <Lock className="h-6 w-6 text-amber-600" />
+          <div className="mx-auto w-20 h-20 rounded-xl flex items-center justify-center mb-4 animate-in zoom-in duration-300 delay-100 overflow-hidden">
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt="Logo"
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <div className="w-full h-full bg-primary rounded-xl flex items-center justify-center">
+                <svg
+                  className="w-10 h-10 text-primary-foreground"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+              </div>
+            )}
           </div>
           <CardTitle className="text-2xl font-bold">
             {step === "request" ? "Reset Password" : "Create New Password"}

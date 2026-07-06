@@ -9,8 +9,6 @@ import { clearGuestWishlist } from "@/redux/features/wishlist";
 import {
   syncGuestCartToServer,
   syncGuestWishlistToServer,
-  getGuestCartFromStorage,
-  getGuestWishlistFromStorage,
 } from "@/lib/syncGuestData";
 import {
   fetchAndDispatchCart,
@@ -28,6 +26,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store/store";
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -41,6 +41,10 @@ const SignUpPage = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   const returnTo = useSearchParams().get("returnTo");
+
+  // Read guest data from Redux state (persisted in localStorage via redux-persist)
+  const guestCartItems = useSelector((state: RootState) => state.cart.cartItems);
+  const guestWishlistItems = useSelector((state: RootState) => state.wishlist.wishlistItems);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(""); // clear error when typing again
@@ -69,22 +73,16 @@ const SignUpPage = () => {
         );
       }
 
-      dispatch(register(data._token));
+      dispatch(register());
       dispatch(setProfile(data._data));
       Cookies.set("userToken", data._token, { expires: 5, path: "/", sameSite: "lax" });
 
-      // Sync guest cart and wishlist to server
-      const guestCart = getGuestCartFromStorage();
-      const guestWishlist = getGuestWishlistFromStorage();
-
-      if (guestCart.length > 0 || guestWishlist.length > 0) {
-        // Sync guest data to server
+      // Sync guest cart and wishlist to server (read from Redux state persisted in localStorage)
+      if ((guestCartItems?.length ?? 0) > 0 || (guestWishlistItems?.length ?? 0) > 0) {
         await Promise.all([
-          syncGuestCartToServer(data._token, guestCart),
-          syncGuestWishlistToServer(data._token, guestWishlist),
+          syncGuestCartToServer(data._token, guestCartItems),
+          syncGuestWishlistToServer(data._token, guestWishlistItems),
         ]);
-
-        // Clear guest data from localStorage
         dispatch(clearGuestCart());
         dispatch(clearGuestWishlist());
       }

@@ -48,10 +48,12 @@ export default function BannerSlider({ slides }: BannerSliderProps) {
               width={800}
               height={400}
               src={slide.src}
-              alt="Banner"
+              alt={`Banner ${i + 1}`}
               onClick={() => handleSlideClick(slide)}
               className="h-full w-full cursor-pointer object-cover"
               loading={i === 0 ? "eager" : "lazy"}
+              priority={i === 0}
+              sizes="100vw"
             />
           </SwiperSlide>
         ))}

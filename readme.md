@@ -2,6 +2,11 @@
 
 A full-stack toy e-commerce platform built with pnpm workspaces.
 
+## Admin Email - 
+bluehawk1711@gmail.com
+## Admin Password - 
+1234567890
+
 ## Projects
 
 | Package | Stack | Description | Port |

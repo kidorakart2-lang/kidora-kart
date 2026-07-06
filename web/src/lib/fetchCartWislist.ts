@@ -4,6 +4,7 @@ import { updateFullCart } from "@/redux/features/cart";
 import { setWishlist } from "@/redux/features/wishlist";
 import type { AppDispatch } from "@/redux/store/store";
 import { getAuthToken } from "@/lib/getAuthToken";
+import { clearAuthCookies } from "@/lib/clearAuthCookies";
 
 async function getCart() {
   const token = getAuthToken();
@@ -21,6 +22,10 @@ async function getCart() {
         credentials: "include",
       }
     );
+    if (response.status === 401) {
+      clearAuthCookies();
+      return null;
+    }
     if (!response.ok) return null;
     const data = await response.json();
     if (!data._status) return null;
@@ -46,6 +51,10 @@ async function getWishlist() {
         credentials: "include",
       }
     );
+    if (response.status === 401) {
+      clearAuthCookies();
+      return null;
+    }
     if (!response.ok) return null;
     const data = await response.json();
     if (!data._status) return null;
@@ -59,7 +68,6 @@ async function getWishlist() {
 function serverItemToSlice(item: Record<string, unknown>) {
   return {
     productId: (item.product as Record<string, unknown>)?._id as string ?? "",
-    product: item.product as Record<string, unknown> ?? null,
     quantity: (item.quantity as number) ?? 1,
     colorId: ((item.color as Record<string, unknown>)?._id as string) ?? null,
     sizeId: ((item.size as Record<string, unknown>)?._id as string) ?? null,

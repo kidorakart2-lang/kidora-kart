@@ -24,6 +24,7 @@ import {
   updateQuantity as updateCartQuantity,
   removeFromCart,
 } from "@/redux/features/cart";
+import { useProductsByIds } from "@/lib/useProduct";
 import type { ProductData } from "@/types";
 import type { RootState } from "@/redux/store/store";
 import type { CartSliceItem } from "@/redux/features/cart";
@@ -31,7 +32,7 @@ import type { CartSliceItem } from "@/redux/features/cart";
 function serverItemToSlice(item: CartApiItem): CartSliceItem {
   return {
     productId: item.product._id as string ?? "",
-    product: item.product as unknown as Record<string, unknown> ?? null,
+    slug: item.product.slug as string ?? null,
     quantity: item.quantity ?? 1,
     colorId: (item.color?._id as string) ?? null,
     sizeId: (item.size?._id as string) ?? null,
@@ -62,22 +63,28 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
   const router = useRouter();
   const dispatch = useDispatch();
   const reduxCartItems = useSelector(
-    (state: RootState) => state.cart.cartItems
+    (state: RootState) => state.cart?.cartItems ?? []
   );
   const [fetchedCart, setFetchedCart] = useState<CartApiResponse | null>(null);
   const fetchKey = useRef(false);
 
+  // Collect unique product IDs from Redux cart items for guest batch fetch
+  const guestIds = useMemo(() => {
+    const hasServerData = !!(cart?._data?.items?.length || fetchedCart?._data?.items?.length);
+    if (hasServerData || reduxCartItems.length === 0) return [];
+    return [...new Set(reduxCartItems.map((item) => item.productId).filter(Boolean))];
+  }, [cart, fetchedCart, reduxCartItems]);
+
+  const { productMap, isLoading: guestProductsLoading } = useProductsByIds(guestIds);
+
   useEffect(() => {
-    if (effectiveCart?._data?.items?.length) {
-      setFetchedCart(null);
-      fetchKey.current = false;
-      if (cart?._data?.items?.length) {
-        dispatch(updateFullCart({
-          items: cart._data.items.map(serverItemToSlice),
-          totalPrice: cart._data.totalPrice,
-          totalItems: cart._data.totalItems,
-        }));
-      }
+    // If server cart data provided via SSR prop, dispatch immediately
+    if (cart?._data?.items?.length) {
+      dispatch(updateFullCart({
+        items: cart._data.items.map(serverItemToSlice),
+        totalPrice: cart._data.totalPrice,
+        totalItems: cart._data.totalItems,
+      }));
       return;
     }
 
@@ -112,13 +119,23 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     if (reduxCartItems.length === 0) return null;
 
     const items = reduxCartItems.map((item) => {
-      const p = (item.product ?? {}) as Record<string, unknown>;
-      const colors = (p.colors ?? []) as Array<{
+      // Look up fetched product data by _id (from batch response)
+      const fetched = item.productId ? productMap.get(item.productId) : undefined;
+      const product = fetched ?? {
+        _id: item.productId,
+        name: "Loading...",
+        image: "/placeholder.svg",
+        price: 0,
+        slug: item.slug ?? "",
+        stock: 0,
+      } as ProductData;
+
+      const colors = (fetched?.colors ?? []) as Array<{
         _id: string;
         name: string;
         code: string;
       }>;
-      const sizes = (p.sizes ?? []) as Array<{
+      const sizes = (fetched?.sizes ?? []) as Array<{
         _id: string;
         name: string;
       }>;
@@ -128,16 +145,14 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
         _id: `${item.productId}_${item.colorId ?? ""}_${item.sizeId ?? ""}`,
         product: {
           _id: item.productId,
-          name: String(p.name ?? ""),
-          image: String(p.image ?? ""),
-          price: Number(p.price ?? 0),
-          discount_price: p.discount_price
-            ? Number(p.discount_price)
-            : undefined,
-          slug: String(p.slug ?? ""),
-          stock: Number(p.stock ?? 0),
-          colors,
-          sizes,
+          name: product.name,
+          image: product.image ?? "/placeholder.svg",
+          price: product.price,
+          discount_price: product.discount_price,
+          slug: product.slug,
+          stock: product.stock ?? 0,
+          colors: fetched?.colors ?? [],
+          sizes: fetched?.sizes ?? [],
         } as ProductData,
         quantity: item.quantity,
         color: {
@@ -164,10 +179,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     };
   }, [cart, fetchedCart, reduxCartItems]);
 
-  const hasServerData = !!(
-    cart?._data?.items?.length || fetchedCart?._data?.items?.length
-  );
-
+  const hasServerData = !!(cart?._data?.items?.length || fetchedCart?._data?.items?.length);
   const isGuestView = !hasServerData && reduxCartItems.length > 0;
 
   const updateQuantity = async (id: string, newQuantity: number) => {

@@ -29,19 +29,17 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState("request");
-  const [email, setEmail] = useState("");
 
   const token = getAuthToken();
   const returnTo = searchParams.get("returnTo");
 
   const handleRequestReset = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const email = (e.target as HTMLFormElement).email.value;
-    if (!email) {
+    const emailInput = (e.target as HTMLFormElement).email.value;
+    if (!emailInput) {
       toast.error("Please enter your email address");
       return;
     }
-    setEmail(email);
 
     setIsLoading(true);
     try {
@@ -53,7 +51,7 @@ export default function ResetPassword() {
             "Content-Type": "application/json",
             authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ email: emailInput }),
         }
       );
 
@@ -126,6 +124,12 @@ export default function ResetPassword() {
 
     setIsLoading(true);
     try {
+      const resetToken = Cookies.get("resetToken");
+      if (!resetToken) {
+        toast.error("Session expired. Please restart the password reset process.");
+        return;
+      }
+
       const response = await fetch(
         process.env.NEXT_PUBLIC_API_URL + "api/website/user/reset-password",
         {
@@ -133,12 +137,9 @@ export default function ResetPassword() {
           headers: {
             "Content-Type": "application/json",
           },
-
           body: JSON.stringify({
-            otp,
-            token: Cookies.get("resetToken"),
+            token: resetToken,
             newPassword,
-            email,
           }),
         }
       );
@@ -150,7 +151,6 @@ export default function ResetPassword() {
             errorData._message || "Failed to reset password. Please try again."
           );
         } catch (e) {
-          // Fallback in case response isn't JSON
           toast.error("Failed to reset password. Please try again.");
         }
         return;

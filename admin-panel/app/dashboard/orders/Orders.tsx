@@ -13,12 +13,16 @@ import {
   CheckCircle,
   Printer,
   IndianRupee,
+  ArrowLeftRight,
+  ShoppingCart,
 } from "lucide-react";
 import { Drawer } from "@/components/drawer";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { api, ApiClientError } from "@/lib/api";
 import { invalidateCache } from "@/lib/invalidate-cache";
+import RefundedOrdersAdmin from "@/components/RefundedOrdersAdmin";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 interface OrderItem {
   productId: string;
   name: string;
@@ -52,7 +56,7 @@ interface OrderData {
   statusHistory?: Array<{ id: string; status: string; timestamp: string }>;
 }
 
-export default function Orders() {
+export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [cancelOrder, setCancelOrder] = useState<OrderData | null>(null);
   const [cancelOrderOpen, setCancelOrderOpen] = useState(false);
@@ -338,38 +342,47 @@ export default function Orders() {
     { value: "cancelled", label: "Cancelled" },
   ];
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-muted rounded"></div>
-          <div className="h-96 bg-muted rounded-lg"></div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between animate-in fade-in slide-in-from-top duration-300">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
-          <p className="text-muted-foreground">
-            Track and manage customer orders
-          </p>
+      <Tabs defaultValue="orders" className="space-y-6">
+        <div className="flex items-center justify-between animate-in fade-in slide-in-from-top duration-300">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
+            <p className="text-muted-foreground">Track and manage customer orders</p>
+          </div>
         </div>
-        <ExportButtons data={orders as unknown as Record<string, unknown>[]} filename="orders" />
-      </div>
 
-      <DataTable
-        selectOption={statusOptions}
-        data={orders}
-        dateOption={true}
-        columns={columns as unknown as Column<OrderData>[]}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        searchPlaceholder="Search orders..."
-      />
+        <TabsList>
+          <TabsTrigger value="orders" className="flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4" />
+            Orders
+          </TabsTrigger>
+          <TabsTrigger value="refunds" className="flex items-center gap-2">
+            <ArrowLeftRight className="h-4 w-4" />
+            Refunds
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="orders" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <ExportButtons data={orders as unknown as Record<string, unknown>[]} filename="orders" />
+          </div>
+
+          {loading ? (
+            <div className="animate-pulse space-y-4">
+              <div className="h-96 bg-muted rounded-lg"></div>
+            </div>
+          ) : (
+            <DataTable
+              selectOption={statusOptions}
+              data={orders}
+              dateOption={true}
+              columns={columns as unknown as Column<OrderData>[]}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              searchPlaceholder="Search orders..."
+            />
+          )}
       <Drawer
         isOpen={cancelOrderOpen}
         onClose={() => {
@@ -601,6 +614,12 @@ export default function Orders() {
         onClose={() => setReceiptOpen(false)}
         order={selectedOrder}
       />
+        </TabsContent>
+
+        <TabsContent value="refunds">
+          <RefundedOrdersAdmin />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -28,6 +28,10 @@ interface ProductDetailsPageProps {
   params: Promise<{ slug: string }>;
 }
 
+// ISR: revalidate at most every 30 minutes 
+// IT ISNT SUPPORTED WITH nextConfig.cacheComponents setting do not USE IT 
+// export const revalidate = 1800;
+
 // ── Generate static params for all product pages at build time ──────
 // Fetches all product slugs so PPR can prerender a static shell for each.
 

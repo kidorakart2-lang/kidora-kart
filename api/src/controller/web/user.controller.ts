@@ -17,6 +17,7 @@ import {
   revokeRefreshToken,
   revokeAllUserRefreshTokens,
   accessTokenCookieOptions,
+  clientAccessTokenCookieOptions,
   refreshTokenCookieOptions,
   clearAccessTokenCookie,
   clearRefreshTokenCookie,
@@ -41,7 +42,11 @@ async function setSessionCookies(
   const accessToken = generateToken(user, "user");
   const refresh = await createRefreshToken(String(user._id), type);
 
-  res.cookie(type === "user" ? "userToken" : "adminToken", accessToken, accessTokenCookieOptions("user"));
+  const cookieName = type === "user" ? "userToken" : "adminToken";
+  // httpOnly cookie for server-side auth
+  res.cookie(cookieName, accessToken, accessTokenCookieOptions("user"));
+  // non-httpOnly cookie so client-side js-cookie (getAuthToken()) sees the new token
+  res.cookie(cookieName, accessToken, clientAccessTokenCookieOptions());
   res.cookie(
     type === "user" ? "userRefreshToken" : "adminRefreshToken",
     refresh.tokenValue,
@@ -370,21 +375,31 @@ export const resetPassword = async (
   req: Request,
   res: Response,
 ): Promise<Response> => {
-  if (!req.user) return fail(res, "Not authorized", 401);
   try {
-    const { newPassword } = req.body as { newPassword?: string };
+    const { token, newPassword } = req.body as { token?: string; newPassword?: string };
+    if (!token) return fail(res, "Reset token is required", 400);
     if (!newPassword) return fail(res, "newPassword is required", 400);
     if (newPassword.length < 6) return fail(res, "Password must be at least 6 characters", 400);
 
-    const result = await User.findByIdAndUpdate(
-      req.user._id,
+    const decoded = verifyPasswordResetToken(token);
+    if (!decoded || decoded.type !== "password_reset") {
+      return fail(res, "Invalid or expired reset token. Please request a new OTP.", 400);
+    }
+
+    const user = await User.findOne({ email: decoded.email }).select("_id email deletedAt").lean();
+    if (!user || user.deletedAt) {
+      return fail(res, "Account not found or deactivated", 404);
+    }
+
+    const updated = await User.findByIdAndUpdate(
+      user._id,
       { password: await hashPassword(newPassword) },
       { new: true, runValidators: true },
     );
-    if (!result) return fail(res, "Account Not Found", 404);
+    if (!updated) return fail(res, "Account Not Found", 404);
 
     // Revoke all sessions on password reset
-    await revokeAllUserRefreshTokens(String(req.user._id));
+    await revokeAllUserRefreshTokens(String(user._id));
     clearSessionCookies(res);
 
     return success(res, null, "Password reset successfully");

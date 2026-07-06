@@ -22,6 +22,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import NewMultiSelect from "../../../components/NewMultiSelect";
 import Image from "next/image";
+import AiAssistButton from "@/components/ai-assist-button";
 import { useRouter } from "next/navigation";
 import { invalidateCache } from "@/lib/invalidate-cache";
 
@@ -782,7 +783,31 @@ export default function ProductsPage() {
           <div className="space-y-4">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="description">Full Description *</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="description">Full Description *</Label>
+                  <AiAssistButton
+                    context={{
+                      name: formData.name,
+                      category: selectedCategory.length
+                        ? categories
+                            .filter((c) => selectedCategory.includes(c._id))
+                            .map((c) => c.name)
+                            .join(", ")
+                        : "",
+                      material: selectedMaterials.length
+                        ? materials
+                            .filter((m) => selectedMaterials.includes(m._id))
+                            .map((m) => m.name)
+                            .join(", ")
+                        : "",
+                      purity: formData.purity,
+                      price: formData.price,
+                    }}
+                    onResult={(text) =>
+                      setFormData({ ...formData, description: text })
+                    }
+                  />
+                </div>
                 <textarea
                   id="description"
                   value={formData.description}

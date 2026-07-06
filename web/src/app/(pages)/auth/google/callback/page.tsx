@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { login, setProfile } from "@/redux/features/auth";
 import { clearGuestCart } from "@/redux/features/cart";
 import { clearGuestWishlist } from "@/redux/features/wishlist";
@@ -11,13 +11,12 @@ import { openPhoneModal } from "@/redux/features/uiSlice";
 import {
   syncGuestCartToServer,
   syncGuestWishlistToServer,
-  getGuestCartFromStorage,
-  getGuestWishlistFromStorage,
 } from "@/lib/syncGuestData";
 import {
   fetchAndDispatchCart,
   fetchAndDispatchWishlist,
 } from "@/lib/fetchCartWislist";
+import type { RootState } from "@/redux/store/store";
 
 export default function Page() {
   const router = useRouter();
@@ -25,6 +24,10 @@ export default function Page() {
   const redirectUrl = searchParams.get("redirectUrl");
 
   const dispatch = useDispatch();
+
+  // Read guest data from Redux state (persisted in localStorage via redux-persist)
+  const guestCartItems = useSelector((state: RootState) => state.cart.cartItems);
+  const guestWishlistItems = useSelector((state: RootState) => state.wishlist.wishlistItems);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -68,21 +71,15 @@ export default function Page() {
 
         if (data._status) {
           toast.success(data._message || "Login successful!");
-          dispatch(login(data._data.token));
+          dispatch(login());
           dispatch(setProfile(data._data.user));
 
-          // Sync guest cart and wishlist to server
-          const guestCart = getGuestCartFromStorage();
-          const guestWishlist = getGuestWishlistFromStorage();
-
-          if (guestCart.length > 0 || guestWishlist.length > 0) {
-            // Sync guest data to server
+          // Sync guest cart and wishlist to server (read from Redux state persisted in localStorage)
+          if ((guestCartItems?.length ?? 0) > 0 || (guestWishlistItems?.length ?? 0) > 0) {
             await Promise.all([
-              syncGuestCartToServer(data._data.token, guestCart),
-              syncGuestWishlistToServer(data._data.token, guestWishlist),
+              syncGuestCartToServer(data._data.token, guestCartItems),
+              syncGuestWishlistToServer(data._data.token, guestWishlistItems),
             ]);
-
-            // Clear guest data from localStorage
             dispatch(clearGuestCart());
             dispatch(clearGuestWishlist());
           }
