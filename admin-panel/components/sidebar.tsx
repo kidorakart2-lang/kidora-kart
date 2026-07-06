@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -29,9 +29,7 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import type { LucideIcon } from "lucide-react";
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-const LOGO_CACHE_KEY = "admin-sidebar-logo";
+import { useAdminLogo } from "@/hooks/useAdminLogo";
 
 interface MenuItem {
   icon: LucideIcon;
@@ -78,10 +76,9 @@ interface SidebarProps {
 }
 
 export function Sidebar({ onCollapsedChange }: SidebarProps) {
+  const { logoUrl } = useAdminLogo();
   const [collapsed, setCollapsed] = useState(false);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const pathname = usePathname();
-  const fetchedRef = useRef(false);
 
   const isMobile = useIsMobile();
 
@@ -96,37 +93,6 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
       setCollapsed(true);
     }
   }, [isMobile]);
-
-  useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-
-    const cached = sessionStorage.getItem(LOGO_CACHE_KEY);
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        if (parsed?.[0]?.logo) {
-          setLogoUrl(parsed[0].logo);
-          return;
-        }
-      } catch { /* ignore */ }
-    }
-
-    fetch(`${BACKEND_URL}api/website/logo`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        const url = data?._data?.[0]?.logo;
-        if (url) {
-          sessionStorage.setItem(LOGO_CACHE_KEY, JSON.stringify(data._data));
-          setLogoUrl(url);
-        }
-      })
-      .catch(() => { /* fallback to static icon */ });
-  }, []);
 
   const sidebarContent = (
     <div className="flex h-full flex-col">

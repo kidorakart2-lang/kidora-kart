@@ -24,14 +24,12 @@ const FullVideoSection = () => {
 
   return (
     <div className="relative w-full h-[65vh] lg:h-[75vh] overflow-hidden">
-      {/* Background Image */}
-      <motion.div
-        className="absolute inset-0 bg-center bg-cover"
-        style={{
-          backgroundImage: image
-            ? `url('${image}')`
-            : "url('/images/poster.webp')",
-        }}
+      {/* Background Image — lazy loaded */}
+      <motion.img
+        src={image || "/images/poster.webp"}
+        alt="Hero background"
+        loading="lazy"
+        className="absolute inset-0 w-full h-full object-cover"
         initial={{ scale: 1.1 }}
         animate={{ scale: 1 }}
         transition={{ duration: 1.5, ease: "easeOut" }}

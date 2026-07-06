@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
@@ -19,14 +19,10 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-
-const BACKEND_URL =
-  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_BACKEND_URL) ||
-  "http://localhost:5000/";
-
-const LOGO_CACHE_KEY = "admin-login-logo";
+import { useAdminLogo } from "@/hooks/useAdminLogo";
 
 export default function ResetPassword() {
+  const { logoUrl } = useAdminLogo();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [otp, setOtp] = useState("");
@@ -34,41 +30,6 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<string>("request");
-
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const fetchedRef = useRef(false);
-
-  // Fetch logo on mount with sessionStorage caching
-  useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-
-    const cached = sessionStorage.getItem(LOGO_CACHE_KEY);
-    if (cached) {
-      setLogoUrl(cached);
-      return;
-    }
-
-    const base = BACKEND_URL.endsWith("/") ? BACKEND_URL : BACKEND_URL + "/";
-    fetch(base + "api/website/logo", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: "{}",
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        if (json._status && Array.isArray(json._data) && json._data.length > 0) {
-          const url = json._data[0].logo;
-          if (url) {
-            sessionStorage.setItem(LOGO_CACHE_KEY, url);
-            setLogoUrl(url);
-          }
-        }
-      })
-      .catch(() => {
-        // Silently fall back to the SVG icon
-      });
-  }, []);
 
   const returnTo = searchParams.get("returnTo");
 

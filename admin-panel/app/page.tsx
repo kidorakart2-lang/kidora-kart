@@ -1,59 +1,21 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { api, ApiClientError } from "@/lib/api";
-
-const BACKEND_URL =
-  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_BACKEND_URL) ||
-  "http://localhost:5000/";
-
-const LOGO_CACHE_KEY = "admin-login-logo";
+import { useAdminLogo } from "@/hooks/useAdminLogo";
 
 export default function LoginPage() {
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const { logoUrl } = useAdminLogo();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-  const fetchedRef = useRef(false);
-
-  // Fetch logo on mount with sessionStorage caching
-  useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-
-    const cached = sessionStorage.getItem(LOGO_CACHE_KEY);
-    if (cached) {
-      setLogoUrl(cached);
-      return;
-    }
-
-    const base = BACKEND_URL.endsWith("/") ? BACKEND_URL : BACKEND_URL + "/";
-    fetch(base + "api/website/logo", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: "{}",
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        if (json._status && Array.isArray(json._data) && json._data.length > 0) {
-          const url = json._data[0].logo;
-          if (url) {
-            sessionStorage.setItem(LOGO_CACHE_KEY, url);
-            setLogoUrl(url);
-          }
-        }
-      })
-      .catch(() => {
-        // Silently fall back to the SVG icon
-      });
-  }, []);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -82,33 +44,19 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* ─── Left Side — Animated Illustration ─── */}
-      <div className="relative flex-1 lg:flex-[1.2] min-h-[40vh] lg:min-h-screen overflow-hidden bg-gradient-to-br from-[#0f0524] via-[#1f0d4a] to-[#0f0524] flex items-center justify-center">
-        {/* Ambient gradient orbs */}
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[120px]" />
-        <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-blue-500/15 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-indigo-500/10 rounded-full blur-[120px]" />
-
-        {/* Subtle grid pattern overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.8) 1px, transparent 0)`,
-            backgroundSize: "40px 40px",
-          }}
-        />
-
+      <div className="relative flex-1 lg:flex-[1.2] min-h-[40vh] lg:min-h-screen overflow-hidden bg-white flex items-center justify-center">
         {/* Illustration */}
-        <div className="relative z-10 w-full max-w-[85%] lg:max-w-[80%] h-full max-h-[50vh] lg:max-h-[70vh] animate-in fade-in duration-1000">
+        <div className="relative z-10 w-full max-w-[95%] lg:max-w-[90%] h-full max-h-[70vh] lg:max-h-[85vh] animate-in fade-in duration-1000">
           <img
             src="/LoginAnimated.svg"
             alt="Login illustration"
-            className="w-full h-full object-contain drop-shadow-2xl"
+            className="w-full h-full object-contain"
           />
         </div>
 
         {/* Brand text */}
         <div className="absolute bottom-8 lg:bottom-12 left-0 right-0 text-center z-10 animate-in fade-in duration-1000 delay-500">
-          <p className="text-white/40 text-xs lg:text-sm tracking-[0.2em] uppercase font-light">
+          <p className="text-slate-400 text-xs lg:text-sm tracking-[0.2em] uppercase font-light">
             Toy Shop — Admin Dashboard
           </p>
         </div>
@@ -174,17 +122,9 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2 animate-in slide-in-from-left duration-500 delay-300">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium">
-                  Password
-                </Label>
-                <button
-                  type="button"
-                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Forgot password?
-                </button>
-              </div>
+              <Label htmlFor="password" className="text-sm font-medium">
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
