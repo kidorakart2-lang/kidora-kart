@@ -2,26 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Gem, Gift, ShieldCheck, Sparkles } from "lucide-react";
 import { Suspense } from "react";
-import { cacheLife, cacheTag } from "next/cache";
-import { TAG_HOMEPAGE } from "@/lib/revalidation-tags";
-
-async function getWhyChooseUs() {
-  "use cache";
-  cacheLife("homepage");
-  cacheTag(TAG_HOMEPAGE);
-
-  try {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/whyChooseUs"
-    );
-    const data = await response.json();
-    if (response.ok) {
-      return data._data;
-    }
-  } catch {
-    return null;
-  }
-}
+import { getWhyChooseUs } from "@/lib/get-why-choose-us";
 
 const iconMap: Record<string, typeof Gem> = {
   Gem,
