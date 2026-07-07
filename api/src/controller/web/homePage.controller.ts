@@ -15,7 +15,9 @@ export const homePageController = async (
       return success(res, cached, "Home page fetched");
     }
 
-    const page = await homePage.findOne().lean();
+    const page = await homePage.findOne()
+      .select("-createdAt -updatedAt -deletedAt")
+      .lean();
     if (!page) {
       return success(res, { sections: [], version: 1 }, "Home page fetched");
     }

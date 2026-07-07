@@ -24,7 +24,7 @@ export default function GenderCategorySection({
   selectedItemIds,
 }: GenderCategorySectionProps) {
   const navigation = useSelector((state: RootState) => state.ui.navigation);
-  const categories = (navigation as { _data?: CategoryData[] })._data ?? [];
+  const categories = (navigation as { _data?: CategoryData[] })?._data ?? [];
 
   if (sourceType && selectedItemIds && selectedItemIds.length > 0) {
     const displayItems: { _id: string; name: string; image: string; slug: string }[] = [];

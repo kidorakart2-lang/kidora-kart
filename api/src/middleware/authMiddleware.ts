@@ -23,7 +23,7 @@ async function getCachedUser(userId: string) {
   const cacheKey = userCacheKey(userId);
   const cached = cache.get(cacheKey);
   if (cached !== undefined) return cached as any;
-  const user = await User.findById(userId).select("-password").lean();
+  const user = await User.findById(userId).select("-password -googleId -avatarFileName -avatarFileId -updatedAt -__v").lean();
   if (user) {
     cache.set(cacheKey, user, USER_CACHE_TTL);
   }

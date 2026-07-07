@@ -2,14 +2,16 @@
 import { useState, useRef, useEffect } from "react";
 import {
   User,
-  History,
-  Settings,
   Camera,
   MapPin,
   Upload,
   X,
+  Package,
+  Shield,
 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "motion/react";
 import SettingsSection from "./SettingsSection";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,6 +38,13 @@ import { getUser } from "@/lib/fetchUser";
 import { RootState } from "@/redux/store/store";
 import { setProfile } from "@/redux/features/auth";
 import { INDIAN_STATES } from "@/lib/utils";
+
+const tabs = [
+  { id: "account", label: "Account", icon: User, desc: "Manage your profile, address & preferences" },
+  { id: "orders", label: "Orders", icon: Package, desc: "Track orders, returns & purchase history" },
+  { id: "settings", label: "Settings", icon: Shield, desc: "Password, security & account preferences" },
+];
+
 export default function AccountPage() {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -44,6 +53,7 @@ export default function AccountPage() {
 
   const [avatar, setAvatar] = useState(data?.avatar ?? null);
   const [activeTab, setActiveTab] = useState("account");
+  const [direction, setDirection] = useState(1);
   const [formData, setFormData] = useState({
     name: data?.name || "",
     email: data?.email || "",
@@ -105,14 +115,9 @@ export default function AccountPage() {
   }, [params]);
 
   const handleTabChange = (value: string) => {
-    // const paramsChange = new URLSearchParams(params.toString()); // make editable copy
-    // paramsChange.set("tab", value);
-
-    // router.replace(`?${paramsChange.toString()}`); // or router.push() if you want history
-    // window.scrollTo({
-    //   top: 0,
-    //   behavior: "smooth",
-    // });
+    const prevIdx = tabs.findIndex((t) => t.id === activeTab);
+    const nextIdx = tabs.findIndex((t) => t.id === value);
+    setDirection(nextIdx > prevIdx ? 1 : -1);
     setActiveTab(value);
   };
 
@@ -138,10 +143,8 @@ export default function AccountPage() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Store the actual File object for upload
       setSelectedFile(file);
 
-      // Create a preview URL for the image
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result as string);
@@ -152,6 +155,7 @@ export default function AccountPage() {
 
   const removePreviewImage = () => {
     setPreviewImage(null);
+    setSelectedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -161,15 +165,12 @@ export default function AccountPage() {
     e.preventDefault();
     const token = getAuthToken();
 
-    // Create FormData for file upload
     const formDataToSend = new FormData();
 
-    // Add the avatar file if selectedFile exists
     if (selectedFile) {
       formDataToSend.append("avatar", selectedFile);
     }
 
-    // Append other user data
     if (formData.name !== data?.name) {
       formDataToSend.append("name", formData.name);
     }
@@ -218,12 +219,12 @@ export default function AccountPage() {
         return;
       }
 
-      const data = await response.json();
-      if (data._status) {
-        toast.success(data._message);
+      const res = await response.json();
+      if (res._status) {
+        toast.success(res._message);
         fetchUser();
       } else {
-        toast.error(data._message);
+        toast.error(res._message);
       }
       setLoading(false);
     } catch {
@@ -232,6 +233,15 @@ export default function AccountPage() {
     }
     setLoading(false);
   };
+
+  const variants = {
+    enter: (dir: number) => ({ y: dir > 0 ? -40 : 40, opacity: 0 }),
+    center: { y: 0, opacity: 1 },
+    exit: (dir: number) => ({ y: dir > 0 ? 40 : -40, opacity: 0 }),
+  };
+
+  const transition = { type: "spring" as const, stiffness: 320, damping: 30 };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -241,439 +251,412 @@ export default function AccountPage() {
   }
 
   return (
-    <>
-      <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-50 to-brand-accent-50">
-        <div className="max-w-7xl w-full mx-auto ">
-          {/* Profile Header Card */}
-          <div className="bg-background/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden mb-6 border border-brand-100">
-            <div className="px-2 md:px-8 py-2 ">
-              {/* Avatar Section */}
-              <div className="flex flex-col md:flex-row md:items-end md:justify-between">
-                <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6">
-                  <div className="relative group">
-                    {/* Avatar container with same glow + shape */}
-                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-gradient-to-br from-brand-100 to-brand-100 transform transition-transform duration-300 group-hover:scale-105">
-                      <Avatar className="w-full h-full">
-                        {avatar && (
-                          <Image
-                            src={avatar}
-                            alt="Profile"
-                            width={128}
-                            height={128}
-                            className="w-full h-full object-cover"
-                          />
-                        )}
-
-                        <AvatarFallback className="bg-brand-200 text-brand-800 font-semibold text-lg">
-                          {data?.name?.slice(0, 1).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-
-                    {/* Camera Button */}
-                    <button
-                      onClick={scrollToImageUpload}
-                      className="absolute bottom-2 right-2 bg-brand-600 hover:bg-brand-700 text-background p-2 rounded-full shadow-lg transform transition-all duration-300 hover:scale-110 active:scale-95"
-                    >
-                      <Camera size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tabs */}
-              <div className="mt-6">
-                <Tabs
-                  value={activeTab}
-                  onValueChange={handleTabChange}
-                  className="w-full"
-                >
-                  <TabsList className="w-full md:w-auto grid grid-cols-2 md:flex h-auto md:h-10 bg-brand-50/50 p-1 rounded-xl">
-                    <TabsTrigger
-                      value="account"
-                      className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md rounded-lg px-4 py-2.5 md:py-2 text-sm transition-all duration-300"
-                    >
-                      <User size={16} />
-                      <span className=" sm:inline">Account</span>
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="orders"
-                      className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md rounded-lg px-4 py-2.5 md:py-2 text-sm transition-all duration-300"
-                    >
-                      <History size={16} />
-                      <span className=" sm:inline">Orders</span>
-                    </TabsTrigger>
-                    {/* <TabsTrigger
-                      value="wishlist"
-                      className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md rounded-lg px-4 py-2.5 md:py-2 text-sm transition-all duration-300"
-                    >
-                      <Heart size={16} />
-                      <span className=" sm:inline">Wishlist</span>
-                    </TabsTrigger> */}
-                    <TabsTrigger
-                      value="settings"
-                      className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md rounded-lg px-4 py-2.5 md:py-2 text-sm transition-all duration-300"
-                    >
-                      <Settings size={16} />
-                      <span className=" sm:inline">Settings</span>
-                    </TabsTrigger>
-                  </TabsList>
-
-                  {/* Account Tab */}
-                  <TabsContent value="account" className="mt-6 animate-fade-in">
-                    <form
-                      id="account"
-                      onSubmit={handleSubmit}
-                      className="space-y-6"
-                    >
-                      {/* Image Upload Section */}
-                      <div
-                        ref={imageUploadRef}
-                        className="bg-background/60 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-brand-100/50 animate-slide-up"
-                      >
-                        <h2 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
-                          <Camera size={18} className="text-brand-600" />
-                          Profile Picture
-                        </h2>
-
-                        <div className="flex flex-col md:flex-row gap-6 items-start">
-                          <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-dashed border-border  flex items-center justify-center">
-                            {previewImage ? (
-                              <div className="relative w-full h-full group">
-                                <img
-                                  src={previewImage}
-                                  alt="Preview"
-                                  className="w-full h-full object-cover"
-                                />
-                                <button
-                                  onClick={removePreviewImage}
-                                  className="absolute top-1 right-1 bg-destructive hover:bg-destructive/90 text-background p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                >
-                                  <X size={14} />
-                                </button>
-                              </div>
-                            ) : (
-                              <Upload size={32} className="text-muted-foreground" />
-                            )}
-                          </div>
-
-                          <div className="flex-1">
-                            <Input
-                              ref={fileInputRef}
-                              type="file"
-                              accept="image/*"
-                              onChange={handleImageChange}
-                              className="hidden"
-                              id="avatar-upload"
-                            />
-                            <Label
-                              htmlFor="avatar-upload"
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-border text-muted-foreground rounded-lg cursor-pointer transition-all duration-300 text-sm font-medium"
-                            >
-                              <Upload size={16} />
-                              Choose Image
-                            </Label>
-                            <p className="text-xs text-muted-foreground mt-2">
-                              JPG, PNG or GIF. Max size 5MB.
-                            </p>
-
-                            {previewImage && (
-                              <div className="flex gap-2 mt-4 animate-fade-in">
-                                <button
-                                  onClick={removePreviewImage}
-                                  className="px-4 py-2 bg-border text-muted-foreground rounded-lg text-sm font-medium hover:bg-muted-foreground/20 transition-all duration-300"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Personal Information */}
-                      <div
-                        className="bg-background/60 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-brand-100/50 animate-slide-up"
-                        style={{ animationDelay: "0.1s" }}
-                      >
-                        <h2 className="text-lg font-semibold mb-6 text-foreground">
-                          Personal Information
-                        </h2>
-
-                        <div className="space-y-4">
-                          <div className="grid md:grid-cols-2 gap-4">
-                            {/* Name */}
-                            <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-muted-foreground">
-                                Full Name
-                              </Label>
-                              <Input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    name: e.target.value,
-                                  })
-                                }
-                                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
-                              />
-                            </div>
-                            {/* Gender */}
-                            <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-muted-foreground">
-                                Gender
-                              </Label>
-                              <Select
-                                value={formData.gender}
-                                onValueChange={(value) =>
-                                  setFormData({ ...formData, gender: value })
-                                }
-                                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
-                              >
-                                <SelectTrigger className="w-full">
-                                  <SelectValue
-                                    placeholder="Select Gender"
-                                    className="w-full"
-                                  />
-                                </SelectTrigger>
-                                <SelectContent className="w-full">
-                                  <SelectItem value="male">Male</SelectItem>
-                                  <SelectItem value="female">Female</SelectItem>
-                                  <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-
-                          <div className="grid md:grid-cols-2 gap-4">
-                            {/* Email */}
-                            <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-muted-foreground">
-                                Email Address
-                              </Label>
-                              <p>{data?.email}</p>
-                            </div>
-                            {/* Phone */}
-                            <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-muted-foreground">
-                                Phone Number
-                              </Label>
-                              <Input
-                                type="text"
-                                name="phone"
-                                value={formData.mobile}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    mobile: e.target.value,
-                                  })
-                                }
-                                placeholder="Enter phone number"
-                                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Shipping Address */}
-                      <div
-                        className="bg-background/60 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-brand-100/50 animate-slide-up"
-                        style={{ animationDelay: "0.2s" }}
-                      >
-                        <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
-                          <MapPin size={18} className="text-brand-600" />
-                          Shipping Address
-                        </h3>
-
-                        <div className="space-y-4">
-                          <div className="grid md:grid-cols-2 gap-4">
-                            {/* Street */}
-                            <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-muted-foreground">
-                                Street Address
-                              </Label>
-                              <Input
-                                type="text"
-                                name="street"
-                                value={formData.street}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    street: e.target.value,
-                                  })
-                                }
-                                placeholder="Enter street address"
-                                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
-                              />
-                            </div>
-                            {/* Area */}
-                            <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-muted-foreground">
-                                Area
-                              </Label>
-                              <Input
-                                type="text"
-                                name="area"
-                                value={formData.area}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    area: e.target.value,
-                                  })
-                                }
-                                placeholder="Enter area/locality"
-                                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid md:grid-cols-2 gap-4">
-                            {/* City */}
-                            <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-muted-foreground">
-                                City
-                              </Label>
-                              <Input
-                                type="text"
-                                name="city"
-                                value={formData.city}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    city: e.target.value,
-                                  })
-                                }
-                                placeholder="Enter city"
-                                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
-                              />
-                            </div>
-                            {/* State */}
-                            <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-muted-foreground">
-                                State
-                              </Label>
-                              <Select
-                                value={formData.state}
-                                onValueChange={(value) => {
-                                  setFormData({
-                                    ...formData,
-                                    state: value,
-                                  });
-                                }}
-                                name="state"
-                                required
-                              >
-                                <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="Select State" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {INDIAN_STATES.map((state) => (
-                                    <SelectItem
-                                      key={state}
-                                      value={state}
-                                      className="cursor-pointer border-b-1 border-border"
-                                    >
-                                      {state}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-
-                          <div className="grid md:grid-cols-2 gap-4">
-                            {/* Pincode */}
-                            <div className="space-y-2">
-                              <Label className="block text-sm font-medium text-muted-foreground">
-                                Pincode
-                              </Label>
-                              <Input
-                                type="text"
-                                name="pincode"
-                                value={formData.pincode}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    pincode: e.target.value,
-                                  })
-                                }
-                                placeholder="Enter pincode"
-                                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Instructions */}
-                          <div className="space-y-2">
-                            <Label className="block text-sm font-medium text-muted-foreground">
-                              Delivery Instructions (Optional)
-                            </Label>
-                            <Textarea
-                              name="instructions"
-                              value={formData.instructions}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  instructions: e.target.value,
-                                })
-                              }
-                              placeholder="Add any special delivery instructions"
-                              rows={3}
-                              className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80 resize-none"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="pt-6 flex gap-3">
-                          <Button className="bg-gradient-to-r from-brand-600 to-brand-700 text-background px-6 py-2.5 rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 active:scale-95">
-                            Save Changes
-                          </Button>
-                        </div>
-                      </div>
-                    </form>
-                  </TabsContent>
-
-                  {/* Orders Tab */}
-                  <TabsContent value="orders" className="mt-6 animate-fade-in">
-                    <MyOrders />
-                  </TabsContent>
-
-                  {/* Wishlist Tab */}
-                  {/* <TabsContent
-                    value="wishlist"
-                    className="mt-6 animate-fade-in"
-                  >
-                    <Wishlist />
-                  </TabsContent> */}
-
-                  {/* Settings Tab */}
-                  <TabsContent
-                    value="settings"
-                    className="mt-6 animate-fade-in"
-                  >
-                    <div
-                      id="settings"
-                      className="bg-background/60 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-brand-100/50"
-                    >
-                      <h2 className="text-xl font-semibold mb-6 text-foreground">
-                        Account Settings
-                      </h2>
-
-                      <div className="space-y-6">
-                        <SettingsSection data={data} />
-                      </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl w-full mx-auto px-4 md:px-6 py-6">
+        {/* Profile Header */}
+        <div className="flex flex-col md:flex-row items-start md:items-end gap-5 p-6 md:p-8 border-b border-border mb-6">
+          <div className="relative group shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-brand-100 to-brand-accent-100">
+              <Avatar className="w-full h-full">
+                {avatar && (
+                  <Image
+                    src={avatar}
+                    alt="Profile"
+                    width={96}
+                    height={96}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+                <AvatarFallback className="bg-brand-200 text-brand-800 font-semibold text-lg">
+                  {data?.name?.slice(0, 1).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
             </div>
+            <button
+              onClick={scrollToImageUpload}
+              className="absolute -bottom-1 -right-1 bg-brand-600 hover:bg-brand-700 text-background p-1.5 rounded-full shadow-lg transition-all duration-300 hover:scale-110 active:scale-95"
+            >
+              <Camera size={14} />
+            </button>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl md:text-2xl font-bold text-foreground truncate">
+              {data?.name || "My Account"}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-0.5">{data?.email}</p>
           </div>
         </div>
 
+        {/* Tabs */}
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="w-full"
+        >
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Sidebar Nav */}
+            <div className="w-full md:w-56 shrink-0">
+              <div className="flex flex-wrap md:flex-col gap-1.5 bg-transparent w-full h-auto p-0 rounded-none justify-start border-none">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => handleTabChange(tab.id)}
+                      className={cn(
+                        "relative flex items-center cursor-pointer gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all outline-none w-full justify-start select-none whitespace-nowrap shrink-0",
+                        "hover:bg-muted/60 hover:text-foreground",
+                        isActive
+                          ? "text-foreground shadow-sm"
+                          : "text-muted-foreground border border-border/50"
+                      )}
+                    >
+                      <Icon className="w-4 h-4 z-10 shrink-0" />
+                      <span className="z-10 text-left">{tab.label}</span>
+                      {isActive && (
+                        <motion.div
+                          layoutId="profile-tab-indicator"
+                          className="absolute inset-0 bg-muted rounded-xl pointer-events-none"
+                          initial={false}
+                          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Content Panel */}
+            <div className="flex-1 w-full relative min-h-[400px]">
+              <AnimatePresence mode="wait" custom={direction}>
+                {tabs.map((tab) => {
+                  if (tab.id !== activeTab) return null;
+                  return (
+                    <motion.div
+                      key={tab.id}
+                      custom={direction}
+                      variants={variants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={transition}
+                    >
+                      {/* Account Tab */}
+                      {tab.id === "account" && (
+                        <form
+                          id="account"
+                          onSubmit={handleSubmit}
+                          className="space-y-6"
+                        >
+                          {/* Image Upload Section */}
+                          <div ref={imageUploadRef}>
+                            <h2 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                              <Camera size={18} className="text-brand-600" />
+                              Profile Picture
+                            </h2>
+
+                            <div className="flex flex-col md:flex-row gap-6 items-start">
+                              <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-dashed border-border flex items-center justify-center">
+                                {previewImage ? (
+                                  <div className="relative w-full h-full group">
+                                    <img
+                                      src={previewImage}
+                                      alt="Preview"
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <button
+                                      onClick={removePreviewImage}
+                                      className="absolute top-1 right-1 bg-destructive hover:bg-destructive/90 text-background p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                    >
+                                      <X size={14} />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <Upload size={32} className="text-muted-foreground" />
+                                )}
+                              </div>
+
+                              <div className="flex-1">
+                                <Input
+                                  ref={fileInputRef}
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleImageChange}
+                                  className="hidden"
+                                  id="avatar-upload"
+                                />
+                                <Label
+                                  htmlFor="avatar-upload"
+                                  className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-border text-muted-foreground rounded-lg cursor-pointer transition-all duration-300 text-sm font-medium"
+                                >
+                                  <Upload size={16} />
+                                  Choose Image
+                                </Label>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  JPG, PNG or GIF. Max size 5MB.
+                                </p>
+
+                                {previewImage && (
+                                  <div className="flex gap-2 mt-4">
+                                    <button
+                                      onClick={removePreviewImage}
+                                      className="px-4 py-2 bg-border text-muted-foreground rounded-lg text-sm font-medium hover:bg-muted-foreground/20 transition-all duration-300"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Personal Information */}
+                          <div>
+                            <h2 className="text-lg font-semibold mb-6 text-foreground">
+                              Personal Information
+                            </h2>
+
+                            <div className="space-y-4">
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                    Full Name
+                                  </Label>
+                                  <Input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={(e) =>
+                                      setFormData({
+                                        ...formData,
+                                        name: e.target.value,
+                                      })
+                                    }
+                                    className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                    Gender
+                                  </Label>
+                                  <Select
+                                    value={formData.gender}
+                                    onValueChange={(value) =>
+                                      setFormData({ ...formData, gender: value })
+                                    }
+                                  >
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Select Gender" />
+                                    </SelectTrigger>
+                                    <SelectContent className="w-full">
+                                      <SelectItem value="male">Male</SelectItem>
+                                      <SelectItem value="female">Female</SelectItem>
+                                      <SelectItem value="other">Other</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                    Email Address
+                                  </Label>
+                                  <p className="text-sm text-foreground">{data?.email}</p>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                    Phone Number
+                                  </Label>
+                                  <Input
+                                    type="text"
+                                    name="phone"
+                                    value={formData.mobile}
+                                    onChange={(e) =>
+                                      setFormData({
+                                        ...formData,
+                                        mobile: e.target.value,
+                                      })
+                                    }
+                                    placeholder="Enter phone number"
+                                    className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Shipping Address */}
+                          <div>
+                            <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                              <MapPin size={18} className="text-brand-600" />
+                              Shipping Address
+                            </h3>
+
+                            <div className="space-y-4">
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                    Street Address
+                                  </Label>
+                                  <Input
+                                    type="text"
+                                    name="street"
+                                    value={formData.street}
+                                    onChange={(e) =>
+                                      setFormData({
+                                        ...formData,
+                                        street: e.target.value,
+                                      })
+                                    }
+                                    placeholder="Enter street address"
+                                    className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                    Area
+                                  </Label>
+                                  <Input
+                                    type="text"
+                                    name="area"
+                                    value={formData.area}
+                                    onChange={(e) =>
+                                      setFormData({
+                                        ...formData,
+                                        area: e.target.value,
+                                      })
+                                    }
+                                    placeholder="Enter area/locality"
+                                    className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                    City
+                                  </Label>
+                                  <Input
+                                    type="text"
+                                    name="city"
+                                    value={formData.city}
+                                    onChange={(e) =>
+                                      setFormData({
+                                        ...formData,
+                                        city: e.target.value,
+                                      })
+                                    }
+                                    placeholder="Enter city"
+                                    className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                    State
+                                  </Label>
+                                  <Select
+                                    value={formData.state}
+                                    onValueChange={(value) => {
+                                      setFormData({
+                                        ...formData,
+                                        state: value,
+                                      });
+                                    }}
+                                    name="state"
+                                    required
+                                  >
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Select State" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {INDIAN_STATES.map((s) => (
+                                        <SelectItem
+                                          key={s}
+                                          value={s}
+                                          className="cursor-pointer border-b-1 border-border"
+                                        >
+                                          {s}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                    Pincode
+                                  </Label>
+                                  <Input
+                                    type="text"
+                                    name="pincode"
+                                    value={formData.pincode}
+                                    onChange={(e) =>
+                                      setFormData({
+                                        ...formData,
+                                        pincode: e.target.value,
+                                      })
+                                    }
+                                    placeholder="Enter pincode"
+                                    className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="block text-sm font-medium text-muted-foreground">
+                                  Delivery Instructions (Optional)
+                                </Label>
+                                <Textarea
+                                  name="instructions"
+                                  value={formData.instructions}
+                                  onChange={(e) =>
+                                    setFormData({
+                                      ...formData,
+                                      instructions: e.target.value,
+                                    })
+                                  }
+                                  placeholder="Add any special delivery instructions"
+                                  rows={3}
+                                  className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80 resize-none"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="pt-6 flex gap-3">
+                              <Button className="bg-gradient-to-r from-brand-600 to-brand-700 text-background px-6 py-2.5 rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 active:scale-95">
+                                Save Changes
+                              </Button>
+                            </div>
+                          </div>
+                        </form>
+                      )}
+
+                      {/* Orders Tab */}
+                      {tab.id === "orders" && <MyOrders />}
+
+                      {/* Settings Tab */}
+                      {tab.id === "settings" && (
+                        <div id="settings">
+                          <h2 className="text-xl font-semibold mb-6 text-foreground">
+                            Account Settings
+                          </h2>
+                          <SettingsSection data={data} />
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          </div>
+        </Tabs>
       </div>
-    </>
+    </div>
   );
 }

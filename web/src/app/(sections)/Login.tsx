@@ -28,6 +28,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Image from "next/image";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -95,6 +96,7 @@ const LoginPage = () => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify(formData),
         }
       );
@@ -137,9 +139,22 @@ const LoginPage = () => {
     }
   };
 
+  const logo = useSelector((state: RootState) => state.logo.logo);
+
   return (
     <main className="min-h-[550px] flex justify-center bg-muted p-4 relative overflow-hidden">
       <Card className={"w-full max-w-md"}>
+        <div className="flex justify-center mt-6">
+          <Link href="/">
+            <Image
+              src={logo || "/images/logo.webp"}
+              alt="Logo"
+              width={120}
+              height={50}
+              className="h-12 w-auto object-contain"
+            />
+          </Link>
+        </div>
         <CardHeader>
           <CardTitle className={"text-center text-2xl md:text-3xl"}>
             Welcome Back

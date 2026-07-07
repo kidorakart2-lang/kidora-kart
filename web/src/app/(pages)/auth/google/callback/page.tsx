@@ -36,6 +36,9 @@ export default function Page() {
       // const returnTo = searchParams.get("returnTo");
       const storedReturnTo = localStorage.getItem("googleLoginReturnTo");
 
+      if (code && sessionStorage.getItem(`google_cb_${code}`)) return;
+      if (code) sessionStorage.setItem(`google_cb_${code}`, "1");
+
       if (error) {
         toast.error("Google sign-in was cancelled");
         router.push("/");
@@ -56,6 +59,7 @@ export default function Page() {
           process.env.NEXT_PUBLIC_API_URL + "api/website/user/google-callback",
           {
             method: "POST",
+            credentials: "include",
             headers: {
               "Content-Type": "application/json",
             },

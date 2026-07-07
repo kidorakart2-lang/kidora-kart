@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 import { getAuthToken } from "@/lib/getAuthToken";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,17 +12,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Loader2, Lock } from "lucide-react";
+import { Loader2, Lock, Mail } from "lucide-react";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { Label } from "@/components/ui/label";
+import StrongPasswordInput from "@/components/comman/StrongPasswordInput";
+import { useSelector } from "react-redux";
+import Link from "next/link";
+import Image from "next/image";
+import type { RootState } from "@/redux/store/store";
 
 export default function ResetPassword() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -35,8 +40,7 @@ export default function ResetPassword() {
 
   const handleRequestReset = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const emailInput = (e.target as HTMLFormElement).email.value;
-    if (!emailInput) {
+    if (!email) {
       toast.error("Please enter your email address");
       return;
     }
@@ -51,7 +55,7 @@ export default function ResetPassword() {
             "Content-Type": "application/json",
             authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ email: emailInput }),
+          body: JSON.stringify({ email }),
         }
       );
 
@@ -94,8 +98,7 @@ export default function ResetPassword() {
         try {
           const errorData = await response.json();
           toast.error(errorData._message || "Failed to verify OTP. Please try again.");
-        } catch (e) {
-          // Fallback in case response isn't JSON
+        } catch {
           toast.error("Failed to verify OTP. Please try again.");
         }
         return;
@@ -150,7 +153,7 @@ export default function ResetPassword() {
           toast.error(
             errorData._message || "Failed to reset password. Please try again."
           );
-        } catch (e) {
+        } catch {
           toast.error("Failed to reset password. Please try again.");
         }
         return;
@@ -158,9 +161,9 @@ export default function ResetPassword() {
 
       const data = await response.json();
       if (data._status === true) {
-        toast.success("Password reset successfully! ");
+        toast.success("Password reset successfully!");
         Cookies.remove("resetToken");
-        router.push(returnTo || "/");
+        router.push(returnTo || "/login");
       } else {
         toast.error(data._message || "Something Went Wrong");
       }
@@ -173,70 +176,99 @@ export default function ResetPassword() {
     }
   };
 
+  const logo = useSelector((state: RootState) => state.logo.logo);
+
   return (
-    <div className="flex min-h-screen items-center justify-center  p-4">
+    <main className="min-h-screen flex items-center justify-center bg-muted p-4">
       <Card className="w-full max-w-md">
+        <div className="flex justify-center mt-6">
+          <Link href="/">
+            <Image
+              src={logo || "/images/logo.webp"}
+              alt="Logo"
+              width={120}
+              height={50}
+              className="h-12 w-auto object-contain"
+            />
+          </Link>
+        </div>
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-100">
             <Lock className="h-6 w-6 text-brand-600" />
           </div>
           <CardTitle className="text-2xl font-bold">
-            {step === "request" ? "Reset Password" : "Create New Password"}
+            {step === "request"
+              ? "Reset Password"
+              : step === "otp"
+                ? "Verify Code"
+                : "Create New Password"}
           </CardTitle>
           <CardDescription>
             {step === "request"
               ? "Enter your email to receive a password reset link"
-              : "Create a new password for your account"}
+              : step === "otp"
+                ? "Enter the verification code sent to your email"
+                : "Create a strong new password for your account"}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {step === "request" ? (
-            <form onSubmit={handleRequestReset} className="space-y-4">
-              <div className="space-y-2">
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-muted-foreground"
-                >
-                  Email
-                </label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full"
-                  required
-                />
+            <form onSubmit={handleRequestReset} className="space-y-5">
+              <div>
+                <Label htmlFor="email" className="block text-muted-foreground mb-2 font-medium text-sm">
+                  Email Address
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail size={18} className="text-foreground z-10" />
+                  </div>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="example@mail.com"
+                    className="w-full pl-10 pr-4 py-3 bg-background/70 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md"
+                    required
+                  />
+                </div>
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
+                  isLoading
+                    ? "bg-brand-400 cursor-not-allowed opacity-70"
+                    : "bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"
+                }`}
+              >
                 {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="animate-spin h-5 w-5" />
                     Sending...
-                  </>
+                  </span>
                 ) : (
                   "Send Reset Link"
                 )}
-              </Button>
+              </button>
             </form>
           ) : step === "otp" ? (
-            <form onSubmit={verifyOtp} className="space-y-4">
+            <form onSubmit={verifyOtp} className="space-y-5">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-muted-foreground">
+                <Label className="block text-muted-foreground mb-2 font-medium text-sm text-center">
                   Enter verification code
-                </label>
-                <div className="flex justify-center space-x-2">
+                </Label>
+                <div className="flex justify-center">
                   <InputOTP
                     maxLength={6}
                     value={otp}
-                    onChange={(value) => {
-                      setOtp(value);
-                    }}
+                    onChange={setOtp}
                   >
                     <InputOTPGroup className="gap-2 flex">
-                      {[...Array(6)].map((_, index) => (
+                      {Array.from({ length: 6 }, (_, i) => (
                         <InputOTPSlot
-                          key={index}
-                          index={index}
+                          key={i}
+                          index={i}
                           className="h-12 w-12 text-lg border-border focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg"
                         />
                       ))}
@@ -244,60 +276,90 @@ export default function ResetPassword() {
                   </InputOTP>
                 </div>
               </div>
-              <Button type="submit" className="w-full">
-                Verify Code
-              </Button>
+              <button
+                type="submit"
+                disabled={isLoading || otp.length !== 6}
+                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
+                  isLoading || otp.length !== 6
+                    ? "bg-brand-400 cursor-not-allowed opacity-70"
+                    : "bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"
+                }`}
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="animate-spin h-5 w-5" />
+                    Verifying...
+                  </span>
+                ) : (
+                  "Verify Code"
+                )}
+              </button>
             </form>
           ) : (
-            <form onSubmit={handleResetPassword} className="space-y-4">
-              <div className="space-y-2">
-                <label
-                  htmlFor="newPassword"
-                  className="block text-sm font-medium text-muted-foreground"
-                >
-                  New Password
-                </label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password"
-                  className="w-full"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label
-                  htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-muted-foreground"
-                >
+            <form onSubmit={handleResetPassword} className="space-y-5">
+              <StrongPasswordInput
+                id="newPassword"
+                value={newPassword}
+                onChange={setNewPassword}
+              />
+              <div>
+                <Label htmlFor="confirmPassword" className="block text-muted-foreground mb-2 font-medium text-sm">
                   Confirm Password
-                </label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
-                  className="w-full"
-                  required
-                />
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock size={18} className="text-foreground z-10" />
+                  </div>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm new password"
+                    className="w-full pl-10 pr-4 py-3 bg-background/70 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md"
+                    required
+                  />
+                </div>
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
+                  isLoading
+                    ? "bg-brand-400 cursor-not-allowed opacity-70"
+                    : "bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"
+                }`}
+              >
                 {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="animate-spin h-5 w-5" />
                     Updating...
-                  </>
+                  </span>
                 ) : (
                   "Reset Password"
                 )}
-              </Button>
+              </button>
             </form>
+          )}
+
+          {step !== "request" && (
+            <p className="text-center text-muted-foreground text-sm mt-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setStep("request");
+                  setOtp("");
+                  setNewPassword("");
+                  setConfirmPassword("");
+                }}
+                className="text-brand-600 hover:text-brand-700 font-semibold hover:underline transition-colors"
+              >
+                Back to reset password
+              </button>
+            </p>
           )}
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 }

@@ -138,24 +138,31 @@ function WebsiteSchema() {
   );
 }
 
-// const getLogo = cache(async () => {
-//   const response = await fetch(
-//     `${process.env.NEXT_PUBLIC_API_URL}api/website/logo`,
-//     {
-//       method: "post",
-//       // next: { revalidate: 3600 },
-//     }
-//   );
-//   if (!response.ok) {
-//     return null;
-//   }
-//   const data = await response.json();
+async function getLogo() {
+  "use cache";
+  cacheLife("navigation");
 
-//   if (!response.ok || !data._status) {
-//     return null;
-//   }
-//   return data;
-// });
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}api/website/logo`,
+      { method: "post" }
+    );
+
+    if (!response.ok) {
+      return { logo: "/images/logo.webp" };
+    }
+
+    const data = await response.json();
+
+    if (!data?._status || !data._data) {
+      return { logo: "/images/logo.webp" };
+    }
+    return data._data;
+
+  } catch {
+    return { logo: "/images/logo.webp" };
+  }
+}
 
 async function getNavigation() {
   "use cache";
@@ -214,9 +221,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [navigation, featuredProducts] = await Promise.all([
+  const [navigation, featuredProducts, logoData] = await Promise.all([
     getNavigation(),
     getFeaturedProducts(),
+    getLogo(),
   ]);
 
   console.clear();
@@ -251,7 +259,7 @@ export default async function RootLayout({
         <Suspense>
         <Client>
           <MotionProvider>
-          <MainLayout navigationData={navigation} featuredProducts={featuredProducts ?? []}>
+          <MainLayout navigationData={navigation} featuredProducts={featuredProducts ?? []} logoData={logoData}>
             {children}
           </MainLayout>
           <ScrollToTop />

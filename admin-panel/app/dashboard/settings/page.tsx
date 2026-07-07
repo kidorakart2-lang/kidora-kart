@@ -8,7 +8,7 @@ async function getDetails(): Promise<SettingsData | null> {
 
   if (!token) return null;
   try {
-    return await api.post<SettingsData>("/api/website/user/profile", undefined, token.value);
+    return await api.get<SettingsData>("/api/website/user/profile", token.value);
   } catch {
     return null;
   }

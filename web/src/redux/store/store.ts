@@ -60,7 +60,7 @@ const createSafeStorage = (): PersistConfig<RootState>["storage"] => {
 const persistConfig: PersistConfig<RootState> = {
   key: "root",
   storage: createSafeStorage(),
-  whitelist: ["cart", "wishlist", "auth"],
+  whitelist: ["cart", "wishlist", "auth", "logo"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

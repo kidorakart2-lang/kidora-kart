@@ -71,10 +71,12 @@ export default function StrongPasswordInput({
   value,
   onChange,
   error,
+  id = "password",
 }: {
   value: string;
   onChange: (val: string) => void;
   error?: string;
+  id?: string;
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -83,7 +85,7 @@ export default function StrongPasswordInput({
 
   return (
     <div>
-      <Label htmlFor="password" className="block text-muted-foreground mb-2 font-medium text-sm">
+      <Label htmlFor={id} className="block text-muted-foreground mb-2 font-medium text-sm">
         Password
       </Label>
       <div className="relative">
@@ -92,8 +94,8 @@ export default function StrongPasswordInput({
         </div>
         <input
           type={showPassword ? "text" : "password"}
-          id="password"
-          name="password"
+          id={id}
+          name={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="********"

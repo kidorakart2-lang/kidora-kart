@@ -1,7 +1,6 @@
 import type { Request, Response } from "express";
 import jwt, { type SignOptions } from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
-import { randomBytes } from "crypto";
 import User from "../../models/user.js";
 import { generateToken, generateOtp, generatePasswordResetToken, verifyPasswordResetToken, hashOtp } from "../../lib/jwt.js";
 import { hashPassword, comparePassword } from "../../lib/bcrypt.js";
@@ -23,14 +22,23 @@ import {
   clearRefreshTokenCookie,
 } from "../../lib/tokens.js";
 
-const oauthStates = new Map<string, number>();
+const OAUTH_STATE_SECRET = env.JWT_SECRET + "_oauth_state";
+const OAUTH_STATE_EXPIRY = "10m";
 
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, ts] of oauthStates) {
-    if (now - ts > 600000) oauthStates.delete(key);
+/** Sign a state token so it survives server restarts */
+function signOAuthState(): string {
+  return jwt.sign({ t: Date.now() }, OAUTH_STATE_SECRET, { expiresIn: OAUTH_STATE_EXPIRY });
+}
+
+/** Verify and consume a state token. Returns true if valid. */
+function verifyOAuthState(state: string): boolean {
+  try {
+    const decoded = jwt.verify(state, OAUTH_STATE_SECRET);
+    return typeof decoded === "object" && decoded !== null && "t" in decoded;
+  } catch {
+    return false;
   }
-}, 120000);
+}
 
 /** Helper: set access + refresh token cookies for a user session.
  * Returns the generated access token so callers can reuse it without calling generateToken again. */
@@ -129,13 +137,14 @@ export const loginUser = async (
       return fail(res, "All fields are required", 400);
     }
 
-    const user = await User.findOne({ email }).select("email password name").lean();
+    const user = await User.findOne({ email }).lean();
     if (!user || !(await comparePassword(password, user.password))) {
       return fail(res, "Invalid email or password", 401);
     }
 
-    delete (user as { password?: string }).password;
-    const userData = user;
+    const userData = { ...user };
+    delete (userData as Record<string, unknown>).password;
+    delete (userData as Record<string, unknown>).googleId;
 
     const accessToken = await setSessionCookies(res, user, "user");
 
@@ -196,10 +205,13 @@ export const getProfile = async (
 ): Promise<Response> => {
   if (!req.user) return fail(res, "Unauthorized", 401);
   try {
-    const userData = req.user.toObject();
-    delete (userData as { password?: string }).password;
-    return success(res, userData, "User profile Found");
+    const profileData = { ...(req.user as Record<string, unknown>) };
+    delete profileData.createdAt;
+    delete profileData.updatedAt;
+    delete profileData.deletedAt;
+    return success(res, profileData, "User profile Found");
   } catch (error) {
+    logger.error({ err: error }, "Get profile error");
     return fail(res, "Internal Server Error", 500);
   }
 };
@@ -248,7 +260,8 @@ export const updateProfile = async (
 ): Promise<Response> => {
   if (!req.user) return fail(res, "Unauthorized", 401);
   try {
-    const user = req.user;
+    const user = await User.findById(req.user._id);
+    if (!user) return fail(res, "User not found", 404);
 
     let avatarUrl: string | null = user.avatar ?? null;
     if (req.file) {
@@ -277,11 +290,11 @@ export const updateProfile = async (
     if (body.pincode || body.street || body.city || body.state || body.area || body.instructions) {
       if (!user.address) user.address = { state: "", city: "", street: "", area: "", instructions: "" };
       if (body.pincode) user.address.pincode = Number(body.pincode as string);
-      if (body.street) (user.address as Record<string, unknown>).street = body.street;
-      if (body.city) (user.address as Record<string, unknown>).city = body.city;
-      if (body.state) (user.address as Record<string, unknown>).state = body.state;
-      if (body.area) (user.address as Record<string, unknown>).area = body.area;
-      if (body.instructions) (user.address as Record<string, unknown>).instructions = body.instructions;
+      if (body.street) user.address.street = body.street;
+      if (body.city) user.address.city = body.city;
+      if (body.state) user.address.state = body.state;
+      if (body.area) user.address.area = body.area;
+      if (body.instructions) user.address.instructions = body.instructions;
     }
 
     user.avatar = avatarUrl;
@@ -289,7 +302,11 @@ export const updateProfile = async (
 
     invalidateUserCache(user._id);
 
-    return success(res, user, "User profile updated successfully");
+    const profileData = user.toObject();
+    delete (profileData as Record<string, unknown>).createdAt;
+    delete (profileData as Record<string, unknown>).updatedAt;
+    delete (profileData as Record<string, unknown>).deletedAt;
+    return success(res, profileData, "User profile updated successfully");
   } catch (error) {
     logger.error({ err: error }, "Update profile error");
     return fail(res, "Internal Server Error", 500);
@@ -504,8 +521,7 @@ export const googleAuthInit = async (
   _req: Request,
   res: Response,
 ): Promise<Response> => {
-  const state = randomBytes(32).toString("hex");
-  oauthStates.set(state, Date.now());
+  const state = signOAuthState();
 
   if (!env.GOOGLE_CLIENT_ID) {
     return fail(res, "Google authentication is not configured", 500);
@@ -577,7 +593,11 @@ export const googleLogin = async (
     }
 
     const userData = user.toObject();
-    delete (userData as { password?: string }).password;
+    delete (userData as Record<string, unknown>).password;
+    delete (userData as Record<string, unknown>).googleId;
+    delete (userData as Record<string, unknown>).createdAt;
+    delete (userData as Record<string, unknown>).updatedAt;
+    delete (userData as Record<string, unknown>).deletedAt;
 
     const accessToken = await setSessionCookies(res, user, "user");
 
@@ -602,10 +622,9 @@ export const googleAuthCallback = async (
     if (!code) {
       return fail(res, "Authorization code is required", 400);
     }
-    if (!state || !oauthStates.has(state)) {
+    if (!state || !verifyOAuthState(state)) {
       return fail(res, "Invalid OAuth state. Possible CSRF attack.", 400);
     }
-    oauthStates.delete(state);
 
     const client = new OAuth2Client(
       env.GOOGLE_CLIENT_ID,
@@ -649,7 +668,11 @@ export const googleAuthCallback = async (
     }
 
     const userData = user.toObject();
-    delete (userData as { password?: string }).password;
+    delete (userData as Record<string, unknown>).password;
+    delete (userData as Record<string, unknown>).googleId;
+    delete (userData as Record<string, unknown>).createdAt;
+    delete (userData as Record<string, unknown>).updatedAt;
+    delete (userData as Record<string, unknown>).deletedAt;
 
     const accessToken = await setSessionCookies(res, user, "user");
 

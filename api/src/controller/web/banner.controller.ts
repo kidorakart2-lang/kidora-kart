@@ -13,6 +13,7 @@ interface ModelWithSlug {
 
 const fetchBanners = async (_req: Request) => {
   const banners = await Banner.find({ deletedAt: null, status: true })
+    .select("-createdAt -updatedAt -deletedAt")
     .sort({ order: 1, _id: -1 })
     .lean();
 

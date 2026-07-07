@@ -26,7 +26,7 @@ export const createReview = async (req: Request, res: Response): Promise<Respons
       return fail(res, "You have already reviewed this product", 400);
     }
 
-    const review = await Review.create({ userId, productId, rating, comment });
+    const review = await Review.create({ userId, productId, rating, comment }); // TODO: frontend Review uses createdAt for display
 
     enqueue(async () => {
       const reviews = await Review.find({ productId });
@@ -56,7 +56,7 @@ export const getReviewsByProduct = async (
     const { productId } = req.params;
     const reviews = await Review.find({ productId, deletedAt: null })
       .populate("userId", "name email avatar")
-      .sort("-createdAt")
+      .sort("-createdAt") // TODO: frontend Review uses createdAt for display
       .lean();
 
     const avgRating =

@@ -8,7 +8,7 @@ async function getDetails() {
 
   if (!token) return null;
   try {
-    return await api.post("/api/website/user/profile", undefined, token.value);
+    return await api.get("/api/website/user/profile", token.value);
   } catch {
     return null;
   }

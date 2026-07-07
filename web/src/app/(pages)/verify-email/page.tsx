@@ -19,6 +19,10 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Loader2, Mail } from "lucide-react";
+import { useSelector } from "react-redux";
+import Link from "next/link";
+import Image from "next/image";
+import type { RootState } from "@/redux/store/store";
 
 export default function VerifyEmailPage() {
   const router = useRouter();
@@ -126,6 +130,8 @@ export default function VerifyEmailPage() {
     }
   };
 
+  const logo = useSelector((state: RootState) => state.logo.logo);
+
   if (!email) {
     return null;
   }
@@ -133,6 +139,17 @@ export default function VerifyEmailPage() {
   return (
     <div className="flex min-h-screen items-center justify-center  p-4">
       <Card className="w-full max-w-md">
+        <div className="flex justify-center mt-6">
+          <Link href="/">
+            <Image
+              src={logo || "/images/logo.webp"}
+              alt="Logo"
+              width={120}
+              height={50}
+              className="h-12 w-auto object-contain"
+            />
+          </Link>
+        </div>
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-100">
             <Mail className="h-6 w-6 text-brand-600" />

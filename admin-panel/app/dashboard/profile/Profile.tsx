@@ -134,12 +134,12 @@ export default function Profile({ details }: { details: any }) {
                       {details.gender || "Not specified"}
                     </p>
                   </div>
-                  <div>
+                  {/* <div>
                     <p className="text-sm text-muted-foreground">
                       Last Updated
                     </p>
                     <p>{formatDate(details.updatedAt)}</p>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>

@@ -5,8 +5,9 @@ import { setWishlist } from "@/redux/features/wishlist";
 import type { AppDispatch } from "@/redux/store/store";
 import { getAuthToken } from "@/lib/getAuthToken";
 import { clearAuthCookies } from "@/lib/clearAuthCookies";
+import { logout } from "@/redux/features/auth";
 
-async function getCart() {
+async function getCart(dispatch?: AppDispatch) {
   const token = getAuthToken();
 
   const headers: Record<string, string> = {};
@@ -24,6 +25,7 @@ async function getCart() {
     );
     if (response.status === 401) {
       clearAuthCookies();
+      dispatch?.(logout());
       return null;
     }
     if (!response.ok) return null;
@@ -35,7 +37,7 @@ async function getCart() {
   }
 }
 
-async function getWishlist() {
+async function getWishlist(dispatch?: AppDispatch) {
   const token = getAuthToken();
 
   const headers: Record<string, string> = {};
@@ -53,6 +55,7 @@ async function getWishlist() {
     );
     if (response.status === 401) {
       clearAuthCookies();
+      dispatch?.(logout());
       return null;
     }
     if (!response.ok) return null;
@@ -77,7 +80,7 @@ function serverItemToSlice(item: Record<string, unknown>) {
 
 export async function fetchAndDispatchCart(dispatch: AppDispatch) {
   try {
-    const [cartData] = await Promise.all([getCart()]);
+    const [cartData] = await Promise.all([getCart(dispatch)]);
 
     if (cartData && cartData._data?.items?.length > 0) {
       dispatch(updateFullCart({
@@ -94,7 +97,7 @@ export async function fetchAndDispatchCart(dispatch: AppDispatch) {
 }
 export async function fetchAndDispatchWishlist(dispatch: AppDispatch) {
   try {
-    const [wishlistData] = await Promise.all([getWishlist()]);
+    const [wishlistData] = await Promise.all([getWishlist(dispatch)]);
 
     if (wishlistData && wishlistData._data?.length > 0) {
       dispatch(setWishlist(wishlistData._data || []));

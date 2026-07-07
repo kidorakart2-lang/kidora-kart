@@ -66,10 +66,6 @@ const getPublicUrl = (key: string): string => {
 
 /**
  * Upload file to Cloudflare R2.
- *
- * Instead of loading the Sharp-processed image into an intermediate buffer,
- * the Sharp pipeline (a Readable stream) is passed directly as the Body to
- * PutObjectCommand. This avoids duplicating the processed image in memory.
  */
 export const uploadToR2 = async (
   file: MulterFile,
@@ -80,8 +76,6 @@ export const uploadToR2 = async (
   try {
     const imageQuality = folder === "banner" ? 85 : quality || 80;
 
-    // Create a Sharp processing pipeline that acts as a Readable stream.
-    // No intermediate buffer — the pipeline is consumed directly by S3.
     const pipeline = sharp(file.buffer)
       .resize({
         width: 1200,
@@ -95,10 +89,12 @@ export const uploadToR2 = async (
 
     fileName = fileName.replace(path.extname(fileName), ".webp");
 
+    const buffer = await pipeline.toBuffer();
+
     const command = new PutObjectCommand({
       Bucket: env.CLOUDFLARE_BUCKET_NAME,
       Key: fileName,
-      Body: pipeline,
+      Body: buffer,
       ContentType: contentType,
       CacheControl: "public, max-age=31536000, immutable",
       ACL: "public-read",

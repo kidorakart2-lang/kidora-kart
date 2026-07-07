@@ -666,7 +666,7 @@ export const getUserOrders = async (
     const limitNum = Math.min(Number(limit), 100);
 
     const orders = await Order.find(query)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 }) // TODO: frontend OrderData uses createdAt for display
       .limit(limitNum)
       .skip((pageNum - 1) * limitNum)
       .populate("items.productId", "name images slug")
@@ -706,7 +706,7 @@ export const getOrderById = async (
 
     const order = await Order.findOne({ orderId, userId })
       .populate("items.productId", "name images slug")
-      .select("-payment.razorpay.signature")
+      .select("-payment.razorpay.signature") // TODO: frontend OrderData uses createdAt, updatedAt for display
       .populate("items.colorId", "name code")
       .populate("items.sizeId", "name value")
       .lean();
@@ -744,7 +744,7 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
       .populate("items.productId", "name images slug")
       .populate("items.colorId", "name code")
       .populate("items.sizeId", "name value")
-      .select("-payment.razorpay.signature")
+      .select("-payment.razorpay.signature") // TODO: frontend OrderData uses createdAt, updatedAt for display
       .lean();
 
     if (!order) {
@@ -1098,7 +1098,7 @@ export const getAllOrders = async (
   }
   try {
     const orders = await Order.find(query)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 }) // TODO: frontend OrderData uses createdAt, updatedAt for display
       .populate("items.productId", "name images slug")
       .populate("items.colorId", "name")
       .populate("items.sizeId", "name")
