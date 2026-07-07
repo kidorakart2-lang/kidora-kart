@@ -17,7 +17,7 @@ export default function GlobalError({
 
   return (
     <div className="max-w-screen h-screen w-full bg-white p-8 rounded-xl shadow-lg text-center flex items-center justify-center flex-col">
-      <div className="flex justify-center mb-6">
+      <div className="flex justify-center mb-6 ">
         <div className="bg-red-100 p-3 rounded-full">
           <AlertCircle className="h-10 w-10 text-red-600" />
         </div>
