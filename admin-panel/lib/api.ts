@@ -9,7 +9,7 @@
  *   await api.del("/api/admin/user/delete/123");
  *
  * All requests:
- * - Use `NEXT_PUBLIC_BACKEND_URL` as base URL (no reliance on Next.js rewrites)
+ * - Use relative URLs (via Next.js rewrites) for same-origin cookie support
  * - Include `credentials: "include"` automatically
  * - Read `adminToken` from cookies and send as `Authorization` header
  * - Parse `_status` and throw on failure with `_message`
@@ -18,15 +18,14 @@
  * - Gracefully handle non-JSON responses (e.g. 500 HTML error pages)
  */
 
-const BASE_URL =
-  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_BACKEND_URL) ||
-  "http://localhost:5000/";
-
 function resolveUrl(url: string): string {
-  if (url.startsWith("http")) return url;
-  const base = BASE_URL.endsWith("/") ? BASE_URL : BASE_URL + "/";
-  const path = url.startsWith("/") ? url.slice(1) : url;
-  return base + path;
+  // If it's already an absolute URL, strip the host to use the Next.js rewrite
+  // so cookies are set from the same origin.
+  if (!url.startsWith("http")) {
+    return url;
+  }
+  const u = new URL(url);
+  return u.pathname + u.search;
 }
 
 function getTokenFromCookie(): string | null {
