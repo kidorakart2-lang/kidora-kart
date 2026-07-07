@@ -7,6 +7,7 @@ import MainLayout from "@/components/comman/MainLayout";
 import { Suspense } from "react";
 import { siteConfig, defaultMetadata, getStructuredAddress } from "@/lib/utils";
 import { cacheLife, cacheTag } from "next/cache";
+import { getLogo } from "@/lib/logo";
 import { TAG_NAVIGATION, TAG_FEATURED_PRODUCTS } from "@/lib/revalidation-tags";
 import ScrollToTop from "@/components/ui/scroll-to-top";
 import RequirementModal from "@/components/comman/RequirementModal";
@@ -136,32 +137,6 @@ function WebsiteSchema() {
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
     />
   );
-}
-
-async function getLogo() {
-  "use cache";
-  cacheLife("navigation");
-
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}api/website/logo`,
-      { method: "post" }
-    );
-
-    if (!response.ok) {
-      return { logo: "/images/logo.webp" };
-    }
-
-    const data = await response.json();
-
-    if (!data?._status || !data._data) {
-      return { logo: "/images/logo.webp" };
-    }
-    return data._data;
-
-  } catch {
-    return { logo: "/images/logo.webp" };
-  }
 }
 
 async function getNavigation() {
