@@ -1,25 +1,42 @@
+"use client";
 import React from "react";
-import ProductDetails, { type ProductData } from "../ProductDetails";
-import { cookies } from "next/headers";
+import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import ProductDetails, { type ProductData } from "../ProductDetails";
 
-interface PageParams {
-  params: Promise<{ id: string }>;
-}
+export default function page() {
+  const { id } = useParams();
 
-export default async function page({ params }: PageParams) {
-  const { id } = await params;
-  const cookiesStore = await cookies();
+  const {
+    data: product,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["product", id],
+    queryFn: async () => {
+      return api.post<ProductData>(`/api/admin/product/details/${id}`, {});
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
+  });
 
-  try {
-    const data = await api.post<ProductData>(`/api/admin/product/details/${id}`, {}, cookiesStore.get("adminToken")?.value);
-    if (!data) {
-      return <div>Product not found</div>;
-    }
-    return <ProductDetails product={data} />;
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error loading product:", errorMessage);
-    return <div>Error loading product {errorMessage}</div>;
+  if (isLoading) {
+    return <div className="p-8">Loading product details...</div>;
   }
+
+  if (error) {
+    return (
+      <div className="p-8 text-red-600">
+        Error loading product: {error instanceof Error ? error.message : "Unknown error"}
+      </div>
+    );
+  }
+
+  if (!product) {
+    return <div className="p-8">Product not found</div>;
+  }
+
+  return <ProductDetails product={product} />;
 }

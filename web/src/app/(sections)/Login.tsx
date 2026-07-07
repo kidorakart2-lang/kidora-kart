@@ -250,10 +250,10 @@ className={`w-full  py-3 bg-background/70 backdrop-blur-sm  rounded-xl focus:rin
             <button
               type="submit"
               disabled={formState.isSubmitting}
-              className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
+              className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-sm transform hover:-translate-y-0.5 ${
                 formState.isSubmitting
                   ? "bg-brand-400 cursor-not-allowed opacity-70"
-                  : "bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"
+                  : "btn-gradient"
               }`}
               aria-label={
                 formState.isSubmitting

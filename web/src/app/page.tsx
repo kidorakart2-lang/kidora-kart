@@ -270,7 +270,7 @@ function SliderSkeleton({ heading }: { heading: string }) {
 function TabProductsSkeleton() {
   return (
     <section className="py-5 lg:py-12 bg-section relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-2 sm:px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Skeleton className="h-8 w-48 mx-auto mb-8" />
         <div className="h-64 bg-muted animate-pulse rounded-lg" />
       </div>

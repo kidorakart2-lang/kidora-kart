@@ -6,10 +6,8 @@ import { AlertCircle, Home, RefreshCw } from "lucide-react";
 
 export default function Error({
   error,
-  reset,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
 }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-muted to-muted/80 flex items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -44,7 +42,7 @@ export default function Error({
             variant="outline"
             className="gap-2"
             size="lg"
-            onClick={() => reset()}
+            onClick={() => window.location.reload()}
           >
             <RefreshCw className="h-4 w-4" />
             Try Again

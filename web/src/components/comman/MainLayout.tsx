@@ -9,7 +9,7 @@ import Footer from "./Footer";
 import { BottomTabNavigation } from "@/components/ui/BottomTabNavigation";
 import ToolBar from "./ToolBar";
 
-const AUTH_PATHS = ["/login", "/signup", "/reset-password", "/verify-email", "/change-password"];
+const HIDE_LAYOUT_PATHS = ["/login", "/signup", "/reset-password", "/verify-email", "/change-password"];
 
 export default function MainLayout({
   children,
@@ -24,7 +24,9 @@ export default function MainLayout({
 }) {
   const pathname = usePathname();
   const dispatch = useDispatch();
-  const isAuthPage = AUTH_PATHS.includes(pathname);
+  const isAuthPage = HIDE_LAYOUT_PATHS.includes(pathname);
+  const isCheckoutPage = pathname.startsWith("/checkout");
+  const isOrderSuccessPage = pathname.startsWith("/order-success");
 
   useEffect(() => {
     if (logoData?.logo) {
@@ -32,7 +34,7 @@ export default function MainLayout({
     }
   }, [logoData, dispatch]);
 
-  if (isAuthPage) {
+  if (isAuthPage || isCheckoutPage || isOrderSuccessPage) {
     return <>{children}</>;
   }
 

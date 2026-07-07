@@ -22,7 +22,17 @@ function resolveUrl(url: string): string {
   // If it's already an absolute URL, strip the host to use the Next.js rewrite
   // so cookies are set from the same origin.
   if (!url.startsWith("http")) {
-    return url;
+    // Lowercase the path (not query params) to match Express routes (case-sensitive)
+    const qIndex = url.indexOf("?");
+    const path = qIndex < 0 ? url : url.slice(0, qIndex);
+    const qs = qIndex < 0 ? "" : url.slice(qIndex);
+    const normalised = path.toLowerCase() + qs;
+    // Server-side (Next.js server components): Node.js fetch needs an absolute URL
+    if (typeof window === "undefined") {
+      const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+      return `${baseUrl.replace(/\/+$/, "")}${normalised}`;
+    }
+    return normalised;
   }
   const u = new URL(url);
   return u.pathname + u.search;

@@ -22,6 +22,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { api, ApiClientError } from "@/lib/api";
 import { invalidateCache } from "@/lib/invalidate-cache";
+import SingleImageUploader from "@/components/SingleImageUploader";
 
 
 interface Category {
@@ -161,17 +162,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData({ ...formData, image: file });
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setImagePreview(event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+
 
   const handleSubmit = (e: React.FormEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -407,38 +398,24 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
             />
           </div>
 
-          <div className="space-y-2 animate-in slide-in-from-right duration-300 delay-75">
-            <Label htmlFor="image">Category Image</Label>
-            <Input
-              id="image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              disabled={isPending}
-            />
-            {imagePreview && (
-              <div className="relative w-full h-40 rounded-lg overflow-hidden border border-muted mt-2">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => {
-                    setImagePreview(null);
-                    setFormData({ ...formData, image: null });
-                  }}
-                  className="absolute top-2 right-2 rounded-full h-6 w-6 p-0"
-                  disabled={isPending}
-                >
-                  ✕
-                </Button>
-              </div>
-            )}
-          </div>
+          <SingleImageUploader
+            label="Category Image"
+            value={imagePreview}
+            onChange={(file) => {
+              if (file) {
+                setFormData({ ...formData, image: file });
+                const reader = new FileReader();
+                reader.onload = (event) => setImagePreview(event.target?.result as string);
+                reader.readAsDataURL(file);
+              } else {
+                setFormData({ ...formData, image: null });
+                setImagePreview(null);
+              }
+            }}
+            required
+            disabled={isPending}
+            className="animate-in slide-in-from-right duration-300 delay-75"
+          />
 
           <Button
             onClick={handleSubmit}

@@ -63,6 +63,7 @@ const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: st
         <div className="text-center mt-12">
           <Link href="/category/shop-by-category">
             <Button
+              variant="gradient"
               size="lg"
               className="group relative rounded-full text-[15px] font-medium tracking-wider shadow-lg overflow-hidden"
             >

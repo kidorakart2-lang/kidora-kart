@@ -23,6 +23,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import NewMultiSelect from "../../../components/NewMultiSelect";
 import { invalidateCache } from "@/lib/invalidate-cache";
+import SingleImageUploader from "@/components/SingleImageUploader";
 
 export interface SubCategoryItem {
   _id: string;
@@ -180,17 +181,7 @@ export default function SubCategoriesClient({
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData({ ...formData, image: file });
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setImagePreview(event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -415,38 +406,23 @@ export default function SubCategoriesClient({
               placeholder="Enter sub category name"
             />
           </div>
-          <div className="space-y-2 animate-in slide-in-from-right duration-300 delay-150">
-            <Label htmlFor="image">Sub Category Image</Label>
-            <Input
-              id="image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              disabled={isPending}
-            />
-            {imagePreview && (
-              <div className="relative w-full h-40 rounded-lg overflow-hidden border border-muted mt-2">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => {
-                    setImagePreview(null);
-                    setFormData({ ...formData, image: null });
-                  }}
-                  className="absolute top-2 right-2 rounded-full h-6 w-6 p-0"
-                  disabled={isPending}
-                >
-                  ✕
-                </Button>
-              </div>
-            )}
-          </div>
+          <SingleImageUploader
+            label="Sub Category Image"
+            value={imagePreview}
+            onChange={(file) => {
+              if (file) {
+                setFormData({ ...formData, image: file });
+                const reader = new FileReader();
+                reader.onload = (event) => setImagePreview(event.target?.result as string);
+                reader.readAsDataURL(file);
+              } else {
+                setFormData({ ...formData, image: null });
+                setImagePreview(null);
+              }
+            }}
+            disabled={isPending}
+            className="animate-in slide-in-from-right duration-300 delay-150"
+          />
           <div className="space-y-2 animate-in slide-in-from-right duration-300 delay-75">
             <Label htmlFor="category">Parent Category</Label>
             <NewMultiSelect

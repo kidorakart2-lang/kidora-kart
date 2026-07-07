@@ -569,6 +569,77 @@ body[data-scroll-lock="true"] {
   background: linear-gradient(to right, var(--brand-gradient-from), var(--brand-gradient-to));
 }
 
+/* ── Button gradient utilities (brand-driven) ── */
+.btn-gradient {
+  position: relative;
+  background: linear-gradient(to right, var(--brand-gradient-from), var(--brand-gradient-to));
+  color: var(--brand-primary-foreground, #ffffff);
+  overflow: hidden;
+  transition: transform 0.15s ease;
+}
+.btn-gradient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, color-mix(in srgb, var(--brand-gradient-to) 90%, black), color-mix(in srgb, var(--brand-gradient-to) 80%, black));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+.btn-gradient:hover::before {
+  opacity: 1;
+}
+.btn-gradient > * {
+  position: relative;
+  z-index: 1;
+}
+.btn-gradient:active {
+  transform: scale(0.98);
+}
+.btn-gradient:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-gradient-outline {
+  position: relative;
+  border: 2px solid var(--brand-gradient-from);
+  color: var(--brand-gradient-from);
+  background: transparent;
+  overflow: hidden;
+  transition: transform 0.15s ease;
+}
+.btn-gradient-outline::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(to right, var(--brand-gradient-from), var(--brand-gradient-to));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+  border-radius: inherit;
+}
+.btn-gradient-outline:hover::before {
+  opacity: 1;
+}
+.btn-gradient-outline:hover {
+  color: var(--brand-primary-foreground, #ffffff);
+  border-color: transparent;
+}
+.btn-gradient-outline > * {
+  position: relative;
+  z-index: 1;
+}
+.btn-gradient-outline:active {
+  transform: scale(0.98);
+}
+.btn-gradient-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .bg-price-1 { background: linear-gradient(to bottom right, var(--brand-price-1-from), var(--brand-price-1-via), var(--brand-price-1-to)); }
 .bg-price-2 { background: linear-gradient(to bottom right, var(--brand-price-2-from), var(--brand-price-2-via), var(--brand-price-2-to)); }
 .bg-price-3 { background: linear-gradient(to bottom right, var(--brand-price-3-from), var(--brand-price-3-via), var(--brand-price-3-to)); }

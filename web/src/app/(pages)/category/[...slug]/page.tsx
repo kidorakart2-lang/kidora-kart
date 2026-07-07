@@ -226,7 +226,7 @@ export default async function page({
         }}
       />
       <div className="min-h-screen ">
-      <div className="max-w-[100%] mx-auto px-2 md:px-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Premium Version 1: Clean & Elegant */}
         <div className="relative py-5 md:py-10 animate-fadeIn">
           {/* Floating decorative elements */}

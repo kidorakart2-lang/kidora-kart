@@ -88,6 +88,8 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
 
                     <Link href={item.url}>
                       <Button
+                        variant="gradient"
+                        size="sm"
                         onClick={() =>
                           dispatch(
                             setPriceRange({
@@ -96,12 +98,9 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
                             }),
                           )
                         }
-                        className="relative overflow-hidden bg-background/80 backdrop-blur-sm border-2 text-backgorund hover:text-background text-sm font-medium px-6 py-2 rounded-full"
-                        style={{
-                          borderColor: "var(--brand-primary / 0.3)",
-                        }}
+                        className="rounded-full text-sm font-medium px-6"
                       >
-                        <span className="relative z-10 flex items-center gap-2">
+                        <span className="flex items-center gap-2">
                           Shop Now
                           <span>→</span>
                         </span>

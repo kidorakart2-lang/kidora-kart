@@ -17,7 +17,7 @@ export default function FAQPage({ data }: { data: FAQItem[] | null | undefined }
   if (!data || !Array.isArray(data) || data.length === 0) return null;
 
   return (
-    <section className="bg-background text-foreground px-6 md:px-20 py-16 max-w-5xl mx-auto">
+    <section className="bg-background text-foreground px-4 sm:px-6 lg:px-8 py-16 max-w-5xl mx-auto">
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-4xl font-serif text-foreground mb-4 tracking-tight">

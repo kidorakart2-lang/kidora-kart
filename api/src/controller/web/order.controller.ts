@@ -4,11 +4,16 @@ import crypto from "crypto";
 import Order from "../../models/order.js";
 import Product from "../../models/product.js";
 import Cart from "../../models/cart.js";
+import User from "../../models/user.js";
 import { sendEmail } from "../../lib/nodemailer.js";
 import { hashOtp } from "../../lib/jwt.js";
 import { env } from "../../config/env.js";
 import { logger } from "../../lib/logger.js";
 import { enqueue } from "../../lib/jobQueue.js";
+import {
+  validateAndPriceCart,
+  CartValidationError,
+} from "../../services/cartValidation.service.js";
 
 interface RefundResponse {
   id: string;
@@ -112,109 +117,59 @@ export const createOrder = async (
       }
     }
 
-    const orderItems: OrderItemInput[] = [];
-    let subtotal = 0;
+    let validatedItems: Awaited<ReturnType<typeof validateAndPriceCart>>;
 
     if (purchaseType === "cart") {
-      const cart = await Cart.findOne({ user: userId })
-        .populate("items.product")
-        .lean();
+      const cart = await Cart.findOne({ user: userId }).lean();
 
       if (!cart || cart.items.length === 0) {
         res.status(400).json({ success: false, message: "Cart is empty" });
         return;
       }
 
-      for (const cartItem of cart.items) {
-        const cartItemProduct = cartItem.product as unknown as {
-          _id: string;
-          name: string;
-          description?: string;
-          price: number;
-          discount_price: number;
-          images: string[];
-          code?: string;
-          isPersonalized?: boolean;
-        } | null;
-
-        if (!cartItemProduct) {
-          res.status(400).json({ success: false, message: "Cart item product not found" });
-          return;
-        }
-
-        // O3: Stock validation — stock may have changed since item was added to cart
-        if ((cartItemProduct as Record<string, unknown>).stock != null && Number((cartItemProduct as Record<string, unknown>).stock) < cartItem.quantity) {
-          res.status(400).json({
-            success: false,
-            message: `Insufficient stock for "${cartItemProduct.name}". Available: ${(cartItemProduct as Record<string, unknown>).stock}, requested: ${cartItem.quantity}`,
-          });
-          return;
-        }
-
-        const itemSubtotal = cartItemProduct.discount_price * cartItem.quantity;
-        subtotal += itemSubtotal;
-
-        orderItems.push({
-          productId: String(cartItemProduct._id),
-          colorId: cartItem.color?.toString() ?? "",
-          sizeId: cartItem.size?.toString() ?? null,
-          name: cartItemProduct.name,
-          description: cartItemProduct.description,
-          quantity: cartItem.quantity,
-          isPersonalized: cartItemProduct.isPersonalized ?? false,
-          personalizedName: (cartItemProduct.isPersonalized && isPersonalizedName) ? isPersonalizedName : null,
-          priceAtPurchase: cartItemProduct.discount_price || cartItemProduct.price,
-          subtotal: itemSubtotal,
-          addedFrom: "cart",
-          images: cartItemProduct.images ?? [],
-          sku: cartItemProduct.code,
-        });
-      }
+      validatedItems = await validateAndPriceCart(
+        cart.items.map((ci) => ({
+          productId: String(ci.product),
+          colorId: String(ci.color),
+          sizeId: ci.size ? String(ci.size) : null,
+          quantity: ci.quantity,
+        })),
+      );
     } else if (purchaseType === "direct") {
-      for (const item of items ?? []) {
-        // O2: Validate quantity >= 1
+      if (!items || items.length === 0) {
+        res.status(400).json({ success: false, message: "At least one item is required" });
+        return;
+      }
+
+      for (const item of items) {
         if (!Number.isInteger(item.quantity) || item.quantity < 1) {
           res.status(400).json({ success: false, message: "Quantity must be at least 1" });
           return;
         }
-
-        const product = await Product.findById(item.productId)
-          .select("stock name discount_price description images code isPersonalized")
-          .lean();
-        if (!product) {
-          res.status(404).json({ success: false, message: "Product not found" });
-          return;
-        }
-
-        // O3: Stock validation for buy-now flow
-        if (product.stock < item.quantity) {
-          res.status(400).json({
-            success: false,
-            message: `Insufficient stock for "${product.name}". Available: ${product.stock}, requested: ${item.quantity}`,
-          });
-          return;
-        }
-
-        const itemSubtotal = product.discount_price * item.quantity;
-        subtotal += itemSubtotal;
-
-        orderItems.push({
-          productId: String(product._id),
-          colorId: item.colorId,
-          sizeId: item.sizeId || null,
-          name: product.name,
-          description: product.description,
-          quantity: item.quantity,
-          isPersonalized: product.isPersonalized ?? false,
-          personalizedName: product.isPersonalized ? (isPersonalizedName ?? null) : null,
-          priceAtPurchase: product.discount_price,
-          subtotal: itemSubtotal,
-          addedFrom: "direct",
-          images: product.images ?? [],
-          sku: product.code,
-        });
       }
+
+      validatedItems = await validateAndPriceCart(items);
+    } else {
+      res.status(400).json({ success: false, message: "Invalid purchase type" });
+      return;
     }
+
+    const orderItems: OrderItemInput[] = validatedItems.map((vi) => ({
+      productId: vi.productId,
+      colorId: vi.colorId,
+      sizeId: vi.sizeId,
+      name: vi.name,
+      description: vi.description,
+      quantity: vi.quantity,
+      isPersonalized: vi.isPersonalized,
+      personalizedName: vi.isPersonalized ? (isPersonalizedName ?? null) : null,
+      priceAtPurchase: vi.priceAtPurchase,
+      subtotal: vi.subtotal,
+      addedFrom: purchaseType === "cart" ? "cart" : "direct",
+      images: vi.images,
+      sku: vi.sku,
+    }));
+    const subtotal = validatedItems.reduce((sum, i) => sum + i.subtotal, 0);
 
     const discount = isCodAdvance
       ? 0
@@ -324,33 +279,46 @@ export const createOrder = async (
     enqueue(async () => {
       try {
         const user = req.user!;
+        const updates: Record<string, unknown> = {};
         if (!user.mobile) {
-          user.mobile = Number(shippingAddress.phone);
-          user.isMobileVerified = true;
+          updates.mobile = Number(shippingAddress.phone);
+          updates.isMobileVerified = true;
         }
         if (!user.address) {
-          user.address = {
-            pincode: null,
-            state: "",
-            city: "",
-            street: "",
-            area: "",
+          updates.address = {
+            pincode: Number(shippingAddress.pincode),
+            state: shippingAddress.state,
+            city: shippingAddress.city,
+            street: shippingAddress.street,
+            area: shippingAddress.area,
             instructions: "",
           };
+        } else {
+          if (!user.address.pincode)
+            updates["address.pincode"] = Number(shippingAddress.pincode);
+          if (!user.address.state) updates["address.state"] = shippingAddress.state;
+          if (!user.address.city) updates["address.city"] = shippingAddress.city;
+          if (!user.address.street) updates["address.street"] = shippingAddress.street;
+          if (!user.address.area) updates["address.area"] = shippingAddress.area;
         }
-        if (!user.address.pincode)
-          user.address.pincode = Number(shippingAddress.pincode);
-        if (!user.address.state) user.address.state = shippingAddress.state;
-        if (!user.address.city) user.address.city = shippingAddress.city;
-        if (!user.address.street)
-          user.address.street = shippingAddress.street;
-        if (!user.address.area) user.address.area = shippingAddress.area;
-        await user.save();
+        if (Object.keys(updates).length > 0) {
+          await User.updateOne({ _id: user._id }, { $set: updates });
+        }
       } catch (error) {
         logger.error(error, "Error updating user details");
       }
     });
   } catch (error) {
+    if (error instanceof CartValidationError) {
+      res.status(409).json({
+        success: false,
+        message: error.message,
+        recoverable: error.recoverable,
+        errors: error.items,
+        validItems: error.validItems,
+      });
+      return;
+    }
     logger.error(error, "Create Order Error");
     res.status(500).json({
       success: false,
@@ -436,6 +404,81 @@ export const createRazorpayOrder = async (
     res.status(500).json({
       success: false,
       message: "Failed to create Razorpay order",           error: "Internal Server Error",
+    });
+  }
+};
+
+// 2.5 Retry Payment for failed orders
+export const retryPayment = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { orderId } = req.params as { orderId: string };
+    const userId = req.user?._id;
+    if (!userId) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    const order = await Order.findOne({ orderId, userId });
+    if (!order) {
+      res.status(404).json({ success: false, message: "Order not found" });
+      return;
+    }
+
+    if (order.status !== "payment_failed") {
+      res.status(400).json({
+        success: false,
+        message: `Order is in '${order.status}' state. Only payment_failed orders can be retried.`,
+      });
+      return;
+    }
+
+    // Reset order status to pending and clear old razorpay order ID
+    order.status = "pending";
+    if (order.payment) {
+      order.payment.status = "pending";
+      if (order.payment.razorpay) {
+        order.payment.razorpay.orderId = "";
+      }
+    }
+    await order.save();
+
+    // Create new Razorpay order
+    const options = {
+      amount: (order.pricing?.total ?? 0) * 100,
+      currency: "INR",
+      receipt: order.orderId,
+      notes: {
+        orderId: order.orderId,
+        userId: userId.toString(),
+      },
+    };
+
+    const razorpayOrder = await razorpay.orders.create(options);
+    if (order.payment) {
+      if (!order.payment.razorpay) {
+        order.payment.razorpay = { orderId: "" };
+      }
+      order.payment.razorpay.orderId = razorpayOrder.id;
+    }
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      razorpayOrderId: razorpayOrder.id,
+      amount: order.pricing?.total,
+      currency: "INR",
+      keyId: env.RAZORPAY_KEY_ID,
+      orderId: order.orderId,
+    });
+  } catch (error) {
+    logger.error(error, "Retry Payment Error");
+    res.status(500).json({
+      success: false,
+      message: "Failed to retry payment",
+      error: "Internal Server Error",
     });
   }
 };

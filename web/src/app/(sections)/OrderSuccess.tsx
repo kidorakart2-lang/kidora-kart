@@ -246,7 +246,6 @@ function estimatedDelivery(createdAt: string) {
 export default function OrderSuccess() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
-  const deliveryOTP = searchParams.get("otp");
   const packageId = searchParams.get("packageId");
   const [order, setOrder] = useState<OrderData | null>(null);
   const [playAudio, setPlayAudio] = useState(false);
@@ -302,7 +301,7 @@ export default function OrderSuccess() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-brand-50/80 via-background to-muted">
+    <div className="min-h-screen bg-gradient-to-b from-brand-50/80 via-background to-brand-50/30">
       {playAudio && (
         <audio
           ref={audioRef}
@@ -314,7 +313,7 @@ export default function OrderSuccess() {
         </audio>
       )}
 
-      <div className="container mx-auto px-4 py-10 max-w-2xl">
+      <div className="container mx-auto px-4 sm:px-6 py-10 max-w-2xl">
         {/* Success Hero */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -352,7 +351,7 @@ export default function OrderSuccess() {
             transition={{ delay: 0.2 }}
             className="text-3xl md:text-4xl font-bold text-foreground mb-2"
           >
-            Order Placed! 🎉
+            Order Placed!
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -373,63 +372,7 @@ export default function OrderSuccess() {
           </motion.div>
         </motion.div>
 
-        {/* Delivery OTP Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="mb-5"
-        >
-          <Card className="border-0 shadow-lg shadow-brand-500/5 overflow-hidden">
-            <div className="h-1.5 bg-gradient-to-r from-brand-500 via-brand-accent-500 to-brand-500" />
-            <CardContent className="pt-6 pb-6">
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-9 h-9 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center shadow-md shadow-brand-500/30">
-                  <Package className="w-4.5 h-4.5 text-background" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground text-sm">
-                    Delivery OTP
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Share this code with the delivery person
-                  </p>
-                </div>
-              </div>
 
-              <motion.div
-                className="bg-card rounded-xl overflow-hidden"
-                animate={{ scale: [1, 1.01, 1] }}
-                transition={{
-                  duration: 2.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              >
-                <div className="bg-gradient-to-r from-card via-muted to-card px-6 py-5 text-center">
-                  <motion.span
-                    className="text-4xl md:text-5xl font-bold tracking-[0.25em] text-background font-mono"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                  >
-                    {deliveryOTP || "----"}
-                  </motion.span>
-                </div>
-                <div className="bg-muted/50 px-6 py-2.5 flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Clock className="w-3 h-3" />
-                    Verify before accepting
-                  </span>
-                  <span className="text-emerald-400 flex items-center gap-1">
-                    <Mail className="w-3 h-3" />
-                    Sent via Email & SMS
-                  </span>
-                </div>
-              </motion.div>
-            </CardContent>
-          </Card>
-        </motion.div>
 
         {/* Order Timeline */}
         {order && (
@@ -439,7 +382,7 @@ export default function OrderSuccess() {
             transition={{ delay: 0.45 }}
             className="mb-5"
           >
-            <Card className="border-0 shadow-lg shadow-brand-500/5">
+            <Card className="border-0 shadow-lg shadow-brand-500/5 transition-all hover:shadow-xl hover:-translate-y-0.5">
               <CardContent className="pt-5 pb-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Truck className="w-4 h-4 text-brand-600" />
@@ -461,7 +404,7 @@ export default function OrderSuccess() {
             transition={{ delay: 0.5 }}
             className="mb-5"
           >
-            <Card className="border-0 shadow-lg shadow-brand-500/5 bg-gradient-to-br from-brand-50/80 via-brand-50/30 to-white overflow-hidden">
+            <Card className="border-0 shadow-lg shadow-brand-500/5 bg-gradient-to-br from-brand-50/80 via-brand-50/30 to-white overflow-hidden transition-all hover:shadow-xl hover:-translate-y-0.5">
               <div className="h-1 bg-gradient-to-r from-brand-400 to-brand-600" />
               <CardContent className="pt-5 pb-5">
                 <div className="flex items-center gap-3">
@@ -496,7 +439,7 @@ export default function OrderSuccess() {
             transition={{ delay: 0.55 }}
             className="mb-5"
           >
-            <Card className="border-0 shadow-lg shadow-brand-500/5">
+            <Card className="border-0 shadow-lg shadow-brand-500/5 transition-all hover:shadow-xl hover:-translate-y-0.5">
               <CardContent className="pt-6 pb-5">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
@@ -578,7 +521,7 @@ export default function OrderSuccess() {
             transition={{ delay: 0.65 }}
             className="mb-5"
           >
-            <Card className="border-0 shadow-lg shadow-brand-500/5">
+            <Card className="border-0 shadow-lg shadow-brand-500/5 transition-all hover:shadow-xl hover:-translate-y-0.5">
               <CardContent className="pt-5 pb-5">
                 <div className="flex items-center gap-2 mb-3">
                   <MapPin className="w-4 h-4 text-brand-600" />
@@ -629,7 +572,7 @@ export default function OrderSuccess() {
             transition={{ delay: 0.7 }}
             className="mb-5"
           >
-            <Card className="border-0 shadow-lg shadow-brand-500/5 bg-gradient-to-br from-brand-accent-50/50 to-white">
+            <Card className="border-0 shadow-lg shadow-brand-500/5 bg-gradient-to-br from-brand-accent-50/50 to-white transition-all hover:shadow-xl hover:-translate-y-0.5">
               <CardContent className="pt-5 pb-5">
                 <div className="flex items-center gap-2 mb-2">
                   <Gift className="w-4 h-4 text-brand-accent-600" />
@@ -654,7 +597,8 @@ export default function OrderSuccess() {
         >
           <Button
             onClick={() => (window.location.href = "/profile?tab=orders")}
-            className="bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-background shadow-lg shadow-brand-500/30 h-12 text-base font-medium group"
+            variant="outline"
+            className="h-12 text-base font-medium group border-brand-300 text-brand-700 hover:bg-brand-50"
           >
             <ShoppingBag className="w-5 h-5 mr-2" />
             View My Orders
@@ -662,8 +606,8 @@ export default function OrderSuccess() {
           </Button>
           <Button
             onClick={() => (window.location.href = "/")}
-            variant="outline"
-            className="border-2 border-border text-muted-foreground hover:bg-muted hover:text-foreground h-12 text-base font-medium bg-background"
+            variant="gradientOutline"
+            className="h-12 text-base font-medium"
           >
             Continue Shopping
           </Button>

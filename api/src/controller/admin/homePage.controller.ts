@@ -11,9 +11,9 @@ export const get = async (_req: Request, res: Response): Promise<void> => {
     if (!page) {
       page = await homePage.create({ sections: [], version: 1 });
     }
-    success(res, page, "Home page fetched");
+    success(res, page, "Home page data loaded successfully");
   } catch (err) {
-    fail(res, "Internal Server Error", 500);
+    fail(res, "Failed to load home page. Please try again.", 500);
   }
 };
 
@@ -27,9 +27,10 @@ export const update = async (req: Request, res: Response): Promise<void> => {
       { new: true, upsert: true },
     );
     cache.del(CACHE_KEY);
-    success(res, page, "Home page updated");
+    const sectionCount = page?.sections?.length ?? 0;
+    success(res, page, `Home page updated successfully with ${sectionCount} section${sectionCount !== 1 ? "s" : ""}`);
   } catch (err) {
-    fail(res, "Failed to update home page", 500);
+    fail(res, "Failed to update home page. Please try again.", 500);
   }
 };
 
@@ -50,9 +51,10 @@ export const addSection = async (req: Request, res: Response): Promise<void> => 
     cache.del(CACHE_KEY);
 
     const added = page!.sections[page!.sections.length - 1];
-    success(res, { section: added, page }, "Section added");
+    const sectionType = (section.type as string) || "unknown";
+    success(res, { section: added, page }, `"${sectionType}" section added successfully`);
   } catch (err) {
-    fail(res, "Failed to add section", 500);
+    fail(res, "Failed to add section. Please try again.", 500);
   }
 };
 
@@ -70,13 +72,13 @@ export const updateSection = async (req: Request, res: Response): Promise<void> 
       { new: true },
     );
     if (!page) {
-      fail(res, "Section not found", 404);
+      fail(res, "Section not found. It may have been deleted.", 404);
       return;
     }
     cache.del(CACHE_KEY);
-    success(res, page, "Section updated");
+    success(res, page, "Section updated successfully");
   } catch (err) {
-    fail(res, "Failed to update section", 500);
+    fail(res, "Failed to update section. Please try again.", 500);
   }
 };
 
@@ -89,12 +91,12 @@ export const removeSection = async (req: Request, res: Response): Promise<void> 
       { new: true },
     );
     if (!page) {
-      fail(res, "Page not found", 404);
+      fail(res, "Home page not found", 404);
       return;
     }
     cache.del(CACHE_KEY);
-    success(res, page, "Section removed");
+    success(res, page, "Section removed successfully");
   } catch (err) {
-    fail(res, "Failed to remove section", 500);
+    fail(res, "Failed to remove section. Please try again.", 500);
   }
 };

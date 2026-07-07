@@ -6,6 +6,7 @@ import SubCategory from "../../models/subCategory.js";
 import { logger } from "../../lib/logger.js";
 import SubSubCategory from "../../models/subSubCategory.js";
 import Size from "../../models/size.js";
+import Color from "../../models/color.js";
 import { uploadToR2, deleteFromR2, getPublicUrlBase } from "../../lib/cloudflare.js";
 import { generateUniqueSlug } from "../../lib/slugFunc.js";
 import cache from "../../lib/cache.js";
@@ -79,6 +80,19 @@ export const create = async (
     const slug = await generateUniqueSlug(Product, updateData.name as string);
     updateData.slug = slug;
 
+    // ── Required fields ──
+    if (!updateData.category || (Array.isArray(updateData.category) && updateData.category.length === 0)) {
+      throw new Error("At least one category is required");
+    }
+
+    if (!updateData.colors || (Array.isArray(updateData.colors) && updateData.colors.length === 0)) {
+      throw new Error("At least one color is required");
+    }
+
+    if (!updateData.sizes || (Array.isArray(updateData.sizes) && updateData.sizes.length === 0)) {
+      throw new Error("At least one size is required");
+    }
+
     if (updateData.category) {
       const categoryIds = Array.isArray(updateData.category)
         ? updateData.category
@@ -111,6 +125,16 @@ export const create = async (
         const subSubCategoryExists = await SubSubCategory.findById(subSubCatId as string).select("_id").lean();
         if (!subSubCategoryExists) {
           throw new Error(`SubSubCategory with ID ${subSubCatId} not found`);
+        }
+      }
+    }
+
+    if (updateData.colors) {
+      const colorIds = Array.isArray(updateData.colors) ? updateData.colors : [updateData.colors];
+      for (const colorId of colorIds) {
+        const colorExists = await Color.findById(colorId as string).select("_id").lean();
+        if (!colorExists) {
+          throw new Error(`Color with ID ${colorId} not found`);
         }
       }
     }
@@ -220,7 +244,7 @@ export const view = async (
     const [total, products] = await Promise.all([
       Product.countDocuments(query),
       Product.find(query)
-        .select("name slug images price discount_price stock status description purity code estimated_delivery_time isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material sizes createdAt order")
+        .select("name slug image images price discount_price stock status description purity weight code estimated_delivery_time isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material sizes createdAt order")
         .sort(sort as string)
         .skip(skip)
         .limit(limit)
@@ -433,10 +457,41 @@ export const update = async (
       }
     }
 
+    if (updateData.colors) {
+      const colorIds = Array.isArray(updateData.colors)
+        ? updateData.colors
+        : [updateData.colors];
+      if (colorIds.length === 0) {
+        throw new Error("At least one color is required");
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const existingColorIds: string[] = existingProduct.colors
+        ? Array.isArray(existingProduct.colors)
+          ? (existingProduct.colors as Array<{ toString(): string }>).map((c) => c.toString())
+          : [(existingProduct.colors as { toString(): string }).toString()]
+        : [];
+
+      const colorsChanged =
+        JSON.stringify(colorIds.sort()) !==
+        JSON.stringify(existingColorIds.sort());
+
+      if (colorsChanged) {
+        for (const colorId of colorIds) {
+          const colorExists = await Color.findById(colorId);
+          if (!colorExists) {
+            throw new Error(`Color with ID ${colorId} not found`);
+          }
+        }
+      }
+    }
+
     if (updateData.sizes) {
       const sizeIds = Array.isArray(updateData.sizes)
         ? updateData.sizes
         : [updateData.sizes];
+      if (sizeIds.length === 0) {
+        throw new Error("At least one size is required");
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const existingSizeIds: string[] = existingProduct.sizes
         ? Array.isArray(existingProduct.sizes)
@@ -593,7 +648,7 @@ export const getByCategory = async (
       ],
     })
       .populate(POPULATE_PRODUCT)
-      .select("name slug images price discount_price stock status category subCategory subSubCategory colors material sizes order createdAt")
+      .select("name slug image images price discount_price stock status purity weight category subCategory subSubCategory colors material sizes order createdAt")
       .sort(sort)
       .limit(cappedLimit)
       .skip(skip)
@@ -667,7 +722,7 @@ export const getProductByFilter = async (
 
     const products = await Product.find(query)
       .populate(POPULATE_PRODUCT)
-      .select("name slug images price discount_price stock category subCategory subSubCategory colors material sizes")
+      .select("name slug image images price discount_price stock purity weight category subCategory subSubCategory colors material sizes")
       .limit(Math.min(Number(limit), 100))
       .sort("-createdAt")
       .lean();

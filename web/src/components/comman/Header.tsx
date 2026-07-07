@@ -144,6 +144,7 @@ export default function Header({ navigationData }: HeaderProps) {
 
   const dispatch = useDispatch();
   const fetchedRef = useRef(false);
+  const loginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchUser = async () => {
     if (user && (user as Record<string, unknown>)._id) {
@@ -177,14 +178,18 @@ export default function Header({ navigationData }: HeaderProps) {
   useEffect(() => {
     if (isLoggedIn || Cookies.get("loginModal")) {
       return;
-    } else {
-      setTimeout(() => {
-        dispatch(openLoginModal());
-        Cookies.set("loginModal", "true", { expires: 1 });
-      }, 10000);
-      return;
     }
-  }, [isLoggedIn]);
+    loginTimerRef.current = setTimeout(() => {
+      dispatch(openLoginModal());
+      Cookies.set("loginModal", "true", { expires: 1 });
+    }, 10000);
+    return () => {
+      if (loginTimerRef.current) {
+        clearTimeout(loginTimerRef.current);
+        loginTimerRef.current = null;
+      }
+    };
+  }, [isLoggedIn, dispatch]);
 
   useEffect(() => {
     dispatch(setNavigation(navigationData));
@@ -209,7 +214,7 @@ export default function Header({ navigationData }: HeaderProps) {
       <Link href={href}>
         <Button
           variant="ghost"
-          className="w-full justify-start py-3 px-4 text-foreground hover:bg-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)] rounded-lg font-medium h-auto"
+          className="w-full justify-start py-3 px-4 text-foreground hover:bg-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)] transition-colors duration-200 rounded-lg font-medium h-auto"
         >
           {name}
         </Button>
@@ -519,7 +524,7 @@ export default function Header({ navigationData }: HeaderProps) {
                       </p>
                       <div className="space-y-2 flex flex-col gap-2">
                         <Link href="/login" className="cursor-pointer">
-                          <Button className="w-full bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-primary-dark)] hover:from-[var(--brand-primary-dark)] hover:to-[var(--brand-primary-darker)] shadow-lg hover:shadow-xl transition-all duration-300">
+                          <Button variant="gradient" className="w-full shadow-sm">
                             Sign In
                           </Button>
                         </Link>

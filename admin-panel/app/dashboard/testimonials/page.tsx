@@ -17,13 +17,13 @@ import {
   Pencil,
   Trash2,
   Star,
-  ImageIcon,
   Eye,
   EyeOff,
   Loader2,
 } from "lucide-react";
 import { api, ApiClientError } from "@/lib/api";
 import { invalidateCache } from "@/lib/invalidate-cache";
+import SingleImageUploader from "@/components/SingleImageUploader";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -59,18 +59,7 @@ export default function TestimonialsPage() {
   });
   const { toast } = useToast();
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData({ ...formData, image: file });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      setFormData({ ...formData, image: file });
-    }
-  };
+
 
   useEffect(() => {
     loadTestimonials();
@@ -95,6 +84,7 @@ export default function TestimonialsPage() {
 
   const handleEdit = (testimonial: Testimonial) => {
     setEditingTestimonial(testimonial);
+    setImagePreview(testimonial.image ?? null);
     setFormData({
       title: testimonial.title,
       description: testimonial.description,
@@ -155,6 +145,7 @@ export default function TestimonialsPage() {
 
       setDrawerOpen(false);
       setEditingTestimonial(null);
+      setImagePreview(null);
       setFormData({
         title: "",
         description: "",
@@ -234,6 +225,7 @@ export default function TestimonialsPage() {
           <Button
             onClick={() => {
               setEditingTestimonial(null);
+              setImagePreview(null);
               setFormData({
                 title: "",
                 description: "",
@@ -403,37 +395,24 @@ export default function TestimonialsPage() {
             </Select>
           </div>
 
-          <div className="space-y-2 animate-in slide-in-from-right duration-300 delay-150">
-            <Label>Image *</Label>
-            <div className="flex items-center justify-center w-full">
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted">
-                {imagePreview ? (
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="h-full w-full object-contain p-2"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground text-center px-4">
-                      Click to upload or drag and drop
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      SVG, PNG, or JPG (MAX. 2MB)
-                    </p>
-                  </div>
-                )}
-                <input
-                  id="logo-upload"
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-              </label>
-            </div>
-          </div>
+          <SingleImageUploader
+            label="Image"
+            value={imagePreview}
+            onChange={(file) => {
+              if (file) {
+                setFormData({ ...formData, image: file });
+                const reader = new FileReader();
+                reader.onloadend = () => setImagePreview(reader.result as string);
+                reader.readAsDataURL(file);
+              } else {
+                setFormData({ ...formData, image: "" });
+                setImagePreview(null);
+              }
+            }}
+            required
+            disabled={btnLoading}
+            className="animate-in slide-in-from-right duration-300 delay-150"
+          />
 
           <Button
             type="submit"

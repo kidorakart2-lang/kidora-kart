@@ -102,7 +102,7 @@ export const view = async (req: Request, res: Response): Promise<void> => {
       _current_page: Number(pageValue),
     });
   } catch (err) {
-    fail(res, "Internal Server Error", 500);
+    fail(res, "Failed to fetch FAQ sets", 500);
   }
 };
 
@@ -114,7 +114,7 @@ export const details = async (req: Request, res: Response): Promise<void> => {
       .lean();
     success(res, result, result ? "FAQ Set Found" : "No FAQ Set Found");
   } catch (err) {
-    fail(res, "Internal Server Error", 500);
+    fail(res, "Failed to fetch FAQ set details", 500);
   }
 };
 

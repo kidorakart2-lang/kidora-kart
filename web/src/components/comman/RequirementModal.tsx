@@ -73,68 +73,77 @@ export default function RequirementModal() {
           </div>
 
           <div className="space-y-4">
-            {!user?.isEmailVerified && (
-              <div className="bg-brand-50 border-l-4 border-brand-400 p-4 rounded-md">
-                <div className="flex items-start">
-                  <svg
-                    className="h-5 w-5 text-brand-500 flex-shrink-0"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <div className="ml-3">
-                    <p className="text-sm text-brand-700">
-                      Please verify your email address to continue.
-                    </p>
-                    <div className="mt-2">
-                      <Link
-                        href="/profile?tab=settings"
-                        onClick={handleClose}
-                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-brand-700 bg-brand-100 rounded-md hover:bg-brand-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+            {!user ? (
+              <div className="flex items-center justify-center py-6">
+                <div className="animate-spin w-5 h-5 border-2 border-brand-600 border-t-transparent rounded-full" />
+                <span className="ml-3 text-sm text-muted-foreground">Loading profile information...</span>
+              </div>
+            ) : (
+              <>
+                {!user.isEmailVerified && (
+                  <div className="bg-brand-50 border-l-4 border-brand-400 p-4 rounded-md">
+                    <div className="flex items-start">
+                      <svg
+                        className="h-5 w-5 text-brand-500 flex-shrink-0"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
                       >
-                        Verify Email
-                      </Link>
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <div className="ml-3">
+                        <p className="text-sm text-brand-700">
+                          Please verify your email address to continue.
+                        </p>
+                        <div className="mt-2">
+                          <Link
+                            href="/profile?tab=settings"
+                            onClick={handleClose}
+                            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-brand-700 bg-brand-100 rounded-md hover:bg-brand-200 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+                          >
+                            Verify Email
+                          </Link>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
+                )}
 
-            {(!user?.address || Object.keys(user.address).length === 0) && (
-              <div className="bg-brand-50 border-l-4 border-brand-400 p-4 rounded-md">
-                <div className="flex items-start">
-                  <svg
-                    className="h-5 w-5 text-brand-500 flex-shrink-0"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <div className="ml-3">
-                    <p className="text-sm text-brand-700">
-                      Please add your delivery address to continue.
-                    </p>
-                    <div className="mt-2">
-                      <Link
-                        href="/profile"
-                        onClick={handleClose}
-                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-brand-700 bg-brand-100 rounded-md hover:bg-brand-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+                {(!user.address || Object.keys(user.address).length === 0) && (
+                  <div className="bg-brand-50 border-l-4 border-brand-400 p-4 rounded-md">
+                    <div className="flex items-start">
+                      <svg
+                        className="h-5 w-5 text-brand-500 flex-shrink-0"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
                       >
-                        Add Address
-                      </Link>
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <div className="ml-3">
+                        <p className="text-sm text-brand-700">
+                          Please add your delivery address to continue.
+                        </p>
+                        <div className="mt-2">
+                          <Link
+                            href="/profile"
+                            onClick={handleClose}
+                            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-brand-700 bg-brand-100 rounded-md hover:bg-brand-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+                          >
+                            Add Address
+                          </Link>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                )}
+              </>
             )}
           </div>
 
@@ -142,7 +151,7 @@ export default function RequirementModal() {
             <DialogClose asChild>
               <button
                 onClick={handleClose}
-                className="px-4 py-2 text-sm font-medium text-muted-foreground bg-background border border-input rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+                className="px-4 py-2 text-sm font-medium text-muted-foreground bg-background border border-input rounded-md hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
               >
                 Close
               </button>
@@ -150,7 +159,7 @@ export default function RequirementModal() {
             <Link
               href="/profile"
               onClick={handleClose}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-background bg-brand-600 border border-transparent rounded-md shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-background bg-brand-600 border border-transparent rounded-md shadow-sm hover:bg-brand-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
             >
               Go to Profile
             </Link>

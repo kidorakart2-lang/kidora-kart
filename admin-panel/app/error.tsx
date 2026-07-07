@@ -6,10 +6,8 @@ import { AlertCircle, RefreshCw, Home } from "lucide-react";
 
 export default function GlobalError({
   error,
-  reset,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
 }) {
   useEffect(() => {
     console.error(error);
@@ -31,7 +29,7 @@ export default function GlobalError({
       </p>
       <div className="space-y-3">
         <Button
-          onClick={() => reset()}
+          onClick={() => window.location.reload()}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
         >
           <RefreshCw className="h-4 w-4" />

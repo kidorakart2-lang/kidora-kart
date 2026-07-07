@@ -284,7 +284,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setIsModalOpen(true)}
-              className="px-6 py-3 bg-gradient-to-r from-brand-600 to-brand-700 text-background rounded-full font-light text-sm uppercase tracking-wider shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+              className="px-6 py-3 btn-gradient rounded-full font-light text-sm uppercase tracking-wider shadow-sm transition-all flex items-center gap-2"
             >
               <Edit3 size={16} />
               <span>Write Review</span>
@@ -526,7 +526,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                           disabled={isSubmitting}
                           whileHover={{ y: -2 }}
                           whileTap={{ scale: 0.98 }}
-                          className="flex-1 px-6 py-3 bg-gradient-to-r from-brand-600 to-brand-700 text-background rounded-full font-light text-sm uppercase tracking-wider shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                          className="flex-1 px-6 py-3 btn-gradient rounded-full font-light text-sm uppercase tracking-wider shadow-sm transition-all disabled:opacity-50"
                         >
                           {isSubmitting ? "Submitting..." : "Submit Review"}
                         </motion.button>

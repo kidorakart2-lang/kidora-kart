@@ -127,7 +127,7 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden hover:bg-brand-100"
+              className="lg:hidden hover:bg-brand-100 transition-colors"
               onClick={onClose}
             >
               <X className="h-5 w-5 text-brand-700" />
@@ -277,7 +277,8 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
           <div className="space-y-3 pb-4">
             <Button
               onClick={applyPriceFilter}
-              className="w-full bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-background font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+              variant="gradient"
+              className="w-full font-semibold shadow-sm transition-all duration-200"
             >
               Apply Filters
             </Button>

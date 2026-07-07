@@ -295,7 +295,7 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
                   <Link
                     key={product._id}
                     href={`/product-details/${product.slug}`}
-                    className="flex items-center gap-3 p-2 rounded-lg border border-border hover:border-[var(--brand-primary)] hover:shadow-md transition-all duration-200 group bg-background"
+                    className="flex items-center gap-3 p-2 rounded-lg border border-border hover:border-[var(--brand-primary)] transition-all duration-200 group bg-background"
                   >
                     <div className="relative w-16 h-16 flex-shrink-0 rounded-md overflow-hidden bg-muted">
                       <Image

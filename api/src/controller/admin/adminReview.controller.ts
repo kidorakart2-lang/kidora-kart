@@ -170,7 +170,7 @@ export const changeStatus = async (
     if (result.matchedCount === 0) {
       res.status(404).json({
         _status: false,
-        _message: "No Data Found",
+        _message: "Review not found",
         _data: null,
       });
       return;

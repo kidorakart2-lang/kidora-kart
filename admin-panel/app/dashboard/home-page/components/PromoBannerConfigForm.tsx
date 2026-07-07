@@ -46,9 +46,7 @@ export default function PromoBannerConfigForm({ config, onChange }: Props) {
   }, [loadBanners, search, page])
 
   const selectBanner = (banner: Banner) => {
-    set("selectedBannerId", banner._id)
-    set("bannerImage", banner.image)
-    set("bannerLinkData", banner.link ?? null)
+    onChange({ ...config, selectedBannerId: banner._id, bannerImage: banner.image, bannerLinkData: banner.link ?? null })
   }
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -116,11 +114,7 @@ export default function PromoBannerConfigForm({ config, onChange }: Props) {
               variant="ghost"
               size="icon"
               className="absolute top-1 right-1 h-6 w-6 bg-black/40 hover:bg-black/60 text-white"
-              onClick={() => {
-                set("selectedBannerId", undefined)
-                set("bannerImage", undefined)
-                set("bannerLinkData", undefined)
-              }}
+              onClick={() => onChange({ ...config, selectedBannerId: undefined, bannerImage: undefined, bannerLinkData: undefined })}
             >
               <X className="h-3 w-3" />
             </Button>

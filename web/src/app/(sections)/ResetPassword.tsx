@@ -236,10 +236,10 @@ export default function ResetPassword() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
+                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-sm transform hover:-translate-y-0.5 ${
                   isLoading
                     ? "bg-brand-400 cursor-not-allowed opacity-70"
-                    : "bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"
+                    : "btn-gradient"
                 }`}
               >
                 {isLoading ? (
@@ -279,10 +279,10 @@ export default function ResetPassword() {
               <button
                 type="submit"
                 disabled={isLoading || otp.length !== 6}
-                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
+                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-sm transform hover:-translate-y-0.5 ${
                   isLoading || otp.length !== 6
                     ? "bg-brand-400 cursor-not-allowed opacity-70"
-                    : "bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"
+                    : "btn-gradient"
                 }`}
               >
                 {isLoading ? (
@@ -324,10 +324,10 @@ export default function ResetPassword() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
+                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-sm transform hover:-translate-y-0.5 ${
                   isLoading
                     ? "bg-brand-400 cursor-not-allowed opacity-70"
-                    : "bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"
+                    : "btn-gradient"
                 }`}
               >
                 {isLoading ? (

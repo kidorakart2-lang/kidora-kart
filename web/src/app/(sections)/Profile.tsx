@@ -252,7 +252,7 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl w-full mx-auto px-4 md:px-6 py-6">
+      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Profile Header */}
         <div className="flex flex-col md:flex-row items-start md:items-end gap-5 p-6 md:p-8 border-b border-border mb-6">
           <div className="relative group shrink-0">
@@ -629,7 +629,7 @@ export default function AccountPage() {
                             </div>
 
                             <div className="pt-6 flex gap-3">
-                              <Button className="bg-gradient-to-r from-brand-600 to-brand-700 text-background px-6 py-2.5 rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 active:scale-95">
+                              <Button variant="gradient" className="px-6 py-2.5 rounded-lg text-sm font-medium shadow-sm transform transition-all duration-300 hover:scale-105 active:scale-95">
                                 Save Changes
                               </Button>
                             </div>

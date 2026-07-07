@@ -133,7 +133,7 @@ export function VideoSection({
       </div>
 
       <div className="absolute inset-0 flex items-center">
-        <div className="container mx-auto px-6 lg:px-12">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl text-foreground animate-video-fade-in-left">
             <div className="flex items-center gap-3 mb-6 animate-video-fade-in" style={{ animationDelay: '0.3s' }}>
               <div className="w-12 h-[2px] bg-gradient-to-r" style={{ backgroundImage: `linear-gradient(to right, var(--brand-primary), var(--brand-secondary, var(--brand-primary)))` }} />
@@ -160,10 +160,11 @@ export function VideoSection({
               <div className="animate-video-fade-in" style={{ animationDelay: '0.8s' }}>
                 <Link href={resolvedUrl || buttonUrl || "#"}>
                   <Button
+                    variant="gradient"
                     size="lg"
-                    className="group relative overflow-hidden rounded-full px-8 py-6 text-base font-medium tracking-wide shadow-lg hover:shadow-xl transition-all duration-300"
+                    className="group relative rounded-full px-8 py-6 text-base font-medium tracking-wide shadow-sm transition-all duration-300"
                   >
-                    <span className="relative z-10 flex items-center gap-2 text-background">
+                    <span className="relative flex items-center gap-2">
                       {buttonText}
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </span>

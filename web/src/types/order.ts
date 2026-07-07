@@ -54,6 +54,7 @@ export interface OrderShippingAddress {
 
 export interface OrderNotes {
   internal?: string;
+  customer?: string;
 }
 
 export interface OrderData {

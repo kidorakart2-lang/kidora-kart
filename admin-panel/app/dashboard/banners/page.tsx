@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { api, ApiClientError } from "@/lib/api";
 import type { Banner, LinkOption } from "@/lib/types";
 import { invalidateCache } from "@/lib/invalidate-cache";
+import SingleImageUploader from "@/components/SingleImageUploader";
 
 export default function BannersPage() {
   const [btnLoading, setBtnLoading] = useState(false);
@@ -48,6 +49,7 @@ export default function BannersPage() {
   }>({ products: [], categories: [], subCategories: [], subSubCategories: [] });
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState("");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState<{
     description: string;
     image: string | File;
@@ -143,6 +145,7 @@ export default function BannersPage() {
 
   const handleEdit = (banner: Banner) => {
     setEditingBanner(banner);
+    setImagePreview(banner.image);
     setFormData({
       description: banner.description,
       image: banner.image,
@@ -251,6 +254,7 @@ export default function BannersPage() {
     setProductSearch("");
     setSelectedCategoryId("");
     setSelectedSubCategoryId("");
+    setImagePreview(null);
     setFormData({
       description: "",
       image: "",
@@ -325,6 +329,7 @@ export default function BannersPage() {
               setProductSearch("");
               setSelectedCategoryId("");
               setSelectedSubCategoryId("");
+              setImagePreview(null);
               setFormData({
                 description: "",
                 image: "",
@@ -460,85 +465,24 @@ export default function BannersPage() {
               required
             />
           </div>
-          <div className="space-y-2 animate-in slide-in-from-right duration-300 delay-100">
-            <Label htmlFor="image">Banner Image</Label>
-            <div className="flex flex-col items-center justify-center w-full">
-              <label
-                htmlFor="dropzone-file"
-                className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted/80 transition-colors"
-              >
-                {formData.image ? (
-                  <div className="relative w-full h-full">
-                    <img
-                      src={
-                        typeof formData.image === "string"
-                          ? formData.image
-                          : formData.image instanceof File
-                            ? URL.createObjectURL(formData.image)
-                            : ""
-                      }
-                      alt="Preview"
-                      className="w-full h-full object-contain rounded"
-                    />
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                      <div className="bg-white/80 p-2 rounded-full">
-                        <svg
-                          className="w-8 h-8 text-foreground"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
-                    <svg
-                      className="w-8 h-8 mb-4 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                    <p className="mb-2 text-sm text-muted-foreground">
-                      <span className="font-semibold">Click to upload</span> or
-                      drag and drop
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      PNG, JPG, JPEG (MAX. 5MB)
-                    </p>
-                  </div>
-                )}
-                <input
-                  id="dropzone-file"
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setFormData({ ...formData, image: file });
-                    }
-                  }}
-                />
-              </label>
-            </div>
-          </div>{" "}
+          <SingleImageUploader
+            label="Banner Image"
+            value={imagePreview}
+            onChange={(file) => {
+              if (file) {
+                setFormData({ ...formData, image: file });
+                const reader = new FileReader();
+                reader.onload = (event) => setImagePreview(event.target?.result as string);
+                reader.readAsDataURL(file);
+              } else {
+                setFormData({ ...formData, image: "" });
+                setImagePreview(null);
+              }
+            }}
+            required
+            disabled={btnLoading}
+            className="animate-in slide-in-from-right duration-300 delay-100"
+          />{" "}
           {/* ── Link target section ── */}
           <div className="space-y-3 animate-in slide-in-from-right duration-300 delay-50 border rounded-lg p-4 bg-muted/30">
             <Label className="text-sm font-semibold">

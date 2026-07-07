@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { getOrderById } from "@/lib/orderService";
+import { getOrderById, retryPayment, verifyPayment } from "@/lib/orderService";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,11 @@ import {
   XCircle,
   Gift,
   FileText,
+  AlertTriangle,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
+import { toast } from "sonner";
 import type { OrderTrackingResponse } from "@/types";
 
 export default function OrderTracking() {
@@ -26,12 +30,102 @@ export default function OrderTracking() {
   const [orderId, setOrderId] = useState<string>("");
   const [orderDetails, setOrderDetails] = useState<OrderTrackingResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [retryLoading, setRetryLoading] = useState(false);
 
   const searchParams = useSearchParams();
 
   useEffect(() => {
     setOrderId(searchParams?.get("orderId") || "");
   }, [searchParams]);
+
+  const loadRazorpayScript = async (): Promise<boolean> => {
+    for (let i = 0; i < 2; i++) {
+      if ((window as unknown as { Razorpay?: unknown }).Razorpay) return true;
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      document.body.appendChild(script);
+      const loaded = await new Promise<boolean>((resolve) => {
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+      });
+      if (loaded || (window as unknown as { Razorpay?: unknown }).Razorpay) return true;
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+    return false;
+  };
+
+  const handleRetryPayment = async () => {
+    setRetryLoading(true);
+    try {
+      const orderIdVal = orderDetails?.order?.orderId;
+      if (!orderIdVal) return;
+
+      const retryRes = await retryPayment(orderIdVal);
+      if (!retryRes.success) {
+        toast.error(retryRes.message || "Failed to retry payment");
+        setRetryLoading(false);
+        return;
+      }
+
+      const { razorpayOrderId, amount, currency, keyId } = retryRes;
+
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        toast.error("Payment gateway could not be loaded. Please try again or use a different payment method.");
+        setRetryLoading(false);
+        return;
+      }
+
+      const options = {
+        key: keyId,
+        amount: amount * 100,
+        currency: currency,
+        name: "Jewellery walla",
+        description: `Order #${orderIdVal}`,
+        order_id: razorpayOrderId,
+        prefill: {
+          name: orderDetails?.order?.shippingAddress?.fullName,
+          email: orderDetails?.order?.shippingAddress?.email,
+          contact: orderDetails?.order?.shippingAddress?.phone,
+        },
+        theme: { color: "#dfbf0eff" },
+        handler: async function (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) {
+          setRetryLoading(true);
+          try {
+            const verifyRes = await verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              orderId: orderIdVal,
+            });
+            if (verifyRes.success) {
+              toast.success("Payment successful!");
+              fetchOrder();
+            } else {
+              toast.error(verifyRes.message || "Payment verification failed. Please contact support.");
+            }
+          } catch {
+            toast.error("Payment verification failed. Please contact support.");
+          } finally {
+            setRetryLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setRetryLoading(false);
+            toast.error("Payment cancelled");
+          },
+        },
+      };
+
+      const RazorpayConstructor = (window as unknown as { Razorpay: new (options: unknown) => { open: () => void } }).Razorpay;
+      const paymentObject = new RazorpayConstructor(options);
+      paymentObject.open();
+    } catch (error) {
+      toast.error("Failed to initiate payment. Please try again.");
+      setRetryLoading(false);
+    }
+  };
 
   const handleTrackOrder = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -42,9 +136,18 @@ export default function OrderTracking() {
 
   const fetchOrder = async () => {
     setLoading(true);
-    const details = await getOrderById(orderId);
-    setOrderDetails(details);
-    setLoading(false);
+    try {
+      const data = await getOrderById(orderId) as OrderTrackingResponse & { success?: boolean };
+      if (data?.success === false) {
+        setOrderDetails(null);
+      } else {
+        setOrderDetails(data);
+      }
+    } catch {
+      setOrderDetails(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -64,6 +167,8 @@ export default function OrderTracking() {
         return <Package className="w-5 h-5" />;
       case "cancelled":
         return <XCircle className="w-5 h-5" />;
+      case "payment_failed":
+        return <AlertTriangle className="w-5 h-5" />;
       default:
         return <Clock className="w-5 h-5" />;
     }
@@ -71,6 +176,9 @@ export default function OrderTracking() {
 
   const getStatusColor = (status: string, isActive: boolean, isCompleted: boolean) => {
     if (status === "cancelled") {
+      return "bg-destructive text-destructive-foreground";
+    }
+    if (status === "payment_failed") {
       return "bg-destructive text-destructive-foreground";
     }
     if (isActive) {
@@ -96,10 +204,32 @@ export default function OrderTracking() {
     return <LoadingUi hidden={loading} />;
   }
 
+  if (!orderDetails) {
+    return (
+      <div className="min-h-[50vh] p-4 md:p-10 flex flex-col items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">Order Not Found</h2>
+          <p className="text-muted-foreground mb-6">
+            We couldn&apos;t find an order with that ID. Please check and try again.
+          </p>
+          <Button onClick={() => setOrderId("")} className="btn-gradient">
+            Try Another Order
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
+
   const isCancelled =
     orderDetails?.order?.status === "cancelled" ||
     orderDetails?.order?.status === "refunded";
   const isDelivered = orderDetails?.order?.status === "delivered";
+  const isPaymentFailed = orderDetails?.order?.status === "payment_failed";
 
   return (
     <div className="min-h-[50vh] p-4 md:p-10">
@@ -133,7 +263,7 @@ export default function OrderTracking() {
             </div>
             <Button
               onClick={handleTrackOrder}
-              className="bg-brand-500 hover:bg-brand-600 text-background font-semibold px-6 py-2 rounded-lg transition"
+              className="btn-gradient font-semibold px-6 py-2 rounded-lg"
             >
               Track Order
             </Button>
@@ -154,6 +284,8 @@ export default function OrderTracking() {
                 ? "bg-gradient-to-r from-destructive to-destructive/80"
                 : isDelivered
                 ? "bg-gradient-to-r from-emerald-500 to-emerald-600"
+                : isPaymentFailed
+                ? "bg-gradient-to-r from-orange-500 to-orange-600"
                 : "bg-gradient-to-r from-brand-500 to-brand-600"
             } p-6 text-background`}
           >
@@ -193,6 +325,14 @@ export default function OrderTracking() {
                   </p>
                 </div>
               )}
+              {isPaymentFailed && (
+                <div className="bg-background/20 px-4 py-2 rounded-lg">
+                  <p className="font-semibold flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5" />
+                    Payment Failed
+                  </p>
+                </div>
+              )}
             </div>
           </motion.div>
 
@@ -204,7 +344,7 @@ export default function OrderTracking() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="p-6 border-b"
+                className={`p-6 border-b ${isPaymentFailed ? "opacity-50" : ""}`}
               >
                 <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
                   <Truck className="w-5 h-5" />
@@ -363,6 +503,48 @@ export default function OrderTracking() {
                         day: "numeric",
                       })}
                     </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Payment Failed */}
+            {isPaymentFailed && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="mx-6 mt-6"
+              >
+                <div className="p-6 bg-destructive/5 border-2 border-destructive/20 rounded-xl">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center flex-shrink-0">
+                      <AlertTriangle className="w-6 h-6 text-destructive" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-destructive mb-1">
+                        Payment Failed
+                      </h3>
+                      <p className="text-sm text-destructive/80 mb-4">
+                        Your payment for this order was unsuccessful. You can retry the payment to complete your order.
+                      </p>
+                      <Button
+                        onClick={handleRetryPayment}
+                        disabled={retryLoading}
+                        className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                      >
+                        {retryLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Retry Payment
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -750,19 +932,22 @@ export default function OrderTracking() {
                         </p>
                       </div>
 
-                      {orderDetails?.order?.notes?.internal && (
-                        <div className="bg-brand-accent-50 p-4 rounded-lg border-l-4 border-brand-accent-400">
-                          <p className="text-sm font-medium text-brand-accent-900 mb-1">
-                            Delivery Note
-                          </p>
-                          <p className="text-sm text-brand-accent-700">
-                            {orderDetails?.order?.notes?.internal}
-                          </p>
-                        </div>
-                      )}
+
                     </div>
                   </div>
                 )}
+
+{/* Customer's own order note */}
+{orderDetails?.order?.notes?.customer && (
+  <div className="bg-brand-accent-50 p-4 rounded-lg border-l-4 border-brand-accent-400">
+    <p className="text-sm font-medium text-brand-accent-900 mb-1">
+      Your Note
+    </p>
+    <p className="text-sm text-brand-accent-700">
+      {orderDetails?.order?.notes?.customer}
+    </p>
+  </div>
+)}
               </div>
             </motion.div>
           </div>

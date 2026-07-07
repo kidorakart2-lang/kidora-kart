@@ -65,6 +65,13 @@ export const createOrder = async (orderData: Record<string, unknown>) => {
   return response.json();
 };
 
+export const retryPayment = async (orderId: string) => {
+  const response = await authFetch(`/orders/retry-payment/${orderId}`, {
+    method: "POST",
+  });
+  return response.json();
+};
+
 export const createRazorpayOrder = async (orderId: string, isCodAdvance = false) => {
   const response = await authFetch("/orders/create-razorpay-order", {
     method: "POST",

@@ -415,6 +415,7 @@ import { Router, raw } from "express";
 import {
   createOrder,
   createRazorpayOrder,
+  retryPayment,
   verifyPayment,
   handleWebhook,
   getUserOrders,
@@ -439,6 +440,9 @@ router.post("/create", protect, rateLimit.orderCreate, createOrder);
 
 // Create Razorpay order
 router.post("/create-razorpay-order", protect, rateLimit.orderCreate, createRazorpayOrder);
+
+// Retry payment for failed orders
+router.post("/retry-payment/:orderId", protect, rateLimit.orderCreate, retryPayment);
 
 // Verify payment
 router.post("/verify-payment", protect, rateLimit.orderVerify, verifyPayment);

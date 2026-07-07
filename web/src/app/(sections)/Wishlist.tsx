@@ -154,10 +154,8 @@ export default function Wishlist({ wishlist }: { wishlist: Record<string, unknow
 
           <Link
             href="/category/all"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-600 to-brand-700 
-                     hover:from-brand-700 hover:to-brand-800 text-background font-medium py-3 px-8 
-                     rounded-full transition-all duration-300 shadow-lg hover:shadow-xl 
-                     hover:shadow-brand-500/30 transform hover:scale-105"
+            className="inline-flex items-center gap-2 btn-gradient font-medium py-3 px-8 
+                     rounded-full transition-all duration-300 shadow-sm transform hover:scale-105"
           >
             <ShoppingBag size={18} />
             Start Shopping
@@ -181,7 +179,7 @@ export default function Wishlist({ wishlist }: { wishlist: Record<string, unknow
   return (
     <>
       <section id="wishlist" className="py-12 md:py-16 bg-gradient-to-b from-brand-50/30 via-white to-brand-50/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -231,10 +229,8 @@ export default function Wishlist({ wishlist }: { wishlist: Record<string, unknow
             >
               <Link
                 href="/category/all"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-600 to-brand-700 
-                         hover:from-brand-700 hover:to-brand-800 text-background font-medium py-4 px-10 
-                         rounded-full transition-all duration-300 shadow-lg hover:shadow-xl 
-                         hover:shadow-brand-500/30 transform hover:scale-105"
+                className="inline-flex items-center gap-2 btn-gradient font-medium py-4 px-10 
+                         rounded-full transition-all duration-300 shadow-sm transform hover:scale-105"
               >
                 <ShoppingBag size={18} />
                 Continue Shopping

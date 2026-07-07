@@ -120,7 +120,7 @@ export function PromoBannerSection({
       </motion.div>
 
       <div className="absolute inset-0 flex items-center">
-        <div className="container mx-auto px-6 lg:px-12">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             className="max-w-2xl text-foreground"
             initial={{ opacity: 0, x: -80 }}
@@ -158,10 +158,11 @@ export function PromoBannerSection({
               >
                 <Link href={resolvedUrl}>
                   <Button
+                    variant="gradient"
                     size="lg"
-                    className="group relative overflow-hidden rounded-full px-8 py-6 text-base font-medium tracking-wide shadow-lg hover:shadow-xl transition-all duration-300"
+                    className="group relative rounded-full px-8 py-6 text-base font-medium tracking-wide shadow-sm transition-all duration-300"
                   >
-                    <span className="relative z-10 flex items-center gap-2">
+                    <span className="relative flex items-center gap-2">
                       {buttonText}
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </span>

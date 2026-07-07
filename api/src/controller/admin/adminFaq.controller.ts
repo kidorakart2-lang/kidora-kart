@@ -11,7 +11,7 @@ export const create = async (
     const ress = await data.save();
     response.send({
       _status: true,
-      _message: "Data Inserted",
+      _message: "FAQ created successfully",
       _data: ress,
     });
   } catch (err) {
@@ -28,7 +28,7 @@ export const create = async (
     } else if (err instanceof Error) {
       messages.push(err.message);
     } else {
-      messages.push("Something went wrong");
+      messages.push("Failed to create FAQ");
     }
     cache.del("faqData");
     response.send({ _status: false, _message: messages, _data: [] });
@@ -72,13 +72,13 @@ export const view = async (
 
     response.send({
       _status: true,
-      _message: "Data Found",
+      _message: "FAQs found",
       _data: ress,
     });
   } catch (err) {
     response.send({
       _status: false,
-      _message: "Something Went Wrong",
+      _message: "Failed to fetch FAQs",
       _data: null,
     });
   }
@@ -91,14 +91,14 @@ export const destroy = async (
   try {
     const existing = await faqs.findById(request.body.id).select("_id deletedAt").lean();
     if (!existing) {
-      response.send({ _status: false, _message: "No Data Found", _data: null });
+      response.send({ _status: false, _message: "FAQ not found", _data: null });
       return;
     }
     if (existing.deletedAt) {
       // Already soft-deleted → permanently delete
       await faqs.findByIdAndDelete(request.body.id);
       cache.del("faqData");
-      response.send({ _status: true, _message: "Data Permanently Deleted", _data: null });
+      response.send({ _status: true, _message: "FAQ permanently deleted", _data: null });
       return;
     }
     await faqs.updateOne(
@@ -108,13 +108,13 @@ export const destroy = async (
     cache.del("faqData");
     response.send({
       _status: true,
-      _message: "Data Deleted",
+      _message: "FAQ deleted",
       _data: null,
     });
   } catch (err) {
     response.send({
       _status: false,
-      _message: "No Data Deleted",
+      _message: "Failed to delete FAQ",
       _data: null,
     });
   }
@@ -128,13 +128,13 @@ export const details = async (
     const result = await faqs.findById({ _id: request.body.id }).lean();
     response.send({
       _status: !!result,
-      _message: result ? "Data Found" : "Data Not Found",
+      _message: result ? "FAQ found" : "FAQ not found",
       _data: result,
     });
   } catch (err) {
     response.send({
       _status: false,
-      _message: "No Data Found",
+      _message: "FAQ not found",
       _data: null,
     });
   }
@@ -153,13 +153,13 @@ export const update = async (
     cache.del("faqData");
     response.send({
       _status: true,
-      _message: "Data Updated",
+      _message: "FAQ updated",
       _data: ress,
     });
   } catch (err) {
     response.send({
       _status: false,
-      _message: "No Data Updated",
+      _message: "Failed to update FAQ",
       _data: null,
     });
   }
@@ -177,13 +177,13 @@ export const changeStatus = async (
     cache.del("faqData");
     response.send({
       _status: true,
-      _message: "Status Changed",
+      _message: "FAQ status changed",
       _data: result,
     });
   } catch (err) {
     response.send({
       _status: false,
-      _message: "Status Not Changed",
+      _message: "Failed to change FAQ status",
       _data: null,
     });
   }

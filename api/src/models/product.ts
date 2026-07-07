@@ -68,7 +68,10 @@ const productSchema = new Schema(
     },
     purity: {
       type: String,
-      required: [true, "Please enter a purity"],
+    },
+    weight: {
+      type: String,
+      required: [true, "Please enter a weight greater than or equal to 10 grams"],
     },
     code: {
       type: String,

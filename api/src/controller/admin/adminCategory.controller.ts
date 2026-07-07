@@ -9,7 +9,7 @@ export const create = async (
   response: Response,
 ): Promise<void> => {
   if (!request.body) {
-    response.send({ _status: false, _message: "No Data Found", _data: [] });
+    response.send({ _status: false, _message: "Request body is empty", _data: [] });
     return;
   }
   try {
@@ -33,7 +33,7 @@ export const create = async (
     cache.del("navigationData");
     response.send({
       _status: true,
-      _message: "Data Inserted",
+      _message: "Category created successfully",
       _data: ress,
     });
   } catch (err) {
@@ -95,13 +95,13 @@ export const view = async (
 
     response.send({
       _status: true,
-      _message: "Data Found",
+      _message: "Categories found",
       _data: ress,
     });
   } catch (err) {
     response.send({
       _status: false,
-      _message: "Something Went Wrong",
+      _message: "Failed to fetch categories",
       _data: null,
     });
   }
@@ -116,14 +116,14 @@ export const destroy = async (
       .select("_id deletedAt")
       .lean();
     if (!existing) {
-      response.send({ _status: false, _message: "No Data Found", _data: null });
+      response.send({ _status: false, _message: "Category not found", _data: null });
       return;
     }
     if (existing.deletedAt) {
       // Already soft-deleted → permanently delete
       await category.findByIdAndDelete(request.body.id);
       cache.del("navigationData");
-      response.send({ _status: true, _message: "Data Permanently Deleted", _data: null });
+      response.send({ _status: true, _message: "Category permanently deleted", _data: null });
       return;
     }
     // Soft delete
@@ -134,13 +134,13 @@ export const destroy = async (
     cache.del("navigationData");
     response.send({
       _status: true,
-      _message: "Data Deleted",
+      _message: "Category deleted",
       _data: null,
     });
   } catch (err) {
     response.send({
       _status: false,
-      _message: "No Data Deleted",
+      _message: "Failed to delete category",
       _data: null,
     });
   }
@@ -154,13 +154,13 @@ export const details = async (
     const result = await category.findById({ _id: request.body.id }).lean();
     response.send({
       _status: !!result,
-      _message: result ? "Data Found" : "No Data Found",
+      _message: result ? "Category found" : "Category not found",
       _data: result,
     });
   } catch (err) {
     response.send({
       _status: false,
-      _message: "No Data Found",
+      _message: "Failed to fetch category details",
       _data: null,
     });
   }
@@ -197,14 +197,14 @@ export const update = async (
     cache.del("navigationData");
     response.send({
       _status: true,
-      _message: "Data Updated",
+      _message: "Category updated",
       _data: ress,
     });
   } catch (err) {
     cache.del("navigationData");
     response.send({
       _status: false,
-      _message: "No Data Updated",
+      _message: "Failed to update category",
       _data: null,
     });
   }
@@ -222,14 +222,14 @@ export const changeStatus = async (
     cache.del("navigationData");
     response.send({
       _status: true,
-      _message: "Status Changed",
+      _message: "Category status changed",
       _data: result,
     });
   } catch (err) {
     cache.del("navigationData");
     response.send({
       _status: false,
-      _message: "Status Not Changed",
+      _message: "Failed to change category status",
       _data: null,
     });
   }

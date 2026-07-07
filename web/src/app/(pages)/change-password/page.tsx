@@ -133,7 +133,8 @@ export default function ChangePasswordPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-background font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-60"
+              variant="gradient"
+              className="w-full font-semibold py-3 rounded-xl shadow-sm transition-all duration-300 disabled:opacity-60"
             >
               {isLoading ? "Updating..." : "Update Password"}
             </Button>

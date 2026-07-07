@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { api, ApiClientError } from "@/lib/api"
 import {
   DndContext,
@@ -70,6 +70,20 @@ export default function HomePagePage() {
 
   const { toast } = useToast()
 
+  // Track whether editType change is from initial open vs. user switching type
+  const isInitialEditTypeRef = useRef(true)
+
+  useEffect(() => {
+    if (!editDialogOpen || !editingSection) return
+    if (isInitialEditTypeRef.current) {
+      isInitialEditTypeRef.current = false
+      return
+    }
+    // User changed type while editing — reset config to new type's defaults
+    const meta = getTypeMeta(editType)
+    setEditConfig({ ...meta.defaults.config })
+  }, [editType, editDialogOpen, editingSection])
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   )
@@ -131,6 +145,7 @@ export default function HomePagePage() {
     setEditType(section.type)
     setEditConfig({ ...section.config })
     setEditDialogOpen(true)
+    isInitialEditTypeRef.current = true
   }
 
   const handleSaveEdit = () => {
@@ -324,7 +339,7 @@ export default function HomePagePage() {
               <div className="border-t pt-4">
                 <Label className="mb-3 block">Configuration</Label>
                 <SectionConfigForm
-                  type={editingSection?.type === "banner" ? "banner" : editType}
+                  type={editType}
                   config={editConfig}
                   onChange={setEditConfig}
                 />

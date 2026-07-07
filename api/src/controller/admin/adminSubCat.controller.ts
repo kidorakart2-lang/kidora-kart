@@ -31,7 +31,7 @@ export const create = async (
     cache.del("subCategory_women");
     response.send({
       _status: true,
-      _message: "Data Inserted",
+      _message: "Sub-category created successfully",
       _data: ress,
     });
   } catch (err) {
@@ -101,13 +101,13 @@ export const view = async (
 
     response.send({
       _status: true,
-      _message: "Data Found",
+      _message: "Sub-categories found",
       _data: ress,
     });
   } catch (err) {
     response.send({
       _status: false,
-      _message: "Something Went Wrong",
+      _message: "Failed to fetch sub-categories",
       _data: null,
     });
   }
@@ -120,7 +120,7 @@ export const destroy = async (
   try {
     const existing = await subCategory.findById(request.body.id).select("_id deletedAt").lean();
     if (!existing) {
-      response.send({ _status: false, _message: "No Data Found", _data: null });
+      response.send({ _status: false, _message: "Sub-category not found", _data: null });
       return;
     }
     if (existing.deletedAt) {
@@ -129,7 +129,7 @@ export const destroy = async (
       cache.del("navigationData");
       cache.del("subCategory_men");
       cache.del("subCategory_women");
-      response.send({ _status: true, _message: "Data Permanently Deleted", _data: null });
+      response.send({ _status: true, _message: "Sub-category permanently deleted", _data: null });
       return;
     }
     await subCategory.updateOne(
@@ -141,13 +141,13 @@ export const destroy = async (
     cache.del("subCategory_women");
     response.send({
       _status: true,
-      _message: "Data Deleted",
+      _message: "Sub-category deleted",
       _data: null,
     });
   } catch (err) {
     response.send({
       _status: false,
-      _message: "No Data Deleted",
+      _message: "Failed to delete sub-category",
       _data: null,
     });
   }
@@ -161,13 +161,13 @@ export const details = async (
     const result = await subCategory.findById({ _id: request.body.id }).lean();
     response.send({
       _status: !!result,
-      _message: result ? "Data Found" : "No Data Found",
+      _message: result ? "Sub-category found" : "Sub-category not found",
       _data: result,
     });
   } catch (err) {
     response.send({
       _status: false,
-      _message: "No Data Found",
+      _message: "Failed to fetch sub-category details",
       _data: null,
     });
   }
@@ -204,14 +204,14 @@ export const update = async (
     cache.del("subCategory_women");
     response.send({
       _status: true,
-      _message: "Data Updated",
+      _message: "Sub-category updated",
       _data: ress,
     });
   } catch (err) {
     cache.del("navigationData");
     response.send({
       _status: false,
-      _message: "No Data Updated",
+      _message: "Failed to update sub-category",
       _data: null,
     });
   }
@@ -232,14 +232,14 @@ export const changeStatus = async (
     cache.del("subCategory_women");
     response.send({
       _status: true,
-      _message: "Status Changed",
+      _message: "Sub-category status changed",
       _data: result,
     });
   } catch (err) {
     cache.del("navigationData");
     response.send({
       _status: false,
-      _message: "Status Not Changed",
+      _message: "Failed to change sub-category status",
       _data: null,
     });
   }

@@ -21,6 +21,8 @@ export interface ProductData {
   images: string[];
   slug: string;
   description: string;
+  purity?: string;
+  weight?: string;
   code: string;
   price: number;
   discount_price?: number;
@@ -281,6 +283,18 @@ export default function ProductDetails({ product }: { product: ProductData }) {
                 <p className="mt-1 text-sm text-gray-600 flex items-center">
                   <Tag className="w-4 h-4 mr-2" />{" "}
                   {product.material?.map((material) => material.name).join(", ") || "N/A"}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-900">Purity</h3>
+                <p className="mt-1 text-sm text-gray-600 flex items-center">
+                  <Tag className="w-4 h-4 mr-2" /> {product.purity || "N/A"}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-900">Weight</h3>
+                <p className="mt-1 text-sm text-gray-600 flex items-center">
+                  <Tag className="w-4 h-4 mr-2" /> {product.weight ? `${product.weight}g` : "N/A"}
                 </p>
               </div>
             </div>

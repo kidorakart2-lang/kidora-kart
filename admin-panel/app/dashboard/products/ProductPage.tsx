@@ -30,6 +30,7 @@ interface ProductFormData {
   name: string;
   description: string;
   purity: string;
+  weight: string;
   code: string;
   price: string;
   discount_price: string;
@@ -58,6 +59,7 @@ interface Product {
   stock: number;
   discount_price: number;
   purity: string;
+  weight: string;
   code: string;
   description: string;
   estimated_delivery_time: string;
@@ -87,6 +89,7 @@ const INITIAL_FORM_STATE: ProductFormData = {
   name: "",
   description: "",
   purity: "",
+  weight: "",
   code: "",
   price: "",
   discount_price: "",
@@ -330,19 +333,20 @@ export default function ProductsPage() {
       price: String(defaultProduct.price),
       stock: String(defaultProduct.stock),
       purity: defaultProduct.purity,
+      weight: defaultProduct.weight,
       code: defaultProduct.code,
       discount_price: String(defaultProduct.discount_price),
       description: defaultProduct.description,
       estimated_delivery_time: defaultProduct.estimated_delivery_time,
       status: defaultProduct.status,
-      isFeatured: defaultProduct.isFeatured,
-      isNewArrival: defaultProduct.isNewArrival,
-      isBestSeller: defaultProduct.isBestSeller,
-      isTopRated: defaultProduct.isTopRated,
-      isUpsell: defaultProduct.isUpsell,
-      isOnSale: defaultProduct.isOnSale,
-      isPersonalized: defaultProduct.isPersonalized,
-      isGift: defaultProduct.isGift,
+      isFeatured: defaultProduct.isFeatured ?? false,
+      isNewArrival: defaultProduct.isNewArrival ?? false,
+      isBestSeller: defaultProduct.isBestSeller ?? false,
+      isTopRated: defaultProduct.isTopRated ?? false,
+      isUpsell: defaultProduct.isUpsell ?? false,
+      isOnSale: defaultProduct.isOnSale ?? false,
+      isPersonalized: defaultProduct.isPersonalized ?? false,
+      isGift: defaultProduct.isGift ?? false,
       order: defaultProduct.order,
       mainImage: null,
       mainImagePreview: defaultProduct.image || "",
@@ -420,11 +424,38 @@ export default function ProductsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const weightNum = parseInt(formData.weight, 10);
+    if (isNaN(weightNum) || weightNum < 10) {
+      toast({ title: "Validation Error", description: "Weight must be at least 10 grams", variant: "destructive" });
+      return;
+    }
+
+    if (selectedCategory.length === 0) {
+      toast({ title: "Validation Error", description: "Please select at least one category", variant: "destructive" });
+      return;
+    }
+
+    if (selectedColors.length === 0) {
+      toast({ title: "Validation Error", description: "Please select at least one color", variant: "destructive" });
+      return;
+    }
+
+    if (selectedSizes.length === 0) {
+      toast({ title: "Validation Error", description: "Please select at least one size", variant: "destructive" });
+      return;
+    }
+
+    if (!editingProduct && !formData.mainImage) {
+      toast({ title: "Validation Error", description: "Please select a main image", variant: "destructive" });
+      return;
+    }
+
     const formDataToSend = new FormData();
 
     formDataToSend.append("name", formData.name);
     formDataToSend.append("description", formData.description);
     formDataToSend.append("purity", formData.purity);
+    formDataToSend.append("weight", formData.weight);
     formDataToSend.append(
       "code",
       formData.code ? formData.code : generateCode()
@@ -801,6 +832,7 @@ export default function ProductsPage() {
                             .join(", ")
                         : "",
                       purity: formData.purity,
+                      weight: formData.weight,
                       price: formData.price,
                     }}
                     onResult={(text) =>
@@ -890,7 +922,7 @@ export default function ProductsPage() {
             <h3 className="text-lg font-medium">Additional Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="purity">Purity *</Label>
+                <Label htmlFor="purity">Purity</Label>
                 <Input
                   id="purity"
                   value={formData.purity}
@@ -898,6 +930,17 @@ export default function ProductsPage() {
                     setFormData({ ...formData, purity: e.target.value })
                   }
                   placeholder="e.g. 80%"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="weight">Weight (g) *</Label>
+                <Input
+                  id="weight"
+                  value={formData.weight}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormData({ ...formData, weight: e.target.value })
+                  }
+                  placeholder="e.g. 15"
                   required
                 />
               </div>
@@ -966,7 +1009,7 @@ export default function ProductsPage() {
                   <input
                     type="checkbox"
                     id={toggle.id}
-                    checked={formData[toggle.id]}
+                    checked={formData[toggle.id] ?? false}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       setFormData({
                         ...formData,

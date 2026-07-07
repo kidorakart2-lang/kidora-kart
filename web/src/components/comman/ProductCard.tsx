@@ -196,7 +196,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
 
   return (
     <article
-      className="group relative bg-background rounded-2xl overflow-hidden shadow-md hover:-translate-y-2 hover:shadow-2xl transition-all duration-500 border border-border"
+      className="group relative bg-background rounded-2xl overflow-hidden shadow-sm transition-all duration-500 border border-border"
       itemScope
       itemType="https://schema.org/Product"
       role="article"
@@ -395,12 +395,10 @@ export default function ProductCard({ data }: { data: ProductData }) {
         <div role="group" aria-label="Product actions">
           <Button
             disabled={loading || data.stock === 0}
-            className="w-full bg-gradient-to-r from-brand-700 to-brand-800 hover:from-brand-800 hover:to-brand-900
-                     text-background py-6 rounded-xl text-sm font-semibold uppercase tracking-wider
-                     flex items-center justify-center gap-2 shadow-lg
-                      transition-all duration-300
-                     active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
-                     group-hover:shadow-2xl"
+            variant="gradient"
+            className="w-full py-6 rounded-xl text-sm font-semibold uppercase tracking-wider
+                     flex items-center justify-center gap-2 shadow-sm
+                     transition-all duration-300"
             onClick={handleAddToCart}
             aria-label={`Add ${data.name} to cart`}
             type="button"

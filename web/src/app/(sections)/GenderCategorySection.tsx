@@ -4,6 +4,7 @@ import type { RootState } from "@/redux/store/store";
 import type { CategoryData, SubCategoryData } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface CategoryItem {
   _id: string;
@@ -121,11 +122,13 @@ export default function GenderCategorySection({
                   </h3>
 
                   <div className="relative overflow-hidden">
-                    <button
-                      className="px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/30 text-white font-light tracking-widest text-sm"
+                    <Button
+                      variant="gradient"
+                      size="lg"
+                      className="rounded-full text-sm tracking-widest shadow-lg"
                     >
-                      <span className="relative z-10">SHOP NOW</span>
-                    </button>
+                      SHOP NOW
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -205,11 +208,13 @@ export default function GenderCategorySection({
                   </h3>
 
                   <div className="relative overflow-hidden">
-                    <button
-                      className="px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/30 text-white font-light tracking-widest text-sm"
+                    <Button
+                      variant="gradient"
+                      size="lg"
+                      className="rounded-full text-sm tracking-widest shadow-lg"
                     >
-                      <span className="relative z-10">SHOP NOW</span>
-                    </button>
+                      SHOP NOW
+                    </Button>
                   </div>
                 </div>
               </div>

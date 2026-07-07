@@ -25,13 +25,18 @@ export default function PhoneNumberModal() {
   useEffect(() => {
     const shouldShowModal = localStorage.getItem("showPhoneModal");
     if (shouldShowModal === "true") {
+      // Wait for user details to load before deciding
+      if (!userDetails) return;
+      // Clear the flag — we have user details and can decide now
       localStorage.removeItem("showPhoneModal");
+      // Don't show if user already has a phone number
+      if (userDetails?.mobile) return;
       // Delay slightly to allow page to load
       setTimeout(() => {
         dispatch(openPhoneModal());
       }, 1500);
     }
-  }, [dispatch]);
+  }, [dispatch, userDetails]);
 
   // Validate Indian phone number (10 digits)
   const validatePhone = (number: string) => {
@@ -176,7 +181,8 @@ export default function PhoneNumberModal() {
             size="sm"
             onClick={handleSave}
             disabled={loading || !phone}
-            className="flex-1 text-xs bg-gradient-to-r from-brand-700 to-brand-800 hover:from-brand-800 hover:to-brand-900"
+            variant="gradient"
+            className="flex-1 text-xs"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
           </Button>

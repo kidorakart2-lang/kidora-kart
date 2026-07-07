@@ -22,6 +22,8 @@ interface ProductDetail {
   category?: { _id: string; name: string }[];
   subCategory?: { _id: string; name: string }[];
   subSubCategory?: { _id: string; name: string }[];
+  weight?: string;
+  purity?: string;
 }
 
 interface ProductDetailsPageProps {

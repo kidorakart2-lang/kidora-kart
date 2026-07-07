@@ -220,10 +220,10 @@ const SignUpPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
+                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-sm transform hover:-translate-y-0.5 ${
                   loading
                     ? "bg-brand-400 cursor-not-allowed opacity-70"
-                    : "bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"
+                    : "btn-gradient"
                 }`}
                 aria-label={
                   loading

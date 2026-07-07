@@ -54,7 +54,8 @@ export default function LoginModal() {
         <div className="grid gap-4 py-4">
           <Button
             onClick={() => handleNavigation("/login")}
-            className="w-full py-6 text-base bg-gradient-to-r from-brand-700 to-brand-800 hover:from-brand-800 hover:to-brand-900"
+            variant="gradient"
+            className="w-full py-6 text-base"
           >
             Sign In To Continue
           </Button>

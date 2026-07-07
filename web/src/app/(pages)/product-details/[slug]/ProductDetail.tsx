@@ -22,7 +22,7 @@ import { useDispatch } from "react-redux";
 import { addToCart, setBuyNowItem } from "@/redux/features/cart";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
-import { openLoginModal, openRequirementModal } from "@/redux/features/uiSlice";
+import { openLoginModal } from "@/redux/features/uiSlice";
 import { useIsMobile } from "@/hooks/use-mobile";
 import RelatedProducts from "@/components/product/RelatedProducts";
 import Breadcrumb from "./Breadcrumb";
@@ -149,6 +149,7 @@ interface ProductDetailData {
   isPersonalized?: boolean;
   estimated_delivery_time?: string;
   purity?: string;
+  weight?: string;
 }
 
 interface ProductDetailsPageProps {
@@ -216,7 +217,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => router.push("/")}
-            className="bg-gradient-to-r from-brand-600 to-brand-700 text-background px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-shadow"
+            className="btn-gradient px-8 py-3 rounded-xl font-semibold shadow-sm transition-shadow"
           >
             Back to Home
           </motion.button>
@@ -550,6 +551,16 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                     </div>
                   </div>
                 )}
+                {product.weight && (
+                  <div>
+                    <div className="text-base text-foreground mb-1 font-[350]">
+                      Weight -
+                    </div>
+                    <div className="text-base text-foreground font-[350]">
+                      {product.weight}g
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
 
@@ -736,7 +747,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                 disabled={!product.stock}
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full bg-gradient-to-r from-brand-600 to-brand-500 text-background py-4 px-6 rounded-full font-light flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl text-sm uppercase tracking-wider"
+                className="w-full btn-gradient py-4 px-6 rounded-full font-light flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm text-sm uppercase tracking-wider"
               >
                 <span>Buy Now</span>
                 <ShoppingCart size={18} />

@@ -1,5 +1,5 @@
 "use client";
-import { cache, useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   createOrder,
   createRazorpayOrder,
@@ -8,10 +8,9 @@ import {
 } from "@/lib/orderService";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
-import { useMemo } from "react";
 import type { RootState } from "@/redux/store/store";
 import OrederSummery from "@/components/comman/OrederSummery";
-import { useProductsBySlugs, useProduct } from "@/lib/useProduct";
+import { useProductsByIds, useProduct } from "@/lib/useProduct";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -39,7 +38,7 @@ import { getAuthToken } from "@/lib/getAuthToken";
 import { openLoginModal } from "@/redux/features/uiSlice";
 import { useProfileBootstrap } from "@/hooks/useProfileBootstrap";
 import type { CheckoutFormData, OrderSummaryCartItem, ProductData } from "@/types";
-
+import { ArrowLeft, Shield, Truck, RotateCcw } from "lucide-react";
 import { INDIAN_STATES, siteConfig } from "@/lib/utils";
 
 export default function Checkout() {
@@ -61,13 +60,13 @@ export default function Checkout() {
 
   // Fetch product details for buy-now and cart items via TanStack Query
   const directSlug = purchaseType === "direct" ? buyNowItem.slug : null;
-  const cartSlugs = useMemo(() => {
+  const cartIds = useMemo(() => {
     if (purchaseType !== "cart") return [];
-    return [...new Set(cartItemsState.map((item) => item.slug).filter((s): s is string => !!s))];
+    return [...new Set(cartItemsState.map((item) => item.productId).filter(Boolean))];
   }, [purchaseType, cartItemsState]);
 
   const { data: directProduct, isLoading: directLoading } = useProduct(directSlug);
-  const { productMap, isLoading: cartLoading } = useProductsBySlugs(cartSlugs);
+  const { productMap, isLoading: cartLoading } = useProductsByIds(cartIds);
 
   // Build enriched cart items (merge Redux state with fetched product data)
   const cartItems = useMemo(() => {
@@ -100,7 +99,7 @@ export default function Checkout() {
       });
     }
     return cartItemsState.map((item) => {
-      const fetched = item.slug ? productMap.get(item.slug) : undefined;
+      const fetched = item.productId ? productMap.get(item.productId) : undefined;
       const color = fetched?.colors?.find((c) => c._id === item.colorId);
       const size = item.sizeId
         ? fetched?.sizes?.find((s) => s._id === item.sizeId)
@@ -276,17 +275,23 @@ export default function Checkout() {
     }, 300);
   };
 
-  // Load Razorpay script
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.integrity = "sha256-L9w8qlNCXlkRrlUpJyTgpXeVuSZh/NP6l4R1liGYkYs=";
-      script.crossOrigin = "anonymous";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
+  // Load Razorpay script with retry
+  const loadRazorpayScript = async (retries = 2): Promise<boolean> => {
+    if ((window as unknown as { Razorpay?: unknown }).Razorpay) return true;
+
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      const loaded = await new Promise<boolean>((resolve) => {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.crossOrigin = "anonymous";
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+      });
+      if (loaded || (window as unknown as { Razorpay?: unknown }).Razorpay) return true;
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+    return false;
   };
 
   // Handle payment
@@ -315,7 +320,16 @@ export default function Checkout() {
       const orderPayload = {
         purchaseType,
         ...orderData,
-        ...(purchaseType == "direct" && { items: cartItems }),
+        ...(purchaseType == "direct" && {
+        items: (Array.isArray(buyNowItem) ? buyNowItem : [buyNowItem]).map(
+          (item) => ({
+            productId: item.productId,
+            colorId: item.colorId ?? undefined,
+            sizeId: item.sizeId || undefined,
+            quantity: item.quantity,
+          }),
+        ),
+      }),
         isCodAdvance,
       };
 
@@ -329,7 +343,7 @@ export default function Checkout() {
       if (!res) {
         setAlert({
           title:
-            "Razorpay failed to load. Please check your internet connection.",
+            "Payment gateway could not be loaded. Please try again or use a different payment method.",
           open: true,
         });
         return;
@@ -415,23 +429,45 @@ export default function Checkout() {
     <>
       <LoadingUi hidden={loading} />
 
-      <div className="max-w-7xl mx-auto p-4 sm:p-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-8 bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text ">
-          Complete Your Order
-        </h1>
+      <div className="min-h-screen bg-gradient-to-b from-background to-brand-50/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+        {/* Back Button */}
+        <button
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 group"
+        >
+          <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
+          <span>Back</span>
+        </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Shipping & Billing */}
-          <div className="lg:col-span-2 space-y-8">
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="text-3xl md:text-4xl font-light text-foreground tracking-tight">
+            Checkout
+          </h1>
+          <p className="text-muted-foreground text-sm mt-2 font-light">
+            Complete your purchase by filling in the details below
+          </p>
+          <div className="h-px bg-gradient-to-r from-brand-200 via-brand-400/50 to-transparent mt-4" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
+          {/* Left Column - Forms */}
+          <div className="lg:col-span-2 space-y-6">
             {/* Shipping Address */}
-            <div className="bg-background rounded-2xl p-6 shadow-sm border border-brand-100">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-medium">
+            <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md">
+              <div className="flex items-center justify-between mb-7">
+                <div className="flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-full bg-brand-600 text-background flex items-center justify-center text-sm font-medium shadow-sm">
                     1
                   </span>
-                  Shipping Information
-                </h2>
+                  <div>
+                    <h2 className="text-base font-semibold text-foreground">
+                      Shipping Information
+                    </h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">Enter your delivery address</p>
+                  </div>
+                </div>
               </div>
 
               {/* Saved Address Prompt */}
@@ -698,13 +734,18 @@ export default function Checkout() {
               cartItems[0]?.product?.isPersonalized && <Personalized />}
 
             {/* Gift Options */}
-            <div className="bg-background rounded-2xl p-6 shadow-sm border border-brand-100">
-              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-6">
-                <span className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-medium">
+            <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md">
+              <div className="flex items-center gap-3 mb-7">
+                <span className="w-8 h-8 rounded-full bg-brand-600 text-background flex items-center justify-center text-sm font-medium shadow-sm">
                   2
                 </span>
-                Gift Options
-              </h2>
+                <div>
+                  <h2 className="text-base font-semibold text-foreground">
+                    Gift Options
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">Make your order extra special</p>
+                </div>
+              </div>
 
               <div className="flex items-start space-x-3">
                 <div className="flex items-center h-5 mt-0.5">
@@ -788,13 +829,18 @@ export default function Checkout() {
             </div>
 
             {/* Order Notes */}
-            <div className="bg-background rounded-2xl p-6 shadow-sm border border-brand-100">
-              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
-                <span className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-medium">
+            <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md">
+              <div className="flex items-center gap-3 mb-7">
+                <span className="w-8 h-8 rounded-full bg-brand-600 text-background flex items-center justify-center text-sm font-medium shadow-sm">
                   3
                 </span>
-                Additional Information
-              </h2>
+                <div>
+                  <h2 className="text-base font-semibold text-foreground">
+                    Additional Information
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">Order notes and preferences</p>
+                </div>
+              </div>
 
               <div className="space-y-4">
                 {/* Order Notes */}
@@ -822,9 +868,10 @@ export default function Checkout() {
 
           {/* Right Column - Order Summary */}
           <div className="lg:col-span-1">
-            <div className="sticky top-6">
-              <div className="bg-background rounded-2xl p-6 shadow-sm border border-brand-100">
-                <h2 className="text-lg font-semibold text-foreground mb-4">
+            <div className="sticky top-6 space-y-6">
+              <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100">
+                <h2 className="text-base font-semibold text-foreground mb-6 flex items-center gap-2">
+                  <span className="w-1.5 h-5 rounded-full bg-brand-600" />
                   Order Summary
                 </h2>
 
@@ -835,169 +882,117 @@ export default function Checkout() {
                   coupon={couponCode}
                 />
 
-                {/* Payment Button */}
-                <div className="mt-6">
-                  <SwipeButton
-                    onSwipeComplete={handlePayment}
-                    text="Pay Online With Razorpay"
-                    className="w-full"
-                  />
-                  <p className="text-[10px] text-muted-foreground text-center mt-1">Swipe to complete payment</p>
+                {/* Payment Options */}
+                <div className="mt-8 space-y-4">
+                  {/* Razorpay */}
+                  <div className="space-y-2">
+                    <SwipeButton
+                      onSwipeComplete={handlePayment}
+                      text="Pay Online"
+                      className="w-full"
+                    />
+                    <p className="text-[10px] text-muted-foreground text-center flex items-center justify-center gap-1">
+                      <Shield size={10} />
+                      Secured by Razorpay
+                    </p>
+                  </div>
 
-                  {
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          className="w-full mt-4 py-5 px-6 rounded-xl font-semibold  transition-all border-2 border-brand-500"
-                          variant="outline"
+                  {/* Cash on Delivery Divider */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-border" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-3 text-muted-foreground">or</span>
+                    </div>
+                  </div>
+
+                  {/* Cash on Delivery */}
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        className="w-full py-5 px-6 rounded-xl font-medium transition-all border-2 border-brand-200 hover:border-brand-400 hover:bg-brand-50/50 text-foreground"
+                        variant="outline"
+                      >
+                        Cash on Delivery
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="border-brand-500/30 shadow-xl">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-foreground">
+                          Confirm Cash on Delivery
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          You'll pay when your order arrives. Please ensure your shipping address is correct.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="border-brand-500/30 text-foreground hover:bg-brand-500/10">Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handlePayment(true)}
+                          disabled={loading}
+                          className="bg-brand-600 hover:bg-brand-700 text-background"
                         >
-                          Purchase With Cash On delivery
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="border-brand-500/30 shadow-xl">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="text-foreground">
-                            Do you want to Continue?
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Purchase The Item With Cash ON delivery , Please
-                            Click On Continue To Complete Order
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="border-brand-500/30 text-foreground hover:bg-brand-500/10">Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handlePayment(true)}
-                            disabled={loading}
-                            className="bg-brand-600 hover:bg-brand-700 text-background"
-                          >
-                            Continue
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  }
-                  <div className="mt-4 flex items-center justify-center space-x-2">
-                    <svg
-                      className="w-8 h-8"
-                      viewBox="0 0 38 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M35 0H3C1.3 0 0 1.3 0 3v18c0 1.7 1.4 3 3 3h32c1.7 0 3-1.3 3-3V3c0-1.7-1.4-3-3-3z"
-                        fill="#FF5F00"
-                      />
-                      <path
-                        d="M35 1c1.1 0 2 .9 2 2v18c0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2V3c0-1.1.9-2 2-2h32z"
-                        fill="#EB001B"
-                      />
-                      <path
-                        d="M35 1H17v22h18c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2z"
-                        fill="#F79E1B"
-                      />
+                          Confirm Order
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+
+                  {/* Payment Methods Icons */}
+                  <div className="flex items-center justify-center gap-3 pt-2">
+                    {/* Visa */}
+                    <img
+                      src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/visa.svg"
+                      alt="Visa"
+                      className="h-6 w-auto opacity-60 transition-all hover:opacity-100"
+                      loading="lazy"
+                    />
+                    {/* Mastercard */}
+                    <img
+                      src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/mastercard.svg"
+                      alt="Mastercard"
+                      className="h-6 w-auto opacity-60 transition-all hover:opacity-100"
+                      loading="lazy"
+                    />
+                    {/* RuPay */}
+                    <svg viewBox="0 0 60 36" className="h-6 w-auto opacity-60 transition-all hover:opacity-100" aria-label="RuPay" role="img">
+                      <rect width="60" height="36" rx="6" fill="#094183" />
+                      <text x="30" y="23" textAnchor="middle" fill="white" fontSize="12" fontFamily="Arial, sans-serif" fontWeight="bold">RuPay</text>
                     </svg>
-                    <svg
-                      className="w-8 h-8"
-                      viewBox="0 0 38 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M35 0H3C1.3 0 0 1.3 0 3v18c0 1.7 1.4 3 3 3h32c1.7 0 3-1.3 3-3V3c0-1.7-1.4-3-3-3z"
-                        fill="#1976D2"
-                      />
-                      <path
-                        d="M35 1c1.1 0 2 .9 2 2v18c0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2V3c0-1.1.9-2 2-2h32z"
-                        fill="#03A9F4"
-                      />
-                      <path
-                        d="M35 1H17v22h18c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2z"
-                        fill="#4CAF50"
-                      />
-                      <path
-                        d="M35 1H17v22h18c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2z"
-                        fill="#F44336"
-                      />
-                      <path
-                        d="M35 1H17v22h18c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2z"
-                        fill="#FFC107"
-                      />
-                    </svg>
-                    <svg
-                      className="w-8 h-8"
-                      viewBox="0 0 38 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M35 0H3C1.3 0 0 1.3 0 3v18c0 1.7 1.4 3 3 3h32c1.7 0 3-1.3 3-3V3c0-1.7-1.4-3-3-3z"
-                        fill="#5C2D91"
-                      />
-                      <path
-                        d="M35 1c1.1 0 2 .9 2 2v18c0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2V3c0-1.1.9-2 2-2h32z"
-                        fill="#7B3F84"
-                      />
-                      <path
-                        d="M35 1H17v22h18c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2z"
-                        fill="#00AAE4"
-                      />
-                    </svg>
+                    {/* Google Pay */}
+                    <img
+                      src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/googlepay.svg"
+                      alt="Google Pay"
+                      className="h-6 w-auto opacity-60 transition-all hover:opacity-100"
+                      loading="lazy"
+                    />
+                    {/* PhonePe */}
+                    <img
+                      src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/phonepe.svg"
+                      alt="PhonePe"
+                      className="h-6 w-auto opacity-60 transition-all hover:opacity-100"
+                      loading="lazy"
+                    />
                   </div>
                 </div>
               </div>
 
               {/* Security Badges */}
-              <div className="mt-4 flex items-center justify-center space-x-4">
-                <div className="text-center">
-                  <div className="w-10 h-10 mx-auto bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-1">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Secure Payment</p>
-                </div>
-
-                <div className="text-center">
-                  <div className="w-10 h-10 mx-auto bg-brand-100 rounded-full flex items-center justify-center text-brand-600 mb-1">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Genuine Products</p>
-                </div>
-
-                <div className="text-center">
-                  <div className="w-10 h-10 mx-auto bg-brand-100 rounded-full flex items-center justify-center text-brand-600 mb-1">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                      <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 00.9-1.45l-1.33-2.67A3 3 0 0010.5 9h3.5a1 1 0 00.9-1.45l-1.33-2.67A3 3 0 0012.5 3H3z" />
-                    </svg>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Free Shipping</p>
+              <div className="bg-background rounded-xl p-5 shadow-sm border border-brand-100">
+                <div className="grid grid-cols-3 gap-4">
+                  {[
+                    { icon: Shield, label: "Secure Payment", color: "text-green-600", bg: "bg-green-100" },
+                    { icon: RotateCcw, label: "Easy Returns", color: "text-brand-600", bg: "bg-brand-100" },
+                    { icon: Truck, label: "Free Shipping", color: "text-brand-600", bg: "bg-brand-100" },
+                  ].map(({ icon: Icon, label, color, bg }) => (
+                    <div key={label} className="text-center">
+                      <div className={`w-10 h-10 mx-auto ${bg} rounded-full flex items-center justify-center ${color} mb-1.5`}>
+                        <Icon size={18} />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -1019,6 +1014,7 @@ export default function Checkout() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+      </div>
       </div>
     </>
   );

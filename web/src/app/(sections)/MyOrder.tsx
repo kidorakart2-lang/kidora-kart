@@ -10,6 +10,7 @@ import {
   Eye,
   Loader2,
   XCircle,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -129,6 +130,7 @@ export default function MyOrders() {
     shipped: "bg-brand-accent-100 text-brand-accent-800 border-brand-accent-300",
     delivered: "bg-green-100 text-green-800 border-green-300",
     cancelled: "bg-muted text-muted-foreground border-border",
+    payment_failed: "bg-red-100 text-red-800 border-red-300",
   };
 
   const filters = [
@@ -138,6 +140,7 @@ export default function MyOrders() {
     { value: "shipped", label: "Shipped" },
     { value: "delivered", label: "Delivered" },
     { value: "cancelled", label: "Cancelled" },
+    { value: "payment_failed", label: "Payment Failed" },
   ];
 
   return (
@@ -330,6 +333,20 @@ export default function MyOrders() {
                               Cancel
                             </Button>
                           )}
+                          {order.status === "payment_failed" && (
+                            <Button
+                              onClick={() =>
+                                router.push(
+                                  `/order-track?orderId=${order.orderId}`
+                                )
+                              }
+                              size="sm"
+                              className="bg-gradient-to-r from-orange-500 to-orange-600 text-background hover:from-orange-600 hover:to-orange-700"
+                            >
+                              <RefreshCw className="w-4 h-4 mr-1" />
+                              Retry Payment
+                            </Button>
+                          )}
                           <Button
                             onClick={() =>
                               router.push(
@@ -337,7 +354,7 @@ export default function MyOrders() {
                               )
                             }
                             size="sm"
-                            className="bg-gradient-to-r from-brand-500 to-brand-600 text-background hover:from-brand-600 hover:to-brand-700"
+                            className="btn-gradient"
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             View Details

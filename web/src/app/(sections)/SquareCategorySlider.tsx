@@ -37,7 +37,7 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
         </p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {allSubCategories.length > 0 && (
           <Swiper
             modules={[Autoplay]}

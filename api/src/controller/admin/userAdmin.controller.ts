@@ -48,7 +48,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body as { email?: string; password?: string };
     if (!email || !password) {
-      res.status(400).json({ _status: false, _message: "All fields are required" });
+      res.status(400).json({ _status: false, _message: "Email and password are required" });
       return;
     }
     const user = await userModel.findOne({ email, role: "admin" })

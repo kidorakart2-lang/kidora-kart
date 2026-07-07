@@ -296,10 +296,8 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
           <button
             onClick={() => router.push("/category/new-arrival")}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-600 to-brand-700 
-                     hover:from-brand-700 hover:to-brand-800 text-background font-medium py-3 px-8 
-                     rounded-full transition-all duration-300 shadow-lg hover:shadow-xl 
-                     hover:shadow-brand-500/30 transform hover:scale-105"
+            className="inline-flex items-center gap-2 btn-gradient font-medium py-3 px-8 
+                     rounded-full transition-all duration-300 shadow-sm transform hover:scale-105"
           >
             <ShoppingBag size={18} />
             Start Shopping
@@ -313,7 +311,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
   return (
     <>
       <main className="py-12 md:py-16 bg-gradient-to-b from-brand-50/30 via-white to-brand-50/30 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 mb-4">
@@ -571,10 +569,8 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                   <div className="space-y-3">
                     <Link href="/checkout?type=cart">
                       <button
-                        className="w-full bg-gradient-to-r from-brand-600 to-brand-700 
-                                       hover:from-brand-700 hover:to-brand-800 text-background font-semibold 
-                                       py-4 rounded-xl transition-all duration-300 shadow-lg 
-                                       hover:shadow-xl hover:shadow-brand-500/30 transform hover:scale-[1.02]
+                        className="w-full btn-gradient font-semibold 
+                                       py-4 rounded-xl transition-all duration-300 shadow-sm transform hover:scale-[1.02]
                                        flex items-center justify-center gap-2"
                       >
                         Proceed to Checkout

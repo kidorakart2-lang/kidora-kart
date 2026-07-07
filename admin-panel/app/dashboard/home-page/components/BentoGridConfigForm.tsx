@@ -159,8 +159,7 @@ function BentoCellEditor({
 
   useEffect(() => {
     loadItems(sourceType, search)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [loadItems, sourceType, search])
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const handleSearch = (val: string) => {
@@ -174,7 +173,6 @@ function BentoCellEditor({
   const handleSourceTypeChange = (newType: string) => {
     onChange({ sourceType: newType, sourceId: undefined, image: "", title: "", subtitle: "", linkType: "none", linkTarget: "" })
     setSearchState("")
-    loadItems(newType, "")
   }
 
   const selectItem = (item: any) => {
@@ -265,12 +263,12 @@ function BentoCellEditor({
       </Select>
 
       <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder={`Search ${sourceType === "product" ? "products" : sourceType === "category" ? "categories" : sourceType === "subCategory" ? "sub categories" : sourceType === "banner" ? "banners" : "items"}...`}
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
-          className="pl-7 h-8 text-xs"
+          className="pl-8 h-8 text-xs"
         />
       </div>
 
@@ -284,7 +282,7 @@ function BentoCellEditor({
             {search.trim() ? "No matches found" : `No ${sourceType === "product" ? "products" : "items"} available`}
           </p>
         ) : (
-          items.slice(0, 10).map((item: any) => {
+          items.map((item: any) => {
             const isSelected = cell.sourceId === item._id
             const itemImage = item.image || item.images?.[0] || ""
             const itemLabel = item.name || item.title || ""

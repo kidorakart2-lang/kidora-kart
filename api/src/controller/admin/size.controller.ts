@@ -24,7 +24,7 @@ export const create = async (
 
     response.status(201).json({
       _status: true,
-      _message: "Data Inserted",
+      _message: "Size created successfully",
       _data: ress,
     });
   } catch (err) {
@@ -39,7 +39,7 @@ export const create = async (
     }
     response.status(500).json({
       _status: false,
-      _message: "Internal Server Error",
+      _message: "Failed to create size — an unexpected error occurred",
       _data: [],
     });
   }
@@ -79,13 +79,13 @@ export const view = async (
 
     response.status(200).json({
       _status: true,
-      _message: "Data Found",
+      _message: "Sizes found",
       _data: ress,
     });
   } catch (err) {
     response.status(500).json({
       _status: false,
-      _message: "Something Went Wrong",
+      _message: "Failed to fetch sizes",
       _data: null,
     });
   }
@@ -99,7 +99,7 @@ export const destroy = async (
     if (!request.body.id) {
       response.status(400).json({
         _status: false,
-        _message: "ID is required",
+        _message: "Size ID is required",
         _data: null,
       });
       return;
@@ -107,14 +107,14 @@ export const destroy = async (
 
     const existing = await size.findById(request.body.id).select("_id deletedAt").lean();
     if (!existing) {
-      response.status(404).json({ _status: false, _message: "No Data Found", _data: null });
+      response.status(404).json({ _status: false, _message: "Size not found", _data: null });
       return;
     }
     if (existing.deletedAt) {
       // Already soft-deleted → permanently delete
       await size.findByIdAndDelete(request.body.id);
       cache.del("sizeData");
-      response.status(200).json({ _status: true, _message: "Data Permanently Deleted", _data: null });
+      response.status(200).json({ _status: true, _message: "Size permanently deleted", _data: null });
       return;
     }
 
@@ -125,13 +125,13 @@ export const destroy = async (
     cache.del("sizeData");
     response.status(200).json({
       _status: true,
-      _message: "Data Deleted",
+      _message: "Size deleted",
       _data: null,
     });
   } catch (err) {
     response.status(500).json({
       _status: false,
-      _message: "Failed to delete data",
+      _message: "Failed to delete size",
       _data: null,
     });
   }
@@ -145,7 +145,7 @@ export const details = async (
     if (!request.body.id) {
       response.status(400).json({
         _status: false,
-        _message: "ID is required",
+        _message: "Size ID is required",
         _data: null,
       });
       return;
@@ -155,7 +155,7 @@ export const details = async (
     if (!result) {
       response.status(404).json({
         _status: false,
-        _message: "No Data Found",
+        _message: "Size not found",
         _data: null,
       });
       return;
@@ -163,13 +163,13 @@ export const details = async (
 
     response.status(200).json({
       _status: true,
-      _message: "Data Found",
+      _message: "Size found",
       _data: result,
     });
   } catch (err) {
     response.status(500).json({
       _status: false,
-      _message: "Failed to fetch data",
+      _message: "Failed to fetch size details",
       _data: null,
     });
   }
@@ -184,7 +184,7 @@ export const update = async (
     if (!id) {
       response.status(400).json({
         _status: false,
-        _message: "ID is required",
+        _message: "Size ID is required",
         _data: null,
       });
       return;
@@ -194,7 +194,7 @@ export const update = async (
     if (ress.matchedCount === 0) {
       response.status(404).json({
         _status: false,
-        _message: "No Data Found",
+        _message: "Size not found",
         _data: null,
       });
       return;
@@ -202,7 +202,7 @@ export const update = async (
     cache.del("sizeData");
     response.status(200).json({
       _status: true,
-      _message: "Data Updated",
+      _message: "Size updated",
       _data: ress,
     });
   } catch (err) {
@@ -217,7 +217,7 @@ export const update = async (
     }
     response.status(500).json({
       _status: false,
-      _message: "Failed to update data",
+      _message: "Failed to update size",
       _data: null,
     });
   }
@@ -231,7 +231,7 @@ export const changeStatus = async (
     if (!request.body.id) {
       response.status(400).json({
         _status: false,
-        _message: "ID is required",
+        _message: "Size ID is required",
         _data: null,
       });
       return;
@@ -244,7 +244,7 @@ export const changeStatus = async (
     if (result.matchedCount === 0) {
       response.status(404).json({
         _status: false,
-        _message: "No Data Found",
+        _message: "Size not found",
         _data: null,
       });
       return;
@@ -252,13 +252,13 @@ export const changeStatus = async (
     cache.del("sizeData");
     response.status(200).json({
       _status: true,
-      _message: "Status Changed",
+      _message: "Size status changed",
       _data: result,
     });
   } catch (err) {
     response.status(500).json({
       _status: false,
-      _message: "Failed to change status",
+      _message: "Failed to change size status",
       _data: null,
     });
   }

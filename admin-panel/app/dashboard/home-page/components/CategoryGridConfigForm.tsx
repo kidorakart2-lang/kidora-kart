@@ -15,6 +15,15 @@ import {
 import { Loader2, Search, Check } from "lucide-react"
 import type { SectionConfig } from "../types"
 
+interface SelectableItem {
+  _id: string
+  name?: string
+  title?: string
+  image?: string
+  slug?: string
+  images?: string[]
+}
+
 interface Props {
   config: SectionConfig
   onChange: (cfg: SectionConfig) => void
@@ -26,27 +35,29 @@ export default function CategoryGridConfigForm({ config, onChange }: Props) {
   const selectedIds = (config.categorySelectedIds as string[]) || []
   const search = (config.categorySearch as string) || ""
 
-  const [items, setItems] = useState<any[]>([])
+  const [items, setItems] = useState<SelectableItem[]>([])
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
 
-  const loadItems = useCallback(async (type: string, searchTerm: string) => {
+  const LIMIT = 20
+
+  const loadItems = useCallback(async (type: string, searchTerm: string, pageNum: number) => {
     setLoading(true)
     try {
-      let data: any[] = []
+      let data: SelectableItem[] = []
       switch (type) {
         case "category": {
-          const res = await api.postRaw<{ _data: any[] }>("/api/admin/category/view", { name: searchTerm || undefined, limit: 20 })
+          const res = await api.postRaw<{ _data: SelectableItem[] }>("/api/admin/category/view", { name: searchTerm || undefined, limit: LIMIT, page: pageNum })
           data = res._data ?? []
           break
         }
         case "subCategory": {
-          const res = await api.postRaw<{ _data: any[] }>("/api/admin/subcategory/view", { name: searchTerm || undefined, limit: 20 })
+          const res = await api.postRaw<{ _data: SelectableItem[] }>("/api/admin/subcategory/view", { name: searchTerm || undefined, limit: LIMIT, page: pageNum })
           data = res._data ?? []
           break
         }
         case "subSubCategory": {
-          const res = await api.postRaw<{ _data: any[] }>("/api/admin/subsubcategory/view", { name: searchTerm || undefined, limit: 20 })
+          const res = await api.postRaw<{ _data: SelectableItem[] }>("/api/admin/subsubcategory/view", { name: searchTerm || undefined, limit: LIMIT, page: pageNum })
           data = res._data ?? []
           break
         }
@@ -62,19 +73,19 @@ export default function CategoryGridConfigForm({ config, onChange }: Props) {
   }, [])
 
   useEffect(() => {
-    loadItems(sourceType, search)
-  }, [loadItems, sourceType, search])
+    loadItems(sourceType, search, page)
+  }, [loadItems, sourceType, search, page])
 
   const toggleItem = (id: string) => {
-    const item = items.find((i: any) => i._id === id)
+    const item = items.find((i: SelectableItem) => i._id === id)
     const updatedIds = selectedIds.includes(id)
       ? selectedIds.filter((i) => i !== id)
       : [...selectedIds, id]
 
-    const currentItems = (config.categoryItems as any[]) || []
+    const currentItems = (config.categoryItems as SelectableItem[]) || []
     let updatedItems
     if (selectedIds.includes(id)) {
-      updatedItems = currentItems.filter((i: any) => i._id !== id)
+      updatedItems = currentItems.filter((i) => i._id !== id)
     } else if (item) {
       updatedItems = [...currentItems, { _id: item._id, name: item.name || item.title || "", image: item.image || item.images?.[0] || "", slug: item.slug || "" }]
     } else {
@@ -91,7 +102,6 @@ export default function CategoryGridConfigForm({ config, onChange }: Props) {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
       setPage(1)
-      loadItems(sourceType, val)
     }, 300)
   }
 
@@ -100,7 +110,10 @@ export default function CategoryGridConfigForm({ config, onChange }: Props) {
     set("categorySelectedIds", [])
     set("categoryItems", [])
     set("categorySearch", "")
+    setPage(1)
   }
+
+  const isLastPage = items.length < LIMIT
 
   return (
     <div className="space-y-4">
@@ -147,7 +160,7 @@ export default function CategoryGridConfigForm({ config, onChange }: Props) {
             {search.trim() ? "No matches found" : `No ${sourceType === "category" ? "categories" : "items"} available`}
           </p>
         ) : (
-          items.map((item: any) => {
+          items.map((item: SelectableItem) => {
             const isSelected = selectedIds.includes(item._id)
             const itemImage = item.image || item.images?.[0] || ""
             const itemLabel = item.name || item.title || ""
@@ -187,6 +200,14 @@ export default function CategoryGridConfigForm({ config, onChange }: Props) {
           ? `${selectedIds.length} item(s) selected`
           : "No items selected — section will not render"}
       </p>
+
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] text-muted-foreground">Page {page}{isLastPage ? "" : "+"}</p>
+        <div className="flex gap-1">
+          <Button variant="outline" size="sm" className="h-7 text-xs" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
+          <Button variant="outline" size="sm" className="h-7 text-xs" disabled={isLastPage} onClick={() => setPage((p) => p + 1)}>Next</Button>
+        </div>
+      </div>
     </div>
   )
 }

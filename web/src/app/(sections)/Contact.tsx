@@ -229,7 +229,8 @@ export default function ContactPage() {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-brand-500 hover:bg-brand-600 transition-all duration-300 hover:scale-[1.02] disabled:hover:scale-100"
+                    variant="gradient"
+                    className="w-full"
                     aria-busy={isLoading}
                   >
                     {isLoading ? (

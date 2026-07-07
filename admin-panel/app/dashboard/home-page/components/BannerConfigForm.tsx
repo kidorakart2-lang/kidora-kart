@@ -71,12 +71,7 @@ export default function BannerConfigForm({ config, onChange }: Props) {
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => {
-              set("bannerMode", "slider")
-              if (selectedIds.length > 1) {
-                set("selectedBannerIds", [selectedIds[0]])
-              }
-            }}
+            onClick={() => onChange({ ...config, bannerMode: "slider", ...(selectedIds.length > 1 ? { selectedBannerIds: [selectedIds[0]] } : {}) })}
             className={`flex-1 p-2 rounded-lg border text-sm transition-all cursor-pointer ${
               mode === "slider"
                 ? "border-primary bg-primary/5 ring-2 ring-primary/20"
@@ -88,12 +83,7 @@ export default function BannerConfigForm({ config, onChange }: Props) {
           </button>
           <button
             type="button"
-            onClick={() => {
-              set("bannerMode", "single")
-              if (selectedIds.length > 1) {
-                set("selectedBannerIds", [selectedIds[0]])
-              }
-            }}
+            onClick={() => onChange({ ...config, bannerMode: "single", ...(selectedIds.length > 1 ? { selectedBannerIds: [selectedIds[0]] } : {}) })}
             className={`flex-1 p-2 rounded-lg border text-sm transition-all cursor-pointer ${
               mode === "single"
                 ? "border-primary bg-primary/5 ring-2 ring-primary/20"

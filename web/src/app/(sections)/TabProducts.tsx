@@ -12,7 +12,7 @@ export default function TabProducts({ data }: { data: Record<string, ProductData
       className="py-5 lg:py-12 bg-section relative overflow-hidden"
       id="Products For You"
     >
-      <div className="max-w-7xl mx-auto px-2 sm:px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <Tabs defaultValue="silver" className="w-full">
           {/* Tab Navigation */}
           <div className="flex flex-col items-center mb-12">
@@ -141,7 +141,7 @@ export default function TabProducts({ data }: { data: Record<string, ProductData
           {/* View More Button */}
           <div className="flex justify-center mt-12 lg:mt-16">
             <Link href="/category/new-arrivals">
-              <Button className="group relative bg-gradient-to-r from-[var(--brand-primary-dark)] to-[var(--brand-primary)] hover:from-[var(--brand-primary)] hover:to-[var(--brand-primary-dark)] text-background px-10 py-6 rounded-full font-semibold text-sm uppercase tracking-wider shadow-lg transition-all duration-500 overflow-hidden">
+              <Button variant="gradient" className="group relative px-10 py-6 rounded-full font-semibold text-sm uppercase tracking-wider shadow-lg transition-all duration-500 overflow-hidden">
                 <span className="relative flex items-center gap-3">
                   View More
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />

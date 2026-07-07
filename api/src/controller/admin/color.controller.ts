@@ -25,7 +25,7 @@ export const create = async (
     cache.del("colorData");
     response.status(201).json({
       _status: true,
-      _message: "Data Inserted",
+      _message: "Color created successfully",
       _data: ress,
     });
   } catch (err) {
@@ -40,7 +40,7 @@ export const create = async (
     }
     response.status(500).json({
       _status: false,
-      _message: "Internal Server Error",
+      _message: "Failed to create color — an unexpected error occurred",
       _data: [],
     });
   }
@@ -81,13 +81,13 @@ export const view = async (
 
     response.status(200).json({
       _status: true,
-      _message: "Data Found",
+      _message: "Colors found",
       _data: ress,
     });
   } catch (err) {
     response.status(500).json({
       _status: false,
-      _message: "Something Went Wrong",
+      _message: "Failed to fetch colors",
       _data: null,
     });
   }
@@ -101,7 +101,7 @@ export const destroy = async (
     if (!request.body.id) {
       response.status(400).json({
         _status: false,
-        _message: "ID is required",
+        _message: "Color ID is required",
         _data: null,
       });
       return;
@@ -109,14 +109,14 @@ export const destroy = async (
 
     const existing = await color.findById(request.body.id).select("_id deletedAt").lean();
     if (!existing) {
-      response.status(404).json({ _status: false, _message: "No Data Found", _data: null });
+      response.status(404).json({ _status: false, _message: "Color not found", _data: null });
       return;
     }
     if (existing.deletedAt) {
       // Already soft-deleted → permanently delete
       await color.findByIdAndDelete(request.body.id);
       cache.del("colorData");
-      response.status(200).json({ _status: true, _message: "Data Permanently Deleted", _data: null });
+      response.status(200).json({ _status: true, _message: "Color permanently deleted", _data: null });
       return;
     }
 
@@ -128,13 +128,13 @@ export const destroy = async (
 
     response.status(200).json({
       _status: true,
-      _message: "Data Deleted",
+      _message: "Color deleted",
       _data: null,
     });
   } catch (err) {
     response.status(500).json({
       _status: false,
-      _message: "Failed to delete data",
+      _message: "Failed to delete color",
       _data: null,
     });
   }
@@ -148,7 +148,7 @@ export const details = async (
     if (!request.body.id) {
       response.status(400).json({
         _status: false,
-        _message: "ID is required",
+        _message: "Color ID is required",
         _data: null,
       });
       return;
@@ -158,7 +158,7 @@ export const details = async (
     if (!result) {
       response.status(404).json({
         _status: false,
-        _message: "No Data Found",
+        _message: "Color not found",
         _data: null,
       });
       return;
@@ -166,13 +166,13 @@ export const details = async (
 
     response.status(200).json({
       _status: true,
-      _message: "Data Found",
+      _message: "Color found",
       _data: result,
     });
   } catch (err) {
     response.status(500).json({
       _status: false,
-      _message: "Failed to fetch data",
+      _message: "Failed to fetch color details",
       _data: null,
     });
   }
@@ -187,7 +187,7 @@ export const update = async (
     if (!id) {
       response.status(400).json({
         _status: false,
-        _message: "ID is required",
+        _message: "Color ID is required",
         _data: null,
       });
       return;
@@ -198,7 +198,7 @@ export const update = async (
     if (ress.matchedCount === 0) {
       response.status(404).json({
         _status: false,
-        _message: "No Data Found",
+        _message: "Color not found",
         _data: null,
       });
       return;
@@ -206,7 +206,7 @@ export const update = async (
     cache.del("colorData");
     response.status(200).json({
       _status: true,
-      _message: "Data Updated",
+      _message: "Color updated",
       _data: ress,
     });
   } catch (err) {
@@ -221,7 +221,7 @@ export const update = async (
     }
     response.status(500).json({
       _status: false,
-      _message: "Failed to update data",
+      _message: "Failed to update color",
       _data: null,
     });
   }
@@ -235,7 +235,7 @@ export const changeStatus = async (
     if (!request.body.id) {
       response.status(400).json({
         _status: false,
-        _message: "ID is required",
+        _message: "Color ID is required",
         _data: null,
       });
       return;
@@ -249,20 +249,20 @@ export const changeStatus = async (
     if (result.matchedCount === 0) {
       response.status(404).json({
         _status: false,
-        _message: "No Data Found",
+        _message: "Color not found",
         _data: null,
       });
       return;
     }
     response.status(200).json({
       _status: true,
-      _message: "Status Changed",
+      _message: "Color status changed",
       _data: result,
     });
   } catch (err) {
     response.status(500).json({
       _status: false,
-      _message: "Failed to change status",
+      _message: "Failed to change color status",
       _data: null,
     });
   }
