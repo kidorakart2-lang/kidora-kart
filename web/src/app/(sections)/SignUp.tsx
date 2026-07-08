@@ -10,10 +10,10 @@ import {
   syncGuestCartToServer,
   syncGuestWishlistToServer,
 } from "@/lib/syncGuestData";
-import {
-  fetchAndDispatchCart,
-  fetchAndDispatchWishlist,
-} from "@/lib/fetchCartWislist";
+import { useQueryClient } from "@tanstack/react-query";
+import { cartKeys } from "@/lib/useCart";
+import { wishlistKeys } from "@/lib/useWishlist";
+import { userKeys } from "@/lib/useProfile";
 import Link from "next/link";
 import GoogleLoginBtn from "@/components/comman/GoogleLoginBtn";
 import StrongPasswordInput from "@/components/comman/StrongPasswordInput";
@@ -41,6 +41,7 @@ const SignUpPage = () => {
 
   const router = useRouter();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const returnTo = useSearchParams().get("returnTo");
 
   // Read guest data from Redux state (persisted in localStorage via redux-persist)
@@ -89,11 +90,10 @@ const SignUpPage = () => {
         dispatch(clearGuestWishlist());
       }
 
-      // Always fetch fresh cart and wishlist from server after signup
-      await Promise.all([
-        fetchAndDispatchCart(dispatch),
-        fetchAndDispatchWishlist(dispatch),
-      ]);
+      // Invalidate React Query caches — hooks in Header/GuestDataInitializer auto-refetch
+      queryClient.invalidateQueries({ queryKey: cartKeys.all });
+      queryClient.invalidateQueries({ queryKey: wishlistKeys.all });
+      queryClient.invalidateQueries({ queryKey: userKeys.all });
 
       router.push(returnTo || "/profile?tab=profile");
     } catch (err: unknown) {

@@ -188,12 +188,25 @@ export const createOrder = async (
       const cartItemsString = JSON.stringify(orderItems.map(i => ({ product: String(i.productId), quantity: i.quantity })));
       orderHash = crypto.createHash("sha256").update(cartItemsString).digest("hex");
 
-      const existingOrder = await Order.findOne({ idempotencyKey, userId })
+      // An idempotency key represents ONE specific checkout attempt.
+      // If a non-terminal order with this key exists AND its payload hash matches,
+      // the client is retrying the same network call → return the cached order.
+      // If the hash differs, the client is reusing the key with different
+      // business data → reject as a 409 (key collision bug, not a legit retry).
+      const existingOrder = await Order.findOne({
+        idempotencyKey,
+        userId,
+        status: { $in: ["pending", "payment_failed"] },
+      })
         .select("idempotencyHash orderId pricing.total")
         .lean();
       if (existingOrder) {
         if (existingOrder.idempotencyHash && existingOrder.idempotencyHash !== orderHash) {
-          res.status(409).json({ success: false, message: "Cart contents have changed since idempotency key was created" });
+          res.status(409).json({
+            success: false,
+            message:
+              "Idempotency key reused with a different cart. Generate a new key for each checkout attempt.",
+          });
           return;
         }
         res.status(200).json({
@@ -204,6 +217,26 @@ export const createOrder = async (
             _id: existingOrder._id,
             total: existingOrder.pricing?.total,
           },
+        });
+        return;
+      }
+
+      // A terminal-status order (confirmed/shipped/delivered/cancelled) already
+      // consumed this key. The client must generate a fresh UUID for any new
+      // checkout attempt — rejecting stale-key reuse prevents accidental
+      // deduplication of a legitimate repeat purchase.
+      const terminalOrder = await Order.findOne({
+        idempotencyKey,
+        userId,
+        status: { $nin: ["pending", "payment_failed"] },
+      })
+        .select("_id")
+        .lean();
+      if (terminalOrder) {
+        res.status(409).json({
+          success: false,
+          message:
+            "This checkout attempt has already completed. Start a new checkout to place another order.",
         });
         return;
       }
@@ -236,33 +269,9 @@ export const createOrder = async (
     try {
       await order.save();
     } catch (err) {
-      // Race condition: two requests with the same idempotency key hit
-      // save() at nearly the same time. The unique index rejects the
-      // second insert — fetch and return the one that won instead of erroring.
-      if (
-        err &&
-        typeof err === "object" &&
-        "code" in err &&
-        (err as { code: number }).code === 11000 &&
-        "keyPattern" in err &&
-        (err as { keyPattern: Record<string, unknown> }).keyPattern?.idempotencyKey
-      ) {
-        const existingOrder = await Order.findOne({ idempotencyKey, userId })
-          .select("orderId pricing.total")
-          .lean();
-        if (existingOrder) {
-          res.status(200).json({
-            success: true,
-            message: "Order already created",
-            order: {
-              orderId: existingOrder.orderId,
-              _id: existingOrder._id,
-              total: existingOrder.pricing?.total,
-            },
-          });
-          return;
-        }
-      }
+      // There is no unique index on (userId, idempotencyKey), so 11000 errors
+      // for idempotency key collisions cannot occur.  Any remaining 11000 would
+      // come from the orderId field — a UUID collision that is virtually impossible.
       throw err;
     }
 
@@ -427,12 +436,74 @@ export const retryPayment = async (
       return;
     }
 
-    if (order.status !== "payment_failed") {
+    if (order.status !== "payment_failed" && order.status !== "pending") {
       res.status(400).json({
         success: false,
-        message: `Order is in '${order.status}' state. Only payment_failed orders can be retried.`,
+        message: `Order is in '${order.status}' state. Cannot retry payment.`,
       });
       return;
+    }
+
+    // Check if a prior Razorpay payment was actually captured but our callback didn't process it
+    if (order.payment?.razorpay?.paymentId) {
+      try {
+        const existingPayment = await razorpay.payments.fetch(
+          order.payment.razorpay.paymentId,
+        ) as { status: string };
+        if (existingPayment.status === "captured" || existingPayment.status === "authorized") {
+          order.status = "confirmed";
+          if (order.payment) {
+            order.payment.status = "completed";
+            order.payment.verified = true;
+            order.payment.transactionId = order.payment.razorpay.paymentId;
+            order.payment.paidAt = new Date();
+          }
+          await order.save();
+
+          // Deduct stock (verifyPayment never completed, so stock wasn't deducted)
+          await Promise.all(
+            order.items.map((item) =>
+              Product.findByIdAndUpdate(item.productId, {
+                $inc: { stock: -item.quantity },
+              }),
+            ),
+          );
+
+          enqueue(async () => {
+            await sendEmail(
+              order.shippingAddress?.email ?? "",
+              "orderConfirmed",
+              {
+                orderId: order.orderId,
+                packageId: order.packageId,
+                orderDate: new Date().toLocaleString(),
+                customerName: order.shippingAddress?.fullName || "Customer",
+                orderTotal: order.pricing?.total,
+                subtotal: order.pricing?.subtotal,
+                discount: order.pricing?.discount?.amount || 0,
+                shipping: order.pricing?.shipping,
+                total: order.pricing?.total,
+                deliveryOTP: "...",
+                contactEmail: env.MY_GMAIL,
+                items: order.items,
+                shippingAddress: order.shippingAddress,
+                billingAddress: order.billingAddress || order.shippingAddress,
+                paymentMethod: "Online Payment",
+              },
+            );
+          });
+
+          res.status(200).json({
+            success: true,
+            alreadyPaid: true,
+            message: "Payment already completed",
+            orderId: order.orderId,
+          });
+          return;
+        }
+      } catch (rzpError) {
+        logger.warn(rzpError, "Razorpay fetch failed for existing payment, continuing with retry");
+      }
     }
 
     // Reset order status to pending and clear old razorpay order ID

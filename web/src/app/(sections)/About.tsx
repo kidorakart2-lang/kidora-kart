@@ -21,7 +21,7 @@ export default function About() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-muted/30">
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
@@ -79,7 +79,7 @@ export default function About() {
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold text-foreground">About Us</h1>
-                  <div className="w-20 h-1 bg-gradient-to-r from-gray-600 to-gray-400 rounded-full mt-2"></div>
+                  <div className="w-20 h-1 bg-gradient-to-r from-muted-foreground to-muted rounded-full mt-2"></div>
                 </div>
               </div>
 

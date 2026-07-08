@@ -11,6 +11,7 @@ import {
   Loader2,
   XCircle,
   RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +30,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { getUserOrders, cancelOrder } from "@/lib/orderService";
+import { useUserOrders, useCancelOrder } from "@/lib/useOrders";
 import Image from "next/image";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -47,6 +48,12 @@ interface LocalOrderItem {
   personalizedName?: string;
 }
 
+const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+
+const isWithinCancelWindow = (createdAt: string) => {
+  return Date.now() - new Date(createdAt).getTime() < TWELVE_HOURS_MS;
+};
+
 interface LocalOrderData {
   _id: string;
   orderId: string;
@@ -57,66 +64,52 @@ interface LocalOrderData {
 }
 
 export default function MyOrders() {
-  const [orders, setOrders] = useState<LocalOrderData[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
-  const [btnLoading, setBtnLoading] = useState(false);
+  const [customReason, setCustomReason] = useState("");
 
   const router = useRouter();
 
-  useEffect(() => {
-    loadOrders();
-  }, [filter, page]);
+  const { data: orderData, isLoading } = useUserOrders({
+    page,
+    limit: 10,
+    ...(filter !== "all" && { status: filter }),
+  });
+  const orders = (orderData?.orders ?? []) as unknown as LocalOrderData[];
 
-  const loadOrders = async () => {
-    try {
-      setLoading(true);
-      const params = {
-        page,
-        limit: 10,
-        ...(filter !== "all" && { status: filter }),
-      };
-      const response = await getUserOrders(params);
-      setOrders(response.orders);
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
+  const cancelMutation = useCancelOrder();
 
   const handleCancelOrder = async () => {
-    if (!cancelReason.trim() || !selectedOrderId) return;
-    setBtnLoading(true);
+    if (!selectedOrderId) return;
+    const finalReason =
+      cancelReason === "Other" ? customReason.trim() : cancelReason.trim();
+    if (!finalReason) return;
     try {
-      const response = await cancelOrder(selectedOrderId, cancelReason);
+      const response = await cancelMutation.mutateAsync({
+        orderId: selectedOrderId,
+        reason: finalReason,
+      });
       if (response.success) {
         setCancelDialogOpen(false);
         setCancelReason("");
+        setCustomReason("");
         setSelectedOrderId(null);
-        loadOrders();
         toast.success(response.message || "Order Cancelled");
       } else {
-        toast.error(
-          ` ${
-            response.message ||
-            response.response.data.message ||
-            "Failed to cancel order"
-          }`
-        );
+        toast.error(response.message || "Failed to cancel order");
       }
-      setBtnLoading(false);
     } catch (error: unknown) {
-      const err = error as { response?: { message?: string }; message?: string };
+      const err = error as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
       toast.error(
-        err?.response?.message || err?.message || "Failed to cancel order"
+        err?.response?.data?.message || err?.message || "Failed to cancel order"
       );
-      setBtnLoading(false);
     }
-    setBtnLoading(false);
   };
 
   const openCancelDialog = (orderId: string) => {
@@ -188,7 +181,7 @@ export default function MyOrders() {
           </div>
         </motion.div>
 
-        {loading ? (
+        {isLoading ? (
           <div className="flex justify-center items-center py-20">
             <motion.div
               animate={{ rotate: 360 }}
@@ -321,8 +314,8 @@ export default function MyOrders() {
                           Total: ₹{order.pricing.total}
                         </div>
                         <div className="flex gap-2">
-                          {(order.status === "pending" ||
-                            order.status === "confirmed") && (
+                          {order.status === "pending" &&
+                            isWithinCancelWindow(order.createdAt) && (
                             <Button
                               onClick={() => openCancelDialog(order.orderId)}
                               variant="outline"
@@ -341,7 +334,7 @@ export default function MyOrders() {
                                 )
                               }
                               size="sm"
-                              className="bg-gradient-to-r from-orange-500 to-orange-600 text-background hover:from-orange-600 hover:to-orange-700"
+                              className="btn-gradient"
                             >
                               <RefreshCw className="w-4 h-4 mr-1" />
                               Retry Payment
@@ -369,7 +362,7 @@ export default function MyOrders() {
           </AnimatePresence>
         )}
 
-        {!loading && (
+        {!isLoading && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -390,8 +383,9 @@ export default function MyOrders() {
             </span>
             <Button
               onClick={() => setPage(page + 1)}
+              disabled={page >= (orderData?.totalPages ?? 1)}
               variant="outline"
-              className="border-brand-300 text-brand-700 hover:bg-brand-100"
+              className="border-brand-300 text-brand-700 hover:bg-brand-100 disabled:opacity-50"
             >
               Next
               <ChevronRight className="w-4 h-4 ml-1" />
@@ -401,47 +395,113 @@ export default function MyOrders() {
       </motion.div>
 
       <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <DialogContent className="h-[95vh] w-screen max-w-screen md:max-w-md z-[1300] border-brand-200 bg-gradient-to-br from-white to-brand-50">
-          <DialogHeader>
-            <DialogTitle className="text-brand-900">Cancel Order</DialogTitle>
-            <DialogDescription className="text-brand-700">
-              Please provide a reason for cancelling this order.
-            </DialogDescription>
+        <DialogContent className="w-[calc(100%-2rem)] max-w-md bg-background border border-border p-0 gap-0 overflow-hidden h-[95vh] sm:h-auto sm:max-h-[90vh] flex flex-col">
+          <DialogHeader className="px-6 pt-6 pb-4 text-center sm:text-left bg-gradient-to-br from-destructive/5 to-destructive/10 border-b border-border flex-shrink-0">
+            <div className="flex items-center gap-3 sm:flex-row flex-col sm:text-left text-center">
+              <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-6 h-6 text-destructive" />
+              </div>
+              <div className="flex-1">
+                <DialogTitle className="text-foreground text-xl">
+                  Cancel Order?
+                </DialogTitle>
+                <DialogDescription className="text-muted-foreground mt-1">
+                  This action cannot be undone
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
-          <Textarea
-            placeholder="Enter cancellation reason..."
-            value={cancelReason}
-            onChange={(e) => setCancelReason(e.target.value)}
-            className="border-brand-200 focus:border-brand-400 focus:ring-brand-400"
-            rows={4}
-          />
-          <DialogFooter>
+
+          <div className="px-6 py-5 space-y-4 overflow-y-auto custom-scrollbar flex-1 min-h-0">
+            <div className="bg-brand-50 border border-brand-200 rounded-lg p-3">
+              <p className="text-xs text-muted-foreground mb-1">Order Number</p>
+              <p className="font-mono text-sm font-semibold text-foreground break-all">
+                {selectedOrderId}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="cancel-reason"
+                className="text-sm font-medium text-foreground block"
+              >
+                Reason for cancellation <span className="text-destructive">*</span>
+              </label>
+
+              <div className="grid grid-cols-1 gap-2">
+                {[
+                  "Changed my mind",
+                  "Found a better price",
+                  "Wrong size or color",
+                  "Ordered by mistake",
+                  "Delivery taking too long",
+                  "Other",
+                ].map((reason) => (
+                  <button
+                    key={reason}
+                    type="button"
+                    onClick={() => setCancelReason(reason)}
+                    className={`text-left px-3 py-2 rounded-md text-sm border transition-colors ${
+                      cancelReason === reason
+                        ? "border-destructive bg-destructive/5 text-destructive font-medium"
+                        : "border-border hover:border-brand-300 hover:bg-brand-50 text-foreground"
+                    }`}
+                  >
+                    {reason}
+                  </button>
+                ))}
+              </div>
+
+              {cancelReason === "Other" && (
+                <Textarea
+                  id="cancel-reason"
+                  placeholder="Please tell us more..."
+                  value={customReason}
+                  onChange={(e) => setCustomReason(e.target.value)}
+                  className="border-border focus:border-destructive focus:ring-destructive mt-2 min-h-[80px]"
+                  rows={3}
+                  autoFocus
+                />
+              )}
+
+              {!cancelReason && (
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  Select a reason above to continue
+                </p>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="px-6 py-4 bg-muted/50 border-t border-border flex flex-col-reverse sm:flex-row gap-2 flex-shrink-0">
             <Button
               variant="outline"
-              disabled={btnLoading}
+              disabled={cancelMutation.isPending}
               onClick={() => {
                 setCancelDialogOpen(false);
                 setCancelReason("");
+                setCustomReason("");
               }}
-              className="border-brand-300 text-brand-700 hover:bg-brand-100"
+              className="border-border text-foreground hover:bg-muted w-full sm:w-auto min-h-[44px]"
             >
               Keep Order
             </Button>
             <Button
               onClick={handleCancelOrder}
-              disabled={!cancelReason.trim() || btnLoading}
-              className="bg-gradient-to-r from-red-500 to-red-600 text-background hover:from-red-600 hover:to-red-700"
+              disabled={
+                (cancelReason === "Other" ? !customReason.trim() : !cancelReason.trim()) ||
+                cancelMutation.isPending
+              }
+              className="bg-destructive hover:bg-destructive/80 active:bg-destructive/70 text-white shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all w-full sm:w-auto min-h-[48px] sm:min-h-[44px] disabled:opacity-50 disabled:hover:scale-100"
             >
-              {!btnLoading ? (
-                <div className="flex items-center">
-                  <span className="mr-2">
-                    <XCircle className="w-4 h-4" />
-                  </span>
-                  Confirm Cancellation
-                </div>
+              {!cancelMutation.isPending ? (
+                <span className="flex items-center justify-center gap-2">
+                  <XCircle className="w-4 h-4" />
+                  Cancel Order
+                </span>
               ) : (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="animate-spin" /> Cancelling
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Cancelling...
                 </span>
               )}
             </Button>

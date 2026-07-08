@@ -117,7 +117,7 @@ export default function GenderCategorySection({
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/50" />
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-sans font-light text-white mb-4 tracking-wider">
+                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-sans font-light text-background mb-4 tracking-wider">
                     {item.name}
                   </h3>
 
@@ -203,7 +203,7 @@ export default function GenderCategorySection({
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/50" />
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-sans font-light text-white mb-4 tracking-wider">
+                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-sans font-light text-background mb-4 tracking-wider">
                     {subCategory.name}
                   </h3>
 

@@ -9,10 +9,10 @@ import {
   syncGuestCartToServer,
   syncGuestWishlistToServer,
 } from "@/lib/syncGuestData";
-import {
-  fetchAndDispatchCart,
-  fetchAndDispatchWishlist,
-} from "@/lib/fetchCartWislist";
+import { useQueryClient } from "@tanstack/react-query";
+import { cartKeys } from "@/lib/useCart";
+import { wishlistKeys } from "@/lib/useWishlist";
+import { userKeys } from "@/lib/useProfile";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -44,6 +44,7 @@ const LoginPage = () => {
   const [apiError, setApiError] = useState(""); // 👈 new: server error message
 
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const router = useRouter();
   const returnTo = useSearchParams().get("returnTo");
 
@@ -125,11 +126,10 @@ const LoginPage = () => {
         dispatch(clearGuestWishlist());
       }
 
-      // Always fetch fresh cart and wishlist from server after login
-      await Promise.all([
-        fetchAndDispatchCart(dispatch),
-        fetchAndDispatchWishlist(dispatch),
-      ]);
+      // Invalidate React Query caches — hooks in Header/GuestDataInitializer auto-refetch
+      queryClient.invalidateQueries({ queryKey: cartKeys.all });
+      queryClient.invalidateQueries({ queryKey: wishlistKeys.all });
+      queryClient.invalidateQueries({ queryKey: userKeys.all });
 
       router.push(returnTo || "/");
     } catch (error) {

@@ -252,10 +252,14 @@ orderSchema.statics.getOrdersByStatus = function (
   return this.find(query).sort({ createdAt: -1 });
 };
 
-orderSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true, sparse: true });
+// Idempotency is enforced at the application layer within the same checkout
+// session by checking order status (pending / payment_failed).  A DB-level
+// unique index is intentionally omitted so that users can freely re-order
+// the same products days or weeks later without the old key blocking them.
 
 export type IOrder = InferSchemaType<typeof orderSchema>;
 
-const OrderModel: Model<IOrder> = mongoose.model<IOrder>("orders", orderSchema);
+// Allow model re-compilation for seamless index sync
+const OrderModel = mongoose.models.orders ?? mongoose.model<IOrder>("orders", orderSchema);
 
 export default OrderModel;

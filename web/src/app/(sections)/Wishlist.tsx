@@ -284,8 +284,8 @@ function WishlistCard({ item, index, onRemove }: { item: WishlistDisplayItem; in
       {/* Stock Badge */}
       <div className="absolute top-3 left-3 z-20">
         {item.stock < 0 ? (
-          <span className="inline-flex items-center gap-1 bg-gradient-to-r from-brand-accent-500 to-red-600 
-                         text-background text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+          <span className="inline-flex items-center gap-1 bg-gradient-to-r from-brand-accent-500 to-destructive 
+                         text-destructive-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
             <span className="w-1.5 h-1.5 bg-background rounded-full animate-pulse"></span>
             Out of Stock
           </span>
@@ -298,9 +298,8 @@ function WishlistCard({ item, index, onRemove }: { item: WishlistDisplayItem; in
         )}
       </div>
 
-      {/* Image Container */}
-      <div 
-        className="relative h-72 sm:h-80 bg-gradient-to-br from-brand-50 to-slate-50 
+      {/* Image Container */}<div
+        className="relative h-72 sm:h-80 bg-gradient-to-br from-brand-50 to-muted 
                  overflow-hidden cursor-pointer"
         onClick={() => router.push(`/product-details/${item.slug}`)}
       >

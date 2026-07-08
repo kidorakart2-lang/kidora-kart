@@ -25,6 +25,7 @@ import { useSelector } from "react-redux";
 import { openLoginModal } from "@/redux/features/uiSlice";
 import { useIsMobile } from "@/hooks/use-mobile";
 import RelatedProducts from "@/components/product/RelatedProducts";
+import { useProductFaqs } from "@/lib/useProductFaqs";
 import Breadcrumb from "./Breadcrumb";
 import Personalized from "@/components/product/Personalized";
 import { addToWishlist, removeFromWishlist } from "@/redux/features/wishlist";
@@ -43,17 +44,8 @@ interface FaqSet {
 }
 
 function ProductFaqSection({ productId }: { productId: string }) {
-  const [faqSets, setFaqSets] = useState<FaqSet[]>([]);
-
-  useEffect(() => {
-    const params = new URLSearchParams({ product: productId });
-    fetch(process.env.NEXT_PUBLIC_API_URL + "api/website/product-faq?" + params.toString())
-      .then((r) => r.json())
-      .then((data) => {
-        setFaqSets(data._data ?? []);
-      })
-      .catch(() => {});
-  }, [productId]);
+  const { data: faqSetsData = [] } = useProductFaqs(productId);
+  const faqSets = faqSetsData as FaqSet[];
 
   // Flatten all entries from all sets, deduplicate by question text
   const seen = new Set<string>();

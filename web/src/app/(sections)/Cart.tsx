@@ -118,12 +118,14 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
     if (reduxCartItems.length === 0) return null;
 
+    if (guestProductsLoading) return null;
+
     const items = reduxCartItems.map((item) => {
       // Look up fetched product data by _id (from batch response)
       const fetched = item.productId ? productMap.get(item.productId) : undefined;
       const product = fetched ?? {
         _id: item.productId,
-        name: "Loading...",
+        name: "",
         image: "/placeholder.svg",
         price: 0,
         slug: item.slug ?? "",
@@ -271,7 +273,13 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
   const shipping = finalSubtotal > 1000 ? 0 : 50;
   const estimatedTotal = finalSubtotal + shipping;
 
+  const isGuestHydrating =
+    !hasServerData && reduxCartItems.length > 0 && guestProductsLoading;
+
   if (!effectiveCart) {
+    if (isGuestHydrating) {
+      return <CartSkeleton itemCount={reduxCartItems.length} />;
+    }
     return (
       <div className="min-h-[70vh] flex items-center justify-center py-16">
         <div className="text-center space-y-8 max-w-md px-4">
@@ -296,7 +304,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
           <button
             onClick={() => router.push("/category/new-arrival")}
-            className="inline-flex items-center gap-2 btn-gradient font-medium py-3 px-8 
+            className="inline-flex items-center gap-2 btn-gradient font-medium py-3 px-8
                      rounded-full transition-all duration-300 shadow-sm transform hover:scale-105"
           >
             <ShoppingBag size={18} />
@@ -363,7 +371,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                       >
                         <div
                           className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden border-2 border-border 
-                                      group-hover:border-brand-300 transition-all duration-300 bg-gradient-to-br from-brand-50 to-slate-50"
+                                      group-hover:border-brand-300 transition-all duration-300 bg-gradient-to-br from-brand-50 to-muted"
                         >
                           <Image
                             src={item.product.image ?? "/placeholder.svg"}
@@ -635,6 +643,76 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     </>
   );
 }
+
+const CartSkeleton = ({ itemCount }: { itemCount: number }) => {
+  const cards = Array.from({ length: Math.max(itemCount, 1) });
+  return (
+    <main className="py-12 md:py-16 bg-gradient-to-b from-brand-50/30 via-white to-brand-50/30 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 mb-4">
+            <Sparkles className="w-5 h-5 text-brand-600 animate-pulse" />
+            <span className="text-sm font-medium text-muted-foreground tracking-wider uppercase">
+              Your Selection
+            </span>
+            <Sparkles className="w-5 h-5 text-brand-600 animate-pulse" />
+          </div>
+
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif text-foreground mb-4 tracking-wide">
+            Shopping Cart
+          </h1>
+
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-brand-600"></div>
+            <Loader2 className="w-4 h-4 text-brand-600 animate-spin" />
+            <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-brand-600"></div>
+          </div>
+
+          <p className="text-muted-foreground text-base">Loading your cart…</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Cart Items Skeleton */}
+          <div className="lg:col-span-2 space-y-4">
+            {cards.map((_, i) => (
+              <div
+                key={i}
+                className="bg-background rounded-2xl p-5 sm:p-6 shadow-md border border-border animate-shimmer"
+              >
+                <div className="flex gap-4 sm:gap-6 relative z-10">
+                  <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl bg-muted animate-pulse flex-shrink-0" />
+                  <div className="flex-1 min-w-0 space-y-3">
+                    <div className="h-5 bg-muted rounded animate-pulse w-3/4" />
+                    <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
+                    <div className="h-4 bg-muted rounded animate-pulse w-1/3" />
+                    <div className="flex items-center gap-4 mt-3">
+                      <div className="h-10 w-24 bg-muted rounded-full animate-pulse" />
+                      <div className="h-4 w-20 bg-muted rounded animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Order Summary Skeleton */}
+          <div className="lg:col-span-1">
+            <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-xl border border-border sticky top-24 space-y-4">
+              <div className="h-6 bg-muted rounded animate-pulse w-1/2" />
+              <div className="space-y-3 py-6 border-y border-border">
+                <div className="h-4 bg-muted rounded animate-pulse w-full" />
+                <div className="h-4 bg-muted rounded animate-pulse w-full" />
+                <div className="h-4 bg-muted rounded animate-pulse w-full" />
+              </div>
+              <div className="h-12 bg-muted rounded-full animate-pulse w-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+};
 
 export const LoadingUi = ({ hidden }: { hidden: boolean }) => {
   return (

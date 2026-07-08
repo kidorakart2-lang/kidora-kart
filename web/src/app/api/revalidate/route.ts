@@ -2,6 +2,25 @@ import { revalidateTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 import type { RevalidateRequest, RevalidateResponse } from "@/lib/revalidation-tags";
 
+// ── Version stamp for React Query client cache invalidation ──────────
+//
+// The admin panel calls POST /api/revalidate with tags whenever it
+// performs a CRUD operation.  Each POST increments this counter.
+// The GET handler returns the current version, which the client-side
+// CacheInvalidationProvider polls to know when to invalidate React Query
+// caches so stale client data is refetched.
+//
+// For multi-instance deployments this would need to be shared (Redis), but
+// for a single-instance setup an in-memory counter is sufficient.
+
+let cacheVersion = 0;
+let versionUpdatedAt = new Date().toISOString();
+
+interface VersionResponse {
+  version: number;
+  updatedAt: string;
+}
+
 // ── Tag → cacheLife profile mapping ────────────────────────────────
 //
 // When a tag is invalidated, the next fetch for that resource uses the
@@ -69,6 +88,18 @@ function serverError(error: string): NextResponse<RevalidateResponse> {
   );
 }
 
+// ── GET handler — returns current cache version stamp ───────────────
+// Lightweight — no auth required.  Used by the client-side
+// CacheInvalidationProvider to detect when the admin panel has made
+// changes and invalidate React Query caches.
+
+export async function GET(): Promise<NextResponse<VersionResponse>> {
+  return NextResponse.json({
+    version: cacheVersion,
+    updatedAt: versionUpdatedAt,
+  });
+}
+
 // ── POST handler ────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
@@ -134,7 +165,11 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // 5. Logging --------------------------------------------------------
+  // 5. Bump version stamp for React Query client cache invalidation ---
+  cacheVersion++;
+  versionUpdatedAt = new Date().toISOString();
+
+  // 6. Logging --------------------------------------------------------
   if (process.env.NODE_ENV === "development") {
     console.log(
       `[revalidate] Revalidated:\n${revalidated.map((t) => `  ${t}`).join("\n")}`,
@@ -144,7 +179,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // 6. Response -------------------------------------------------------
+  // 7. Response -------------------------------------------------------
   if (errors.length > 0 && revalidated.length === 0) {
     return serverError("All revalidation attempts failed");
   }
@@ -152,6 +187,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     success: errors.length === 0,
     revalidated,
+    cacheVersion,
     ...(errors.length > 0 ? { error: errors.join("; ") } : {}),
   });
 }

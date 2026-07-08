@@ -52,17 +52,18 @@ import { PlaceholdersAndVanishInput } from "../ui/placeholders-and-vanish-input"
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
-import {
-  fetchAndDispatchCart,
-  fetchAndDispatchWishlist,
-} from "@/lib/fetchCartWislist";
+import { useCartView } from "@/lib/useCart";
+import { useWishlistView } from "@/lib/useWishlist";
+import { useUserProfile } from "@/lib/useProfile";
 import { usePathname, useRouter } from "next/navigation";
 import { openLoginModal, setNavigation } from "@/redux/features/uiSlice";
 import type { UiNavigationData } from "@/redux/features/uiSlice";
 import Cookies from "js-cookie";
-import { getUser } from "@/lib/fetchUser";
 import { getAuthToken } from "@/lib/getAuthToken";
 import { login, logout, setProfile } from "@/redux/features/auth";
+import { setWishlist } from "@/redux/features/wishlist";
+import { updateFullCart } from "@/redux/features/cart";
+import { useSearchSuggestions, type SuggestionData } from "@/lib/useSearchSuggestions";
 import { siteConfig } from "@/lib/utils";
 
 interface SubSubCategory {
@@ -83,18 +84,6 @@ interface CategoryItem {
   slug: string;
   _id?: string;
   subCategories: MenuItem[];
-}
-
-interface SuggestionData {
-  suggestions: string[];
-  products: Array<{
-    _id: string;
-    slug: string;
-    image: string;
-    name: string;
-    discount_price: number | null;
-    price: number;
-  }>;
 }
 
 interface MobileLinkProps {
@@ -143,37 +132,45 @@ export default function Header({ navigationData }: HeaderProps) {
     string | null;
 
   const dispatch = useDispatch();
-  const fetchedRef = useRef(false);
   const loginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchUser = async () => {
-    if (user && (user as Record<string, unknown>)._id) {
-      return;
-    }
-    const userData = await getUser();
-    if (userData && typeof userData === "object" && "_data" in userData) {
-      dispatch(setProfile((userData as { _data: unknown })._data));
-      dispatch(login());
-    }
-  };
+  // React Query — profile, cart, wishlist with caching + dedup
+  const { data: profile } = useUserProfile();
+  const { data: cartData } = useCartView();
+  const { data: wishlistData } = useWishlistView();
 
-  // Fetch user once on mount if a token cookie exists
+  // Sync profile to Redux when React Query returns fresh data
+  const bootstrappedProfile = useRef(false);
   useEffect(() => {
-    if (fetchedRef.current) return;
-    if (pathName === "/profile") return;
-    if (user && (user as Record<string, unknown>)._id) {
-      fetchedRef.current = true;
-      return;
+    if (!profile || bootstrappedProfile.current) return;
+    bootstrappedProfile.current = true;
+    dispatch(setProfile(profile));
+    dispatch(login());
+  }, [profile, dispatch]);
+
+  // Sync wishlist to Redux from React Query cache
+  useEffect(() => {
+    if (wishlistData && Array.isArray(wishlistData)) {
+      dispatch(setWishlist(wishlistData));
     }
-    // Skip API call if no token cookie exists
-    if (!getAuthToken()) {
-      fetchedRef.current = true;
-      return;
-    }
-    fetchedRef.current = true;
-    fetchUser();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [wishlistData, dispatch]);
+
+  // Sync cart to Redux from React Query cache (for cart badge count)
+  useEffect(() => {
+    if (!cartData?.items) return;
+    const items = cartData.items.map((item: { product?: { _id: string }; quantity?: number; color?: { _id: string }; size?: { _id: string } }) => ({
+      productId: item.product?._id ?? "",
+      quantity: item.quantity ?? 1,
+      colorId: item.color?._id ?? null,
+      sizeId: item.size?._id ?? null,
+      isGuest: false,
+    }));
+    dispatch(updateFullCart({
+      items,
+      totalPrice: cartData.totalPrice ?? 0,
+      totalItems: cartData.totalItems ?? items.length,
+    }));
+  }, [cartData, dispatch]);
 
   useEffect(() => {
     if (isLoggedIn || Cookies.get("loginModal")) {
@@ -195,12 +192,8 @@ export default function Header({ navigationData }: HeaderProps) {
     dispatch(setNavigation(navigationData));
   }, [navigationData]);
 
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetchAndDispatchWishlist(dispatch);
-      fetchAndDispatchCart(dispatch);
-    }
-  }, [isLoggedIn]);
+  // Cart + wishlist are now fetched by useCartView / useWishlistView hooks
+  // (enabled automatically when token exists).  No manual fetch needed.
 
   // SCROLL EFFECT
   useEffect(() => {
@@ -668,11 +661,34 @@ export default function Header({ navigationData }: HeaderProps) {
 }
 
 const SearchBar = ({ className, inputId }: SearchBarProps) => {
-  const [suggestions, setSuggestions] = useState<Partial<SuggestionData>>({});
   const value = useSelector((state: RootState) => state.ui.searchValue);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+
+  // React Query — search suggestions with debounced query key + 5min cache
+  const { data: suggestions, isFetching } = useSearchSuggestions(value);
+
+  // Open/close the suggestions dropdown based on query state
+  useEffect(() => {
+    if (value.trim().length <= 1) {
+      setIsSuggestionsOpen(false);
+      return;
+    }
+    // Show spinner immediately while fetching
+    if (isFetching) {
+      setIsSuggestionsOpen(true);
+      return;
+    }
+    // Show when results arrive
+    if (suggestions) {
+      if (suggestions.suggestions.length > 0 || suggestions.products.length > 0) {
+        setIsSuggestionsOpen(true);
+      } else {
+        setIsSuggestionsOpen(false);
+      }
+    }
+  }, [suggestions, value, isFetching]);
 
   // Close suggestions when route changes
   useEffect(() => {
@@ -707,34 +723,6 @@ const SearchBar = ({ className, inputId }: SearchBarProps) => {
     },
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (value.trim().length > 1) {
-        // Only fetch if more than 1 character
-        try {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}api/website/result/suggestion?search=${value}`,
-          );
-          const resData = await res.json();
-          setSuggestions(resData._data as SuggestionData);
-          setIsSuggestionsOpen(true);
-        } catch {
-          setSuggestions({});
-          setIsSuggestionsOpen(false);
-        }
-      } else {
-        setIsSuggestionsOpen(false);
-      }
-    };
-
-    // Add a small debounce to prevent too many requests
-    const debounceTimer = setTimeout(() => {
-      fetchData();
-    }, 300);
-
-    return () => clearTimeout(debounceTimer);
-  }, [value]);
-
   return (
     <div className={`relative ${className}`}>
       <PlaceholdersAndVanishInput
@@ -759,6 +747,15 @@ const SearchBar = ({ className, inputId }: SearchBarProps) => {
           variants={suggestionVariants}
           className="absolute top-full left-0 right-0 h-auto w-[78%] md:w-full mt-1 bg-background rounded-lg shadow-lg z-[200] border border-border overflow-x-hidden overflow-y-auto no-scrollbar"
         >
+          {/* Loading state */}
+          {isFetching && (
+            <div className="p-6 flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-2 border-brand-300 border-t-brand-600 rounded-full animate-spin" />
+              <span className="text-xs text-muted-foreground">Searching...</span>
+            </div>
+          )}
+
+          {!isFetching && (
           <div className="grid grid-cols-[30%_auto] divide-x divide-border">
             {/* Suggestions Column */}
             {(suggestions?.suggestions?.length ?? 0) > 0 ||
@@ -838,6 +835,7 @@ const SearchBar = ({ className, inputId }: SearchBarProps) => {
               </div>
             )}
           </div>
+          )}
         </motion.div>
       )}
     </div>

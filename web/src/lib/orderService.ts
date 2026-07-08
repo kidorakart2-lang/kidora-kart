@@ -1,6 +1,7 @@
 import Cookies from "js-cookie";
 import { getAuthToken } from "@/lib/getAuthToken";
 import { clearAuthCookies } from "@/lib/clearAuthCookies";
+import type { OrderTrackingResponse, OrderData } from "@/types";
 const API_URL = process.env.NEXT_PUBLIC_API_URL + "api/website";
 
 async function authFetch(
@@ -96,7 +97,7 @@ export const verifyCod = async (orderId: string) => {
   return response.json();
 };
 
-export const getUserOrders = async (params: Record<string, unknown> = {}) => {
+export const getUserOrders = async (params: Record<string, unknown> = {}): Promise<{ _status: boolean; _data?: OrderData[] }> => {
   const searchParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value !== undefined && value !== null) {
@@ -108,7 +109,7 @@ export const getUserOrders = async (params: Record<string, unknown> = {}) => {
   return response.json();
 };
 
-export const getOrderById = async (orderId: string) => {
+export const getOrderById = async (orderId: string): Promise<{ _status: boolean; _data?: OrderTrackingResponse }> => {
   const response = await authFetch(`/orders/${orderId}`);
   return response.json();
 };

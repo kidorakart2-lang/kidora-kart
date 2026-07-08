@@ -309,4 +309,73 @@
   .hover-glow:hover {
     box-shadow: 0 0 20px color-mix(in srgb, var(--brand-primary) 30%, transparent);
   }
+
+  /* ── Custom scrollbar (brand-themed) ── */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--brand-primary) 60%, transparent) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 4px 0;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      180deg,
+      var(--brand-primary),
+      color-mix(in srgb, var(--brand-primary) 70%, var(--brand-primary-dark))
+    );
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background 200ms ease, transform 200ms ease;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--brand-primary) 85%, var(--brand-primary-dark)),
+      var(--brand-primary-dark)
+    );
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:active {
+    background: var(--brand-primary-dark);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+
+  /* Thin variant (used in dropdowns, selects, sidebars) */
+  .custom-scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--brand-primary) 50%, transparent) transparent;
+  }
+
+  .custom-scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar-thin::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--brand-primary) 55%, transparent);
+    border-radius: 999px;
+    transition: background 200ms ease;
+  }
+
+  .custom-scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: var(--brand-primary);
+  }
 }

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, type FormEvent } from "react";
+import React, { useState, type FormEvent } from "react";
 import { Award, Check, Edit3, Star, ChevronUp, ChevronDown, Shield } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getAuthToken } from "@/lib/getAuthToken";
+import { useProductReviews, useSubmitReview } from "@/lib/useReviews";
 import Image from "next/image";
 import { openLoginModal } from "@/redux/features/uiSlice";
 import { useDispatch } from "react-redux";
@@ -85,32 +86,14 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
     rating: 0,
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [averageRating, setAverageRating] = useState(0);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}api/website/review/get/${productId}`,
-        );
-        const data = (await response.json()) as ReviewResponse;
-        if (response.ok) {
-          setReviews(data._data || []);
-          setAverageRating(data._rating || 0);
-        }
-      } catch {
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchReviews();
-  }, [productId]);
+  const { data: reviewData, isLoading } = useProductReviews(productId);
+  const reviews: Review[] = reviewData?.reviews ?? [];
+  const averageRating = reviewData?.averageRating ?? 0;
+
+  const submitReviewMutation = useSubmitReview();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -168,41 +151,22 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       return;
     }
 
-    setIsSubmitting(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}api/website/review/create`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-          body: JSON.stringify({
-            comment: formData.comment,
-            rating: formData.rating,
-            productId,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        setSubmitSuccess(true);
-        // Refresh reviews
-        router.push(window.location.pathname);
-        setFormData({ name: "", comment: "", rating: 0 });
-        setFormErrors({});
-        // Close modal after 2 seconds
-        setTimeout(() => {
-          setIsModalOpen(false);
-          setSubmitSuccess(false);
-        }, 2000);
-      }
+      await submitReviewMutation.mutateAsync({
+        productId,
+        comment: formData.comment,
+        rating: formData.rating,
+      });
+      setSubmitSuccess(true);
+      setFormData({ name: "", comment: "", rating: 0 });
+      setFormErrors({});
+      // Close modal after 2 seconds
+      setTimeout(() => {
+        setIsModalOpen(false);
+        setSubmitSuccess(false);
+      }, 2000);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to submit review");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -213,7 +177,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
     setFormErrors({});
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-16">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
@@ -523,12 +487,12 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                         <motion.button
                           type="button"
                           onClick={handleSubmit}
-                          disabled={isSubmitting}
+                          disabled={submitReviewMutation.isPending}
                           whileHover={{ y: -2 }}
                           whileTap={{ scale: 0.98 }}
                           className="flex-1 px-6 py-3 btn-gradient rounded-full font-light text-sm uppercase tracking-wider shadow-sm transition-all disabled:opacity-50"
                         >
-                          {isSubmitting ? "Submitting..." : "Submit Review"}
+                          {submitReviewMutation.isPending ? "Submitting..." : "Submit Review"}
                         </motion.button>
                       </div>
                     </div>

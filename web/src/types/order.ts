@@ -78,6 +78,23 @@ export interface OrderTrackingResponse {
   order: OrderData;
 }
 
+/** Raw response shape from the API for an order list endpoint. */
+export interface OrderListApiResponse {
+  success?: boolean;
+  orders?: OrderData[];
+  totalPages?: number;
+  currentPage?: number;
+  totalOrders?: number;
+  message?: string;
+}
+
+/** Raw response shape from the API for an order detail endpoint. */
+export interface OrderDetailApiResponse {
+  success?: boolean;
+  order?: OrderData;
+  message?: string;
+}
+
 export interface CheckoutFormData {
   shippingAddress: {
     fullName: string;

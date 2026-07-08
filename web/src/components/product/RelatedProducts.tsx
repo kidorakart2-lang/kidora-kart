@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ProductCard from "../comman/ProductCard";
+import { useRelatedProducts } from "@/lib/useRelatedProducts";
 import { Skeleton } from "../ui/skeleton";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
@@ -11,27 +12,9 @@ import type { ProductData } from "@/types";
 interface RelatedProduct extends ProductData {}
 
 export default function RelatedProducts({ id, subCategory, subSubCategory }: { id: string; subCategory: string[]; subSubCategory: string[] }) {
-  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([]);
-  const [loading, setLoading] = useState(false);
-  useEffect(() => {
-    setLoading(true);
-    const getRelatedProducts = async () => {
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL +
-          "api/website/product/get-related-products?" +
-          new URLSearchParams({
-            subCategoryIds: subCategory.join(","),
-            subSubCategoryIds: subSubCategory.join(","),
-          })
-      );
-      const data = await response.json();
-      setRelatedProducts(data._data ?? []);
-      setLoading(false);
-    };
-    getRelatedProducts();
-  }, [id]);
+  const { data: relatedProducts = [], isLoading } = useRelatedProducts(subCategory, subSubCategory);
 
-  if (relatedProducts.length === 0) return null;
+  if (relatedProducts.length === 0 && !isLoading) return null;
 
   return (
     <div className="overflow-x-hidden">
@@ -51,7 +34,7 @@ export default function RelatedProducts({ id, subCategory, subSubCategory }: { i
         </div>
       </motion.div>
       <div className="">
-        {loading ? (
+        {isLoading ? (
           <div className=" grid grid-cols-2 sm:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, index) => (
               <Skeleton key={index} />

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import ProductCard from "@/components/comman/ProductCard";
 import {
@@ -10,12 +10,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { openSidebar, toggleSidebar } from "@/redux/features/uiSlice";
+import { openSidebar } from "@/redux/features/uiSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "sonner";
 import { Loader, LayoutGrid, List } from "lucide-react";
 import type { RootState } from "@/redux/store/store";
 import type { ProductData } from "@/types";
+import { useProductListing } from "@/lib/useProductListing";
 
 export default function ProductListing() {
   const searchParams = useParams() as { slug: string[] };
@@ -26,14 +26,8 @@ export default function ProductListing() {
   const subCategorySlug = searchParams.slug[1];
   const subSubCategorySlug = searchParams.slug[2];
 
-  const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const [selectedSort, setSelectedSort] = useState<string>();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [filteredProducts, setFilteredProducts] = useState<ProductData[]>([]);
-  const [totalProducts, setTotalProducts] = useState(0);
   const [gridLayout, setGridLayout] = useState("normal");
 
   const observerTarget = useRef<HTMLDivElement | null>(null);
@@ -42,19 +36,43 @@ export default function ProductListing() {
   const { category, color, material, priceFrom, priceTo, quickFilter } =
     useSelector((state: RootState) => state.filters);
 
-  const PRODUCTS_PER_PAGE = 15;
-  const MAX_PRODUCTS = 200;
+  // ── Filter params (memoized to avoid stale closures) ────────────────
+  const filterParams = useMemo(() => ({
+    categorySlug,
+    subCategorySlug: category.length > 0 ? category : (subCategorySlug ?? ""),
+    subSubCategorySlug: category.length > 0 ? "" : (subSubCategorySlug ?? ""),
+    colorIds: color,
+    materialIds: material,
+    priceFrom,
+    priceTo,
+    quickFilter,
+    searchQuery: search,
+  }), [categorySlug, subCategorySlug, subSubCategorySlug, color, material, priceFrom, priceTo, category, quickFilter, search]);
 
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 350);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  // ── React Query infinite scroll ────────────────────────────────────
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    isError,
+  } = useProductListing(filterParams);
 
-  useEffect(() => {
-    if (!filteredProducts.length) return;
+  // Flatten all pages into one array
+  const allProducts = useMemo(() => {
+    if (!data?.pages) return [];
+    return data.pages.flatMap((p) => p.products);
+  }, [data]);
 
-    const sorted = [...filteredProducts];
+  const totalProducts = useMemo(() => {
+    return data?.pages?.[0]?.totalCount ?? allProducts.length;
+  }, [data, allProducts.length]);
+
+  // ── Sort (client-side) ─────────────────────────────────────────────
+  const sortedProducts = useMemo(() => {
+    if (!allProducts.length) return [];
+    const sorted = [...allProducts];
     if (selectedSort === "newest") {
       sorted.sort((a, b) => new Date(b.createdAt ?? "").getTime() - new Date(a.createdAt ?? "").getTime());
     } else if (selectedSort === "low") {
@@ -66,145 +84,48 @@ export default function ProductListing() {
     } else if (selectedSort === "ztoa") {
       sorted.sort((a, b) => b.name.localeCompare(a.name));
     }
-    setFilteredProducts(sorted);
-  }, [selectedSort]);
+    return sorted;
+  }, [allProducts, selectedSort]);
 
-  const fetchProducts = async (page = 1, append = false) => {
-    if (append) {
-      setLoadingMore(true);
-    } else {
-      setLoading(true);
-    }
-    try {
-      const requestBody = {
-        categorySlug,
-        subCategorySlug: category.length > 0 ? category : subCategorySlug,
-        subSubCategorySlug: category.length > 0 ? "" : subSubCategorySlug,
-        colorIds: color,
-        materialIds: material,
-        priceFrom,
-        priceTo,
-        page,
-        limit: PRODUCTS_PER_PAGE,
-        isFeatured: quickFilter === "featured" ? true : undefined,
-        isNewArrival: quickFilter === "newArrival" ? true : undefined,
-        isBestSeller: quickFilter === "bestSeller" ? true : undefined,
-        isTopRated: quickFilter === "topRated" ? true : undefined,
-        searchQuery : search
-      };
-
-      const toStr = (v: string | string[] | undefined) =>
-        v === undefined ? undefined : Array.isArray(v) ? v.join(",") : v;
-
-      const params = new URLSearchParams();
-      if (requestBody.categorySlug) params.set("categorySlug", requestBody.categorySlug);
-      const sCat = toStr(requestBody.subCategorySlug);
-      if (sCat) params.set("subCategorySlug", sCat);
-      const ssCat = toStr(requestBody.subSubCategorySlug);
-      if (ssCat) params.set("subSubCategorySlug", ssCat);
-      if (requestBody.colorIds.length > 0) params.set("colorIds", requestBody.colorIds.join(","));
-      if (requestBody.materialIds.length > 0) params.set("materialIds", requestBody.materialIds.join(","));
-      if (requestBody.priceFrom !== null && requestBody.priceFrom !== undefined) params.set("priceFrom", String(requestBody.priceFrom));
-      if (requestBody.priceTo !== null && requestBody.priceTo !== undefined) params.set("priceTo", String(requestBody.priceTo));
-      params.set("page", String(requestBody.page));
-      params.set("limit", String(requestBody.limit));
-      if (requestBody.isFeatured) params.set("isFeatured", "true");
-      if (requestBody.isNewArrival) params.set("isNewArrival", "true");
-      if (requestBody.isBestSeller) params.set("isBestSeller", "true");
-      if (requestBody.isTopRated) params.set("isTopRated", "true");
-      if (requestBody.searchQuery) params.set("searchQuery", requestBody.searchQuery);
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}api/website/product/get-by-filter?${params.toString()}`,
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || !data._status) {
-        toast.error(data._message || "Something went wrong");
-        setHasMore(false);
-        return;
-      }
-
-      const newProducts: ProductData[] = data._data || [];
-
-      if (append) {
-        setFilteredProducts((prev) => {
-          const combined = [...prev, ...newProducts];
-          return combined.slice(0, MAX_PRODUCTS);
-        });
-      } else {
-        setFilteredProducts(newProducts);
-      }
-
-      const total = data.totalCount || data.total || data._total;
-      if (total) {
-        setTotalProducts(total);
-        const hasMoreProducts = page * PRODUCTS_PER_PAGE < total;
-        setHasMore(hasMoreProducts);
-      } else {
-        const hasReachedMax =
-          filteredProducts.length + newProducts.length >= MAX_PRODUCTS;
-        const hasMoreProducts =
-          !hasReachedMax && newProducts.length === PRODUCTS_PER_PAGE;
-        setHasMore(hasMoreProducts);
-      }
-    } catch (error) {
-      toast.error("Failed to fetch products");
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  };
-
+  // ── Scroll effect ──────────────────────────────────────────────────
   useEffect(() => {
-    setCurrentPage(1);
-    setHasMore(true);
-    setFilteredProducts([]);
-    fetchProducts(1, false);
-  }, [
-    categorySlug,
-    subCategorySlug,
-    subSubCategorySlug,
-    color,
-    material,
-    priceFrom,
-    priceTo,
-    category,
-    quickFilter,
-    search
-  ]);
+    const handleScroll = () => setIsScrolled(window.scrollY > 350);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
+  // ── Infinite scroll observer ───────────────────────────────────────
   useEffect(() => {
+    const target = observerTarget.current;
+    if (!target) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        const isVisible = entries[0].isIntersecting;
-        if (isVisible && hasMore && !loadingMore && !loading) {
-          const nextPage = currentPage + 1;
-          setCurrentPage(nextPage);
-          fetchProducts(nextPage, true);
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage && !isLoading) {
+          fetchNextPage();
         }
       },
       { threshold: 0.1, rootMargin: "100px" }
     );
 
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      observer.observe(currentTarget);
-    }
-
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
-      }
-    };
-  }, [hasMore, loadingMore, loading, currentPage]);
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, isLoading, fetchNextPage]);
 
   const toggle = () => {
     dispatch(openSidebar());
   };
 
-  if (loading) {
+  if (isError) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-destructive text-lg mb-2">Failed to load products</p>
+        <p className="text-muted-foreground text-sm">Please try adjusting your filters or refresh the page.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
     return (
       <div className="text-center flex items-center justify-center py-16">
         <Loader className="animate-spin" />
@@ -218,8 +139,8 @@ export default function ProductListing() {
         <div>
           <h2 className="text-2xl font-serif text-brand-800">All Products</h2>
           <p className="text-muted-foreground text-sm">
-            {totalProducts || filteredProducts?.length} product
-            {(totalProducts || filteredProducts?.length) !== 1 ? "s" : ""}
+            {totalProducts || sortedProducts.length} product
+            {(totalProducts || sortedProducts.length) !== 1 ? "s" : ""}
           </p>
         </div>
         <div className="flex items-center gap-2 my-3 md:my-0">
@@ -282,7 +203,7 @@ export default function ProductListing() {
         </div>
       </div>
 
-      {filteredProducts?.length > 0 ? (
+      {sortedProducts.length > 0 ? (
         <div className="">
           <div
             className={`grid gap-2 sm:gap-3 md:gap-3 lg:gap-5 animate-fade-in duration-100 sm:px-0 ${
@@ -291,26 +212,26 @@ export default function ProductListing() {
                 : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3"
             }`}
           >
-            {filteredProducts.map((p, index) => (
+            {sortedProducts.map((p, index) => (
               <ProductCard data={p} key={`${p._id}-${index}`} {...p} />
             ))}
           </div>
 
-          {hasMore && (
+          {(hasNextPage || isFetchingNextPage) && (
             <div
               ref={observerTarget}
               className="h-20 mt-8 flex items-center justify-center border-2 border-dashed border-border bg-muted"
             >
-              {loadingMore ? (
+              {isFetchingNextPage ? (
                 <div className="text-center flex items-center justify-center gap-2">
                   <Loader className="animate-spin" size={20} />
                   <span className="text-sm text-muted-foreground">
                     Loading more products...
                   </span>
                 </div>
-              ) : hasMore ? (
+              ) : (
                 <span className="text-xs text-muted-foreground"></span>
-              ) : null}
+              )}
             </div>
           )}
         </div>

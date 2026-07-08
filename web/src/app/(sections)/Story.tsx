@@ -36,7 +36,7 @@ export default function Story() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-muted/30 p-4 sm:p-8">
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto">
         <div className="liquid-glass rounded-[3rem] p-8 sm:p-12 mb-8 shimmer">

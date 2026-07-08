@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import {
   createOrder,
   createRazorpayOrder,
@@ -40,6 +40,22 @@ import { useProfileBootstrap } from "@/hooks/useProfileBootstrap";
 import type { CheckoutFormData, OrderSummaryCartItem, ProductData } from "@/types";
 import { ArrowLeft, Shield, Truck, RotateCcw } from "lucide-react";
 import { INDIAN_STATES, siteConfig } from "@/lib/utils";
+
+// Generates a fresh UUID v4 per checkout attempt.
+// An idempotency key MUST represent one specific checkout attempt — never derive
+// it from userId, productId, or any business data, otherwise two legitimate
+// repeat purchases collide on the same key and the server returns the old order.
+const generateIdempotencyKey = (): string => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  // Fallback for environments without crypto.randomUUID
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
 
 export default function Checkout() {
   const searchParams = useSearchParams();
@@ -124,6 +140,10 @@ export default function Checkout() {
   const router = useRouter();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
+  // Stable across a single payment attempt so retries of the same request reuse
+  // it (server returns the cached order). Resetting happens at the next page
+  // mount / new checkout — which is exactly "a new attempt", per spec.
+  const idempotencyKeyRef = useRef<string>("");
   const user = useSelector((state: RootState) => state.auth.details);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLogin);
 
@@ -317,6 +337,13 @@ export default function Checkout() {
 
       setLoading(true);
 
+      // Mint exactly one idempotency key per checkout attempt.
+      // If the user swipes again for a different purchase (new component mount,
+      // new page load), a fresh key is generated — no collision with the old one.
+      if (!idempotencyKeyRef.current) {
+        idempotencyKeyRef.current = generateIdempotencyKey();
+      }
+
       const orderPayload = {
         purchaseType,
         ...orderData,
@@ -331,6 +358,7 @@ export default function Checkout() {
         ),
       }),
         isCodAdvance,
+        idempotencyKey: idempotencyKeyRef.current,
       };
 
       const createOrderResponse = await createOrder(orderPayload);
@@ -363,7 +391,7 @@ export default function Checkout() {
           contact: orderData.shippingAddress.phone,
         },
         theme: {
-          color: "#dfbf0eff",
+          color: typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim() || '#f59e0b' : '#f59e0b',
         },
         handler: async function (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) {
           // Step 5: Verify payment on backend

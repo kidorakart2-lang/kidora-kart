@@ -34,9 +34,11 @@ import MyOrders from "./MyOrder";
 import { LoadingUi } from "./Cart";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useSelector, useDispatch } from "react-redux";
-import { getUser } from "@/lib/fetchUser";
 import { RootState } from "@/redux/store/store";
 import { setProfile } from "@/redux/features/auth";
+import { useUserProfile } from "@/lib/useProfile";
+import { useQueryClient } from "@tanstack/react-query";
+import { userKeys } from "@/lib/useProfile";
 import { INDIAN_STATES } from "@/lib/utils";
 
 const tabs = [
@@ -48,6 +50,7 @@ const tabs = [
 export default function AccountPage() {
   const dispatch = useDispatch();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const data = useSelector((state: RootState) => state.auth.details);
 
@@ -66,44 +69,39 @@ export default function AccountPage() {
     pincode: data?.address?.pincode || "",
     instructions: data?.address?.instructions || "",
   });
-  const [loading, setLoading] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null!);
   const imageUploadRef = useRef<HTMLDivElement>(null!);
 
-  const fetchUser = async () => {
-    setLoading(true);
-    const user = await getUser();
-    if (!user) {
-      setLoading(false);
-      router.push("/login?returnTo=/profile");
-      return;
-    }
-    dispatch(setProfile(user._data));
-    setFormData({
-      name: user._data.name || "",
-      email: user._data.email || "",
-      gender: user._data.gender || "",
-      mobile: user._data.mobile || "",
-      street: user._data.address?.street || "",
-      area: user._data.address?.area || "",
-      city: user._data.address?.city || "",
-      state: user._data.address?.state || "",
-      pincode: user._data.address?.pincode || "",
-      instructions: user._data.address?.instructions || "",
-    });
-    setAvatar(user._data.avatar ?? null);
-    setLoading(false);
-  };
+  // React Query — fetch user profile with caching + dedup
+  const { data: profileData, isLoading } = useUserProfile();
 
+  // Sync profile to Redux and populate form once data arrives
   useEffect(() => {
-    if (data && data._id) {
-      setLoading(false);
-      return;
+    if (!profileData) return;
+    dispatch(setProfile(profileData));
+    setFormData({
+      name: profileData.name || "",
+      email: profileData.email || "",
+      gender: profileData.gender || "",
+      mobile: profileData.mobile || "",
+      street: profileData.address?.street || "",
+      area: profileData.address?.area || "",
+      city: profileData.address?.city || "",
+      state: profileData.address?.state || "",
+      pincode: profileData.address?.pincode || "",
+      instructions: profileData.address?.instructions || "",
+    });
+    setAvatar(profileData.avatar ?? null);
+  }, [profileData, dispatch]);
+
+  // Redirect to login if not authenticated and no cached data
+  useEffect(() => {
+    if (!isLoading && !profileData && !getAuthToken()) {
+      router.push("/login?returnTo=/profile");
     }
-    fetchUser();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isLoading, profileData, router]);
 
   const params = useSearchParams();
 
@@ -163,6 +161,7 @@ export default function AccountPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitting(true);
     const token = getAuthToken();
 
     const formDataToSend = new FormData();
@@ -200,7 +199,6 @@ export default function AccountPage() {
     }
 
     try {
-      setLoading(true);
       const response = await fetch(
         process.env.NEXT_PUBLIC_API_URL + "api/website/user/update-profile",
         {
@@ -215,23 +213,26 @@ export default function AccountPage() {
 
       if (response.status === 429) {
         toast.error("Too many requests, please try again later");
-        setLoading(false);
         return;
       }
 
       const res = await response.json();
       if (res._status) {
         toast.success(res._message);
-        fetchUser();
+        setPreviewImage(null);
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        queryClient.invalidateQueries({ queryKey: userKeys.profile() });
       } else {
         toast.error(res._message);
       }
-      setLoading(false);
     } catch {
-      setLoading(false);
       toast.error("Something went wrong");
+    } finally {
+      setIsSubmitting(false);
     }
-    setLoading(false);
   };
 
   const variants = {
@@ -242,10 +243,10 @@ export default function AccountPage() {
 
   const transition = { type: "spring" as const, stiffness: 320, damping: 30 };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <LoadingUi hidden={loading} />
+        <LoadingUi hidden={false} />
       </div>
     );
   }
@@ -629,8 +630,8 @@ export default function AccountPage() {
                             </div>
 
                             <div className="pt-6 flex gap-3">
-                              <Button variant="gradient" className="px-6 py-2.5 rounded-lg text-sm font-medium shadow-sm transform transition-all duration-300 hover:scale-105 active:scale-95">
-                                Save Changes
+                              <Button variant="gradient" disabled={isSubmitting} className="px-6 py-2.5 rounded-lg text-sm font-medium shadow-sm transform transition-all duration-300 hover:scale-105 active:scale-95">
+                                {isSubmitting ? "Saving..." : "Save Changes"}
                               </Button>
                             </div>
                           </div>

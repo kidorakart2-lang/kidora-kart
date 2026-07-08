@@ -29,10 +29,33 @@ All remaining files with hardcoded brand colors migrated — 14 low-effort files
 
 - Full `src/` non-theme color purge — zero `text-gray-*`, `bg-gray-*`, `border-gray-*`, `text-blue-*`, `bg-blue-*`, `text-slate-*`, `bg-slate-*` classes remain (~33 files, ~100+ refs eliminated).
 
+### Phase 7: Final Hardcoded Color Sweep (July 2026)
+
+Additional hardcoded colors found and fixed across 14 files:
+
+**Slate/Gray→Theme tokens (6 files):**
+- `TabProducts.tsx` — Silver tab active state `from-slate-700 to-slate-900` → `from-[var(--brand-700)] to-[var(--brand-900)]`
+- `About.tsx` — Background `from-gray-50 via-white to-gray-100` → `from-muted/30 via-background to-muted/30`; divider `from-gray-600 to-gray-400` → `from-muted-foreground to-muted`
+- `Story.tsx` — Same bg gradient fix as About
+- `Wishlist.tsx`, `GuestWishlist.tsx`, `Cart.tsx` — Image bg `to-slate-50` → `to-muted`
+
+**Orange/Red→Theme (3 files):**
+- `MyOrder.tsx` — Retry Payment `from-orange-500` → `btn-gradient`; Cancel dialog already uses `bg-destructive`
+- `Track.tsx` — Payment-failed header `from-orange-500` → `from-[var(--brand-500)]`
+- `Wishlist.tsx` — Out of Stock badge `to-red-600` → `to-destructive`
+
+**Hardcoded hex values (3 files):**
+- `OrderSuccess.tsx` — Framer Motion boxShadow `rgba(217, 119, 6, ...)` → runtime-resolved via `getComputedStyle(--brand-primary)` → hex-to-rgb → `rgba(${brandRgb}, ...)`
+- `Track.tsx` / `Checkout.tsx` — Razorpay theme `"#dfbf0eff"` → computed from `--brand-primary` CSS var at runtime
+
+**White→Theme (3 files):**
+- `image-slider.tsx` — Navigation arrows `bg-white/80 hover:bg-white` → `bg-background/80 hover:bg-background`
+- `RoundCategorySlider.tsx` / `GenderCategorySection.tsx` — Overlay text `text-white` → `text-background`
+
 ## Remaining Items
 
 1. Define alternate theme CSS var block in `globals.css` for toy-shop re-skin.
-2. Update `layout.tsx` meta theme-color (currently hardcoded hex `#F58E00` in `<head>`).
+2. Update `layout.tsx` meta theme-color — `siteConfig.themeColor` is already `#F58E00` with SSR fallback comment. Consider adding a `ClientThemeColor` component that reads `--brand-primary` at runtime.
 3. Test dark mode across all sections.
 4. Run Lighthouse baseline (`pnpm lighthouserc`) against production build.
 5. Accessibility audit with axe-core.

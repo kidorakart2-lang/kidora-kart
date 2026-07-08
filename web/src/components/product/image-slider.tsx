@@ -56,7 +56,7 @@ export default function ImageSlider({
     <div className="space-y-4">
       {/* Main Image */}
       <motion.div
-        className="relative bg-gradient-to-br from-brand-50/50 to-brand-100/50  overflow-hidden h-96 sm:h-[500px] shadow-2xl border border-brand-100/50 glass-effect"
+        className="relative bg-gradient-to-br from-brand-50/50 to-brand-100/50  overflow-hidden h-96 sm:h-[500px] border border-brand-100/50 glass-effect"
         whileHover={!isMobile ? { scale: 1.01 } : {}}
         transition={{ duration: 0.2 }}
       >
@@ -101,7 +101,7 @@ export default function ImageSlider({
               whileHover={{ scale: 1.1, x: -4 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => paginate(-1)}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-brand-600 p-3 rounded-full shadow-lg backdrop-blur-md transition-all"
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background text-brand-600 p-3 rounded-full shadow-lg backdrop-blur-md transition-all"
               aria-label="Previous image"
             >
               <ChevronLeft className="w-6 h-6" />
@@ -110,7 +110,7 @@ export default function ImageSlider({
               whileHover={{ scale: 1.1, x: 4 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => paginate(1)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-brand-600 p-3 rounded-full shadow-lg backdrop-blur-md transition-all"
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background text-brand-600 p-3 rounded-full shadow-lg backdrop-blur-md transition-all"
               aria-label="Next image"
             >
               <ChevronRight className="w-6 h-6" />
@@ -131,10 +131,10 @@ export default function ImageSlider({
       {/* Thumbnail Slider */}
       {images.length > 1 && (
         <div className="relative group mt-4 px-2">
-          <div className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 z-10 cursor-pointer p-2 bg-white/80 rounded-full shadow-md text-brand-600 hover:bg-white transition-all border border-brand-100 disabled:opacity-50 disabled:cursor-not-allowed">
+          <div className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 z-10 cursor-pointer p-2 bg-background/80 rounded-full shadow-md text-brand-600 hover:bg-background transition-all border border-brand-100 disabled:opacity-50 disabled:cursor-not-allowed">
             <ChevronLeft className="w-5 h-5" />
           </div>
-          <div className="swiper-button-next-custom absolute right-0 top-1/2 -translate-y-1/2 z-10 cursor-pointer p-2 bg-white/80 rounded-full shadow-md text-brand-600 hover:bg-white transition-all border border-brand-100 disabled:opacity-50 disabled:cursor-not-allowed">
+          <div className="swiper-button-next-custom absolute right-0 top-1/2 -translate-y-1/2 z-10 cursor-pointer p-2 bg-background/80 rounded-full shadow-md text-brand-600 hover:bg-background transition-all border border-brand-100 disabled:opacity-50 disabled:cursor-not-allowed">
             <ChevronRight className="w-5 h-5" />
           </div>
 

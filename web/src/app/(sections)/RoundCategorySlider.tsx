@@ -82,7 +82,7 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
                       />
 
                         <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-full">
-                          <p className="text-base sm:text-lg md:text-xl font-semibold text-white text-center px-2 drop-shadow-lg"
+                          <p className="text-base sm:text-lg md:text-xl font-semibold text-background text-center px-2 drop-shadow-lg"
                             itemProp="name"
                         >
                           {subCat.name}

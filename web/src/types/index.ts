@@ -13,6 +13,8 @@ export type {
   OrderNotes,
   OrderData,
   OrderTrackingResponse,
+  OrderListApiResponse,
+  OrderDetailApiResponse,
   CheckoutFormData,
 } from "./order";
 

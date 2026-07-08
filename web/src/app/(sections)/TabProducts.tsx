@@ -30,7 +30,7 @@ export default function TabProducts({ data }: { data: Record<string, ProductData
             >
               <TabsTrigger
                 value="silver"
-                className="px-8 py-3 rounded-full font-semibold text-sm uppercase transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:text-background data-[state=active]:shadow-md"
+                className="px-8 py-3 rounded-full font-semibold text-sm uppercase transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--brand-700)] data-[state=active]:to-[var(--brand-900)] data-[state=active]:text-background data-[state=active]:shadow-md"
               >
                 Silver
               </TabsTrigger>

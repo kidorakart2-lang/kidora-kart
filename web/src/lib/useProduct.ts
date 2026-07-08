@@ -1,8 +1,7 @@
 "use client";
 
 import { useQueries, useQuery } from "@tanstack/react-query";
-import { fetchProductBySlug, fetchProductsByIds, fetchServerCart, type FetchedProduct } from "./api";
-import { getAuthToken } from "./getAuthToken";
+import { fetchProductBySlug, fetchProductsByIds, type FetchedProduct } from "./api";
 
 /**
  * Query key factory for product queries.
@@ -11,7 +10,6 @@ export const productKeys = {
   all: ["products"] as const,
   detail: (slug: string) => ["products", "detail", slug] as const,
   batch: (ids: string[]) => ["products", "batch", ...ids.slice().sort()] as const,
-  cartView: () => ["cart", "view"] as const,
 };
 
 /**
@@ -82,15 +80,3 @@ export function useProductsByIds(ids: string[]) {
   };
 }
 
-/**
- * Fetch the server-side cart. Returns null if not logged in or empty.
- */
-export function useServerCart() {
-  const token = getAuthToken();
-  return useQuery({
-    queryKey: productKeys.cartView(),
-    queryFn: () => fetchServerCart(token!),
-    enabled: !!token,
-    staleTime: 30 * 1000,
-  });
-}

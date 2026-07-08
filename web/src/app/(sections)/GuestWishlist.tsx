@@ -210,7 +210,7 @@ className="inline-flex items-center gap-2 btn-gradient font-medium py-3 px-8 rou
 
                 {/* Image Container */}
                 <div
-                  className="relative h-72 sm:h-80 bg-gradient-to-br from-brand-50 to-slate-50 
+                  className="relative h-72 sm:h-80 bg-gradient-to-br from-brand-50 to-muted 
                            overflow-hidden cursor-pointer"
                   onClick={() => router.push(`/product-details/${item.slug}`)}
                 >
