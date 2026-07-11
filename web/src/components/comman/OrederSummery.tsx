@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { Truck } from "lucide-react";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -9,7 +10,19 @@ interface OrderSummaryOrderData {
   giftWrap?: boolean;
 }
 
-export default function OrederSummery({ cartItems, type, orderData, coupon }: { cartItems: OrderSummaryCartItem[]; type: string; orderData: OrderSummaryOrderData; coupon: CouponData | null }) {
+interface ShippingEstimate {
+  estimatedCharge: number;
+  courierName?: string;
+  etd?: string;
+}
+
+export default function OrederSummery({ cartItems, type, orderData, coupon, shippingEstimate }: {
+  cartItems: OrderSummaryCartItem[];
+  type: string;
+  orderData: OrderSummaryOrderData;
+  coupon: CouponData | null;
+  shippingEstimate?: ShippingEstimate | null;
+}) {
   if (type === "direct" || type === "cart") {
     const [personalizedName, setPersonalizedName] = useState("");
 
@@ -41,7 +54,7 @@ export default function OrederSummery({ cartItems, type, orderData, coupon }: { 
     );
 
     const giftWrapCharge = orderData.giftWrap ? 50 : 0;
-    const shippingCharge = subtotal > 1000 ? 0 : 50;
+    const shippingCharge = shippingEstimate?.estimatedCharge ?? 50;
 
     let couponDiscount = 0;
 
@@ -163,19 +176,34 @@ export default function OrederSummery({ cartItems, type, orderData, coupon }: { 
           </div>
 
           <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Shipping</span>
-            <span className="text-emerald-600 font-medium">
-              {cartItems.reduce(
-                (sum, item) =>
-                  sum +
-                  (item?.product?.discount_price || item?.product?.price) *
-                    item?.quantity,
-                0
-              ) > 1000
-                ? "Free"
-                : "₹50"}
+            <span className="flex items-center gap-1.5">
+              <Truck className="w-3.5 h-3.5" />
+              Shipping
+            </span>
+            <span className="text-foreground font-medium">
+              {shippingEstimate ? (
+                <span className="text-brand-600">₹{shippingCharge}</span>
+              ) : (
+                <span>₹{shippingCharge}</span>
+              )}
             </span>
           </div>
+
+          {shippingEstimate?.courierName && (
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Courier</span>
+              <span className="font-medium text-foreground">
+                {shippingEstimate.courierName}
+              </span>
+            </div>
+          )}
+
+          {shippingEstimate?.etd && (
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Est. Delivery</span>
+              <span className="font-medium text-brand-600">{shippingEstimate.etd}</span>
+            </div>
+          )}
 
           {orderData.giftWrap && (
             <div className="flex justify-between text-sm text-muted-foreground">

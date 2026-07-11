@@ -64,35 +64,35 @@ export interface ChartData {
 // ── Chart Configurations ───────────────────────────────────────────────
 
 const revenueChartConfig: ChartConfig = {
-  revenue: { label: "Revenue", color: "hsl(var(--chart-1))" },
-  target: { label: "Target", color: "hsl(var(--chart-3))" },
+  revenue: { label: "Revenue", color: "var(--chart-1))" },
+  target: { label: "Target", color: "var(--chart-3))" },
 };
 
 const orderStatusConfig: ChartConfig = {
-  delivered: { label: "Delivered", color: "hsl(var(--chart-1))" },
-  processing: { label: "Processing", color: "hsl(var(--chart-2))" },
-  shipped: { label: "Shipped", color: "hsl(var(--chart-3))" },
-  pending: { label: "Pending", color: "hsl(var(--chart-4))" },
-  cancelled: { label: "Cancelled", color: "hsl(var(--chart-5))" },
+  delivered: { label: "Delivered", color: "var(--chart-1))" },
+  processing: { label: "Processing", color: "var(--chart-2))" },
+  shipped: { label: "Shipped", color: "var(--chart-3))" },
+  pending: { label: "Pending", color: "var(--chart-4))" },
+  cancelled: { label: "Cancelled", color: "var(--chart-5))" },
 };
 
 const categoryConfig: ChartConfig = {};
 
 const growthConfig: ChartConfig = {
-  users: { label: "New Users", color: "hsl(var(--chart-3))" },
+  users: { label: "New Users", color: "var(--chart-3))" },
 };
 
 const monthlyBarConfig: ChartConfig = {
-  orders: { label: "Orders", color: "hsl(var(--chart-3))" },
-  revenue: { label: "Revenue", color: "hsl(var(--chart-1))" },
+  orders: { label: "Orders", color: "var(--chart-3))" },
+  revenue: { label: "Revenue", color: "var(--chart-1))" },
 };
 
 const statusColorMap: Record<string, string> = {
-  delivered: "hsl(var(--chart-1))",
-  processing: "hsl(var(--chart-2))",
-  shipped: "hsl(var(--chart-3))",
-  pending: "hsl(var(--chart-4))",
-  cancelled: "hsl(var(--chart-5))",
+  delivered: "var(--chart-1))",
+  processing: "var(--chart-2))",
+  shipped: "var(--chart-3))",
+  pending: "var(--chart-4))",
+  cancelled: "var(--chart-5))",
 };
 
 // ── Chart Components ───────────────────────────────────────────────────
@@ -190,7 +190,7 @@ export function OrderStatusChart({ data }: OrderStatusChartProps) {
 
   const colouredData = data.map((item) => ({
     ...item,
-    fill: statusColorMap[item.status] ?? "hsl(var(--chart-5))",
+    fill: statusColorMap[item.status] ?? "var(--chart-5))",
   }));
 
   return (
@@ -369,7 +369,7 @@ export function CategoryBarChart({ data }: CategoryBarChartProps) {
               {data.map((_entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={`hsl(var(--chart-${(index % 5) + 1}))`}
+                  fill={`var(--chart-${(index % 5) + 1}))`}
                 />
               ))}
             </Bar>
@@ -381,7 +381,7 @@ export function CategoryBarChart({ data }: CategoryBarChartProps) {
               <div className="flex items-center gap-2">
                 <div
                   className="h-2.5 w-2.5 rounded-sm shrink-0"
-                  style={{ backgroundColor: `hsl(var(--chart-${(i % 5) + 1}))` }}
+                  style={{ backgroundColor: `var(--chart-${(i % 5) + 1}))` }}
                 />
                 <span className="text-muted-foreground">{item.name}</span>
               </div>
@@ -438,8 +438,8 @@ export function UserGrowthChart({ data }: UserGrowthChartProps) {
           <AreaChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
             <defs>
               <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--chart-3))" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="var(--chart-3))" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

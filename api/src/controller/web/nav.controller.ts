@@ -19,13 +19,13 @@ export const navController = async (
 
     const [categories, subCategories, subSubCategories] = await Promise.all([
       Category.find({ deletedAt: null, status: true })
-        .select("_id name slug parentSubCategory image")
+        .select("_id name slug parentSubCategory image bannerId")
         .lean(),
       SubCategory.find({ deletedAt: null, status: true })
-        .select("_id name slug category image")
+        .select("_id name slug category image bannerId")
         .lean(),
       SubSubCategory.find({ deletedAt: null, status: true })
-        .select("_id name slug subCategory image")
+        .select("_id name slug subCategory image bannerId")
         .lean(),
     ]);
 

@@ -22,7 +22,7 @@ const userCacheKey = (id: string): string => `user_${id}`;
 async function getCachedUser(userId: string) {
   const cacheKey = userCacheKey(userId);
   const cached = cache.get(cacheKey);
-  if (cached !== undefined) return cached as any;
+  if (cached !== undefined) return cached as Record<string, unknown>;
   const user = await User.findById(userId).select("-password -googleId -avatarFileName -avatarFileId -updatedAt -__v").lean();
   if (user) {
     cache.set(cacheKey, user, USER_CACHE_TTL);
@@ -31,10 +31,8 @@ async function getCachedUser(userId: string) {
 }
 
 /** Invalidate cached user data so the next lookup fetches fresh from DB. */
-export function invalidateUserCache(userId: unknown): void {
-  if (userId != null) {
-    cache.del(userCacheKey(String(userId)));
-  }
+export function invalidateUserCache(userId: string | import("mongoose").Types.ObjectId): void {
+  cache.del(userCacheKey(String(userId)));
 }
 
 const extractAndVerifyToken = async (
@@ -44,7 +42,7 @@ const extractAndVerifyToken = async (
   token: string,
 ): Promise<void> => {
   try {
-    const decoded = jwt.verify(token, env.JWT_SECRET) as unknown as JwtPayload;
+    const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
     const user = await getCachedUser(decoded._id);
     if (user) {
       req.user = user;
@@ -134,7 +132,9 @@ async function attemptAutoRefresh(
     return;
   }
 
-  const newAccessToken = generateToken(user.toObject(), tokenType);
+  // Use spread to convert user to a plain object (handles both plain objects and Mongoose documents)
+  const userPlain = { ...(user as Record<string, unknown>) } as Record<string, unknown> & { _id: string | import("mongoose").Types.ObjectId };
+  const newAccessToken = generateToken(userPlain, tokenType);
   const newRefresh = await createRefreshToken(String(user._id), tokenType);
 
   const accessCookieName = tokenType === "user" ? "userToken" : "adminToken";

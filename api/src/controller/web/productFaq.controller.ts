@@ -13,8 +13,8 @@ export const productFaqController = async (
 
     const cached = cache.get(cacheKey);
     if (cached) {
-      const data = (cached as Record<string, unknown>[]).filter((item) => {
-        const products = item.products as unknown[];
+      const data = (cached as Array<Record<string, unknown>>).filter((item) => {
+        const products = item.products as Array<unknown>;
         return productId
           ? products?.some((p) => String(p) === productId)
           : true;
@@ -28,8 +28,8 @@ export const productFaqController = async (
     cache.set(cacheKey, data, 600); // 10 min — FAQ data rarely changes
 
     const filtered = productId
-      ? (data as Record<string, unknown>[]).filter((item) => {
-          const products = item.products as unknown[];
+      ? (data as Array<Record<string, unknown>>).filter((item) => {
+          const products = item.products as Array<unknown>;
           return products?.some((p) => String(p) === productId);
         })
       : data;

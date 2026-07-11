@@ -78,7 +78,7 @@ export default function Search({ products, q }: SearchProps) {
                   Try searching for:
                 </p>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {["Watches", "Jewelry", "Accessories"].map((suggestion) => (
+                  {["Action Figures", "Board Games", "Educational Toys"].map((suggestion) => (
                     <Badge
                       key={suggestion}
                       variant="outline"

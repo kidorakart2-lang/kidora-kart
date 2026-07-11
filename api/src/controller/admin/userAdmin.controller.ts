@@ -23,7 +23,7 @@ import {
 /** Helper: set admin session cookies */
 async function setSessionCookies(
   res: Response,
-  user: { _id: unknown },
+  user: { _id: string | import("mongoose").Types.ObjectId },
 ): Promise<void> {
   const accessToken = generateToken(user, "admin");
   const refresh = await createRefreshToken(String(user._id), "admin");
@@ -152,7 +152,7 @@ export const getFullDetails = async (
         .populate("items.product", "name images image discount_price price slug")
         .populate("items.color", "name code")
         .lean(),
-      Order.find({ userId: req.params.id })
+      Order.find({ userId: String(req.params.id) })
         .populate("items.productId", "name images slug")
         .select("-payment.razorpay.signature")
         .lean(),
@@ -356,7 +356,7 @@ export const userDelete = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const userId = req.params.id;
+    const userId = String(req.params.id);
     const user = await userModel.findById(userId)
       .select("_id email role")
       .lean();
@@ -367,10 +367,8 @@ export const userDelete = async (
     }
 
     // Clean up refresh tokens for deleted user
-    if (typeof userId === "string") {
-      const { revokeAllUserRefreshTokens } = await import("../../lib/tokens.js");
-      await revokeAllUserRefreshTokens(userId);
-    }
+    const { revokeAllUserRefreshTokens } = await import("../../lib/tokens.js");
+    await revokeAllUserRefreshTokens(userId);
 
     invalidateUserCache(userId);
     await userModel.findByIdAndDelete(userId);

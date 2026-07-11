@@ -50,27 +50,26 @@ const FullVideoSection = () => {
           >
             {/* Decorative Line */}
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-[2px] bg-gradient-to-r from-brand-400 to-brand-600"></div>
-              <Sparkles className="w-5 h-5 text-brand-400" />
+              <div className="w-12 h-[2px] bg-background/60"></div>
             </div>
 
             {/* Heading */}
             <motion.h2
-              className="text-3xl md:text-5xl lg:text-6xl font-serif mb-6 leading-[1.2]"
+              className="text-3xl md:text-5xl lg:text-6xl fw-heading mb-6 leading-[1.2]"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
               viewport={{ once: true }}
             >
               <span className="block">New Trending</span>
-              <span className="block bg-gradient-to-r from-brand-200 via-brand-300 to-brand-400 bg-clip-text text-transparent font-bold">
+              <span className="block text-background/90 font-semibold">
                 Collection
               </span>
             </motion.h2>
 
             {/* Subtitle */}
             <motion.p
-              className="text-base md:text-lg lg:text-xl mb-8 text-muted-foreground font-light max-w-lg leading-relaxed"
+              className="text-base md:text-lg lg:text-xl mb-8 text-muted-foreground fw-body max-w-lg leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}

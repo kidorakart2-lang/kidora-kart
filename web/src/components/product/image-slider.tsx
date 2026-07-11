@@ -6,6 +6,7 @@ import type { Variants } from "motion/react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ImageZoom from "./image-zoom";
+import ProductVideoPlayer from "./product-video";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
@@ -16,11 +17,17 @@ export default function ImageSlider({
   productName,
   isNewArrival,
   isMobile,
+  videoUrl,
+  showVideo,
+  onShowVideo,
 }: {
   images: string[];
   productName: string;
   isNewArrival: boolean;
   isMobile: boolean;
+  videoUrl?: string;
+  showVideo?: boolean;
+  onShowVideo?: () => void;
 }) {
   const [currentImage, setCurrentImage] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -54,82 +61,90 @@ export default function ImageSlider({
 
   return (
     <div className="space-y-4">
-      {/* Main Image */}
-      <motion.div
-        className="relative bg-gradient-to-br from-brand-50/50 to-brand-100/50  overflow-hidden h-96 sm:h-[500px] border border-brand-100/50 glass-effect"
-        whileHover={!isMobile ? { scale: 1.01 } : {}}
-        transition={{ duration: 0.2 }}
-      >
-        <AnimatePresence initial={false} custom={direction} mode="wait">
-          <motion.div
-            key={currentImage}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
-              x: { type: "spring", stiffness: 200, damping: 20 },
-              opacity: { duration: 0.4 },
-            }}
-            className="absolute inset-0"
-          >
-            <ImageZoom
-              src={images[currentImage] || "/placeholder.svg"}
-              alt={`${productName} - ${currentImage + 1}`}
-              isMobile={isMobile}
-            />
-          </motion.div>
-        </AnimatePresence>
-
-        {/* New Arrival Badge */}
-        {isNewArrival && (
-          <motion.span
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.3, type: "spring" }}
-            className="absolute top-4 right-4 bg-gradient-to-r from-brand-500 to-brand-600 text-background text-xs font-bold px-4 py-2 rounded-full shadow-lg backdrop-blur-sm"
-          >
-            NEW
-          </motion.span>
-        )}
-
-        {/* Navigation Arrows - Desktop Only */}
-        {!isMobile && images.length > 1 && (
-          <>
-            <motion.button
-              whileHover={{ scale: 1.1, x: -4 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => paginate(-1)}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background text-brand-600 p-3 rounded-full shadow-lg backdrop-blur-md transition-all"
-              aria-label="Previous image"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.1, x: 4 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => paginate(1)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background text-brand-600 p-3 rounded-full shadow-lg backdrop-blur-md transition-all"
-              aria-label="Next image"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </motion.button>
-          </>
-        )}
-
-        {/* Image Counter */}
+      {/* Main Display: Video or Image */}
+      {showVideo && videoUrl ? (
+        <ProductVideoPlayer
+          videoUrl={videoUrl}
+          onClose={() => onShowVideo?.()}
+          isActive={true}
+        />
+      ) : (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="absolute bottom-4 left-4 bg-black/40 text-background px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-md"
+          className="relative bg-gradient-to-br from-brand-50/50 to-brand-100/50 overflow-hidden h-96 sm:h-[500px] border border-brand-100/50 glass-effect"
+          whileHover={!isMobile ? { scale: 1.01 } : {}}
+          transition={{ duration: 0.2 }}
         >
-          {currentImage + 1} / {images.length}
+          <AnimatePresence initial={false} custom={direction} mode="wait">
+            <motion.div
+              key={currentImage}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                x: { type: "spring", stiffness: 200, damping: 20 },
+                opacity: { duration: 0.4 },
+              }}
+              className="absolute inset-0"
+            >
+              <ImageZoom
+                src={images[currentImage] || "/placeholder.svg"}
+                alt={`${productName} - ${currentImage + 1}`}
+                isMobile={isMobile}
+              />
+            </motion.div>
+          </AnimatePresence>
+
+          {/* New Arrival Badge */}
+          {isNewArrival && (
+            <motion.span
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ delay: 0.3, type: "spring" }}
+              className="absolute top-4 right-4 bg-gradient-to-r from-brand-500 to-brand-600 text-background text-xs font-bold px-4 py-2 rounded-full shadow-lg backdrop-blur-sm"
+            >
+              NEW
+            </motion.span>
+          )}
+
+          {/* Navigation Arrows - Desktop Only */}
+          {!isMobile && images.length > 1 && (
+            <>
+              <motion.button
+                whileHover={{ scale: 1.1, x: -4 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => paginate(-1)}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background text-brand-600 p-3 rounded-full shadow-lg backdrop-blur-md transition-all"
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1, x: 4 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => paginate(1)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background text-brand-600 p-3 rounded-full shadow-lg backdrop-blur-md transition-all"
+                aria-label="Next image"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </motion.button>
+            </>
+          )}
+
+          {/* Image Counter */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute bottom-4 left-4 bg-black/40 text-background px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-md"
+          >
+            {currentImage + 1} / {images.length}
+          </motion.div>
         </motion.div>
-      </motion.div>
+      )}
 
       {/* Thumbnail Slider */}
-      {images.length > 1 && (
+      {(images.length > 1 || videoUrl) && (
         <div className="relative group mt-4 px-2">
           <div className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 z-10 cursor-pointer p-2 bg-background/80 rounded-full shadow-md text-brand-600 hover:bg-background transition-all border border-brand-100 disabled:opacity-50 disabled:cursor-not-allowed">
             <ChevronLeft className="w-5 h-5" />
@@ -154,13 +169,17 @@ export default function ImageSlider({
                   onClick={() => {
                     setDirection(index > currentImage ? 1 : -1);
                     setCurrentImage(index);
+                    // If the video was showing, switch back to images
+                    if (showVideo && onShowVideo) {
+                      onShowVideo();
+                    }
                   }}
                   whileHover={{ scale: 1, y: -5 }}
                   whileTap={{ scale: 0.95 }}
                   aria-label={`View ${productName} image ${index + 1}`}
                   tabIndex={0}
                   className={`flex-shrink-0 size-20 md:size-28 overflow-hidden border-3 transition-all rounded-md ${
-                    currentImage === index
+                    !showVideo && currentImage === index
                       ? "border-brand-500 shadow-lg ring-2 ring-brand-200"
                       : "border-brand-100 hover:border-brand-300"
                   }`}
@@ -175,6 +194,38 @@ export default function ImageSlider({
                 </motion.button>
               </SwiperSlide>
             ))}
+            {/* Video thumbnail in the Swiper strip */}
+            {videoUrl && (
+              <SwiperSlide className="!w-auto">
+                <motion.button
+                  onClick={() => onShowVideo?.()}
+                  whileHover={{ scale: 1, y: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  aria-label="Watch product video"
+                  tabIndex={0}
+                  className={`flex-shrink-0 size-20 md:size-28 overflow-hidden border-3 transition-all rounded-md relative ${
+                    showVideo
+                      ? "border-brand-500 shadow-lg ring-2 ring-brand-200"
+                      : "border-brand-100 hover:border-brand-300"
+                  }`}
+                >
+                  <div className="w-full h-full bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="w-6 h-6 md:w-8 md:h-8 text-brand-600"
+                        fill="currentColor"
+                      >
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                      <span className="text-[9px] md:text-[10px] font-medium text-brand-700 leading-tight">
+                        Video
+                      </span>
+                    </div>
+                  </div>
+                </motion.button>
+              </SwiperSlide>
+            )}
           </Swiper>
         </div>
       )}

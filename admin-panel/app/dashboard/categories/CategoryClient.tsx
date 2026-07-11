@@ -7,6 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { ErrorState } from "@/components/ui/error-state";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+} from "@/components/ui/empty";
 import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
@@ -23,6 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import { api, ApiClientError } from "@/lib/api";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import SingleImageUploader from "@/components/SingleImageUploader";
+import BannersSelect from "@/components/BannersSelect";
 
 
 interface Category {
@@ -35,6 +45,7 @@ interface Category {
 interface FormState {
   name: string;
   image: File | null;
+  bannerId: string;
 }
 
 
@@ -69,6 +80,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
   const [formData, setFormData] = useState<FormState>({
     name: "",
     image: null,
+    bannerId: "",
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -84,7 +96,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     mutationFn: createCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      invalidateCache(["categories", "homepage", "navigation"]);
+      invalidateCache(["categories", "homepage", "navigation", "banners"]);
       toast({ title: "Category created successfully" });
       closeDrawer();
     },
@@ -97,7 +109,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     mutationFn: updateCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      invalidateCache(["categories", "homepage", "navigation"]);
+      invalidateCache(["categories", "homepage", "navigation", "banners"]);
       toast({ title: "Category updated successfully" });
       closeDrawer();
     },
@@ -110,7 +122,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     mutationFn: deleteCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      invalidateCache(["categories", "homepage", "navigation"]);
+      invalidateCache(["categories", "homepage", "navigation", "banners"]);
       toast({ title: "Category deleted successfully" });
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
@@ -126,7 +138,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     mutationFn: changeCategoryStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      invalidateCache(["categories", "homepage", "navigation"]);
+      invalidateCache(["categories", "homepage", "navigation", "banners"]);
       toast({ title: "Category status updated successfully" });
     },
     onError: (error: Error) => {
@@ -137,7 +149,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
   const closeDrawer = () => {
     setDrawerOpen(false);
     setEditingCategory(null);
-    setFormData({ name: "", image: null });
+    setFormData({ name: "", image: null, bannerId: "" });
     setImagePreview(null);
   };
 
@@ -146,6 +158,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     setFormData({
       name: category.name,
       image: null,
+      bannerId: (category as any).bannerId || "",
     });
     setImagePreview(category.image || null);
     setDrawerOpen(true);
@@ -174,6 +187,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
 
     const submitData = new FormData();
     submitData.append("name", formData.name);
+    if (formData.bannerId) submitData.append("bannerId", formData.bannerId);
     if (formData.image instanceof File) {
       submitData.append("image", formData.image);
     }
@@ -212,22 +226,11 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
 
   if (error) {
     return (
-      <Card className="p-12 text-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="p-3 rounded-full bg-destructive/10">
-            <FolderTree className="h-8 w-8 text-destructive" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">Failed to load categories</h3>
-            <p className="text-muted-foreground">
-              {error instanceof Error ? error.message : "An unexpected error occurred. Please try refreshing the page."}
-            </p>
-          </div>
-          <Button variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ["categories"] })}>
-            Retry
-          </Button>
-        </div>
-      </Card>
+      <ErrorState
+        title="Failed to load categories"
+        message={error instanceof Error ? error.message : "An unexpected error occurred. Please try refreshing the page."}
+        onRetry={() => queryClient.invalidateQueries({ queryKey: ["categories"] })}
+      />
     );
   }
 
@@ -258,7 +261,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
           <Button
             onClick={() => {
               setEditingCategory(null);
-              setFormData({ name: "", image: null });
+              setFormData({ name: "", image: null, bannerId: "" });
               setImagePreview(null);
               setDrawerOpen(true);
             }}
@@ -272,19 +275,21 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
       </div>
 
       {categories.length === 0 ? (
-        <Card className="p-12 text-center">
-          <div className="flex flex-col items-center gap-4">
-            <FolderTree className="h-12 w-12 text-muted-foreground" />
-            <div>
-              <h3 className="text-lg font-semibold">No categories yet</h3>
-              <p className="text-muted-foreground">
-                Create your first category to get started
-              </p>
-            </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <FolderTree />
+            </EmptyMedia>
+            <EmptyTitle>No categories yet</EmptyTitle>
+            <EmptyDescription>
+              Create your first category to get started
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
             <Button
               onClick={() => {
                 setEditingCategory(null);
-                setFormData({ name: "", image: null });
+                setFormData({ name: "", image: null, bannerId: "" });
                 setImagePreview(null);
                 setDrawerOpen(true);
               }}
@@ -292,8 +297,8 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
               <Plus className="h-4 w-4 mr-2" />
               Add Category
             </Button>
-          </div>
-        </Card>
+          </EmptyContent>
+        </Empty>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {categories.map((category: Category, index: number) => (
@@ -415,6 +420,12 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
             required
             disabled={isPending}
             className="animate-in slide-in-from-right duration-300 delay-75"
+          />
+
+          <BannersSelect
+            value={formData.bannerId}
+            onChange={(bannerId) => setFormData({ ...formData, bannerId })}
+            disabled={isPending}
           />
 
           <Button

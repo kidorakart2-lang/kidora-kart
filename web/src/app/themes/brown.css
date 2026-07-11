@@ -1,0 +1,157 @@
+/*
+ * Brown Theme — White background with soft caramel accents
+ * Reference: Soft, warm teddy bear aesthetic
+ *
+ * Usage: <body class="brown">
+ *
+ * Philosophy: Light, airy, soft brown accents. NOT dark/rich brown.
+ */
+
+body.brown {
+  --background: #ffffff;
+  --foreground: #3d3229;
+
+  --card: #ffffff;
+  --card-foreground: #3d3229;
+
+  --popover: #ffffff;
+  --popover-foreground: #3d3229;
+
+  --primary: #b08968;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f8f4ef;
+  --secondary-foreground: #3d3229;
+
+  --muted: #f8f4ef;
+  --muted-foreground: #8a7e74;
+
+  --accent: #f8f4ef;
+  --accent-foreground: #3d3229;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --border: #ece6dd;
+  --input: #ece6dd;
+  --ring: #b08968;
+
+  --chart-1: #b08968;
+  --chart-2: #c9a97c;
+  --chart-3: #ddb896;
+  --chart-4: #e8cba8;
+  --chart-5: #9c7a58;
+
+  --sidebar: #faf9f7;
+  --sidebar-foreground: #3d3229;
+  --sidebar-primary: #b08968;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f8f4ef;
+  --sidebar-accent-foreground: #3d3229;
+  --sidebar-border: #ece6dd;
+  --sidebar-ring: #b08968;
+
+  /* Brand: soft caramel */
+  --brand-primary: #b08968;
+  --brand-primary-foreground: #ffffff;
+  --brand-primary-dark: #9c7a58;
+  --brand-primary-light: #c9a97c;
+  --brand-primary-darker: #8a6b4a;
+
+  --brand-secondary: #d4c5b5;
+  --brand-secondary-foreground: #3d3229;
+  --brand-secondary-dark: #b08968;
+
+  --brand-section-bg: #ffffff;
+  --brand-section-bg-subtle: #faf6f1cc;
+  --brand-gradient-from: #b08968;
+  --brand-gradient-to: #9c7a58;
+  --brand-heading: #3d3229;
+
+  /* Feature cards — very soft cream tones */
+  --brand-card-1-bg: #fdf8f3;
+  --brand-card-1-icon: #b08968;
+  --brand-card-1-ring: #e8cba8;
+
+  --brand-card-2-bg: #faf6f1;
+  --brand-card-2-icon: #9c7a58;
+  --brand-card-2-ring: #ddb896;
+
+  --brand-card-3-bg: #f8f4ef;
+  --brand-card-3-icon: #c9a97c;
+  --brand-card-3-ring: #c9a97c;
+
+  --brand-card-4-bg: #fdf8f3;
+  --brand-card-4-icon: #b08968;
+  --brand-card-4-ring: #e8cba8;
+
+  /* Brand scale — soft caramel */
+  --brand-50: #fdf8f3;
+  --brand-100: #f8f4ef;
+  --brand-200: #e8cba8;
+  --brand-300: #ddb896;
+  --brand-400: #c9a97c;
+  --brand-500: #b08968;
+  --brand-600: #9c7a58;
+  --brand-700: #8a6b4a;
+  --brand-800: #6d5540;
+  --brand-900: #3d3229;
+  --brand-950: #2a2118;
+
+  /* Brand accent — soft neutral */
+  --brand-accent-50: #faf9f7;
+  --brand-accent-100: #f5f3ef;
+  --brand-accent-200: #ece6dd;
+  --brand-accent-300: #d4c5b5;
+  --brand-accent-400: #b08968;
+  --brand-accent-500: #9c7a58;
+  --brand-accent-600: #8a6b4a;
+  --brand-accent-700: #6d5540;
+  --brand-accent-800: #3d3229;
+  --brand-accent-900: #2a2118;
+  --brand-accent-950: #1a150f;
+
+  /* Price gradients — soft caramel tones */
+  --brand-price-1-from: #b08968;
+  --brand-price-1-via: #c9a97c;
+  --brand-price-1-to: #ddb896;
+
+  --brand-price-2-from: #9c7a58;
+  --brand-price-2-via: #b08968;
+  --brand-price-2-to: #c9a97c;
+
+  --brand-price-3-from: #c9a97c;
+  --brand-price-3-via: #ddb896;
+  --brand-price-3-to: #e8cba8;
+
+  --brand-price-4-from: #8a6b4a;
+  --brand-price-4-via: #9c7a58;
+  --brand-price-4-to: #b08968;
+
+  /* Font weights — warm & readable */
+  --font-heading: 400;
+  --font-body: 400;
+  --font-cta: 500;
+
+  --radius: 0.75rem;
+
+  color-scheme: light;
+}
+
+body.brown .bg-section {
+  background-color: var(--brand-section-bg);
+}
+
+body.brown .bg-section-subtle {
+  background-color: var(--brand-section-bg-subtle);
+}
+
+body.brown .btn-gradient {
+  background: linear-gradient(135deg, var(--brand-gradient-from), var(--brand-gradient-to));
+  color: var(--brand-primary-foreground);
+  box-shadow: 0 2px 8px rgba(176, 137, 104, 0.2);
+}
+
+body.brown .btn-gradient:hover {
+  box-shadow: 0 4px 16px rgba(176, 137, 104, 0.35);
+}

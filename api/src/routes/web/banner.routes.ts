@@ -30,10 +30,11 @@
  */
 
 import { Router } from "express";
-import { bannerController } from "../../controller/web/banner.controller.js";
+import { bannerController, getBannerById } from "../../controller/web/banner.controller.js";
 
 const router = Router();
 
 router.get("/", bannerController);
+router.get("/:id", getBannerById);
 
 export default router;

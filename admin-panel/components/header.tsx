@@ -3,7 +3,7 @@
 import { ArrowRight, Bell, Search, User, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ThemeToggle } from "./theme-toggle";
+import { ThemeSwitcher } from "./theme-switcher";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import { AlertDialogUse } from "./alert-dialog";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 interface MenuItem {
   label: string;
@@ -51,7 +51,6 @@ export function Header() {
       { label: "AI Helpers", href: "/dashboard/ai-helpers" },
       { label: "Home Page", href: "/dashboard/home-page" },
       { label: "Product FAQs", href: "/dashboard/product-faqs" },
-      { label: "Settings", href: "/dashboard/settings" },
     ],
     [],
   );
@@ -126,23 +125,23 @@ export function Header() {
     <>
       <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 px-6">
         <div className="flex-1 flex items-center gap-4">
-          <div className="relative w-full max-w-md animate-in fade-in slide-in-from-top duration-300">
+          <div className="relative w-full max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               onChange={getSearchResult}
               placeholder="Search..."
-              className="pl-10 transition-all duration-200 focus:scale-[1.02]"
+              className="pl-10"
             />
             {bar && result.length > 0 && (
-              <ul className="absolute z-10 bg-white border rounded-md mt-1 w-full shadow-md">
+              <ul className="absolute z-10 bg-popover border border-border rounded-md mt-1 w-full shadow-md">
                 {result.map((item, i) => (
-                  <li key={i} className="border-b-1">
+                  <li key={i} className="border-b border-border last:border-b-0">
                     <Link
                       onClick={() => setBar(false)}
                       href={item.href}
-                      className="px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
+                      className="px-4 py-2 hover:bg-accent flex justify-between items-center text-sm transition-colors cursor-pointer"
                     >
-                      {item.label} <ArrowRight />
+                      {item.label} <ArrowRight className="h-4 w-4" />
                     </Link>
                   </li>
                 ))}
@@ -151,13 +150,13 @@ export function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top duration-300 delay-100">
-          <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <ThemeSwitcher />
 
           <Button
             variant="ghost"
             size="icon"
-            className="relative transition-all duration-300 hover:scale-110"
+            className="relative"
             onClick={() => toast.info("No new notifications")}
           >
             <Bell className="h-5 w-5" />
@@ -169,7 +168,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="transition-all duration-300 hover:scale-110"
+                className=""
               >
                 <User className="h-5 w-5" />
               </Button>
@@ -183,9 +182,6 @@ export function Header() {
 
               <DropdownMenuItem asChild>
                 <Link href="/dashboard/profile">Profile</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings">Settings</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

@@ -53,8 +53,7 @@ export const listAiResponses = async (
     const limit = typeof reqLimit === "number" ? reqLimit : 50;
     const skip = (pageNum - 1) * limit;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const filter: Record<string, any> = {};
+    const filter: { page?: string } = {};
     if (pageFilter) {
       filter.page = pageFilter;
     }

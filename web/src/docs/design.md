@@ -1,4 +1,4 @@
-# Design System — Jewellery Walla
+# Design System — Kidora Kart
 
 > **Theme-swap target**: Change only the CSS variable values in `globals.css` `:root` / `.dark` blocks to re-skin the entire site.
 
@@ -91,12 +91,31 @@ These are the **only** values that need to change for a full re-skin.
 
 ## 4. Typography
 
-| Level | Font | Size | Weight |
+### Font Family
+
+| Level | Font | Size | Weight Variable | Tailwind Class |
+|---|---|---|---|---|
+| Section heading | `--font-sans` (Lato) | `text-3xl` md:`text-4xl` | `--font-heading` | `.fw-heading` |
+| Card title | `--font-sans` | `text-lg` | `--font-heading` | `.fw-heading` |
+| Body | `--font-sans` | `text-base` | `--font-body` | `.fw-body` |
+| Small/meta | `--font-sans` | `text-sm` | `--font-body` | `.fw-body` |
+| CTA / Button | `--font-sans` | `text-sm` | `--font-cta` | `.fw-cta` |
+
+### Font Weight Tokens per Theme
+
+| Token | minimal | brown | monochrome |
 |---|---|---|---|
-| Section heading | `--font-sans` (Lato) | `text-3xl` md:`text-4xl` | `font-light` |
-| Card title | `--font-sans` | `text-lg` | `font-semibold` |
-| Body | `--font-sans` | `text-base` | `font-normal` |
-| Small/meta | `--font-sans` | `text-sm` | `font-light` |
+| `--font-heading` | 300 (light) | 400 (normal) | 600 (semibold) |
+| `--font-body` | 300 (light) | 400 (normal) | 400 (normal) |
+| `--font-cta` | 400 (normal) | 500 (medium) | 600 (semibold) |
+
+### Typography Personality per Theme
+
+| Theme | Style | Description |
+|---|---|---|
+| **minimal** | Airy, elegant | Light weights throughout, spacious feel |
+| **brown** | Warm, readable | Normal weights, inviting and approachable |
+| **monochrome** | Bold, editorial | Semibold headings, high-contrast impact |
 
 ---
 

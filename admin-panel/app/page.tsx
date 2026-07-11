@@ -44,7 +44,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* ─── Left Side — Animated Illustration ─── */}
-      <div className="relative flex-1 lg:flex-[1.2] min-h-[40vh] lg:min-h-screen overflow-hidden bg-white flex items-center justify-center">
+      <div className="relative flex-1 lg:flex-[1.2] min-h-[40vh] lg:min-h-screen overflow-hidden bg-background flex items-center justify-center">
         {/* Illustration */}
         <div className="relative z-10 w-full max-w-[95%] lg:max-w-[90%] h-full max-h-[70vh] lg:max-h-[85vh] animate-in fade-in duration-1000">
           <img
@@ -57,7 +57,7 @@ export default function LoginPage() {
         {/* Brand text */}
         <div className="absolute bottom-8 lg:bottom-12 left-0 right-0 text-center z-10 animate-in fade-in duration-1000 delay-500">
           <p className="text-slate-400 text-xs lg:text-sm tracking-[0.2em] uppercase font-light">
-            Toy Shop — Admin Dashboard
+            Kidora Kart — Admin Dashboard
           </p>
         </div>
       </div>
@@ -170,7 +170,7 @@ export default function LoginPage() {
 
           {/* Footer */}
           <p className="text-center text-xs text-muted-foreground/60 mt-10 animate-in fade-in duration-500 delay-700">
-            &copy; {new Date().getFullYear()} Toy Shop. All rights reserved.
+            &copy; {new Date().getFullYear()} Kidora Kart. All rights reserved.
           </p>
         </div>
       </div>

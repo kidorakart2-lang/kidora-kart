@@ -68,7 +68,7 @@ function SectionHeader({ title }: { title?: string }) {
   if (!title) return null;
   return (
     <div className="text-center py-8">
-      <h2 className="text-3xl md:text-4xl font-serif text-foreground">{title}</h2>
+      <h2 className="text-3xl md:text-4xl fw-heading text-foreground">{title}</h2>
     </div>
   );
 }
@@ -110,7 +110,7 @@ async function DynamicSection({ section }: { section: HomeSection }) {
     }
 
     case "products-tab": {
-      const searchTerms = ((cfg.searchTerms as string) ?? "earrings,necklace,bracelet")
+      const searchTerms = ((cfg.searchTerms as string) ?? "action-figures,board-games,puzzles")
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean);

@@ -16,33 +16,28 @@ export default function TabProducts({ data }: { data: Record<string, ProductData
         <Tabs defaultValue="silver" className="w-full">
           {/* Tab Navigation */}
           <div className="flex flex-col items-center mb-12">
-            <div className="flex items-center gap-2 mb-6">
-              <Sparkles className="w-5 h-5" style={{ color: 'var(--brand-heading)' }} />
-              <span className="text-sm font-medium text-muted-foreground tracking-wider uppercase">
-                Discover Our Collections
-              </span>
-              <Sparkles className="w-5 h-5" style={{ color: 'var(--brand-heading)' }} />
-            </div>
+            <span className="text-sm font-medium text-muted-foreground tracking-wider uppercase mb-6">
+              Discover Our Collections
+            </span>
 
             <TabsList
               className="inline-flex bg-background/80 backdrop-blur-sm rounded-full p-1.5 shadow-lg gap-1"
-              style={{ borderColor: 'color-mix(in srgb, var(--brand-primary) 40%, transparent)' }}
             >
               <TabsTrigger
                 value="silver"
-                className="px-8 py-3 rounded-full font-semibold text-sm uppercase transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--brand-700)] data-[state=active]:to-[var(--brand-900)] data-[state=active]:text-background data-[state=active]:shadow-md"
+                className="px-8 py-3 rounded-full fw-cta text-sm uppercase transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-md"
               >
                 Silver
               </TabsTrigger>
               <TabsTrigger
                 value="gold"
-                className="px-8 py-3 rounded-full font-semibold text-sm uppercase transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--brand-primary-dark)] data-[state=active]:to-[var(--brand-primary)] data-[state=active]:text-background data-[state=active]:shadow-md"
+                className="px-8 py-3 rounded-full fw-cta text-sm uppercase transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-md"
               >
                 Gold
               </TabsTrigger>
               <TabsTrigger
                 value="gift"
-                className="px-8 py-3 rounded-full font-semibold text-sm uppercase transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--brand-secondary)] data-[state=active]:to-[var(--brand-secondary-dark)] data-[state=active]:text-background data-[state=active]:shadow-md"
+                className="px-8 py-3 rounded-full fw-cta text-sm uppercase transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-md"
               >
                 Gift
               </TabsTrigger>
@@ -55,12 +50,12 @@ export default function TabProducts({ data }: { data: Record<string, ProductData
               value="silver"
               className="m-0 animate-in fade-in-0 slide-in-from-bottom-4 duration-500"
             >
-              <h2 className="text-3xl text-center md:text-4xl lg:text-5xl font-serif text-foreground flex items-center gap-3">
+              <h2 className="text-3xl text-center md:text-4xl lg:text-5xl fw-heading text-foreground flex items-center gap-3">
                 <span className="text-muted-foreground">✦</span>
                 Silver Collection
                 <span className="text-muted-foreground">✦</span>
               </h2>
-              <p className="text-muted-foreground mt-3 text-sm md:text-base font-light text-center">
+              <p className="text-muted-foreground mt-3 text-sm md:text-base fw-body text-center">
                 Timeless elegance in sterling silver
               </p>
             </TabsContent>
@@ -69,14 +64,12 @@ export default function TabProducts({ data }: { data: Record<string, ProductData
               value="gold"
               className="m-0 animate-in fade-in-0 slide-in-from-bottom-4 duration-500"
             >
-              <h2 className="text-3xl text-center md:text-4xl lg:text-5xl font-serif flex items-center gap-3"
-                style={{ color: 'var(--brand-heading)' }}
-              >
-                <span style={{ color: 'var(--brand-primary-light)' }}>✦</span>
+              <h2 className="text-3xl text-center md:text-4xl lg:text-5xl fw-heading text-foreground flex items-center gap-3">
+                <span className="text-muted-foreground">✦</span>
                 Gold Collection
-                <span style={{ color: 'var(--brand-primary-light)' }}>✦</span>
+                <span className="text-muted-foreground">✦</span>
               </h2>
-              <p className="text-muted-foreground mt-3 text-sm md:text-base font-light text-center">
+              <p className="text-muted-foreground mt-3 text-sm md:text-base fw-body text-center">
                 Luxury crafted in precious gold
               </p>
             </TabsContent>
@@ -85,14 +78,12 @@ export default function TabProducts({ data }: { data: Record<string, ProductData
               value="gift"
               className="m-0 animate-in fade-in-0 slide-in-from-bottom-4 duration-500"
             >
-              <h2 className="text-3xl text-center md:text-4xl lg:text-5xl font-serif flex items-center gap-3"
-                style={{ color: 'var(--brand-secondary)' }}
-              >
-                <span style={{ color: 'var(--brand-secondary)' }}>✦</span>
+              <h2 className="text-3xl text-center md:text-4xl lg:text-5xl fw-heading text-foreground flex items-center gap-3">
+                <span className="text-muted-foreground">✦</span>
                 Gift Collection
-                <span style={{ color: 'var(--brand-secondary)' }}>✦</span>
+                <span className="text-muted-foreground">✦</span>
               </h2>
-              <p className="text-muted-foreground mt-3 text-sm md:text-base font-light text-center">
+              <p className="text-muted-foreground mt-3 text-sm md:text-base fw-body text-center">
                 Perfect presents for every occasion
               </p>
             </TabsContent>
@@ -141,7 +132,7 @@ export default function TabProducts({ data }: { data: Record<string, ProductData
           {/* View More Button */}
           <div className="flex justify-center mt-12 lg:mt-16">
             <Link href="/category/new-arrivals">
-              <Button variant="gradient" className="group relative px-10 py-6 rounded-full font-semibold text-sm uppercase tracking-wider shadow-lg transition-all duration-500 overflow-hidden">
+              <Button variant="gradient" className="group relative px-10 py-6 rounded-full fw-cta text-sm uppercase tracking-wider shadow-lg transition-all duration-500 overflow-hidden">
                 <span className="relative flex items-center gap-3">
                   View More
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />

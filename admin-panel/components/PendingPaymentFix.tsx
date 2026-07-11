@@ -143,7 +143,7 @@ export default function PendingPaymentFix() {
       </CardHeader>
       {mismatchedOrders.length > 0 && (
         <CardContent>
-          <div className="rounded-md border bg-white">
+          <div className="rounded-md border bg-card">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -179,7 +179,7 @@ export default function PendingPaymentFix() {
                         size="sm"
                         onClick={() => fixOrder(order)}
                         disabled={verifying}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-primary hover:bg-primary/90"
                       >
                         {verifying ? (
                           <Loader2 className="h-4 w-4 animate-spin" />

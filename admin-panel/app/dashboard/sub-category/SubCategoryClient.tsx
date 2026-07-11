@@ -9,6 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { ErrorState } from "@/components/ui/error-state";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+} from "@/components/ui/empty";
 import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
@@ -24,6 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import NewMultiSelect from "../../../components/NewMultiSelect";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import SingleImageUploader from "@/components/SingleImageUploader";
+import BannersSelect from "@/components/BannersSelect";
 
 export interface SubCategoryItem {
   _id: string;
@@ -72,9 +82,10 @@ export default function SubCategoriesClient({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [formData, setFormData] = useState<{ name: string; image: any }>({
+  const [formData, setFormData] = useState<{ name: string; image: any; bannerId: string }>({
     name: "",
     image: null,
+    bannerId: "",
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -87,7 +98,7 @@ export default function SubCategoriesClient({
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: subCategories = [], isLoading } = useQuery({
+  const { data: subCategories = [], isLoading, error: subCatError } = useQuery({
     queryKey: ["subCategories", deletedFilter],
     queryFn: () => fetchSubCategories(deletedFilter === "active" ? undefined : deletedFilter),
     staleTime: 5 * 60 * 1000,
@@ -97,7 +108,7 @@ export default function SubCategoriesClient({
     mutationFn: createSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subCategories"] });
-      invalidateCache(["categories", "homepage", "navigation"]);
+      invalidateCache(["categories", "homepage", "navigation", "banners"]);
       toast({ title: "Sub category created successfully" });
       closeDrawer();
     },
@@ -110,7 +121,7 @@ export default function SubCategoriesClient({
     mutationFn: updateSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subCategories"] });
-      invalidateCache(["categories", "homepage", "navigation"]);
+      invalidateCache(["categories", "homepage", "navigation", "banners"]);
       toast({ title: "Sub category updated successfully" });
       closeDrawer();
     },
@@ -123,7 +134,7 @@ export default function SubCategoriesClient({
     mutationFn: deleteSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subCategories"] });
-      invalidateCache(["categories", "homepage", "navigation"]);
+      invalidateCache(["categories", "homepage", "navigation", "banners"]);
       toast({ title: "Sub category deleted successfully" });
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
@@ -139,7 +150,7 @@ export default function SubCategoriesClient({
     mutationFn: changeSubCategoryStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subCategories"] });
-      invalidateCache(["categories", "homepage", "navigation"]);
+      invalidateCache(["categories", "homepage", "navigation", "banners"]);
       toast({ title: "Sub category status updated successfully" });
     },
     onError: (error) => {
@@ -150,7 +161,7 @@ export default function SubCategoriesClient({
   const closeDrawer = () => {
     setDrawerOpen(false);
     setEditingCategory(null);
-    setFormData({ name: "", image: null });
+    setFormData({ name: "", image: null, bannerId: "" });
     setImagePreview(null);
     setCategoryId([]);
   };
@@ -160,6 +171,7 @@ export default function SubCategoriesClient({
     setFormData({
       name: category.name || "",
       image: category.image,
+      bannerId: (category as any).bannerId || "",
     });
     setCategoryId(
       Array.isArray(category.category)
@@ -201,6 +213,7 @@ export default function SubCategoriesClient({
 
     const submitData = new FormData();
     submitData.append("name", formData.name);
+    if (formData.bannerId) submitData.append("bannerId", formData.bannerId);
     if (formData.image instanceof File) {
       submitData.append("image", formData.image);
     }
@@ -238,6 +251,16 @@ export default function SubCategoriesClient({
     );
   }
 
+  if (subCatError) {
+    return (
+      <ErrorState
+        title="Failed to load sub categories"
+        message={subCatError instanceof Error ? subCatError.message : "An unexpected error occurred. Please try refreshing the page."}
+        onRetry={() => queryClient.invalidateQueries({ queryKey: ["subCategories"] })}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between animate-in fade-in slide-in-from-top duration-300">
@@ -265,7 +288,7 @@ export default function SubCategoriesClient({
           <Button
             onClick={() => {
               setEditingCategory(null);
-              setFormData({ name: "", image: null });
+              setFormData({ name: "", image: null, bannerId: "" });
               setImagePreview(null);
               setCategoryId([]);
               setDrawerOpen(true);
@@ -280,19 +303,21 @@ export default function SubCategoriesClient({
       </div>
 
       {subCategories.length === 0 ? (
-        <Card className="p-12 text-center">
-          <div className="flex flex-col items-center gap-4">
-            <FolderTree className="h-12 w-12 text-muted-foreground" />
-            <div>
-              <h3 className="text-lg font-semibold">No sub categories yet</h3>
-              <p className="text-muted-foreground">
-                Create your first sub category to get started
-              </p>
-            </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <FolderTree />
+            </EmptyMedia>
+            <EmptyTitle>No sub categories yet</EmptyTitle>
+            <EmptyDescription>
+              Create your first sub category to get started
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
             <Button
               onClick={() => {
                 setEditingCategory(null);
-                setFormData({ name: "", image: null });
+                setFormData({ name: "", image: null, bannerId: "" });
                 setImagePreview(null);
                 setCategoryId([]);
                 setDrawerOpen(true);
@@ -301,8 +326,8 @@ export default function SubCategoriesClient({
               <Plus className="h-4 w-4 mr-2" />
               Add Sub Category
             </Button>
-          </div>
-        </Card>
+          </EmptyContent>
+        </Empty>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {subCategories.map((category: SubCategoryItem, index: number) => (
@@ -423,6 +448,13 @@ export default function SubCategoriesClient({
             disabled={isPending}
             className="animate-in slide-in-from-right duration-300 delay-150"
           />
+
+          <BannersSelect
+            value={formData.bannerId}
+            onChange={(bannerId) => setFormData({ ...formData, bannerId })}
+            disabled={isPending}
+          />
+
           <div className="space-y-2 animate-in slide-in-from-right duration-300 delay-75">
             <Label htmlFor="category">Parent Category</Label>
             <NewMultiSelect

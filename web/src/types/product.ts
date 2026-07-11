@@ -20,12 +20,25 @@ export interface ProductData {
   images?: string[];
   stock?: number;
   description?: string;
+  shortDescription?: string;
   category?: string;
   material?: string;
   isPersonalized?: boolean;
   subCategory?: { _id: string; name: string }[];
   colors?: { _id: string; name: string; code?: string }[];
   sizes?: { _id: string; name: string }[];
+  rating?: number;
+  reviewCount?: number;
+  weight?: string;
+  length?: number;
+  height?: number;
+  breadth?: number;
+  minimumAge?: number;
+  idealAge?: number;
+  maximumAge?: number;
+  type?: string;
+  sku?: string;
+  tags?: string[];
 }
 
 export interface SubCategoryData {

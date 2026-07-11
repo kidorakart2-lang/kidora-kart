@@ -5,6 +5,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { api } from "@/lib/api";
 import {
   Search,
@@ -162,57 +170,52 @@ export default function AuditLogPage() {
         </Card>
       ) : (
         <div className="rounded-lg border border-border overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-muted/50">
-                  <th className="text-left font-semibold p-3">Action</th>
-                  <th className="text-left font-semibold p-3">Admin</th>
-                  <th className="text-left font-semibold p-3">Target</th>
-                  <th className="text-left font-semibold p-3">Details</th>
-                  <th className="text-left font-semibold p-3">Date</th>
-                  <th className="text-left font-semibold p-3">IP</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((entry) => {
-                  const config = actionConfig[entry.action] ?? {
-                    icon: Info,
-                    variant: "outline" as const,
-                  };
-                  const Icon = config.icon;
-                  return (
-                    <tr
-                      key={entry._id}
-                      className="border-t border-border transition-colors hover:bg-muted/50"
-                    >
-                      <td className="p-3">
-                        <Badge variant={config.variant} className="capitalize gap-1">
-                          <Icon className="h-3 w-3" />
-                          {entry.action.replace(/_/g, " ")}
-                        </Badge>
-                      </td>
-                      <td className="p-3 text-sm">
-                        {entry.admin?.email ?? "—"}
-                      </td>
-                      <td className="p-3 text-sm">
-                        {entry.target?.email ?? "—"}
-                      </td>
-                      <td className="p-3 text-sm text-muted-foreground max-w-xs truncate">
-                        {entry.details}
-                      </td>
-                      <td className="p-3 text-sm text-muted-foreground whitespace-nowrap">
-                        {formatDate(entry.createdAt)}
-                      </td>
-                      <td className="p-3 text-sm text-muted-foreground font-mono">
-                        {entry.ip}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="font-semibold">Action</TableHead>
+                <TableHead className="font-semibold">Admin</TableHead>
+                <TableHead className="font-semibold">Target</TableHead>
+                <TableHead className="font-semibold">Details</TableHead>
+                <TableHead className="font-semibold">Date</TableHead>
+                <TableHead className="font-semibold">IP</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((entry) => {
+                const config = actionConfig[entry.action] ?? {
+                  icon: Info,
+                  variant: "outline" as const,
+                };
+                const Icon = config.icon;
+                return (
+                  <TableRow key={entry._id}>
+                    <TableCell>
+                      <Badge variant={config.variant} className="capitalize gap-1">
+                        <Icon className="h-3 w-3" />
+                        {entry.action.replace(/_/g, " ")}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {entry.admin?.email ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {entry.target?.email ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
+                      {entry.details}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                      {formatDate(entry.createdAt)}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground font-mono">
+                      {entry.ip}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
           <div className="p-3 text-sm text-muted-foreground border-t border-border">
             Showing {filtered.length} of {logs.length} entries
           </div>

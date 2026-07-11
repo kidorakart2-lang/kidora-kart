@@ -348,7 +348,7 @@ export default function OrderSuccess() {
             transition={{ delay: 0.5, duration: 0.5 }}
             className="text-center mt-6"
           >
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+             <h1 className="text-3xl md:text-4xl fw-heading text-white mb-2">
               Order Placed!
             </h1>
             <p className="text-emerald-100/80">
@@ -399,7 +399,7 @@ export default function OrderSuccess() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-3xl md:text-4xl font-light text-foreground tracking-tight"
+             className="text-3xl md:text-4xl fw-heading text-foreground tracking-tight"
           >
             Thank you for your order!
           </motion.h1>
@@ -647,7 +647,7 @@ export default function OrderSuccess() {
                       onClick={() =>
                         (window.location.href = "/profile?tab=orders")
                       }
-                      className="w-full h-12 btn-gradient font-semibold rounded-xl shadow-sm group"
+                       className="w-full h-12 btn-gradient fw-cta rounded-xl shadow-sm group"
                     >
                       <ShoppingBag className="w-5 h-5 mr-2" />
                       View My Orders
@@ -656,7 +656,7 @@ export default function OrderSuccess() {
                     <Button
                       onClick={() => (window.location.href = "/")}
                       variant="outline"
-                      className="w-full h-12 border-2 border-brand-200 hover:border-brand-400 hover:bg-brand-50/50 text-foreground font-medium rounded-xl"
+                      className="w-full h-12 border-2 border-brand-200 hover:border-brand-400 hover:bg-brand-50/50 text-foreground fw-cta rounded-xl"
                     >
                       Continue Shopping
                     </Button>

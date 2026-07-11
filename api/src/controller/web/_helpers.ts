@@ -13,7 +13,7 @@ interface CacheListOptions {
   cacheKey: string;
   query?: Record<string, unknown>;
   /** Provide a custom data fetcher (e.g. for nav which joins multiple models). */
-  fetcher?: (req: Request) => Promise<unknown>;
+  fetcher?: (req: Request) => Promise<Record<string, unknown>[]>;
   message?: string;
   /** TTL in seconds. Defaults to NodeCache stdTTL (300s). */
   ttl?: number;

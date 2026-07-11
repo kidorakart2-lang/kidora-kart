@@ -15,9 +15,9 @@ const envSchema = z.object({
   MY_GMAIL: z.string().email().optional(),
   MY_GMAIL_PASSWORD: z.string().optional(),
   EMAIL_FROM_NAME: z.string().optional(),
-  SUPPORT_EMAIL: z.string().email().default("support@toyshop.com"),
-  CDN_HOST: z.string().default("cdn.toyshop.com"),
-  APP_NAME: z.string().default("Toy Shop"),
+  SUPPORT_EMAIL: z.string().email().default("support@kidorakart.com"),
+  CDN_HOST: z.string().default("cdn.kidorakart.com"),
+  APP_NAME: z.string().default("Kidora Kart"),
 
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 
@@ -40,14 +40,24 @@ const envSchema = z.object({
   TWILLO_ACCOUNT_SID: z.string().optional(),
   TWILLO_AUTH_TOKEN: z.string().optional(),
 
+  AI_PROVIDER: z.enum(["gemini", "openrouter"]).default("gemini"),
+
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default("gemini-2.0-flash"),
+
+  OPENROUTER_API_KEY: z.string().optional(),
+  OPENROUTER_MODEL: z.string().default("openrouter/free"),
+
   AI_DAILY_TOKEN_BUDGET: z.coerce.number().int().positive().default(100000),
 
   CORS_ORIGINS: z
     .string()
     .default("http://localhost:3000,http://localhost:3001")
     .transform((val) => val.split(",").map((s) => s.trim())),
+
+  SHIPROCKET_EMAIL: z.string().email().optional(),
+  SHIPROCKET_PASSWORD: z.string().optional(),
+  SHIPROCKET_TOKEN: z.string().optional(), // Cached JWT — service regenerates on 401
 
   REVALIDATE_SECRET: z.string().optional(),
 

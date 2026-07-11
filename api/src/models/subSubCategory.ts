@@ -44,6 +44,11 @@ const subSubCategorySchema = new Schema(
       min: 0,
       max: 1000,
     },
+    bannerId: {
+      type: Schema.Types.ObjectId,
+      ref: "banners",
+      default: null,
+    },
   },
   {
     timestamps: true,

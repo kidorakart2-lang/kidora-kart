@@ -1,9 +1,11 @@
+import { redirect } from "next/navigation";
 import ProductListing from "../ProductListing";
 import React from "react";
 import { cacheLife, cacheTag } from "next/cache";
 import { siteConfig } from "@/lib/utils";
 import { TAG_FILTERS } from "@/lib/revalidation-tags";
 import FilterSidebar from "../FilterSidebar";
+import CategoryBanner from "@/components/CategoryBanner";
 import { ChevronRight } from "lucide-react";
 import type { ColorItem, MaterialItem } from "@/types";
 
@@ -12,15 +14,15 @@ import type { ColorItem, MaterialItem } from "@/types";
 // export const revalidate = 3600;
 
 export const metadata = {
-  title: `Shop Jewellery Online - ${siteConfig.name} | Gold, Silver & Diamond Collection`,
-  description: `Browse our extensive collection of premium jewellery in Jodhpur. Shop rings, necklaces, earrings, bracelets, bangles, and more. Gold, silver, and diamond jewellery with traditional Rajasthani craftsmanship.`,
-  keywords: `buy jewellery online jodhpur, gold jewellery collection, silver jewellery shop, diamond jewellery store, bridal jewellery, traditional jewellery, ${siteConfig.categories.join(
+  title: `Shop Toys Online - ${siteConfig.name} | Toys & Games Collection`,
+  description: `Browse our extensive collection of toys and games in Jodhpur. Shop action figures, dolls, educational toys, board games, puzzles, and more. Fun and quality toys for kids of all ages.`,
+  keywords: `buy toys online jodhpur, kids toys collection, toy shop, children gifts, educational toys, ${siteConfig.categories.join(
     ", "
   )}`,
   openGraph: {
-    title: `Shop Premium Jewellery - ${siteConfig.name}`,
+    title: `Shop Toys Online - ${siteConfig.name}`,
     description:
-      "Explore our curated collection of exquisite jewellery pieces. From traditional to contemporary designs.",
+      "Explore our curated collection of toys and games. From educational to fun-filled play.",
     url: `${siteConfig.url}/category`,
     type: "website",
   },
@@ -38,7 +40,7 @@ export async function generateStaticParams() {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}api/website/nav`,
     );
-    if (!res.ok) return [];
+    if (!res.ok) return [{ slug: ["placeholder"] }];
     const data = await res.json();
     const categories = data._data as {
       slug: string;
@@ -56,7 +58,7 @@ export async function generateStaticParams() {
       }[];
     }[];
 
-    if (!Array.isArray(categories)) return [];
+    if (!Array.isArray(categories)) return [{ slug: ["placeholder"] }];
 
     const nonProductSlugs = new Set([
       "home",
@@ -64,7 +66,6 @@ export async function generateStaticParams() {
       "contact-us",
       "new-arrivals",
       "gift-items",
-      "personalized-jewellery",
     ]);
 
     const params: { slug: string[] }[] = [];
@@ -95,9 +96,9 @@ export async function generateStaticParams() {
       }
     }
 
-    return params;
+    return params.length > 0 ? params : [{ slug: ["placeholder"] }];
   } catch {
-    return [];
+    return [{ slug: ["placeholder"] }];
   }
 }
 
@@ -143,6 +144,10 @@ export default async function page({
   const allSearchParams = await searchParams;
   const query = allSearchParams?.q;
   const slug = await allParams.slug;
+
+  if (slug[0] === "placeholder") {
+    redirect("/");
+  }
 
   const categorySlug = slug[0];
   const subCategorySlug = slug[1] || "";
@@ -206,7 +211,7 @@ export default async function page({
       : subCategorySlug
       ? subCategorySlug.replace(/[-0-9]/g, " ")
       : categorySlug.replace(/[-0-9]/g, " "),
-    description: `Shop ${subSubCategorySlug || subCategorySlug || categorySlug} jewellery collection at ${siteConfig.name}. Browse our curated selection of premium jewellery pieces.`,
+    description: `Shop ${subSubCategorySlug || subCategorySlug || categorySlug} toy collection at ${siteConfig.name}. Browse our curated selection of toys and games.`,
     url: `${siteConfig.url}/category/${slug.join("/")}`,
     breadcrumb: { "@type": "BreadcrumbList", itemListElement: breadcrumbItems },
     mainEntity: {
@@ -227,6 +232,13 @@ export default async function page({
       />
       <div className="min-h-screen ">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Category Banner — shown at the top of the page */}
+        <CategoryBanner
+          categorySlug={categorySlug}
+          subCategorySlug={subCategorySlug}
+          subSubCategorySlug={subSubCategorySlug}
+        />
+
         {/* Premium Version 1: Clean & Elegant */}
         <div className="relative py-5 md:py-10 animate-fadeIn">
           {/* Floating decorative elements */}
@@ -295,7 +307,7 @@ export default async function page({
           )}
         </div>
 
-        {/* Main Content */}
+          {/* Main Content */}
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 pb-16">
           <div className="lg:sticky lg:top-8 lg:self-start">
             <FilterSidebar color={color} material={material} />

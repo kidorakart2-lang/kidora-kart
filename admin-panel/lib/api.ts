@@ -135,7 +135,7 @@ async function request<T = unknown>(
 
   if (res.ok === false || json._status === false) {
     throw new ApiClientError(
-      (json._message as string) ?? `Request failed with status ${res.status}`,
+      (json._message as string) ?? (json.message as string) ?? `Request failed with status ${res.status}`,
       res.status,
       json,
     );
@@ -199,7 +199,7 @@ async function requestRaw<T = unknown>(
 
   if (res.ok === false || json._status === false) {
     throw new ApiClientError(
-      (json._message as string) ?? `Request failed with status ${res.status}`,
+      (json._message as string) ?? (json.message as string) ?? `Request failed with status ${res.status}`,
       res.status,
       json,
     );

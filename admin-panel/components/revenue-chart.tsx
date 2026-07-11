@@ -44,14 +44,14 @@ export function RevenueChart() {
             <YAxis className="text-xs" />
             <Tooltip
               contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
+                backgroundColor: "var(--card)",
+                border: "1px solid var(--border)",
                 borderRadius: "8px",
               }}
             />
             <Bar
               dataKey="revenue"
-              fill="hsl(var(--primary))"
+              fill="var(--primary)"
               radius={[8, 8, 0, 0]}
             />
           </BarChart>

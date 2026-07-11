@@ -4,7 +4,7 @@ import { Sparkles, Users, Award, Package, } from "lucide-react";
 import { defaultMetadata, siteConfig } from "@/lib/utils";
 
 const pageTitle = `Our Journey - The Story of ${siteConfig.name}`;
-const pageDescription = `Discover the inspiring journey of ${siteConfig.name} - from humble beginnings to becoming ${siteConfig.address.city}'s trusted name in exquisite jewelry. Explore our story of passion, craftsmanship, and commitment to quality.`;
+const pageDescription = `Discover the inspiring journey of ${siteConfig.name} - from humble beginnings to becoming ${siteConfig.address.city}'s trusted name in toys and games. Explore our story of passion, creativity, and commitment to quality.`;
 
 export const metadata = {
   ...defaultMetadata,
@@ -23,7 +23,7 @@ export const metadata = {
     modifiedTime: '2023-01-01T00:00:00.000Z',
     section: 'About Us',
     authors: [siteConfig.name],
-    tags: ['Jewellery', 'Jodhpur', 'Success Story', 'Jewellery Making'],
+    tags: ['Toys', 'Jodhpur', 'Success Story', 'Toy Shop'],
   },
   twitter: {
     ...defaultMetadata.twitter,
@@ -36,7 +36,7 @@ export const metadata = {
     'article:published_time': '2023-01-01T00:00:00.000Z',
     'article:modified_time': '2023-01-01T00:00:00.000Z',
     'article:section': 'About Us',
-    'article:tag': ['Jewellery', 'Jodhpur', 'Success Story', 'Jewellery Making'],
+    'article:tag': ['Toys', 'Jodhpur', 'Success Story', 'Toy Shop'],
   },
 };
 
@@ -89,14 +89,14 @@ const milestones = [
     year: "Present",
     title: `${siteConfig.name} Born`,
     description:
-      "With 10 years of jewellery expertise, we opened our store in Jhalamand, combining retail, manufacturing, and customization.",
+      "With a passion for bringing joy to children, we opened our toy store in Jhalamand, combining retail with a love for creativity and play.",
     icon: Sparkles,
   },
   {
     year: "Now",
     title: "All India Presence",
     description:
-      "Expanded our reach online, delivering exquisite jewellery across India while maintaining our commitment to quality and customization.",
+      "Expanded our reach online, delivering toys across India while maintaining our commitment to quality and customer happiness.",
     icon: Award,
   },
 ];

@@ -7,6 +7,8 @@ interface FiltersState {
   material: string[];
   priceFrom: number;
   priceTo: number;
+  ageFrom: number;
+  ageTo: number;
   sortBy: string;
   quickFilter: string | null;
 }
@@ -17,6 +19,8 @@ const initialState: FiltersState = {
   material: [],
   priceFrom: 0,
   priceTo: 100000,
+  ageFrom: 0,
+  ageTo: 18,
   sortBy: "featured",
   quickFilter: null,
 };
@@ -57,6 +61,11 @@ export const filtersSlice = createSlice({
       state.priceFrom = priceFrom;
       state.priceTo = priceTo;
     },
+    setAgeRange: (state, action) => {
+      const { ageFrom, ageTo } = action.payload;
+      state.ageFrom = ageFrom;
+      state.ageTo = ageTo;
+    },
     setSortBy: (state, action) => {
       state.sortBy = action.payload;
     },
@@ -82,6 +91,7 @@ export const {
   setMaterial,
   toggleMaterial,
   setPriceRange,
+  setAgeRange,
   setSortBy,
   resetFilters,
   setFiltersFromURL,

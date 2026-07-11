@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import Product from "../../models/product.js";
-import mongoose from "mongoose";
 import Category from "../../models/category.js";
 import SubCategory from "../../models/subCategory.js";
 import { logger } from "../../lib/logger.js";
@@ -79,6 +78,48 @@ export const create = async (
 
     const slug = await generateUniqueSlug(Product, updateData.name as string);
     updateData.slug = slug;
+
+    // ── Price & discount price mutual validation ──
+    if ((!updateData.price) !== (!updateData.discount_price)) {
+      throw new Error("Both price and discount price must be provided together");
+    }
+
+    // ── Price validation ──
+    const priceVal = Number(updateData.price);
+    if (!isNaN(priceVal) && priceVal <= 0) {
+      throw new Error("Price must be greater than 0");
+    }
+    const discountVal = Number(updateData.discount_price);
+    if (!isNaN(priceVal) && !isNaN(discountVal) && discountVal > priceVal) {
+      throw new Error("Discount price must be less than or equal to the original price");
+    }
+
+    // ── Age validation ──
+    const minAge = Number(updateData.minimumAge);
+    const maxAge = Number(updateData.maximumAge);
+    if (!isNaN(minAge) && !isNaN(maxAge) && minAge >= maxAge) {
+      throw new Error("Minimum age must be less than maximum age");
+    }
+
+    const idealAge = Number(updateData.idealAge);
+    if (!isNaN(idealAge) && !isNaN(minAge) && !isNaN(maxAge) && (idealAge < minAge || idealAge > maxAge)) {
+      throw new Error("Ideal age must be between minimum age and maximum age");
+    }
+
+    // ── Stock validation ──
+    const stockVal = Number(updateData.stock);
+    if (isNaN(stockVal) || stockVal < 0) {
+      throw new Error("Stock cannot be negative");
+    }
+
+    // ── Dimensions mutual validation ──
+    const hasLen = updateData.length !== '' && updateData.length != null;
+    const hasHgt = updateData.height !== '' && updateData.height != null;
+    const hasBrd = updateData.breadth !== '' && updateData.breadth != null;
+    const dimCount = [hasLen, hasHgt, hasBrd].filter(Boolean).length;
+    if (dimCount > 0 && dimCount < 3) {
+      throw new Error("Length, height, and breadth must all be provided together");
+    }
 
     // ── Required fields ──
     if (!updateData.category || (Array.isArray(updateData.category) && updateData.category.length === 0)) {
@@ -244,7 +285,7 @@ export const view = async (
     const [total, products] = await Promise.all([
       Product.countDocuments(query),
       Product.find(query)
-        .select("name slug image images price discount_price stock status description purity weight code estimated_delivery_time isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material sizes createdAt order")
+        .select("name slug image images price discount_price stock status description shortDescription weight code length height breadth minimumAge idealAge maximumAge type sku tags videoUrl estimated_delivery_time isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material sizes createdAt order")
         .sort(sort as string)
         .skip(skip)
         .limit(limit)
@@ -278,12 +319,9 @@ export const getOne = async (
     const { id: rawId, slug } = request.params;
     const id = Array.isArray(rawId) ? rawId[0] ?? "" : rawId ?? "";
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let product: any;
+    let product = await Product.findById(id).populate(POPULATE_PRODUCT).lean();
 
-    if (mongoose.Types.ObjectId.isValid(id)) {
-      product = await Product.findById(id).populate(POPULATE_PRODUCT).lean();
-    } else {
+    if (!product && slug) {
       product = await Product.findOne({ slug }).populate(POPULATE_PRODUCT).lean();
     }
 
@@ -371,6 +409,48 @@ export const update = async (
       }
     }
 
+    // ── Price & discount price mutual validation ──
+    if ((!updateData.price) !== (!updateData.discount_price)) {
+      throw new Error("Both price and discount price must be provided together");
+    }
+
+    // ── Price validation ──
+    const priceVal = Number(updateData.price);
+    if (!isNaN(priceVal) && priceVal <= 0) {
+      throw new Error("Price must be greater than 0");
+    }
+    const discountVal = Number(updateData.discount_price);
+    if (!isNaN(priceVal) && !isNaN(discountVal) && discountVal > priceVal) {
+      throw new Error("Discount price must be less than or equal to the original price");
+    }
+
+    // ── Age validation ──
+    const minAge = Number(updateData.minimumAge);
+    const maxAge = Number(updateData.maximumAge);
+    if (!isNaN(minAge) && !isNaN(maxAge) && minAge >= maxAge) {
+      throw new Error("Minimum age must be less than maximum age");
+    }
+
+    const idealAge = Number(updateData.idealAge);
+    if (!isNaN(idealAge) && !isNaN(minAge) && !isNaN(maxAge) && (idealAge < minAge || idealAge > maxAge)) {
+      throw new Error("Ideal age must be between minimum age and maximum age");
+    }
+
+    // ── Stock validation ──
+    const stockVal = Number(updateData.stock);
+    if (isNaN(stockVal) || stockVal < 0) {
+      throw new Error("Stock cannot be negative");
+    }
+
+    // ── Dimensions mutual validation ──
+    const hasLen = updateData.length !== '' && updateData.length != null;
+    const hasHgt = updateData.height !== '' && updateData.height != null;
+    const hasBrd = updateData.breadth !== '' && updateData.breadth != null;
+    const dimCount = [hasLen, hasHgt, hasBrd].filter(Boolean).length;
+    if (dimCount > 0 && dimCount < 3) {
+      throw new Error("Length, height, and breadth must all be provided together");
+    }
+
     if (updateData.name && updateData.name !== existingProduct.name) {
       const slug = await generateUniqueSlug(Product, updateData.name as string);
       updateData.slug = slug;
@@ -380,7 +460,6 @@ export const update = async (
       const categoryIds = Array.isArray(updateData.category)
         ? updateData.category
         : [updateData.category];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const existingCategoryIds: string[] = Array.isArray(existingProduct.category)
         ? (existingProduct.category as Array<{ toString(): string }>).map((c) =>
             c.toString(),
@@ -405,7 +484,6 @@ export const update = async (
       const subCategoryIds = Array.isArray(updateData.subCategory)
         ? updateData.subCategory
         : [updateData.subCategory];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const existingSubCategoryIds: string[] = existingProduct.subCategory
         ? Array.isArray(existingProduct.subCategory)
           ? (existingProduct.subCategory as Array<{ toString(): string }>).map((s) =>
@@ -432,7 +510,6 @@ export const update = async (
       const subSubCategoryIds = Array.isArray(updateData.subSubCategory)
         ? updateData.subSubCategory
         : [updateData.subSubCategory];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const existingSubSubCategoryIds: string[] = existingProduct.subSubCategory
         ? Array.isArray(existingProduct.subSubCategory)
           ? (existingProduct.subSubCategory as Array<{ toString(): string }>).map((s) =>
@@ -464,7 +541,6 @@ export const update = async (
       if (colorIds.length === 0) {
         throw new Error("At least one color is required");
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const existingColorIds: string[] = existingProduct.colors
         ? Array.isArray(existingProduct.colors)
           ? (existingProduct.colors as Array<{ toString(): string }>).map((c) => c.toString())
@@ -492,7 +568,6 @@ export const update = async (
       if (sizeIds.length === 0) {
         throw new Error("At least one size is required");
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const existingSizeIds: string[] = existingProduct.sizes
         ? Array.isArray(existingProduct.sizes)
           ? (existingProduct.sizes as Array<{ toString(): string }>).map((s) =>
@@ -597,8 +672,18 @@ export const changeStatus = async (
       return;
     }
 
-    // Toggle the boolean status field
-    product.status = !product.status;
+    // Cycle through: active → inactive → draft → active
+    // Also handles backward-compat with old boolean values (true→active, false→inactive)
+    const statusCycle: Array<"active" | "inactive" | "draft"> = ["active", "inactive", "draft"];
+    const currentRaw: unknown = product.status;
+    const normalized: "active" | "inactive" | "draft" =
+      currentRaw === true ? "active" :
+      currentRaw === false ? "inactive" :
+      typeof currentRaw === "string"
+        ? (currentRaw as "active" | "inactive" | "draft")
+        : "draft";
+    const currentIndex = statusCycle.indexOf(normalized);
+    product.status = statusCycle[(currentIndex + 1) % 3]!;
     await product.save();
 
     invalidateProductCaches();
@@ -648,7 +733,7 @@ export const getByCategory = async (
       ],
     })
       .populate(POPULATE_PRODUCT)
-      .select("name slug image images price discount_price stock status purity weight category subCategory subSubCategory colors material sizes order createdAt")
+      .select("name slug image images price discount_price stock status weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material sizes order createdAt")
       .sort(sort)
       .limit(cappedLimit)
       .skip(skip)
@@ -696,7 +781,6 @@ export const getProductByFilter = async (
       subSubCategory,
     } = request.body as Record<string, unknown>;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const query: Record<string, unknown> = {};
 
     if (isFeatured !== undefined) query.isFeatured = isFeatured;
@@ -722,7 +806,7 @@ export const getProductByFilter = async (
 
     const products = await Product.find(query)
       .populate(POPULATE_PRODUCT)
-      .select("name slug image images price discount_price stock purity weight category subCategory subSubCategory colors material sizes")
+      .select("name slug image images price discount_price stock weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material sizes")
       .limit(Math.min(Number(limit), 100))
       .sort("-createdAt")
       .lean();
@@ -746,13 +830,14 @@ export const updateStock = async (
   response: Response,
 ): Promise<void> => {
   try {
-    const { id, stock } = request.body as { id?: string; stock?: number };
-    if (stock === undefined || stock < 0) {
-      throw new Error("Invalid stock value");
+    const { id, stock } = request.body as { id?: string; stock?: unknown };
+    const stockVal = Number(stock);
+    if (isNaN(stockVal) || stockVal < 0) {
+      throw new Error("Stock cannot be negative");
     }
     const product = await Product.findByIdAndUpdate(
       id,
-      { stock: Number(stock) },
+      { stock: stockVal },
       { new: true, runValidators: true },
     );
     if (!product) {

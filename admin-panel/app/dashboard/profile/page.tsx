@@ -15,5 +15,5 @@ async function getDetails() {
 }
 export default async function page() {
   const details = await getDetails();
-  return <Profile details={details} />;
+  return <Profile details={details as any} />;
 }

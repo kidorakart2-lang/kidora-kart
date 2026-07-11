@@ -1,4 +1,4 @@
-# Web Development Guidelines — Jewellery Walla
+# Web Development Guidelines — Kidora Kart
 
 ## Project Structure
 
@@ -91,15 +91,31 @@ import { Card, CardContent } from "@/components/ui/card"
 
 ### 5. Typography
 ```tsx
-// Section heading
+// Section heading — uses --font-heading (varies per theme)
 <h2 className="section-heading">Collection Name</h2>
 
-// Subheading
+// Or use fw-heading directly
+<h2 className="text-3xl fw-heading text-foreground">Title</h2>
+
+// Subheading — uses --font-body
 <p className="section-subheading">Description</p>
 
 // Card title
-<h3 className="text-lg font-semibold">Card Title</h3>
+<h3 className="text-lg fw-heading">Card Title</h3>
+
+// CTA / Button — uses --font-cta
+<button className="btn-gradient fw-cta">Shop Now</button>
 ```
+
+**Font weight utility classes:**
+
+| Class | CSS Variable | Purpose |
+|---|---|---|
+| `.fw-heading` | `--font-heading` | Headings, titles, section names |
+| `.fw-body` | `--font-body` | Body text, descriptions, subtitles |
+| `.fw-cta` | `--font-cta` | Buttons, CTAs, action labels |
+
+**Never use hardcoded `font-light`, `font-semibold`, or `font-bold`** — always use `.fw-heading`, `.fw-body`, or `.fw-cta` so weights change with the active theme.
 
 ### 6. Container pattern
 ```tsx
@@ -146,9 +162,10 @@ Homepage sections are rendered dynamically by `DynamicSections.tsx`, which reads
 2. **No inline styles** for colors, backgrounds, or gradients
 3. **No `amber-*`, `rose-*`, `orange-*`, `yellow-*`** in component files — use `var(--brand-*)` instead
 4. **No `gray-*`, `blue-*`, `slate-*`, `indigo-*`, `cyan-*`, `teal-*`** in component files — use shadcn semantic tokens (`text-foreground`, `text-muted-foreground`, `border-border`, `bg-muted`, `bg-card`, etc.)
-5. **Use Tailwind v4 arbitrary values** sparingly — prefer utility classes
-6. **Dark mode** — test both themes; use `dark:` variants or CSS variable fallbacks
-7. **Verify with build** — always run `npm run build` after color changes; the build will catch any issues
+5. **No hardcoded font weights** — never use `font-light`, `font-semibold`, `font-bold` directly. Use `.fw-heading`, `.fw-body`, or `.fw-cta` so weights switch with the active theme
+6. **Use Tailwind v4 arbitrary values** sparingly — prefer utility classes
+7. **Dark mode** — test both themes; use `dark:` variants or CSS variable fallbacks
+8. **Verify with build** — always run `npm run build` after color changes; the build will catch any issues
 
 ## Color mapping reference
 

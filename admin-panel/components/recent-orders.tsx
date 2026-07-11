@@ -37,7 +37,7 @@ export function RecentOrders({ activity }: RecentOrdersProps) {
   };
 
   return (
-    <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 h-full">
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>Recent Orders</CardTitle>
       </CardHeader>
@@ -46,8 +46,7 @@ export function RecentOrders({ activity }: RecentOrdersProps) {
           {activity?.map((order, index) => (
             <div
               key={order._id}
-              className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-all duration-200 animate-in slide-in-from-left"
-              style={{ animationDelay: `${index * 50}ms` }}
+              className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-all duration-200"
             >
               <Avatar className="h-10 w-10 border-2 border-border">
                 <AvatarImage

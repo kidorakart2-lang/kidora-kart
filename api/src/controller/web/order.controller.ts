@@ -14,6 +14,10 @@ import {
   validateAndPriceCart,
   CartValidationError,
 } from "../../services/cartValidation.service.js";
+import {
+  checkServiceability,
+  getPickupLocations,
+} from "../../lib/shiprocket.js";
 
 interface RefundResponse {
   id: string;
@@ -74,6 +78,9 @@ export const createOrder = async (
       giftWrap,
       isCodAdvance,
       idempotencyKey,
+      shippingCharge,
+      shippingCourier,
+      shippingEtd,
     } = req.body as {
       purchaseType: "cart" | "direct";
       items?: Array<{
@@ -93,13 +100,16 @@ export const createOrder = async (
         state: string;
         pincode: string;
       };
-      billingAddress?: unknown;
+      billingAddress?: Record<string, unknown>;
       notes?: string;
       isGift?: boolean;
       giftMessage?: string;
       giftWrap?: boolean;
       isCodAdvance?: boolean;
       idempotencyKey?: string;
+      shippingCharge?: number;
+      shippingCourier?: string;
+      shippingEtd?: string;
     };
 
     const userId = req.user?._id;
@@ -176,7 +186,74 @@ export const createOrder = async (
       : subtotal < 500
         ? 0
         : Math.round(subtotal * 0.05);
-    const shipping = subtotal > 1000 ? 0 : 50;
+
+    // ── Shipping charge: prefer frontend estimate, fall back to Shiprocket, then ₹50 ──
+    let finalShippingCharge = shippingCharge;
+    let finalCourier = shippingCourier;
+    let finalEtd = shippingEtd;
+
+    if (finalShippingCharge == null) {
+      // Frontend didn't provide an estimate — try Shiprocket server-side
+      try {
+        const deliveryPincode = shippingAddress?.pincode;
+        if (deliveryPincode && deliveryPincode.length === 6) {
+          // Fetch product weights from DB to calculate total weight
+          const productIds = [...new Set(validatedItems.map((vi) => vi.productId))];
+          const products = await Product.find({ _id: { $in: productIds } })
+            .select("weight")
+            .lean();
+          const weightMap = new Map<string, number>(
+            products.map((p) => [String(p._id), Number((p as Record<string, unknown>).weight ?? 0)]),
+          );
+          let totalWeightKg = 0;
+          for (const vi of validatedItems) {
+            const weightGrams = weightMap.get(vi.productId) ?? 0;
+            totalWeightKg += (weightGrams * vi.quantity) / 1000;
+          }
+          // Minimum weight of 0.1 kg to avoid zero-weight errors
+          if (totalWeightKg < 0.1) totalWeightKg = 0.5;
+
+          // Get store pickup pincode from Shiprocket settings
+          // Shiprocket GET endpoints nest data inside a `data` key
+          const locations = await getPickupLocations();
+          const pickupData = (locations as Record<string, unknown>)?.data as
+            | { pickup_locations?: Array<{ pincode: string }> }
+            | undefined;
+          const pickupLocations = pickupData?.pickup_locations;
+          let pickupPincode = "342005"; // fallback to Jodhpur
+          if (pickupLocations && pickupLocations.length > 0) {
+            pickupPincode = pickupLocations[0]!.pincode;
+          }
+
+          const serviceability = await checkServiceability(
+            pickupPincode,
+            deliveryPincode,
+            totalWeightKg,
+            false,
+          );
+
+          // Shiprocket GET endpoints nest data inside a `data` key
+          const serviceabilityData = (serviceability as Record<string, unknown>)?.data as
+            | { available_courier_companies?: Array<{ courier_name: string; rate: number; etd: string }> }
+            | undefined;
+          const couriers = serviceabilityData?.available_courier_companies;
+
+          if (couriers && couriers.length > 0) {
+            const cheapest = couriers.reduce(
+              (min, c) => (c.rate < min.rate ? c : min),
+              couriers[0]!,
+            );
+            finalShippingCharge = cheapest.rate;
+            finalCourier = cheapest.courier_name;
+            finalEtd = cheapest.etd;
+          }
+        }
+      } catch (shiprocketError) {
+        logger.warn(shiprocketError, "Shiprocket estimate fallback failed, using default ₹50");
+      }
+    }
+
+    const shipping = finalShippingCharge ?? 50;
     const giftWrapCharges = giftWrap ? 50 : 0;
     const total = subtotal - discount + shipping + giftWrapCharges;
     const codAdvance = isCodAdvance
@@ -264,6 +341,14 @@ export const createOrder = async (
       giftWrapCharges,
       status: "pending",
       payment: { status: "pending" },
+      ...(finalCourier || finalEtd
+        ? {
+            shipping: {
+              carrier: finalCourier || "",
+              estimatedDelivery: finalEtd && !isNaN(Date.parse(finalEtd)) ? new Date(finalEtd) : undefined,
+            },
+          }
+        : {}),
     });
 
     try {
@@ -632,7 +717,8 @@ export const verifyPayment = async (
     const razorpayOrderDetails = await razorpay.orders.fetch(razorpay_order_id);
 
     // P6: Verify the Razorpay order's notes.orderId matches our order
-    if (razorpayOrderDetails.notes?.orderId !== order.orderId) {
+    const rzpNotes = (razorpayOrderDetails as unknown as Record<string, unknown>).notes as Record<string, unknown> | undefined;
+    if (rzpNotes?.["orderId"] !== order.orderId) {
       res.status(400).json({ success: false, message: "Amount mismatch" });
       return;
     }
@@ -767,11 +853,9 @@ export const getUserOrders = async (
       return;
     }
 
-    const { status, page = "1", limit = "10" } = req.query as {
-      status?: string;
-      page?: string;
-      limit?: string;
-    };
+    const status = req.query.status as string | undefined;
+    const page = req.query.page as string | undefined ?? "1";
+    const limit = req.query.limit as string | undefined ?? "10";
 
     const query: Record<string, unknown> = { userId };
     if (status) query.status = status;
@@ -849,7 +933,7 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const filter: Record<string, unknown> = { orderId };
+    const filter: { orderId: string; userId?: string } = { orderId: String(orderId) };
     if (req.user?.role !== "admin" && req.user?.role !== "delivery") {
       filter.userId = userId;
     }
@@ -1146,7 +1230,7 @@ export const sendDeliveryOTP = async (
       return;
     }
 
-    const filter: Record<string, unknown> = { orderId };
+    const filter: { orderId: string; userId?: string } = { orderId: String(orderId) };
     if (req.user?.role !== "admin" && req.user?.role !== "delivery") {
       filter.userId = userId;
     }
@@ -1206,8 +1290,8 @@ export const getAllOrders = async (
     return;
   }
 
-  const query: Record<string, unknown> = { deletedAt: null };
-  if (req.body?.status) {
+  const query: Record<string, unknown> = {};
+  if (typeof req.body?.status === "string" && req.body.status) {
     query.status = req.body.status;
   }
   try {
@@ -1413,11 +1497,7 @@ export const confirmCODOrder = async (
 
     // O3: Stock validation before confirming COD order
     for (const item of order.items) {
-      const product = item.productId as unknown as {
-        _id: string;
-        name: string;
-        stock: number;
-      } | null;
+      const product = item.productId as unknown as { _id: string; name: string; stock: number } | null;
 
       if (!product) {
         res.status(400).json({

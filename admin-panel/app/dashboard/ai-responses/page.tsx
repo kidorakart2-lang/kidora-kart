@@ -5,9 +5,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DataTable, type Column } from "@/components/data-table";
 import { AlertDialogUse } from "@/components/alert-dialog";
-import { Sparkles, Trash2 } from "lucide-react";
+import { Sparkles, Trash2, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { api, ApiClientError } from "@/lib/api";
+import { api } from "@/lib/api";
 
 interface AiResponse {
   _id: string;
@@ -33,8 +33,6 @@ const PAGE_LABELS: Record<string, string> = {
 
 export default function AiResponsesPage() {
   const [page, setPage] = useState(1);
-  const [alertOpen, setAlertOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -50,8 +48,6 @@ export default function AiResponsesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ai-responses"] });
       toast({ title: "Response permanently deleted" });
-      setAlertOpen(false);
-      setDeleteId(null);
     },
     onError: (err: Error) => {
       toast({
@@ -59,18 +55,13 @@ export default function AiResponsesPage() {
         description: err.message,
         variant: "destructive",
       });
-      setAlertOpen(false);
-      setDeleteId(null);
     },
   });
 
-  const handleDelete = (id: number) => {
-    setDeleteId(String(id));
-    setAlertOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (deleteId) deleteMutation.mutate(deleteId);
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast({ title: "Response copied to clipboard" });
+    });
   };
 
   const columns: Column<AiResponse>[] = [
@@ -115,21 +106,31 @@ export default function AiResponsesPage() {
       key: "_id" as keyof AiResponse,
       label: "Actions",
       render: (item) => (
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => handleDelete(item._id as unknown as number)}
-          disabled={deleteMutation.isPending}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleCopy(item.response)}
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => deleteMutation.mutate(item._id)}
+            disabled={deleteMutation.isPending}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       ),
     },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="animate-in fade-in slide-in-from-top duration-300">
+      <div>
         <h1 className="text-3xl font-bold tracking-tight">AI Responses</h1>
         <p className="text-muted-foreground">
           History of all AI-generated content across the admin panel
@@ -139,8 +140,7 @@ export default function AiResponsesPage() {
       <DataTable
         data={data?._data ?? []}
         columns={columns}
-        onEdit={() => {}}
-        onDelete={() => {}}
+        hideActions
         searchPlaceholder="Search responses..."
         externalPagination={
           data?._pagination
@@ -151,15 +151,6 @@ export default function AiResponsesPage() {
               }
             : undefined
         }
-      />
-
-      <AlertDialogUse
-        isOpen={alertOpen}
-        onClose={() => setAlertOpen(false)}
-        onConfirm={confirmDelete}
-        title="Delete AI Response"
-        description="Are you sure? This will permanently delete the response. This action cannot be undone."
-        confirmText="Delete Permanently"
       />
     </div>
   );

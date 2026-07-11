@@ -12,7 +12,7 @@ import type { JwtPayload, PasswordResetJwtPayload } from "../types/jwt.js";
  * Role is re-read from DB on every request via req.user (auth middleware).
  */
 export const generateToken = (
-  user: { _id: unknown },
+  user: { _id: string | import("mongoose").Types.ObjectId },
   _type?: "admin" | "user" | "delivery",
 ): string => {
   const payload: JwtPayload = {
@@ -55,7 +55,7 @@ export const verifyPasswordResetToken = (
       typeof decoded === "object" &&
       decoded !== null &&
       "type" in decoded &&
-      (decoded as { type: unknown }).type === "password_reset"
+      (decoded as Record<string, unknown>).type === "password_reset"
     ) {
       return decoded as PasswordResetJwtPayload;
     }

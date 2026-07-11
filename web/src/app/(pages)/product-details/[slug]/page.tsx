@@ -1,5 +1,5 @@
 import { siteConfig, defaultMetadata } from "@/lib/utils";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { cacheLife, cacheTag } from "next/cache";
 import { productTag, TAG_PRODUCTS } from "@/lib/revalidation-tags";
 import ProductDetailsPage from "./ProductDetail";
@@ -23,7 +23,14 @@ interface ProductDetail {
   subCategory?: { _id: string; name: string }[];
   subSubCategory?: { _id: string; name: string }[];
   weight?: string;
-  purity?: string;
+  length?: number;
+  height?: number;
+  breadth?: number;
+  minimumAge?: number;
+  idealAge?: number;
+  maximumAge?: number;
+  type?: string;
+  videoUrl?: string;
 }
 
 interface ProductDetailsPageProps {
@@ -42,13 +49,13 @@ export async function generateStaticParams() {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}api/website/product/all`,
     );
-    if (!res.ok) return [];
+    if (!res.ok) return [{ slug: "placeholder" }];
     const data = await res.json();
     const products = data._data as { slug: string }[];
-    if (!Array.isArray(products)) return [];
+    if (!Array.isArray(products) || products.length === 0) return [{ slug: "placeholder" }];
     return products.map((p) => ({ slug: p.slug }));
   } catch {
-    return [];
+    return [{ slug: "placeholder" }];
   }
 }
 
@@ -73,28 +80,28 @@ export async function generateMetadata({ params }: ProductDetailsPageProps) {
       ? "https://schema.org/InStock"
       : "https://schema.org/OutOfStock";
 
-  const categoryName = product.category?.[0]?.name || "jewellery";
+  const categoryName = product.category?.[0]?.name || "toy";
   const localKeywords = [
     product.name,
     categoryName,
     `${categoryName} in ${siteConfig.address.city}`,
     `${siteConfig.address.city} ${categoryName}`,
-    `${siteConfig.address.city} jewellery shop`,
-    "Rajasthani jewellery",
-    `traditional jewellery ${siteConfig.address.city}`,
-    `gold jewellery ${siteConfig.address.city}`,
-    `silver jewellery ${siteConfig.address.city}`,
+    `${siteConfig.address.city} toy store`,
+    "buy toys online",
+    `toys ${siteConfig.address.city}`,
+    `kids toys ${siteConfig.address.city}`,
+    `shop toys ${siteConfig.address.city}`,
     siteConfig.name,
     ...(product.tags || []),
   ].join(", ");
 
   const enhancedDescription =
     product.description ||
-    `Buy authentic ${product.name} from ${
+    `Buy ${product.name} from ${
       siteConfig.name
-    }, your trusted jewellery shop in ${siteConfig.address.city}, ${siteConfig.address.state}. ${
+    }, your trusted toy store in ${siteConfig.address.city}, ${siteConfig.address.state}. ${
       product.short_description || ""
-    } Shop premium quality ${categoryName} with traditional Rajasthani craftsmanship. Best prices in ${siteConfig.address.city}.`;
+    } Shop premium quality ${categoryName} at the best prices in ${siteConfig.address.city}.`;
 
   return {
     title: `${product.name} | ${siteConfig.name}`,
@@ -126,7 +133,7 @@ export async function generateMetadata({ params }: ProductDetailsPageProps) {
       title: `${product.name} | ${siteConfig.name}`,
       description:
         product.description ||
-        `Buy ${product.name} from ${siteConfig.address.city}'s trusted jewellery shop.`,
+        `Buy ${product.name} from ${siteConfig.address.city}'s trusted toy store.`,
       images: [productImage],
     },
     robots: {
@@ -222,7 +229,7 @@ export async function generateProductSchema(product: ProductDetail, productUrl: 
     },
     {
       "@context": "https://schema.org",
-      "@type": "JewelryStore",
+      "@type": "Store",
       name: siteConfig.name,
       image: siteConfig.url + "/images/shop-image.jpg",
       "@id": siteConfig.url,
@@ -288,6 +295,11 @@ async function getProducts(slug: string) {
 export default async function Page({ params }: ProductDetailsPageProps) {
   const allParams = await params;
   const { slug } = allParams;
+
+  if (slug === "placeholder") {
+    redirect("/");
+  }
+
   const product = await getProducts(slug);
 
   if (!product) {

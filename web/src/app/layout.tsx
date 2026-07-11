@@ -1,5 +1,8 @@
 import { Lato } from "next/font/google";
 import "./globals.css";
+import "./themes/minimal.css";
+import "./themes/brown.css";
+import "./themes/monochrome.css";
 import "@/index.css";
 import { Client } from "@/redux/provider/Client";
 import { Toaster } from "sonner";
@@ -19,6 +22,7 @@ import ThemeColorMeta from "@/components/comman/ThemeColorMeta";
 import dynamic from "next/dynamic";
 
 const MotionProvider = dynamic(() => import("@/components/MotionProvider"));
+const DevThemeToggle = dynamic(() => import("@/components/comman/DevThemeToggle"));
 
 const lato = Lato({
   subsets: ["latin"],
@@ -31,7 +35,7 @@ const lato = Lato({
 export const metadata = {
   ...defaultMetadata,
   title: {
-    default: `${siteConfig.name} - Premium Jewellery Store in ${siteConfig.address.city} | Gold, Silver & Diamond Jewellery`,
+    default: `${siteConfig.name} - Online Toy Store in ${siteConfig.address.city} | Toys & Games`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -47,7 +51,7 @@ export const metadata = {
 function OrganizationSchema() {
   const schema = {
     "@context": "https://schema.org",
-    "@type": "JewelryStore",
+    "@type": "Store",
     "@id": `${siteConfig.url}/#organization`,
     name: siteConfig.name,
     legalName: siteConfig.legalName,
@@ -202,7 +206,6 @@ export default async function RootLayout({
     getLogo(),
   ]);
 
-  console.clear();
   return (
     <html lang="en">
       <head>
@@ -213,7 +216,7 @@ export default async function RootLayout({
         <link rel="canonical" href={siteConfig.url} />
         <meta
           name="google-site-verification"
-          content="4jBIp_u1ex8ub0zCeOXN-UnbczFciy1aAO90vr7yhH8"
+          content={siteConfig.googleVerification}
         />
         <meta name="geo.region" content={siteConfig.address.regionCode} />
         <meta name="geo.placename" content={siteConfig.address.city} />
@@ -225,7 +228,7 @@ export default async function RootLayout({
         <meta name="msapplication-TileColor" content={siteConfig.themeColor} />
       </head>
       <body
-        className={`pt-0 !mr-0 bg-background  antialiased flex flex-col ${lato.variable} pb-12 md:pb-0`}
+        className={`pt-0 !mr-0 bg-background brown   antialiased flex flex-col ${lato.variable} pb-12 md:pb-0`}
       >
         <ThemeColorMeta />
         <Suspense>
@@ -241,6 +244,7 @@ export default async function RootLayout({
           <PhoneNumberModal />
           <CookieConsent />
           <AxeAccessibility />
+          <DevThemeToggle />
           </MotionProvider>
         </Client>
         </Suspense>

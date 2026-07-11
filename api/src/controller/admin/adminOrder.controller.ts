@@ -7,9 +7,13 @@ import { sendEmail } from "../../lib/nodemailer.js";
 import { logger } from "../../lib/logger.js";
 
 const razorpay = new Razorpay({
-  key_id: env.RAZORPAY_KEY_ID,
-  key_secret: env.RAZORPAY_KEY_SECRET,
-});
+  key_id: env.RAZORPAY_KEY_ID ?? "",
+  key_secret: env.RAZORPAY_KEY_SECRET ?? "",
+}) as unknown as {
+  orders: { create: (opts: Record<string, unknown>) => Promise<Record<string, unknown>>; fetch: (id: string) => Promise<Record<string, unknown>>; fetchPayments: (id: string) => Promise<Record<string, unknown>> };
+  payments: { fetch: (id: string) => Promise<{ status?: string }>; refund: (id: string, opts: Record<string, unknown>) => Promise<Record<string, unknown>> };
+  refunds: { fetch: (id: string) => Promise<{ status?: string; amount?: number; id?: string; created_at?: number }>; all: (opts: Record<string, unknown>) => Promise<Record<string, unknown>> };
+};
 
 interface RazorpayRefundStatus {
   status?: string;
@@ -91,7 +95,6 @@ export const getRefundedOrdersForAdmin = async (
       .sort({ "cancellation.refundedAt": -1, updatedAt: -1 })
       .lean();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const categorizedOrders: Record<string, unknown[]> = {
       pending: [],
       initiated: [],
@@ -100,7 +103,7 @@ export const getRefundedOrdersForAdmin = async (
       mismatched: [],
     };
 
-    refundedOrders.forEach((order) => {
+    refundedOrders.forEach((order: Record<string, unknown>) => {
       const o = order as { cancellation?: { refundStatus?: string; refundedAt?: Date }; status?: string };
       const refundStatus = o.cancellation?.refundStatus || "unknown";
 
@@ -681,11 +684,10 @@ export const verifyPendingPayments = async (
       const razorpayOrderId = order.payment?.razorpay?.orderId;
       if (!razorpayOrderId) continue;
         const payments = await razorpay.orders.fetchPayments(razorpayOrderId);
-        const paymentsItems = (payments as unknown as { items?: Array<{ status: string; id: string; amount: number; created_at: number }> }).items;
+        const paymentsItems = (payments as { items?: Array<{ status: string; id: string; amount: number; created_at: number }> }).items;
 
         if (paymentsItems) {
           const successfulPayment = paymentsItems.find(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (p: { status: string }) => p.status === "captured" || p.status === "authorized",
           );
 
@@ -756,7 +758,6 @@ export const confirmPendingPayment = async (
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let query: Record<string, unknown> = { orderId };
 
     if (mongoose.Types.ObjectId.isValid(orderId)) {

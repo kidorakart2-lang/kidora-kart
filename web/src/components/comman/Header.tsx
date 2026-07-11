@@ -727,9 +727,9 @@ const SearchBar = ({ className, inputId }: SearchBarProps) => {
     <div className={`relative ${className}`}>
       <PlaceholdersAndVanishInput
         placeholders={[
-          "Search for Women's Jewellery",
-          "Buy Personalized Jewellery",
-          "Search for earrings",
+          "Search for Toys",
+          "Buy Educational Toys",
+          "Search for action figures",
           "Find Gift Items",
         ]}
         onSubmit={handleSubmit}

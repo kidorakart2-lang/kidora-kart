@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import material from "../../models/material.js";
 import cache from "../../lib/cache.js";
 
-const extractValidationMessages = (err: unknown): string[] | null => {
+const extractValidationMessages = (err: import("mongoose").Error.ValidationError | unknown): string[] | null => {
   if (!(err instanceof Error) || !("errors" in err)) return null;
   const errorObj = (err as Record<string, unknown>).errors as Record<string, { message: string }> | undefined;
   if (!errorObj || typeof errorObj !== "object") return null;

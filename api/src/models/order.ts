@@ -246,7 +246,6 @@ orderSchema.statics.getOrdersByStatus = function (
   status: string,
   userId: string | null = null,
 ) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query: Record<string, unknown> = { status };
   if (userId) query.userId = userId;
   return this.find(query).sort({ createdAt: -1 });
@@ -260,6 +259,6 @@ orderSchema.statics.getOrdersByStatus = function (
 export type IOrder = InferSchemaType<typeof orderSchema>;
 
 // Allow model re-compilation for seamless index sync
-const OrderModel = mongoose.models.orders ?? mongoose.model<IOrder>("orders", orderSchema);
+const OrderModel = (mongoose.models.orders ?? mongoose.model("orders", orderSchema)) as Model<IOrder>;
 
 export default OrderModel;

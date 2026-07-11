@@ -9,7 +9,7 @@ import { success, fail } from "../../utils/responses.js";
 import { logger } from "../../lib/logger.js";
 
 const PRODUCT_SELECT =
-  "name slug images price image stock discount_price purity weight colors material sizes category subCategory subSubCategory";
+  "name slug images price image stock discount_price weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl colors material sizes category subCategory subSubCategory";
 
 const POPULATE_CATEGORY = {
   path: "category",
@@ -84,7 +84,7 @@ export const getOne = async (req: Request, res: Response): Promise<Response> => 
     const { slug } = req.params;
     const product = await Product.findOne({
       slug,
-      status: true,
+      status: "active",
       deletedAt: null,
     })
       .select("-__v -deletedAt")
@@ -147,7 +147,7 @@ export const getByCategory = async (
       });
     }
 
-    const query = { $or: filters, deletedAt: null, status: true };
+    const query = { $or: filters, deletedAt: null, status: "active" };
 
     const [products, total] = await Promise.all([
       Product.find(query)
@@ -203,12 +203,13 @@ export const getProductByFilter = async (
 
     const priceFrom = q.priceFrom ? Number(q.priceFrom) : undefined;
     const priceTo = q.priceTo ? Number(q.priceTo) : undefined;
+    const ageFrom = q.ageFrom ? Number(q.ageFrom) : undefined;
+    const ageTo = q.ageTo ? Number(q.ageTo) : undefined;
     const searchQuery = q.searchQuery as string | undefined;
     const limit = q.limit ? Number(q.limit) : 20;
     const page = q.page ? Number(q.page) : 1;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const query: Record<string, unknown> = { deletedAt: null, status: true };
+    const query: Record<string, unknown> = { deletedAt: null, status: "active" };
 
     if (searchQuery && searchQuery.trim() !== "") {
       const trimmedSearch = searchQuery.trim();
@@ -280,6 +281,7 @@ export const getProductByFilter = async (
           { name: { $regex: word, $options: "i" } },
           { slug: { $regex: word, $options: "i" } },
           { description: { $regex: word, $options: "i" } },
+          { tags: { $regex: word, $options: "i" } },
         ],
       }));
 
@@ -348,6 +350,14 @@ export const getProductByFilter = async (
       query.discount_price = { $lte: Number(priceTo) };
     }
 
+    if (ageFrom !== undefined || ageTo !== undefined) {
+      const effectiveAgeFrom = ageFrom ?? 0;
+      const effectiveAgeTo = ageTo ?? 18;
+      // Products whose age range overlaps the selected filter range
+      query.minimumAge = { $lte: effectiveAgeTo };
+      query.maximumAge = { $gte: effectiveAgeFrom };
+    }
+
     const cappedLimit = Math.min(Number(limit), 100);
     const skip = Math.max(0, (Number(page) - 1) * cappedLimit);
 
@@ -382,7 +392,7 @@ export const getProductByFilter = async (
 
 export const getAll = async (_req: Request, res: Response): Promise<Response> => {
   try {
-    const products = await Product.find({ deletedAt: null, status: true })
+    const products = await Product.find({ deletedAt: null, status: "active" })
       .populate(PRODUCT_POPULATE)
       .select(PRODUCT_SELECT)
       .sort({ order: -1, createdAt: -1 })
@@ -408,12 +418,12 @@ export const relatedProducts = async (
     const subSubCategoryIdsRaw = typeof req.query.subSubCategoryIds === "string" ? (req.query.subSubCategoryIds as string).split(",").filter(Boolean) : undefined;
     const subSubCategoryIds = subSubCategoryIdsRaw?.slice(0, 20);
 
-    let products: unknown[] = [];
+    let products: Array<Record<string, unknown>> = [];
 
     if (subSubCategoryIds && subSubCategoryIds.length > 0) {
       products = await Product.find({
         deletedAt: null,
-        status: true,
+        status: "active",
         subSubCategory: { $in: subSubCategoryIds },
       })
         .limit(10)
@@ -430,7 +440,7 @@ export const relatedProducts = async (
     ) {
       const remainingLimit = 10 - products.length;
       const existingProductIds = (
-        products as { _id: unknown }[]
+        products
       ).map((p) => p._id);
 
       const subCategoryProducts = await Product.find({
@@ -458,7 +468,7 @@ export const relatedProducts = async (
 
 const fetchFeaturedList = async (filter: Record<string, unknown>, limit: number) => {
   filter.deletedAt = null;
-  filter.status = true;
+  filter.status = "active";
   return Product.find(filter)
     .populate(PRODUCT_POPULATE)
     .select(PRODUCT_SELECT)
@@ -541,7 +551,7 @@ export const featuredForFooter = async (
     const products = await Product.find({
       isFeatured: true,
       deletedAt: null,
-      status: true,
+      status: "active",
     })
       .populate("category", "name slug")
       .populate("subCategory", "name slug")
@@ -597,7 +607,7 @@ export const tabProducts = async (
     }
 
     const [goldProducts, silverProducts, giftProducts] = await Promise.all([
-      Product.find({ deletedAt: null, status: true, material: goldMat._id })
+      Product.find({ deletedAt: null, status: "active", material: goldMat._id })
         .populate(POPULATE_MATERIAL)
         .populate(POPULATE_CATEGORY)
         .populate(POPULATE_SUBCATEGORY)
@@ -609,7 +619,7 @@ export const tabProducts = async (
         .limit(4)
         .lean(),
 
-      Product.find({ deletedAt: null, status: true, material: silverMat._id })
+      Product.find({ deletedAt: null, status: "active", material: silverMat._id })
         .populate(POPULATE_MATERIAL)
         .populate(POPULATE_CATEGORY)
         .populate(POPULATE_SUBCATEGORY)
@@ -620,7 +630,7 @@ export const tabProducts = async (
         .limit(4)
         .lean(),
 
-      Product.find({ deletedAt: null, status: true, isGift: true })
+      Product.find({ deletedAt: null, status: "active", isGift: true })
         .populate(POPULATE_CATEGORY_GIFT)
         .populate(POPULATE_SUBCATEGORY_GIFT)
         .populate(POPULATE_SUBSUBCATEGORY)
@@ -632,15 +642,11 @@ export const tabProducts = async (
         .lean(),
     ]);
 
-    const goldFiltered = (goldProducts as { material?: unknown }[]).filter(
-      (p) => p.material,
-    );
-    const silverFiltered = (silverProducts as { material?: unknown }[]).filter(
-      (p) => p.material,
-    );
-    const giftFiltered = (giftProducts as { category?: unknown }[]).filter(
-      (p) => p.category,
-    );
+    // material is an array (ObjectId[]) in the schema, filter by non-empty array
+    const goldFiltered = goldProducts.filter((p) => p.material && p.material.length > 0);
+    const silverFiltered = silverProducts.filter((p) => p.material && p.material.length > 0);
+    // category is also an array (ObjectId[]), filter by non-empty array
+    const giftFiltered = giftProducts.filter((p) => p.category && p.category.length > 0);
 
     const data = { gold: goldFiltered, silver: silverFiltered, gift: giftFiltered };
     cache.set("tabProducts", data);
@@ -678,7 +684,7 @@ export const getByIds = async (
     const products = await Product.find({
       _id: { $in: cappedIds },
       deletedAt: null,
-      status: true,
+      status: "active",
     })
       .populate(PRODUCT_POPULATE)
       .select(PRODUCT_SELECT)
@@ -726,6 +732,7 @@ export const getBySearch = async (
       $or: [
         { name: { $regex: word, $options: "i" } },
         { slug: { $regex: word, $options: "i" } },
+        { tags: { $regex: word, $options: "i" } },
       ],
     }));
 
@@ -733,7 +740,7 @@ export const getBySearch = async (
       $and: [
         { $or: regexPatterns.flatMap((pattern) => pattern.$or) },
         { deletedAt: null },
-        { status: true },
+        { status: "active" },
       ],
     };
 

@@ -87,13 +87,14 @@ export const getSearchWithSuggestions = async (
     const regexPatterns = effectiveSearchWords.map((word) => [
       { name: { $regex: word, $options: "i" } },
       { slug: { $regex: word, $options: "i" } },
+      { tags: { $regex: word, $options: "i" } },
     ]);
 
     const productQuery = {
       $and: [
         { $or: regexPatterns.flatMap((p) => p) },
         { deletedAt: null },
-        { status: true },
+        { status: "active" },
       ],
     };
 
@@ -114,7 +115,7 @@ export const getSearchWithSuggestions = async (
       $and: [
         { $or: regexPatterns.flatMap((p) => p) },
         { deletedAt: null },
-        { status: true },
+        { status: "active" },
       ],
     };
 

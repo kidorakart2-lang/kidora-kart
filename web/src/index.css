@@ -146,13 +146,13 @@ img {
 }
 
 ::selection {
-  background-color: gold;
-  color: #000000;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
 }
 
 ::-webkit-selection {
-  background-color: gold;
-  color: #000000;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
 }
 
 button {

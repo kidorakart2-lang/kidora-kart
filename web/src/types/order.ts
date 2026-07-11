@@ -70,6 +70,14 @@ export interface OrderData {
   pricing: PricingInfo;
   cancellation?: CancellationInfo;
   shippingAddress: OrderShippingAddress;
+  shipping?: {
+    carrier?: string;
+    estimatedDelivery?: string;
+    trackingNumber?: string;
+    trackingUrl?: string;
+    shippedAt?: string;
+    deliveredAt?: string;
+  };
   packageId: string;
   notes?: OrderNotes;
 }

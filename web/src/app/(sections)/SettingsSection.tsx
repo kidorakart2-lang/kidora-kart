@@ -104,11 +104,11 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
         {/* Forgot Password Button */}
         <Link href="/reset-password">
           <button
-            className="w-full flex items-center justify-between p-4 bg-background/80 rounded-lg border border-border hover:border-brand-300 hover:shadow-md transition-all duration-300 group"
+            className="w-full flex items-center justify-between p-4 bg-background/80 rounded-lg border border-border hover:border-border hover:shadow-md transition-all duration-300 group"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-brand-100 rounded-lg group-hover:bg-brand-200 transition-colors duration-300">
-                <Lock size={18} className="text-brand-600" />
+              <div className="p-2 bg-muted rounded-lg group-hover:bg-muted/80 transition-colors duration-300">
+                <Lock size={18} className="text-muted-foreground" />
               </div>
               <div className="text-left">
                 <p className="font-medium text-foreground">Forgot Password</p>
@@ -117,18 +117,18 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
                 </p>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-brand-600 transition-colors" />
+            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
           </button>
         </Link>
 
         {/* Change Password Button */}
         <Link href="/change-password">
           <button
-            className="w-full flex items-center justify-between p-4 bg-background/80 rounded-lg border border-border hover:border-brand-300 hover:shadow-md transition-all duration-300 group"
+            className="w-full flex items-center justify-between p-4 bg-background/80 rounded-lg border border-border hover:border-border hover:shadow-md transition-all duration-300 group"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-brand-100 rounded-lg group-hover:bg-brand-200 transition-colors duration-300">
-                <Lock size={18} className="text-brand-600" />
+              <div className="p-2 bg-muted rounded-lg group-hover:bg-muted/80 transition-colors duration-300">
+                <Lock size={18} className="text-muted-foreground" />
               </div>
               <div className="text-left">
                 <p className="font-medium text-foreground">Change Password</p>
@@ -137,7 +137,7 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
                 </p>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-brand-600 transition-colors" />
+            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
           </button>
         </Link>
 
@@ -145,17 +145,17 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
         {data?.isEmailVerified ? null : (
           <button
             onClick={() => handleVerifyClick("email")}
-            className="w-full flex items-center justify-between p-4 bg-background/80 rounded-lg border border-border hover:border-brand-300 hover:shadow-md transition-all duration-300 group"
+            className="w-full flex items-center justify-between p-4 bg-background/80 rounded-lg border border-border hover:border-border hover:shadow-md transition-all duration-300 group"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-brand-100 rounded-lg group-hover:bg-brand-200 transition-colors duration-300">
-                <Mail size={18} className="text-brand-600" />
+              <div className="p-2 bg-muted rounded-lg group-hover:bg-muted/80 transition-colors duration-300">
+                <Mail size={18} className="text-muted-foreground" />
               </div>
               <div className="text-left">
                 <p className="font-medium text-foreground flex items-center gap-2">
                   Verify Email
                   {!data?.isEmailVerified && (
-                    <span className="px-2 py-0.5 bg-brand-100 text-brand-700 text-xs rounded-full">
+                    <span className="px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded-full">
                       Pending
                     </span>
                   )}
@@ -170,7 +170,7 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
                 </p>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-brand-600 transition-colors" />
+            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
           </button>
         )}
 

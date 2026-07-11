@@ -43,7 +43,7 @@ export function PreviewDialog({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex flex-col">
-      <div className="flex items-center justify-between px-6 py-3 bg-white border-b shrink-0">
+      <div className="flex items-center justify-between px-6 py-3 bg-background border-b shrink-0">
         <div className="flex items-center gap-3">
           <h2 className="text-lg font-semibold">Home Page Preview</h2>
           <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
@@ -80,12 +80,12 @@ export function PreviewDialog({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto bg-gray-100 p-4 md:p-8">
+      <div className="flex-1 overflow-y-auto bg-muted p-4 md:p-8">
         <div
-          className={`mx-auto bg-white ${deviceWidths[device]} ${deviceFrames[device]} shadow-xl overflow-hidden transition-all duration-300 min-h-[600px]`}
+          className={`mx-auto bg-background ${deviceWidths[device]} ${deviceFrames[device]} shadow-xl overflow-hidden transition-all duration-300 min-h-[600px]`}
         >
           {visible.length > 0 ? (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-border">
               {visible.map((section, i) => (
                 <PreviewSectionCard key={section._id} section={section} index={i} />
               ))}
@@ -120,7 +120,7 @@ function PreviewSectionCard({
 
   return (
     <div className="group">
-      <div className="flex items-center gap-2 px-4 py-1.5 bg-gray-50 border-b border-gray-100">
+      <div className="flex items-center gap-2 px-4 py-1.5 bg-muted border-b border-border">
         <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
           #{index + 1}
         </span>
@@ -136,7 +136,7 @@ function PreviewSectionCard({
         )}
       </div>
 
-      <div className="p-4 bg-white">
+      <div className="p-4 bg-background">
         <SectionPreviewContent type={section.type} config={cfg} />
       </div>
     </div>
@@ -257,7 +257,7 @@ function SectionPreviewContent({
       return (
         <div className="space-y-3">
           {config.heading && (
-            <p className="text-sm font-medium text-center text-gray-700">{config.heading}</p>
+            <p className="text-sm font-medium text-center text-foreground">{config.heading}</p>
           )}
           <div className="flex justify-center gap-4">
             {["Ring", "Earring", "Necklace", "Bracelet"].map((cat) => (
@@ -265,7 +265,7 @@ function SectionPreviewContent({
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 ring-2 ring-emerald-100 flex items-center justify-center">
                   <span className="text-lg">{["💍", "✨", "📿", "💎"][cat === "Ring" ? 0 : cat === "Earring" ? 1 : cat === "Necklace" ? 2 : 3]}</span>
                 </div>
-                <span className="text-[10px] text-gray-500">{cat}</span>
+                <span className="text-[10px] text-muted-foreground">{cat}</span>
               </div>
             ))}
           </div>
@@ -276,7 +276,7 @@ function SectionPreviewContent({
       return (
         <div className="space-y-3">
           {config.heading && (
-            <p className="text-sm font-medium text-center text-gray-700">{config.heading}</p>
+            <p className="text-sm font-medium text-center text-foreground">{config.heading}</p>
           )}
           <div className="flex justify-center gap-4">
             {["Ring", "Earring", "Necklace", "Bracelet"].map((cat) => (
@@ -284,7 +284,7 @@ function SectionPreviewContent({
                 <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-emerald-100 to-emerald-200 ring-2 ring-emerald-100 flex items-center justify-center">
                   <span className="text-lg">{["💍", "✨", "📿", "💎"][cat === "Ring" ? 0 : cat === "Earring" ? 1 : cat === "Necklace" ? 2 : 3]}</span>
                 </div>
-                <span className="text-[10px] text-gray-500">{cat}</span>
+                <span className="text-[10px] text-muted-foreground">{cat}</span>
               </div>
             ))}
           </div>
@@ -325,7 +325,7 @@ function SectionPreviewContent({
       return (
         <div className="space-y-3">
           {config.heading && (
-            <p className="text-sm font-medium text-gray-700">{config.heading}</p>
+            <p className="text-sm font-medium text-foreground">{config.heading}</p>
           )}
           <div className="flex gap-3 overflow-x-auto pb-2">
             {[1, 2, 3, 4].map((i) => (
@@ -333,8 +333,8 @@ function SectionPreviewContent({
                 <div className="h-28 bg-gradient-to-b from-amber-100 to-amber-50 rounded-lg border border-amber-100 flex items-center justify-center">
                   <ShoppingBag className="h-6 w-6 text-amber-300" />
                 </div>
-                <div className="h-2 bg-gray-200 rounded w-3/4 mx-auto" />
-                <div className="h-2 bg-gray-200 rounded w-1/2 mx-auto" />
+                <div className="h-2 bg-muted rounded w-3/4 mx-auto" />
+                <div className="h-2 bg-muted rounded w-1/2 mx-auto" />
               </div>
             ))}
           </div>
@@ -348,7 +348,7 @@ function SectionPreviewContent({
       return (
         <div className="space-y-3">
           {config.heading && (
-            <p className="text-sm font-medium text-gray-700">{config.heading}</p>
+            <p className="text-sm font-medium text-foreground">{config.heading}</p>
           )}
           <div className="flex gap-2 border-b pb-2">
             {(config.searchTerms || "earrings,necklace,bracelet")
@@ -546,12 +546,12 @@ function SectionPreviewContent({
 
     case "custom":
       return (
-        <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center">
-          <Code2 className="h-6 w-6 mx-auto mb-1 text-gray-300" />
+        <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+          <Code2 className="h-6 w-6 mx-auto mb-1 text-muted" />
           <p className="text-xs text-muted-foreground">Custom HTML Section</p>
           {config.html && (
             <div className="mt-2 max-h-16 overflow-hidden relative">
-              <div className="text-[10px] text-gray-400 font-mono bg-gray-50 rounded p-2 text-left line-clamp-3">
+              <div className="text-[10px] text-muted-foreground font-mono bg-muted rounded p-2 text-left line-clamp-3">
                 {config.html.slice(0, 200)}
               </div>
             </div>
@@ -561,7 +561,7 @@ function SectionPreviewContent({
 
     default:
       return (
-        <div className="h-16 bg-gray-50 rounded-lg flex items-center justify-center text-xs text-muted-foreground">
+        <div className="h-16 bg-muted rounded-lg flex items-center justify-center text-xs text-muted-foreground">
           Preview not available
         </div>
       )

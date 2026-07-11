@@ -23,14 +23,14 @@ export default function Story() {
       year: "Present",
       title: `${siteConfig.name} Born`,
       description:
-        "With 10 years of jewellery expertise, we opened our store in Jhalamand, combining retail, manufacturing, and customization.",
+        "With a passion for bringing joy to children, we opened our toy store in Jhalamand, combining retail with a love for creativity and play.",
       icon: Sparkles,
     },
     {
       year: "Now",
       title: "All India Presence",
       description:
-        "Expanded our reach online, delivering exquisite jewellery across India while maintaining our commitment to quality and customization.",
+        "Expanded our reach online, delivering toys across India while maintaining our commitment to quality and customer happiness.",
       icon: Award,
     },
   ];
@@ -41,7 +41,7 @@ export default function Story() {
       <div className="max-w-7xl mx-auto">
         <div className="liquid-glass rounded-[3rem] p-8 sm:p-12 mb-8 shimmer">
           <div className="text-center mb-12 relative z-10">
-            <h1 className="text-5xl sm:text-6xl font-bold text-foreground mb-4 tracking-tight">
+             <h1 className="text-5xl sm:text-6xl fw-heading text-foreground mb-4 tracking-tight">
               {siteConfig.name} Story
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -60,8 +60,8 @@ export default function Story() {
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
                   What began as three friends with big dreams in college has
-                  blossomed into a trusted name in the jewellery industry. Our
-                  journey started with humble beginnings - selling shoes online
+                  blossomed into a trusted name in the toy industry. Our
+                  journey started with humble beginnings - selling products online
                   through WhatsApp, where we learned the art of customer service
                   and building relationships. This foundation taught us
                   invaluable lessons about entrepreneurship and the power of
@@ -89,7 +89,7 @@ export default function Story() {
                         <span className="px-3 py-1 bg-background/80 text-muted-foreground rounded-full text-sm font-semibold shadow-sm border border-border/50">
                           {milestone.year}
                         </span>
-                        <h3 className="text-xl font-bold text-foreground">
+                         <h3 className="text-xl fw-heading text-foreground">
                           {milestone.title}
                         </h3>
                       </div>
@@ -131,25 +131,25 @@ export default function Story() {
                   <span className="font-semibold text-foreground">
                     Retail Excellence:
                   </span>{" "}
-                  Curated collections for every occasion
+                  Curated toy collections for kids of all ages
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-muted-foreground rounded-full mt-2"></div>
                 <p className="text-muted-foreground">
                   <span className="font-semibold text-foreground">
-                    Manufacturing:
+                    Quality Assurance:
                   </span>{" "}
-                  In-house craftsmanship and quality control
+                  Premium and safe play items
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-muted-foreground rounded-full mt-2"></div>
                 <p className="text-muted-foreground">
                   <span className="font-semibold text-foreground">
-                    Customization:
+                    Wide Selection:
                   </span>{" "}
-                  Bringing your unique vision to life
+                  Toys, games, puzzles and more
                 </p>
               </div>
               <div className="flex items-start gap-3">
@@ -158,7 +158,7 @@ export default function Story() {
                   <span className="font-semibold text-foreground">
                     Pan-India Delivery:
                   </span>{" "}
-                  Your jewelry, anywhere in India
+                  Your toys, anywhere in India
                 </p>
               </div>
             </div>
@@ -175,8 +175,8 @@ export default function Story() {
             </p>
             <p className="text-muted-foreground">{getFullAddress()}</p>
             <p className="text-muted-foreground text-sm mt-3">
-              From our roots in Bhati Circle, Ratanada to serving customers
-              across India - we're here to make your special moments sparkle.
+              From our roots in Jodhpur to serving customers
+              across India - we're here to make every child's day special.
             </p>
           </div>
         </div>

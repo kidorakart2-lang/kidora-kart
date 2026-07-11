@@ -6,7 +6,7 @@ const extractValidationMessages = (
   err: unknown,
 ): string[] | null => {
   if (!(err instanceof Error) || !("errors" in err)) return null;
-  const errorObj = (err as Record<string, unknown>).errors as Record<string, { message: string }> | undefined;
+  const errorObj = (err as { errors?: Record<string, { message: string }> }).errors;
   if (!errorObj || typeof errorObj !== "object") return null;
   const messages: string[] = [];
   for (const msg in errorObj) {

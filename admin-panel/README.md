@@ -1,6 +1,6 @@
 # Admin Panel — Next.js Dashboard
 
-Next.js 16 admin dashboard with shadcn/ui components for managing the Toy Shop e-commerce platform.
+Next.js 16 admin dashboard with shadcn/ui components for managing the Kidora Kart e-commerce platform.
 
 ## Tech Stack
 
@@ -85,8 +85,8 @@ Copy `admin-panel/.env.example` to `.env.local`:
 NEXT_PUBLIC_BACKEND_URL=http://localhost:5000/
 NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
 REVALIDATE_SECRET=your-random-secret-here
-NEXT_PUBLIC_SUPPORT_EMAIL=support@toyshop.com
-NEXT_PUBLIC_CDN_HOST=cdn.toyshop.com
+NEXT_PUBLIC_SUPPORT_EMAIL=support@kidorakart.com
+NEXT_PUBLIC_CDN_HOST=cdn.kidorakart.com
 ```
 
 | Variable | Description |
@@ -96,6 +96,9 @@ NEXT_PUBLIC_CDN_HOST=cdn.toyshop.com
 | `REVALIDATE_SECRET` | Shared secret with web frontend — sent as `Authorization: Bearer` to `/api/revalidate` |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | Support email displayed in order receipts |
 | `NEXT_PUBLIC_CDN_HOST` | CDN hostname for image URL validation |
+| `AI_PROVIDER` | **Backend-only.** AI provider: `"gemini"` (default) or `"openrouter"`. See `api/.env.example` |
+| `OPENROUTER_API_KEY` | **Backend-only.** OpenRouter API key (required when `AI_PROVIDER=openrouter`). See `api/.env.example` |
+| `OPENROUTER_MODEL` | **Backend-only.** OpenRouter model ID, e.g. `"openrouter/free"` (default). See `api/.env.example` |
 
 ## Agent Skills
 

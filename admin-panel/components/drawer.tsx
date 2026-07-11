@@ -28,7 +28,7 @@ export function Drawer({ isOpen, onClose, title, children, className, side = "ri
       <SheetContent
         side={side}
         className={cn(
-          "w-full max-w-md bg-card border-l border-border shadow-2xl overflow-y-auto p-0 [&>button]:hidden",
+          "w-full max-w-md bg-card border-l border-border shadow-2xl p-0 [&>button]:hidden",
           className,
         )}
       >
@@ -39,7 +39,7 @@ export function Drawer({ isOpen, onClose, title, children, className, side = "ri
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="transition-all duration-200 hover:scale-110 hover:rotate-90"
+              className="transition-opacity opacity-50 hover:opacity-100"
             >
               <X className="h-5 w-5" />
             </Button>

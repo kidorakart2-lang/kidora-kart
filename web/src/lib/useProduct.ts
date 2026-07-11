@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { fetchProductBySlug, fetchProductsByIds, type FetchedProduct } from "./api";
 
@@ -29,7 +30,10 @@ export function useProduct(slug: string | null | undefined) {
  * Returns a Map<slug, FetchedProduct> for easy lookup.
  */
 export function useProductsBySlugs(slugs: string[]) {
-  const uniqueSlugs = [...new Set(slugs.filter(Boolean))];
+  const uniqueSlugs = useMemo(
+    () => [...new Set(slugs.filter(Boolean))],
+    [slugs],
+  );
   const results = useQueries({
     queries: uniqueSlugs.map((slug) => ({
       queryKey: productKeys.detail(slug),
@@ -38,12 +42,15 @@ export function useProductsBySlugs(slugs: string[]) {
     })),
   });
 
-  const productMap = new Map<string, FetchedProduct>();
-  results.forEach((result, index) => {
-    if (result.data) {
-      productMap.set(uniqueSlugs[index], result.data);
-    }
-  });
+  const productMap = useMemo(() => {
+    const map = new Map<string, FetchedProduct>();
+    results.forEach((result, index) => {
+      if (result.data) {
+        map.set(uniqueSlugs[index], result.data);
+      }
+    });
+    return map;
+  }, [results, uniqueSlugs]);
 
   return {
     productMap,
@@ -57,7 +64,10 @@ export function useProductsBySlugs(slugs: string[]) {
  * Returns a Map<_id, FetchedProduct> for easy lookup.
  */
 export function useProductsByIds(ids: string[]) {
-  const uniqueIds = [...new Set(ids.filter(Boolean))];
+  const uniqueIds = useMemo(
+    () => [...new Set(ids.filter(Boolean))],
+    [ids],
+  );
   const result = useQuery({
     queryKey: productKeys.batch(uniqueIds),
     queryFn: () => fetchProductsByIds(uniqueIds),
@@ -65,12 +75,15 @@ export function useProductsByIds(ids: string[]) {
     staleTime: 5 * 60 * 1000,
   });
 
-  const productMap = new Map<string, FetchedProduct>();
-  if (result.data) {
-    result.data.forEach((product) => {
-      productMap.set(product._id, product);
-    });
-  }
+  const productMap = useMemo(() => {
+    const map = new Map<string, FetchedProduct>();
+    if (result.data) {
+      result.data.forEach((product) => {
+        map.set(product._id, product);
+      });
+    }
+    return map;
+  }, [result.data]);
 
   return {
     productMap,

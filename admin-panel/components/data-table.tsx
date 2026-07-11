@@ -12,6 +12,15 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+} from "@/components/ui/empty";
 import {
   Search,
   ChevronLeft,
@@ -19,6 +28,7 @@ import {
   Edit,
   Trash2,
   Calendar,
+  PackageOpen,
 } from "lucide-react";
 import {
   Select,
@@ -56,11 +66,21 @@ export interface Column<T> {
 export interface DataTableProps<T extends BaseItem> {
   data: T[];
   columns: Column<T>[];
-  onEdit: (item: T) => void;
-  onDelete: (id: number) => void;
+  onEdit?: (item: T) => void;
+  onDelete?: (id: number) => void;
+  /** Hide the built-in Edit/Delete actions column */
+  hideActions?: boolean;
   selectOption?: { value: string; label: string }[];
   dateOption?: boolean;
   searchPlaceholder?: string;
+  /** Show skeleton loading state */
+  loading?: boolean;
+  /** Custom empty state title */
+  emptyTitle?: string;
+  /** Custom empty state description */
+  emptyDescription?: string;
+  /** Custom empty state action */
+  emptyAction?: ReactNode;
   /** When provided, use server-side pagination — totalItems overrides data.length for total count */
   externalPagination?: {
     totalItems: number;
@@ -74,9 +94,14 @@ function DataTableContent<T extends BaseItem>({
   columns,
   onEdit,
   onDelete,
+  hideActions = false,
   selectOption,
   dateOption,
   searchPlaceholder = "Search...",
+  loading = false,
+  emptyTitle = "No results found",
+  emptyDescription = "No data available yet.",
+  emptyAction,
   externalPagination,
 }: DataTableProps<T>) {
   const searchParams = useSearchParams();
@@ -292,45 +317,85 @@ function DataTableContent<T extends BaseItem>({
                   {column.label}
                 </TableHead>
               ))}
-              <TableHead className="text-right">Actions</TableHead>
+              {!hideActions && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedData.map((item, rowIndex) => (
-              <TableRow
-                key={String(item._id)}
-                className="transition-all duration-200 hover:bg-muted/50 animate-in fade-in slide-in-from-left"
-                style={{ animationDelay: `${rowIndex * 30}ms` }}
-              >
-                {columns.map((column) => (
-                  <TableCell key={String(column.key)}>
-                    {column.render
-                      ? column.render(item)
-                      : (item[column.key] as ReactNode)}
-                  </TableCell>
-                ))}
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onEdit(item)}
-                      className="transition-all duration-200 hover:scale-110"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDelete(item._id as number)}
-                      className="transition-all duration-200 hover:scale-110 text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={`skeleton-${i}`}>
+                  {columns.map((column) => (
+                    <TableCell key={String(column.key)}>
+                      <Skeleton className="h-5 w-full" />
+                    </TableCell>
+                  ))}
+                  {!hideActions && (
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-2">
+                        <Skeleton className="h-8 w-8 rounded" />
+                        <Skeleton className="h-8 w-8 rounded" />
+                      </div>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))
+            ) : paginatedData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={columns.length + (hideActions ? 0 : 1)}>
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon">
+                        <PackageOpen />
+                      </EmptyMedia>
+                      <EmptyTitle>{emptyTitle}</EmptyTitle>
+                      <EmptyDescription>{emptyDescription}</EmptyDescription>
+                    </EmptyHeader>
+                    {emptyAction && <EmptyContent>{emptyAction}</EmptyContent>}
+                  </Empty>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              paginatedData.map((item, rowIndex) => (
+                <TableRow
+                  key={String(item._id)}
+                  className="transition-all duration-200 hover:bg-muted/50 animate-in fade-in slide-in-from-left"
+                  style={{ animationDelay: `${rowIndex * 30}ms` }}
+                >
+                  {columns.map((column) => (
+                    <TableCell key={String(column.key)}>
+                      {column.render
+                        ? column.render(item)
+                        : (item[column.key] as ReactNode)}
+                    </TableCell>
+                  ))}
+                  {!hideActions && (
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {onEdit && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onEdit(item)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {onDelete && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onDelete(item._id as number)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -398,9 +463,39 @@ export function DataTable<T extends BaseItem>(props: DataTableProps<T>) {
   return (
     <Suspense
       fallback={
-        <div className="space-y-4 animate-pulse">
-          <div className="h-10 bg-muted rounded"></div>
-          <div className="h-64 bg-muted rounded"></div>
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full max-w-sm" />
+          <div className="rounded-lg border border-border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  {(props.columns || []).map((col) => (
+                    <TableHead key={String(col.key)}>{col.label}</TableHead>
+                  ))}
+                  {!props.hideActions && <TableHead className="text-right">Actions</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={`suspense-${i}`}>
+                    {(props.columns || []).map((col) => (
+                      <TableCell key={String(col.key)}>
+                        <Skeleton className="h-5 w-full" />
+                      </TableCell>
+                    ))}
+                    {!props.hideActions && (
+                      <TableCell>
+                        <div className="flex justify-end gap-2">
+                          <Skeleton className="h-8 w-8 rounded" />
+                          <Skeleton className="h-8 w-8 rounded" />
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       }
     >

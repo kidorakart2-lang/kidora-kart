@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import Cookies from "js-cookie";
 import { Button } from "@/components/ui/button";
 import {
@@ -232,7 +232,7 @@ export default function ResetPassword() {
               <div className="space-y-2">
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-foreground"
                 >
                   Email
                 </label>
@@ -258,7 +258,7 @@ export default function ResetPassword() {
           ) : step === "otp" ? (
             <form onSubmit={verifyOtp} className="space-y-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-foreground">
                   Enter verification code
                 </label>
                 <div className="flex justify-center space-x-2">
@@ -274,7 +274,7 @@ export default function ResetPassword() {
                         <InputOTPSlot
                           key={index}
                           index={index}
-                          className="h-12 w-12 text-lg border-gray-300 focus-visible:ring-2 focus-visible:ring-amber-500 rounded-lg"
+                          className="h-12 w-12 text-lg border-input focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
                         />
                       ))}
                     </InputOTPGroup>
@@ -290,7 +290,7 @@ export default function ResetPassword() {
               <div className="space-y-2">
                 <label
                   htmlFor="newPassword"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-foreground"
                 >
                   New Password
                 </label>
@@ -307,7 +307,7 @@ export default function ResetPassword() {
               <div className="space-y-2">
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-foreground"
                 >
                   Confirm Password
                 </label>

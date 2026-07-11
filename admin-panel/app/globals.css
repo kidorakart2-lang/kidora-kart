@@ -1,8 +1,17 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "./themes/minimal.css";
+@import "./themes/brown.css";
+@import "./themes/monochrome.css";
+@import "./themes/dark.css";
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * :root = fallback light theme (blue accent).
+ * Each named theme (minimal, brown, monochrome, dark) overrides
+ * these variables via html.<theme> selectors in their own files.
+ */
 :root {
   --background: oklch(0.98 0 0);
   --foreground: oklch(0.15 0 0);
@@ -41,45 +50,6 @@
   --sidebar-accent-foreground: oklch(0.15 0 0);
   --sidebar-border: oklch(0.88 0 0);
   --sidebar-ring: oklch(0.45 0.15 250);
-}
-
-.dark {
-  --background: oklch(0.12 0 0);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.15 0 0);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.15 0 0);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.55 0.18 250);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.2 0 0);
-  --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.18 0 0);
-  --muted-foreground: oklch(0.6 0 0);
-  --accent: oklch(0.55 0.18 160);
-  --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.5 0.2 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.22 0 0);
-  --input: oklch(0.22 0 0);
-  --ring: oklch(0.55 0.18 250);
-  --chart-1: oklch(0.55 0.18 160);
-  --chart-2: oklch(0.55 0.18 250);
-  --chart-3: oklch(0.65 0.2 50);
-  --chart-4: oklch(0.6 0.18 300);
-  --chart-5: oklch(0.6 0.16 200);
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --sidebar: oklch(0.1 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.55 0.18 250);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.18 0 0);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.22 0 0);
-  --sidebar-ring: oklch(0.55 0.18 250);
 }
 
 @theme inline {
@@ -180,7 +150,7 @@
   display: none;
 }
 
-/* ── Custom scrollbar styling ── */
+/* ── Dynamic scrollbar — adapts to active theme via CSS vars ── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -191,12 +161,13 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
+  background: var(--border);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+  color: var(--muted-foreground);
+  background: color-mix(in oklch, var(--muted-foreground) 50%, transparent);
 }
 
 /* Thin scrollbar variant for dropdowns, selects, etc. */
@@ -208,7 +179,7 @@
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: hsl(var(--border)) transparent;
+  scrollbar-color: var(--border) transparent;
 }
 
 @media print {

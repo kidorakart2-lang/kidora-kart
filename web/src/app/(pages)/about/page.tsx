@@ -3,12 +3,12 @@ import React from "react";
 import { siteConfig } from "@/lib/utils";
 
 export const metadata = {
-  title: `About ${siteConfig.name} - Premium Jewellery Store in Jodhpur`,
-  description: `Learn about ${siteConfig.name}, Jodhpur's trusted jewellery store since ${siteConfig.business.foundedYear}. Discover our story, craftsmanship, and commitment to quality gold, silver, and diamond jewellery.`,
-  keywords: `about ${siteConfig.name}, jewellery store jodhpur history, traditional jewellery craftsmanship, rajasthani jewellery heritage`,
+  title: `About ${siteConfig.name} - Online Toy Store in Jodhpur`,
+  description: `Learn about ${siteConfig.name}, Jodhpur's trusted toy store since ${siteConfig.business.foundedYear}. Discover our story, passion for toys, and commitment to quality and fun.`,
+  keywords: `about ${siteConfig.name}, toy store jodhpur history, kids toys jodhpur, children's toy shop rajasthan`,
   openGraph: {
     title: `About ${siteConfig.name} - Our Story`,
-    description: `Discover the story behind Jodhpur's premier jewellery destination. Quality craftsmanship since ${siteConfig.business.foundedYear}.`,
+    description: `Discover the story behind Jodhpur's premier toy destination. Quality toys and games since ${siteConfig.business.foundedYear}.`,
     url: `${siteConfig.url}/about`,
     type: "website",
   },

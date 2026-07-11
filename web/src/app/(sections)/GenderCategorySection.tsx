@@ -82,13 +82,13 @@ export default function GenderCategorySection({
       <div className="w-full max-w-[100vw] mx-auto py-10 px-4 overflow-hidden">
         <div className="text-center mb-12 relative">
           <div className="inline-block relative">
-            <h2 className="text-4xl md:text-5xl font-light mb-3 tracking-wide text-gradient-brand">
+            <h2 className="text-4xl md:text-5xl fw-heading mb-3 tracking-wide text-foreground">
               {heading || "Explore Our Collection"}
             </h2>
           </div>
 
-          <p className="text-muted-foreground mt-6 font-light tracking-widest text-sm md:text-base">
-            Explore our collection
+          <p className="text-muted-foreground mt-6 fw-body tracking-widest text-sm md:text-base">
+            Shop by Category
           </p>
         </div>
 
@@ -110,14 +110,14 @@ export default function GenderCategorySection({
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[var(--brand-primary-light)] to-[var(--brand-primary)]" />
+                    <div className="w-full h-full bg-muted" />
                   )}
                 </div>
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/50" />
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-sans font-light text-background mb-4 tracking-wider">
+                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-sans fw-heading text-background mb-4 tracking-wider">
                     {item.name}
                   </h3>
 
@@ -168,14 +168,13 @@ export default function GenderCategorySection({
     <div className="w-full max-w-[100vw] mx-auto py-10 px-4 overflow-hidden">
       <div className="text-center mb-12 relative">
         <div className="inline-block relative">
-          <h2 className="text-4xl md:text-5xl font-light mb-3 tracking-wide text-gradient-brand">
+          <h2 className="text-4xl md:text-5xl fw-heading mb-3 tracking-wide text-foreground">
             {heading || result[0].name}
           </h2>
         </div>
 
-        <p className="text-muted-foreground mt-6 font-light tracking-widest text-sm md:text-base">
-          Explore our collection
-        </p>
+        <p className="text-muted-foreground mt-6 fw-body tracking-widest text-sm md:text-base">            Shop by Category
+          </p>
       </div>
 
       {result.map((category) => (
@@ -203,7 +202,7 @@ export default function GenderCategorySection({
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/50" />
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-sans font-light text-background mb-4 tracking-wider">
+                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-sans fw-heading text-background mb-4 tracking-wider">
                     {subCategory.name}
                   </h3>
 

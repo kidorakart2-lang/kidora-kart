@@ -99,7 +99,7 @@ export async function validateAndPriceCart(
       continue;
     }
 
-    if (!product.status) {
+    if (product.status !== "active") {
       errors.push({
         productId: item.productId,
         type: "inactive",

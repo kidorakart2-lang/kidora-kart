@@ -31,7 +31,7 @@ export default function About() {
             <div className="liquid-card rounded-3xl overflow-hidden shimmer">
               <img
                 src="noimage.jpg"
-                alt="Traditional Indian Jewellery Woman"
+                alt="Kidora Kart Toy Store"
                 className="w-full h-96 object-cover hover:scale-105 transition-transform duration-500"
               />
             </div>
@@ -40,7 +40,7 @@ export default function About() {
             <div className="liquid-card rounded-3xl overflow-hidden shimmer">
               <img
                 src="noimage.jpg"
-                alt="Elegant Jewellery Display"
+                alt="Kidora Kart Toy Collection"
                 className="w-full h-80 object-cover hover:scale-105 transition-transform duration-500"
               />
             </div>
@@ -95,13 +95,15 @@ export default function About() {
                   Kuldeep Deora
                 </span>{" "}
                 – {siteConfig.name} is your trusted destination for gold and silver
-                jewellery in {siteConfig.address.city}.
+                toys and games in {siteConfig.address.city}. We believe every
+                child deserves the joy of play, and we curate the best toys
+                that spark creativity, learning, and fun.
               </p>
 
               <p className="text-muted-foreground leading-relaxed">
-                Located at Jhalamand Circle, Jodhpur, we bring you exquisite
-                craftsmanship and authentic jewellery. What sets us apart is our
-                commitment to transparency and customer satisfaction – you can
+                Located at Main Jhalamand Circle, Jodhpur, we bring you a
+                handpicked selection of toys for kids of all ages. What sets us apart is our
+                commitment to quality and customer satisfaction – you can
                 order conveniently via WhatsApp chat, and for added peace of
                 mind, we offer video call viewing before you place your order.
               </p>
@@ -138,10 +140,10 @@ export default function About() {
                   <Award className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">
-                  Gold & Silver
+                  Quality Toys
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Authentic precious metals
+                  Premium & safe play items
                 </p>
               </div>
 
@@ -150,10 +152,10 @@ export default function About() {
                   <Sparkles className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">
-                  Custom Designs
+                  Free Shipping
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Personalized to perfection
+                  On orders above ₹999
                 </p>
               </div>
             </div>

@@ -257,7 +257,7 @@ export default function AccountPage() {
         {/* Profile Header */}
         <div className="flex flex-col md:flex-row items-start md:items-end gap-5 p-6 md:p-8 border-b border-border mb-6">
           <div className="relative group shrink-0">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-brand-100 to-brand-accent-100">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white shadow-xl overflow-hidden bg-muted">
               <Avatar className="w-full h-full">
                 {avatar && (
                   <Image
@@ -268,20 +268,20 @@ export default function AccountPage() {
                     className="w-full h-full object-cover"
                   />
                 )}
-                <AvatarFallback className="bg-brand-200 text-brand-800 font-semibold text-lg">
+                <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-lg">
                   {data?.name?.slice(0, 1).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </div>
             <button
               onClick={scrollToImageUpload}
-              className="absolute -bottom-1 -right-1 bg-brand-600 hover:bg-brand-700 text-background p-1.5 rounded-full shadow-lg transition-all duration-300 hover:scale-110 active:scale-95"
+              className="absolute -bottom-1 -right-1 bg-foreground hover:bg-foreground/90 text-background p-1.5 rounded-full shadow-lg transition-all duration-300 hover:scale-110 active:scale-95"
             >
               <Camera size={14} />
             </button>
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl md:text-2xl font-bold text-foreground truncate">
+             <h1 className="text-xl md:text-2xl fw-heading text-foreground truncate">
               {data?.name || "My Account"}
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">{data?.email}</p>
@@ -306,7 +306,7 @@ export default function AccountPage() {
                       key={tab.id}
                       onClick={() => handleTabChange(tab.id)}
                       className={cn(
-                        "relative flex items-center cursor-pointer gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all outline-none w-full justify-start select-none whitespace-nowrap shrink-0",
+                        "relative flex items-center cursor-pointer gap-3 px-3.5 py-3 rounded-xl text-sm fw-cta transition-all outline-none w-full justify-start select-none whitespace-nowrap shrink-0",
                         "hover:bg-muted/60 hover:text-foreground",
                         isActive
                           ? "text-foreground shadow-sm"
@@ -354,7 +354,7 @@ export default function AccountPage() {
                           {/* Image Upload Section */}
                           <div ref={imageUploadRef}>
                             <h2 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
-                              <Camera size={18} className="text-brand-600" />
+                              <Camera size={18} className="text-muted-foreground" />
                               Profile Picture
                             </h2>
 
@@ -390,7 +390,7 @@ export default function AccountPage() {
                                 />
                                 <Label
                                   htmlFor="avatar-upload"
-                                  className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-border text-muted-foreground rounded-lg cursor-pointer transition-all duration-300 text-sm font-medium"
+                                  className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-border text-muted-foreground rounded-lg cursor-pointer transition-all duration-300 text-sm fw-cta"
                                 >
                                   <Upload size={16} />
                                   Choose Image
@@ -403,7 +403,7 @@ export default function AccountPage() {
                                   <div className="flex gap-2 mt-4">
                                     <button
                                       onClick={removePreviewImage}
-                                      className="px-4 py-2 bg-border text-muted-foreground rounded-lg text-sm font-medium hover:bg-muted-foreground/20 transition-all duration-300"
+                                      className="px-4 py-2 bg-border text-muted-foreground rounded-lg text-sm fw-cta hover:bg-muted-foreground/20 transition-all duration-300"
                                     >
                                       Cancel
                                     </button>
@@ -492,7 +492,7 @@ export default function AccountPage() {
                           {/* Shipping Address */}
                           <div>
                             <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
-                              <MapPin size={18} className="text-brand-600" />
+                                  <MapPin size={18} className="text-muted-foreground" />
                               Shipping Address
                             </h3>
 
@@ -630,7 +630,7 @@ export default function AccountPage() {
                             </div>
 
                             <div className="pt-6 flex gap-3">
-                              <Button variant="gradient" disabled={isSubmitting} className="px-6 py-2.5 rounded-lg text-sm font-medium shadow-sm transform transition-all duration-300 hover:scale-105 active:scale-95">
+                              <Button variant="gradient" disabled={isSubmitting} className="px-6 py-2.5 rounded-lg text-sm fw-cta shadow-sm transform transition-all duration-300 hover:scale-105 active:scale-95">
                                 {isSubmitting ? "Saving..." : "Save Changes"}
                               </Button>
                             </div>

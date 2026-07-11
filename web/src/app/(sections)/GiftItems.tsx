@@ -79,7 +79,7 @@ const GiftItems = () => {
             Perfect Gift Collection
           </h2>
           <div className="w-20 h-1 bg-brand-800 mx-auto rounded-full"></div>
-          <p className="text-muted-foreground mt-3 text-[15px] font-light">
+          <p className="text-muted-foreground mt-3 text-[15px] fw-body">
             Thoughtful gifts for your loved ones
           </p>
         </div>

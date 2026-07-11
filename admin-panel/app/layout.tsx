@@ -7,8 +7,8 @@ import QueryProvider from './QueryProvider'
 import { ThemeProvider } from '@/components/theme-provider'
 
 export const metadata: Metadata = {
-  title: 'Toy Shop Admin Dashboard',
-  description: 'Toy Shop admin dashboard',
+  title: 'Kidora Kart Admin Dashboard',
+  description: 'Kidora Kart admin dashboard',
   robots: { index: false, follow: false, nocache: true },
 }
 
@@ -20,7 +20,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          themes={['dark', 'minimal', 'brown', 'monochrome']}
+          enableSystem={false}
+          disableTransitionOnChange
+        >
           <QueryProvider>{children}</QueryProvider>
         </ThemeProvider>
         <Toaster />

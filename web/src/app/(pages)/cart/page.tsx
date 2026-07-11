@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 
 export const metadata = {
   title: `Shopping Cart - ${siteConfig.name}`,
-  description: "Review your selected jewellery items and proceed to checkout.",
+  description: "Review your selected toys and games and proceed to checkout.",
   robots: {
     index: false,
     follow: true,

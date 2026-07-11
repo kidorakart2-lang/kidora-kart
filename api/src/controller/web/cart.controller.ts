@@ -91,7 +91,7 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
 
     const product = await Product.findOne({
       _id: productId,
-      status: true,
+      status: "active",
       deletedAt: null,
     })
       .select("stock")

@@ -52,6 +52,7 @@ export interface Product {
   images?: string[];
   price?: number;
   discount_price?: number;
+  shortDescription?: string;
 }
 
 export interface Category {

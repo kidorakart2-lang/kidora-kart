@@ -13,24 +13,21 @@ const iconMap: Record<string, typeof Gem> = {
 
 const WhyChooseUsItem = ({ item, index }: { item: { _id: string; image: string; title: string; description: string }; index: number }) => {
   const IconComponent = iconMap[item.image] || Gem;
-  const i = (index % 4) + 1;
 
   return (
-    <Card className={`card-hover border bg-card-accent-${i}`}
-      style={{ borderColor: `var(--brand-card-${i}-ring)` }}
-    >
+    <Card className="card-hover border bg-card">
       <CardContent className="flex flex-col items-center p-6 sm:p-8 relative z-10">
-        <div className="relative mb-5 rounded-full p-4 bg-background/60">
+        <div className="relative mb-5 rounded-full p-4 bg-muted">
           <IconComponent
             size={32}
-            className={`text-card-accent-${i}`}
+            className="text-muted-foreground"
             strokeWidth={1.5}
           />
         </div>
-        <h3 className="text-base md:text-lg font-semibold text-foreground mb-2 text-center">
+        <h3 className="text-base md:text-lg fw-heading text-foreground mb-2 text-center">
           {item.title}
         </h3>
-        <p className="text-xs sm:text-sm text-muted-foreground text-center leading-relaxed font-light">
+        <p className="text-xs sm:text-sm text-muted-foreground text-center leading-relaxed fw-body">
           {item.description}
         </p>
       </CardContent>
@@ -59,22 +56,11 @@ const WhyChooseUs = () => {
     >
       <div className="section-container relative z-10">
         <div className="text-center mb-12 lg:mb-16">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
-            <h2 id="why-choose-us" className="section-heading">
-              Why Choose Us
-            </h2>
-            <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
-          </div>
-
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-16 h-0.5 bg-gradient-to-r from-transparent" style={{ backgroundImage: `linear-gradient(to right, transparent, var(--brand-primary))` }} />
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "var(--brand-primary)" }} />
-            <div className="w-16 h-0.5 bg-gradient-to-l from-transparent" style={{ backgroundImage: `linear-gradient(to left, transparent, var(--brand-primary))` }} />
-          </div>
-
+          <h2 id="why-choose-us" className="section-heading mb-4">
+            Why Choose Us
+          </h2>
           <p className="section-subheading">
-            Experience excellence in every aspect of your jewellery shopping
+            Experience excellence in every aspect of your toy shopping experience
           </p>
         </div>
 
@@ -82,7 +68,7 @@ const WhyChooseUs = () => {
           fallback={
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="flex flex-col items-center space-y-4 p-8 rounded-2xl bg-section">
+                <div key={i} className="flex flex-col items-center space-y-4 p-8 rounded-2xl bg-muted/30">
                   <Skeleton className="h-16 w-16 rounded-full" />
                   <Skeleton className="h-5 w-32" />
                   <Skeleton className="h-4 w-40" />

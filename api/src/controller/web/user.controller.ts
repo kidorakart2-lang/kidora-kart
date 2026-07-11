@@ -44,7 +44,7 @@ function verifyOAuthState(state: string): boolean {
  * Returns the generated access token so callers can reuse it without calling generateToken again. */
 async function setSessionCookies(
   res: Response,
-  user: { _id: unknown },
+  user: { _id: string | import("mongoose").Types.ObjectId },
   type: "user",
 ): Promise<string> {
   const accessToken = generateToken(user, "user");
@@ -143,8 +143,8 @@ export const loginUser = async (
     }
 
     const userData = { ...user };
-    delete (userData as Record<string, unknown>).password;
-    delete (userData as Record<string, unknown>).googleId;
+    delete (userData as { password?: string; googleId?: string }).password;
+    delete (userData as { password?: string; googleId?: string }).googleId;
 
     const accessToken = await setSessionCookies(res, user, "user");
 
@@ -206,10 +206,8 @@ export const getProfile = async (
   if (!req.user) return fail(res, "Unauthorized", 401);
   try {
     const profileData = { ...(req.user as Record<string, unknown>) };
-    delete profileData.createdAt;
-    delete profileData.updatedAt;
-    delete profileData.deletedAt;
-    return success(res, profileData, "User profile Found");
+    const { createdAt, updatedAt, deletedAt, ...rest } = profileData;
+    return success(res, rest, "User profile Found");
   } catch (error) {
     logger.error({ err: error }, "Get profile error");
     return fail(res, "Internal Server Error", 500);
@@ -303,10 +301,8 @@ export const updateProfile = async (
     invalidateUserCache(user._id);
 
     const profileData = user.toObject();
-    delete (profileData as Record<string, unknown>).createdAt;
-    delete (profileData as Record<string, unknown>).updatedAt;
-    delete (profileData as Record<string, unknown>).deletedAt;
-    return success(res, profileData, "User profile updated successfully");
+    const { createdAt, updatedAt, deletedAt, ...rest } = profileData;
+    return success(res, rest, "User profile updated successfully");
   } catch (error) {
     logger.error({ err: error }, "Update profile error");
     return fail(res, "Internal Server Error", 500);
@@ -593,18 +589,14 @@ export const googleLogin = async (
     }
 
     const userData = user.toObject();
-    delete (userData as Record<string, unknown>).password;
-    delete (userData as Record<string, unknown>).googleId;
-    delete (userData as Record<string, unknown>).createdAt;
-    delete (userData as Record<string, unknown>).updatedAt;
-    delete (userData as Record<string, unknown>).deletedAt;
+    const { password, googleId, createdAt, updatedAt, deletedAt, ...cleanData } = userData;
 
     const accessToken = await setSessionCookies(res, user, "user");
 
     return res.status(200).json({
       _status: true,
       _message: "Login successful",
-      _data: { user: userData },
+      _data: { user: cleanData },
       _token: accessToken,
     });
   } catch (error) {
@@ -668,18 +660,14 @@ export const googleAuthCallback = async (
     }
 
     const userData = user.toObject();
-    delete (userData as Record<string, unknown>).password;
-    delete (userData as Record<string, unknown>).googleId;
-    delete (userData as Record<string, unknown>).createdAt;
-    delete (userData as Record<string, unknown>).updatedAt;
-    delete (userData as Record<string, unknown>).deletedAt;
+    const { password, googleId, createdAt, updatedAt, deletedAt, ...cleanData } = userData;
 
     const accessToken = await setSessionCookies(res, user, "user");
 
     return res.status(200).json({
       _status: true,
       _message: "Login successful",
-      _data: { user: userData },
+      _data: { user: cleanData },
       _token: accessToken,
     });
   } catch (error) {

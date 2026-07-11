@@ -102,7 +102,7 @@ export default async function sitemap() {
         "contact-us",
         "new-arrivals",
         "gift-items",
-        "personalized-jewellery",
+        "gift-items",
       ];
       return !nonProductSlugs.includes(slug);
     };

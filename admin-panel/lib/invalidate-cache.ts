@@ -67,10 +67,6 @@ export async function invalidateCache(tags: string[]): Promise<InvalidateResult>
       return { success: false, revalidated: body.revalidated ?? [], error: body.error ?? `HTTP ${res.status}` };
     }
 
-    if (process.env.NODE_ENV !== "production") {
-      console.log("[invalidateCache] Revalidated:", body.revalidated);
-    }
-
     return body;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

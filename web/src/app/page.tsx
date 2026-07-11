@@ -45,11 +45,11 @@ const ProductsTab = dynamic(() => import("./(sections)/ProductsTab"), {
 });
 
 export const metadata = {
-  title: `${siteConfig.name} in ${siteConfig.address.city} | Best Gold & Silver Jewellery Shop | ${siteConfig.name}`,
-  description: `Best ${siteConfig.name} in ${siteConfig.address.city} - ${siteConfig.name} offers exquisite collection of Gold, Silver, Diamond & Polki jewellery. Visit our store in ${siteConfig.address.city} for traditional & modern designs. Free Shipping & Lifetime Exchange.`,
+  title: `${siteConfig.name} in ${siteConfig.address.city} | Best Online Toy Store | ${siteConfig.name}`,
+  description: `Best ${siteConfig.name} in ${siteConfig.address.city} - ${siteConfig.name} offers a wide collection of toys, games, puzzles and more for kids of all ages. Visit our store in ${siteConfig.address.city} for the best toys. Free Shipping & Easy Returns.`,
   openGraph: {
-    title: `${siteConfig.name} in ${siteConfig.address.city} | Best Gold & Silver Jewellery | ${siteConfig.name}`,
-    description: `Discover the finest collection of traditional and contemporary jewellery at ${siteConfig.name}, the leading ${siteConfig.name} in ${siteConfig.address.city}. Best prices on Gold, Silver, Diamond & Polki jewellery.`,
+    title: `${siteConfig.name} in ${siteConfig.address.city} | Best Toy Store | ${siteConfig.name}`,
+    description: `Discover the finest collection of toys and games at ${siteConfig.name}, the leading toy store in ${siteConfig.address.city}. Best prices on educational toys, action figures, dolls, board games and more.`,
     url: siteConfig.url,
     siteName: siteConfig.name,
     images: [
@@ -57,7 +57,7 @@ export const metadata = {
         url: `${siteConfig.url}/og-image.jpg`,
         width: 1200,
         height: 630,
-        alt: "Premium Jewellery Collection in Jodhpur - " + siteConfig.name,
+        alt: "Best Toys Collection in Jodhpur - " + siteConfig.name,
       },
     ],
     locale: "en_IN",
@@ -74,8 +74,8 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} in ${siteConfig.address.city} | ${siteConfig.name} | Best Jewellery Store`,
-    description: `Explore our exclusive collection of Gold, Silver & Diamond jewellery in ${siteConfig.address.city}. Best prices & latest designs at ${siteConfig.name}. Visit us today!`,
+    title: `${siteConfig.name} in ${siteConfig.address.city} | ${siteConfig.name} | Best Toy Store`,
+    description: `Explore our exclusive collection of toys and games in ${siteConfig.address.city}. Best prices & latest designs at ${siteConfig.name}. Visit us today!`,
     images: [`${siteConfig.url}/og-image.jpg`],
   },
   alternates: {
@@ -93,18 +93,17 @@ export const metadata = {
     },
   },
   verification: {
-    google: "4jBIp_u1ex8ub0zCeOXN-UnbczFciy1aAO90vr7yhH8",
-    yandex: "YANDEX_VERIFICATION_CODE",
+    google: siteConfig.googleVerification,
   },
 };
 
 // Structured Data for Local Business
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "JewelryStore",
+  "@type": "Store",
   name: siteConfig.name,
   image: `${siteConfig.url}/og-image.jpg`,
-  description: `Best ${siteConfig.name} in ${siteConfig.address.city} offering Gold, Silver, Diamond & Polki jewellery. Visit our store in ${siteConfig.address.city} for traditional & modern designs.`,
+  description: `Best ${siteConfig.name} in ${siteConfig.address.city} offering a wide range of toys, games, puzzles and more. Visit our store in ${siteConfig.address.city} for the best toys.`,
   url: siteConfig.url,
   telephone: siteConfig.contact.phone,
   address: {
@@ -360,7 +359,7 @@ async function StreamingLayoutRouter() {
 export default async function Home() {
   return (
     <>
-      <h1 className="sr-only">{siteConfig.name} - Best Jewellery Store in {siteConfig.address.city}</h1>
+      <h1 className="sr-only">{siteConfig.name} - Best Toy Store in {siteConfig.address.city}</h1>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

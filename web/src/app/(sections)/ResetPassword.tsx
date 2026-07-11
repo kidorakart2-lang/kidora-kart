@@ -196,7 +196,7 @@ export default function ResetPassword() {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-100">
             <Lock className="h-6 w-6 text-brand-600" />
           </div>
-          <CardTitle className="text-2xl font-bold">
+           <CardTitle className="text-2xl fw-heading">
             {step === "request"
               ? "Reset Password"
               : step === "otp"
@@ -276,11 +276,11 @@ export default function ResetPassword() {
                   </InputOTP>
                 </div>
               </div>
-              <button
+               <button
                 type="submit"
-                disabled={isLoading || otp.length !== 6}
-                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-sm transform hover:-translate-y-0.5 ${
-                  isLoading || otp.length !== 6
+                disabled={isLoading}
+                className={`w-full py-3 text-background fw-cta rounded-xl transition-all duration-300 shadow-sm transform hover:-translate-y-0.5 ${
+                  isLoading
                     ? "bg-brand-400 cursor-not-allowed opacity-70"
                     : "btn-gradient"
                 }`}

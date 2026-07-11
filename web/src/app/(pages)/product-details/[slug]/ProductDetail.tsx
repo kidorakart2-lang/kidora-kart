@@ -128,6 +128,7 @@ interface ProductDetailData {
   stock: number;
   slug: string;
   description?: string;
+  shortDescription?: string;
   short_description?: string;
   rating?: number;
   reviewCount?: number;
@@ -140,8 +141,17 @@ interface ProductDetailData {
   isNewArrival?: boolean;
   isPersonalized?: boolean;
   estimated_delivery_time?: string;
-  purity?: string;
   weight?: string;
+  length?: number;
+  height?: number;
+  breadth?: number;
+  minimumAge?: number;
+  idealAge?: number;
+  maximumAge?: number;
+  type?: string;
+  sku?: string;
+  tags?: string[];
+  videoUrl?: string;
 }
 
 interface ProductDetailsPageProps {
@@ -161,6 +171,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
   const [selectedSize, setSelectedSize] = useState(
     details?.sizes?.[0]?._id || null
   );
+  const [showVideo, setShowVideo] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -209,7 +220,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => router.push("/")}
-            className="btn-gradient px-8 py-3 rounded-xl font-semibold shadow-sm transition-shadow"
+            className="btn-gradient px-8 py-3 rounded-xl fw-cta shadow-sm transition-shadow"
           >
             Back to Home
           </motion.button>
@@ -435,19 +446,24 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
           <motion.div variants={itemVariants} className="space-y-4">
-            <ImageSlider
-              images={allImages}
-              productName={product.name}
-              isNewArrival={product.isNewArrival ?? false}
-              isMobile={isMobile}
-            />
+            <div className="relative">
+              <ImageSlider
+                images={allImages}
+                productName={product.name}
+                isNewArrival={product.isNewArrival ?? false}
+                isMobile={isMobile}
+                videoUrl={product.videoUrl}
+                showVideo={showVideo}
+                onShowVideo={() => setShowVideo((prev) => !prev)}
+              />
+            </div>
           </motion.div>
 
           <div className="flex flex-col p-2">
             <Breadcrumb
               items={[
                 {
-                  label: product.category?.[0]?.name || "Jewelry",
+                  label: product.category?.[0]?.name || "Toys",
                   href: `/category/${product.category?.[0]?.slug || ""}`,
                 },
                 ...(product.subCategory?.[0]?.name
@@ -511,6 +527,18 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               </div>
             </motion.div>
 
+            {/* Short Description */}
+            {(product.shortDescription || product.short_description) && (
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45 }}
+                className="text-base text-muted-foreground font-[350] leading-relaxed mb-6"
+              >
+                {product.shortDescription || product.short_description}
+              </motion.p>
+            )}
+
             <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mb-5" />
 
             <motion.div
@@ -533,16 +561,6 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                     </div>
                   </div>
                 )}
-                {product.purity && (
-                  <div>
-                    <div className="text-base text-foreground mb-1 font-[350]">
-                      Purity -
-                    </div>
-                    <div className="text-base text-foreground font-[350]">
-                      {product.purity}
-                    </div>
-                  </div>
-                )}
                 {product.weight && (
                   <div>
                     <div className="text-base text-foreground mb-1 font-[350]">
@@ -550,6 +568,56 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                     </div>
                     <div className="text-base text-foreground font-[350]">
                       {product.weight}g
+                    </div>
+                  </div>
+                )}
+                {product.sku && (
+                  <div>
+                    <div className="text-base text-foreground mb-1 font-[350]">
+                      SKU -
+                    </div>
+                    <div className="text-base text-foreground font-[350]">
+                      {product.sku}
+                    </div>
+                  </div>
+                )}
+                {product.type && (
+                  <div>
+                    <div className="text-base text-foreground mb-1 font-[350]">
+                      Type -
+                    </div>
+                    <div className="text-base text-foreground font-[350]">
+                      {product.type}
+                    </div>
+                  </div>
+                )}
+                {(product.length || product.height || product.breadth) && (
+                  <div>
+                    <div className="text-base text-foreground mb-1 font-[350]">
+                      Dimensions -
+                    </div>
+                    <div className="text-base text-foreground font-[350]">
+                      {[product.length, product.breadth, product.height].filter(Boolean).join(" × ")} cm
+                    </div>
+                  </div>
+                )}
+                {(product.minimumAge != null || product.maximumAge != null) && (
+                  <div>
+                    <div className="text-base text-foreground mb-1 font-[350]">
+                      Age Range -
+                    </div>
+                    <div className="text-base text-foreground font-[350]">
+                      {product.minimumAge != null ? product.minimumAge : "0"} - {product.maximumAge != null ? product.maximumAge : "18"} Years
+                    </div>
+                  </div>
+                )}
+                {product.idealAge != null && (
+                  <div>
+                    <div className="text-base text-foreground mb-1 font-[350]">
+                      Ideal Age -
+                    </div>
+                    <div className="text-base text-foreground font-[350]">
+                      {product.idealAge} Years
                     </div>
                   </div>
                 )}
@@ -620,7 +688,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                       onClick={() => setSelectedSize(size._id)}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`px-4 py-2 rounded-full border font-light text-sm transition-all ${
+                      className={`px-4 py-2 rounded-full border fw-cta text-sm transition-all ${
                         selectedSize === size._id
                           ? "border-brand-600 bg-brand-50 text-brand-700"
                           : "border-border text-muted-foreground hover:border-border"
@@ -693,7 +761,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                   disabled={!product.stock || loading}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex-1 bg-background border border-border text-foreground py-4 px-6 rounded-full font-light flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:border-border transition-all text-sm uppercase tracking-wider"
+                  className="flex-1 bg-background border border-border text-foreground py-4 px-6 rounded-full fw-cta flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:border-border transition-all text-sm uppercase tracking-wider"
                 >
                   {loading ? (
                     <motion.div
@@ -739,7 +807,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                 disabled={!product.stock}
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full btn-gradient py-4 px-6 rounded-full font-light flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm text-sm uppercase tracking-wider"
+                className="w-full btn-gradient py-4 px-6 rounded-full fw-cta flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm text-sm uppercase tracking-wider"
               >
                 <span>Buy Now</span>
                 <ShoppingCart size={18} />

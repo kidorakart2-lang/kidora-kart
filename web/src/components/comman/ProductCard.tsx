@@ -1,5 +1,5 @@
 "use client";
-import { Heart, ShoppingCart, Eye, Sparkles } from "lucide-react";
+import { Heart, ShoppingCart, Eye, Sparkles, Star } from "lucide-react";
 import Image from "next/image";
 import { Button } from "../ui/button";
 import { useState } from "react";
@@ -230,7 +230,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
         {/* Discount Badge */}
         {discountPercentage > 0 && (
           <div
-            className="bg-gradient-to-br from-brand-accent-500 to-destructive text-background px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 animate-in fade-in slide-in-from-left duration-300"
+            className="bg-destructive text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 animate-in fade-in slide-in-from-left duration-300"
             role="status"
             aria-label={`${discountPercentage} percent discount`}
           >
@@ -339,6 +339,25 @@ export default function ProductCard({ data }: { data: ProductData }) {
 
       {/* Product Details */}
       <div className="p-5">
+        {/* Tags — above title */}
+        {data.tags && data.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {data.tags.slice(0, 3).map((tag, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand-50 text-brand-700 border border-brand-200"
+              >
+                {tag}
+              </span>
+            ))}
+            {data.tags.length > 3 && (
+              <span className="text-[10px] text-muted-foreground self-center">
+                +{data.tags.length - 3}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Category */}
         {data.subCategory && data.subCategory.length > 0 && (
           <p className="text-[10px] uppercase tracking-wider text-brand-700 font-bold mb-2 flex items-center gap-1">
@@ -359,6 +378,13 @@ export default function ProductCard({ data }: { data: ProductData }) {
             {data.name}
           </h3>
         </Link>
+
+        {/* Short Description */}
+        {data.shortDescription && (
+          <p className="text-sm text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
+            {data.shortDescription}
+          </p>
+        )}
 
         {/* Pricing */}
         <div className="mb-4" role="group" aria-label="Product pricing">
@@ -390,6 +416,30 @@ export default function ProductCard({ data }: { data: ProductData }) {
             </span>
           )}
         </div>
+
+        {/* Rating */}
+        {(data.rating ?? 0) > 0 && (
+          <div className="flex items-center gap-1.5 mb-4">
+            <div className="flex items-center gap-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  size={13}
+                  className={
+                    i < Math.round(data.rating!)
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "fill-muted text-muted"
+                  }
+                />
+              ))}
+            </div>
+            {(data.reviewCount ?? 0) > 0 && (
+              <span className="text-xs text-muted-foreground">
+                ({data.reviewCount})
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Add to Cart Button */}
         <div role="group" aria-label="Product actions">

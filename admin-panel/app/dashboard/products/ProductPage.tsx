@@ -8,10 +8,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { DataTable, type Column } from "@/components/data-table";
+import { ErrorState } from "@/components/ui/error-state";
 import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
-import { Cloud, IndianRupee, Plus, X } from "lucide-react";
+import { Cloud, IndianRupee, Plus, X, Sparkles, Loader2, Video, ChevronDown } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
@@ -21,6 +35,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import NewMultiSelect from "../../../components/NewMultiSelect";
+import TagsInput from "../../../components/TagsInput";
 import Image from "next/image";
 import AiAssistButton from "@/components/ai-assist-button";
 import { useRouter } from "next/navigation";
@@ -29,14 +44,24 @@ import { invalidateCache } from "@/lib/invalidate-cache";
 interface ProductFormData {
   name: string;
   description: string;
-  purity: string;
+  shortDescription: string;
   weight: string;
+  length: string;
+  height: string;
+  breadth: string;
+  minimumAge: string;
+  idealAge: string;
+  maximumAge: string;
+  type: string;
+  sku: string;
+  tags: string[];
+  videoUrl: string;
   code: string;
   price: string;
   discount_price: string;
   stock: string;
   estimated_delivery_time: string;
-  status: boolean;
+  status: "active" | "inactive" | "draft";
   isFeatured: boolean;
   isNewArrival: boolean;
   isBestSeller: boolean;
@@ -58,12 +83,22 @@ interface Product {
   price: number;
   stock: number;
   discount_price: number;
-  purity: string;
   weight: string;
+  length?: number;
+  height?: number;
+  breadth?: number;
+  minimumAge?: number;
+  idealAge?: number;
+  maximumAge?: number;
+  type?: string;
+  sku?: string;
+  tags?: string[];
+  videoUrl?: string;
   code: string;
   description: string;
+  shortDescription?: string;
   estimated_delivery_time: string;
-  status: boolean;
+  status: "active" | "inactive" | "draft";
   isFeatured: boolean;
   isNewArrival: boolean;
   isBestSeller: boolean;
@@ -85,17 +120,37 @@ interface Product {
 
 type BooleanKeys = "isFeatured" | "isNewArrival" | "isBestSeller" | "isTopRated" | "isUpsell" | "isOnSale" | "isPersonalized" | "isGift";
 
+const AGE_OPTIONS = Array.from({ length: 19 }, (_, i) => ({ value: String(i), label: i === 0 ? "0 (Newborn)" : `${i} Years` }));
+
+const YOUTUBE_RE = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+const VIMEO_RE = /^(https?:\/\/)?(www\.)?(vimeo\.com|player\.vimeo\.com)\/.+$/;
+const DIRECT_VIDEO_RE = /^(https?:\/\/).+\.(mp4|webm|ogg|mov)(\?.*)?$/i;
+
+function isValidVideoUrl(url: string): boolean {
+  return YOUTUBE_RE.test(url) || VIMEO_RE.test(url) || DIRECT_VIDEO_RE.test(url);
+}
+
 const INITIAL_FORM_STATE: ProductFormData = {
   name: "",
   description: "",
-  purity: "",
+  shortDescription: "",
   weight: "",
+  length: "",
+  height: "",
+  breadth: "",
+  minimumAge: "",
+  idealAge: "",
+  maximumAge: "",
+  type: "",
+  sku: "",
+  tags: [],
+  videoUrl: "",
   code: "",
   price: "",
   discount_price: "",
   stock: "",
   estimated_delivery_time: "",
-  status: true,
+  status: "draft",
   isFeatured: false,
   isNewArrival: false,
   isBestSeller: false,
@@ -208,6 +263,7 @@ export default function ProductsPage() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [formData, setFormData] = useState<ProductFormData>(INITIAL_FORM_STATE);
+  const [tagLoading, setTagLoading] = useState(false);
 
   const { toast } = useToast();
   const router = useRouter();
@@ -251,6 +307,7 @@ export default function ProductsPage() {
   });
 
   const [deletedFilter, setDeletedFilter] = useState<string>("active");
+  const [videoFilter, setVideoFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 50;
 
@@ -258,14 +315,22 @@ export default function ProductsPage() {
     data: fetchResult,
     isLoading,
     isError,
+    error,
   } = useQuery({
     queryKey: ["products", deletedFilter, currentPage],
     queryFn: () => fetchProducts(deletedFilter === "active" ? undefined : deletedFilter, currentPage, pageSize),
     staleTime: 2 * 60 * 1000,
   });
 
-  const products = fetchResult?.products ?? [];
-  const totalItems = fetchResult?.pagination?.total ?? products.length;
+  const allProducts = fetchResult?.products ?? [];
+  const products = videoFilter === "all"
+    ? allProducts
+    : videoFilter === "hasVideo"
+      ? allProducts.filter((p) => !!p.videoUrl)
+      : allProducts.filter((p) => !p.videoUrl);
+  const totalItems = videoFilter !== "all"
+    ? products.length
+    : (fetchResult?.pagination?.total ?? products.length);
 
   // Mutations
   const deleteMutation = useMutation({
@@ -332,13 +397,26 @@ export default function ProductsPage() {
       name: defaultProduct.name,
       price: String(defaultProduct.price),
       stock: String(defaultProduct.stock),
-      purity: defaultProduct.purity,
       weight: defaultProduct.weight,
+      length: defaultProduct.length != null ? String(defaultProduct.length) : "",
+      height: defaultProduct.height != null ? String(defaultProduct.height) : "",
+      breadth: defaultProduct.breadth != null ? String(defaultProduct.breadth) : "",
+      minimumAge: defaultProduct.minimumAge != null ? String(defaultProduct.minimumAge) : "",
+      idealAge: defaultProduct.idealAge != null ? String(defaultProduct.idealAge) : "",
+      maximumAge: defaultProduct.maximumAge != null ? String(defaultProduct.maximumAge) : "",
+      type: defaultProduct.type || "",
+      sku: defaultProduct.sku || "",
+      tags: defaultProduct.tags || [],
+      videoUrl: defaultProduct.videoUrl || "",
       code: defaultProduct.code,
       discount_price: String(defaultProduct.discount_price),
       description: defaultProduct.description,
+      shortDescription: defaultProduct.shortDescription || "",
       estimated_delivery_time: defaultProduct.estimated_delivery_time,
-      status: defaultProduct.status,
+      // Handle backward-compat: old boolean true→active, false→inactive
+      status: typeof defaultProduct.status === "boolean"
+        ? (defaultProduct.status ? "active" : "inactive")
+        : (defaultProduct.status || "draft"),
       isFeatured: defaultProduct.isFeatured ?? false,
       isNewArrival: defaultProduct.isNewArrival ?? false,
       isBestSeller: defaultProduct.isBestSeller ?? false,
@@ -430,6 +508,66 @@ export default function ProductsPage() {
       return;
     }
 
+    // ── Price & discount price mutual validation ──
+    const priceHasVal = formData.price.trim() !== '';
+    const discountHasVal = formData.discount_price.trim() !== '';
+    if (priceHasVal !== discountHasVal) {
+      toast({ title: "Validation Error", description: "Both price and discount price must be filled together", variant: "destructive" });
+      return;
+    }
+
+    const priceNum = parseFloat(formData.price);
+    if (!isNaN(priceNum) && priceNum <= 0) {
+      toast({ title: "Validation Error", description: "Price must be greater than 0", variant: "destructive" });
+      return;
+    }
+
+    const discountNum = parseFloat(formData.discount_price);
+    if (!isNaN(priceNum) && !isNaN(discountNum) && discountNum > priceNum) {
+      toast({ title: "Validation Error", description: "Discount price must be less than or equal to the original price", variant: "destructive" });
+      return;
+    }
+
+    if (formData.minimumAge && formData.maximumAge) {
+      const minAge = parseInt(formData.minimumAge, 10);
+      const maxAge = parseInt(formData.maximumAge, 10);
+      if (!isNaN(minAge) && !isNaN(maxAge) && minAge >= maxAge) {
+        toast({ title: "Validation Error", description: "Minimum age must be less than maximum age", variant: "destructive" });
+        return;
+      }
+    }
+
+    if (formData.idealAge && formData.minimumAge && formData.maximumAge) {
+      const idealAge = parseInt(formData.idealAge, 10);
+      const minAge = parseInt(formData.minimumAge, 10);
+      const maxAge = parseInt(formData.maximumAge, 10);
+      if (!isNaN(idealAge) && !isNaN(minAge) && !isNaN(maxAge) && (idealAge < minAge || idealAge > maxAge)) {
+        toast({ title: "Validation Error", description: "Ideal age must be between minimum age and maximum age", variant: "destructive" });
+        return;
+      }
+    }
+
+    if (formData.videoUrl && !isValidVideoUrl(formData.videoUrl)) {
+      toast({ title: "Validation Error", description: "Video URL must be a valid YouTube, Vimeo, or direct video link (.mp4, .webm, etc.)", variant: "destructive" });
+      return;
+    }
+
+    const stockNum = parseInt(formData.stock, 10);
+    if (isNaN(stockNum) || stockNum < 0) {
+      toast({ title: "Validation Error", description: "Stock cannot be negative", variant: "destructive" });
+      return;
+    }
+
+    // ── Dimensions mutual validation ──
+    const hasLength = formData.length.trim() !== '';
+    const hasHeight = formData.height.trim() !== '';
+    const hasBreadth = formData.breadth.trim() !== '';
+    const dimensionCount = [hasLength, hasHeight, hasBreadth].filter(Boolean).length;
+    if (dimensionCount > 0 && dimensionCount < 3) {
+      toast({ title: "Validation Error", description: "Length, height, and breadth must all be filled together", variant: "destructive" });
+      return;
+    }
+
     if (selectedCategory.length === 0) {
       toast({ title: "Validation Error", description: "Please select at least one category", variant: "destructive" });
       return;
@@ -454,8 +592,20 @@ export default function ProductsPage() {
 
     formDataToSend.append("name", formData.name);
     formDataToSend.append("description", formData.description);
-    formDataToSend.append("purity", formData.purity);
+    if (formData.shortDescription) formDataToSend.append("shortDescription", formData.shortDescription);
     formDataToSend.append("weight", formData.weight);
+    if (formData.length) formDataToSend.append("length", formData.length);
+    if (formData.height) formDataToSend.append("height", formData.height);
+    if (formData.breadth) formDataToSend.append("breadth", formData.breadth);
+    if (formData.minimumAge) formDataToSend.append("minimumAge", formData.minimumAge);
+    if (formData.idealAge) formDataToSend.append("idealAge", formData.idealAge);
+    if (formData.maximumAge) formDataToSend.append("maximumAge", formData.maximumAge);
+    if (formData.type) formDataToSend.append("type", formData.type);
+    if (formData.sku) formDataToSend.append("sku", formData.sku);
+    if (formData.tags.length > 0) {
+      formData.tags.forEach((tag: string) => formDataToSend.append("tags[]", tag));
+    }
+    if (formData.videoUrl) formDataToSend.append("videoUrl", formData.videoUrl);
     formDataToSend.append(
       "code",
       formData.code ? formData.code : generateCode()
@@ -468,7 +618,7 @@ export default function ProductsPage() {
       formData.estimated_delivery_time
     );
     formDataToSend.append("order", String(formData.order));
-    formDataToSend.append("status", String(formData.status));
+    formDataToSend.append("status", formData.status);
     formDataToSend.append("isFeatured", String(formData.isFeatured));
     formDataToSend.append("isNewArrival", String(formData.isNewArrival));
     formDataToSend.append("isPersonalized", String(formData.isPersonalized));
@@ -603,6 +753,41 @@ export default function ProductsPage() {
     router.push(`/dashboard/products/${item._id}`);
   };
 
+  const handleAutoTag = async () => {
+    setTagLoading(true);
+    try {
+      const data = await api.post<{ text: string }>("/api/admin/ai/generate-tags", {
+        name: formData.name,
+        description: formData.description,
+      });
+      if (data?.text) {
+        const newTags = data.text
+          .split(",")
+          .map((t: string) => t.trim().toLowerCase())
+          .filter((t: string) => t.length > 0);
+        // Merge with existing tags, avoiding duplicates
+        const existing = new Set(formData.tags.map((t) => t.toLowerCase()));
+        const merged = [...formData.tags];
+        for (const tag of newTags) {
+          if (!existing.has(tag.toLowerCase())) {
+            merged.push(tag);
+            existing.add(tag.toLowerCase());
+          }
+        }
+        setFormData({ ...formData, tags: merged });
+        toast({ title: "AI: Tags generated" });
+      }
+    } catch (err) {
+      const message =
+        err instanceof ApiClientError
+          ? err.message
+          : "Failed to generate tags. Please try again.";
+      toast({ title: `AI: ${message}`, variant: "destructive" });
+    } finally {
+      setTagLoading(false);
+    }
+  };
+
   const handleStatusChange = (item: Product) => {
     statusMutation.mutate(item._id);
   };
@@ -668,31 +853,92 @@ export default function ProductsPage() {
       ),
     },
     {
+      key: "videoUrl",
+      label: "Has Video",
+      render: (item: Product) => (
+        item.videoUrl ? (
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full border border-primary/20">
+            <Video className="h-3.5 w-3.5" />
+            Yes
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+            <Video className="h-3.5 w-3.5" />
+            No
+          </span>
+        )
+      ),
+    },
+    {
       key: "status",
       label: "Status",
-      render: (item: Product) => (
-        <Button
-          disabled={statusMutation.isPending}
-          variant={item.status ? "default" : "destructive"}
-          className="font-mono cursor-pointer"
-          onClick={() => handleStatusChange(item)}
-        >
-          {statusMutation.isPending
-            ? "Changing.."
-            : item.status
-            ? "Active"
-            : "Inactive"}
-        </Button>
-      ),
+      render: (item: Product) => {
+        const statusStyles: Record<string, string> = {
+          active: "bg-green-50 text-green-700 border-green-200",
+          inactive: "bg-red-50 text-red-700 border-red-200",
+          draft: "bg-secondary text-secondary-foreground border-secondary",
+        };
+        const statusLabels: Record<string, string> = {
+          active: "Active",
+          inactive: "Inactive",
+          draft: "Draft",
+        };
+        return (
+          <Button
+            disabled={statusMutation.isPending}
+            variant="outline"
+            className={`font-mono cursor-pointer border ${statusStyles[item.status] ?? "bg-muted text-foreground"}`}
+            onClick={() => handleStatusChange(item)}
+          >
+            {statusMutation.isPending
+              ? "Changing.."
+              : statusLabels[item.status] ?? item.status}
+          </Button>
+        );
+      },
     },
   ];
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-muted rounded"></div>
-          <div className="h-96 bg-muted rounded-lg"></div>
+        <div className="flex items-center justify-between animate-pulse">
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-32" />
+            <Skeleton className="h-5 w-48" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-32" />
+          </div>
+        </div>
+        <Skeleton className="h-10 w-full max-w-sm" />
+        <div className="rounded-lg border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                {["Product", "Category", "Price", "Stock", "Status"].map((h) => (
+                  <TableHead key={h}>{h}</TableHead>
+                ))}
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  {["Product", "Category", "Price", "Stock", "Status"].map((h) => (
+                    <TableCell key={h}><Skeleton className="h-5 w-full" /></TableCell>
+                  ))}
+                  <TableCell>
+                    <div className="flex justify-end gap-2">
+                      <Skeleton className="h-8 w-8 rounded" />
+                      <Skeleton className="h-8 w-8 rounded" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </div>
     );
@@ -700,9 +946,11 @@ export default function ProductsPage() {
 
   if (isError) {
     return (
-      <div className="text-red-500">
-        Something went wrong while fetching products
-      </div>
+      <ErrorState
+        title="Failed to load products"
+        message={error instanceof Error ? error.message : "An unexpected error occurred. Please try refreshing the page."}
+        onRetry={() => queryClient.invalidateQueries({ queryKey: ["products"] })}
+      />
     );
   }
 
@@ -714,6 +962,22 @@ export default function ProductsPage() {
           <p className="text-muted-foreground">Manage your product inventory</p>
         </div>
         <div className="flex items-center gap-2">
+          <Select
+            value={videoFilter}
+            onValueChange={(val) => {
+              setVideoFilter(val);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[160px] h-9 text-xs">
+              <SelectValue placeholder="Filter by video" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Products</SelectItem>
+              <SelectItem value="hasVideo">Has Video</SelectItem>
+              <SelectItem value="noVideo">No Video</SelectItem>
+            </SelectContent>
+          </Select>
           <Select
             value={deletedFilter}
             onValueChange={setDeletedFilter}
@@ -760,60 +1024,71 @@ export default function ProductsPage() {
         title={editingProduct ? "Edit Product" : "Add New Product"}
         className="!w-[60vw] !max-w-[1800px]"
       >
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Basic Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Product Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  placeholder="Enter product name"
-                  required
-                />
+        <form onSubmit={handleSubmit} className="space-y-0">
+          {/* Section 1: Basic Information */}
+          <Collapsible defaultOpen>
+            <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-left group">
+              <h3 className="text-lg font-medium">Basic Information</h3>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Product Name *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    placeholder="Enter product name"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price *</Label>
+                  <Input
+                    type="number"
+                    id="price"
+                    value={formData.price}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
+                    placeholder="Enter price"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="discount_price">Discount Price *</Label>
+                  <Input
+                    type="number"
+                    id="discount_price"
+                    value={formData.discount_price}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setFormData({ ...formData, discount_price: e.target.value })
+                    }
+                    placeholder="Enter discount price"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="price">Price *</Label>
-                <Input
-                  type="number"
-                  id="price"
-                  value={formData.price}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({ ...formData, price: e.target.value })
-                  }
-                  placeholder="Enter price"
-                  min="0"
-                  step="0.01"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="discount_price">Discount Price *</Label>
-                <Input
-                  type="number"
-                  id="discount_price"
-                  value={formData.discount_price}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({ ...formData, discount_price: e.target.value })
-                  }
-                  placeholder="Enter discount price"
-                  min="0"
-                  step="0.01"
-                  required
-                />
-              </div>
-            </div>
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
 
-          {/* Descriptions */}
-          <div className="space-y-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
+          <Separator />
+
+          {/* Section 2: Description */}
+          <Collapsible defaultOpen>
+            <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-left group">
+              <h3 className="text-lg font-medium">Description</h3>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="space-y-2 pb-4">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="description">Full Description *</Label>
                   <AiAssistButton
@@ -831,7 +1106,7 @@ export default function ProductsPage() {
                             .map((m) => m.name)
                             .join(", ")
                         : "",
-                      purity: formData.purity,
+                      type: formData.type,
                       weight: formData.weight,
                       price: formData.price,
                     }}
@@ -840,305 +1115,572 @@ export default function ProductsPage() {
                     }
                   />
                 </div>
-                <textarea
+                <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   placeholder="Enter full description"
+                  className="min-h-[120px]"
                   required
                 />
               </div>
-            </div>
-          </div>
 
-          {/* Categories & Tags */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Categories & Tags</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Category *</Label>
-                <NewMultiSelect
-                  category={categories}
-                  categoryId={selectedCategory}
-                  setCategoryId={setSelectedCategory}
-                  placeholder="Select categories..."
+              {/* Short Description */}
+              <div className="space-y-2 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="shortDescription">Short Description</Label>
+                  <AiAssistButton
+                    context={{
+                      name: formData.name,
+                      category: selectedCategory.length
+                        ? categories
+                            .filter((c) => selectedCategory.includes(c._id))
+                            .map((c) => c.name)
+                            .join(", ")
+                        : "",
+                      material: selectedMaterials.length
+                        ? materials
+                            .filter((m) => selectedMaterials.includes(m._id))
+                            .map((m) => m.name)
+                            .join(", ")
+                        : "",
+                      type: formData.type,
+                      price: formData.price,
+                    }}
+                    onResult={(text) =>
+                      setFormData({ ...formData, shortDescription: text })
+                    }
+                    label="Generate Short Desc"
+                    endpoint="/api/admin/ai/generate-short-description"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  A concise 1-2 sentence summary shown on product cards and search results.
+                </p>
+                <Input
+                  id="shortDescription"
+                  value={formData.shortDescription}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormData({ ...formData, shortDescription: e.target.value })
+                  }
+                  placeholder="e.g. A fun and educational building set for curious young minds"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Subcategory</Label>
-                <NewMultiSelect
-                  category={subCategories}
-                  categoryId={selectedSubCategory}
-                  setCategoryId={setSelectedSubCategory}
-                  placeholder="Select subcategories..."
-                  disabled={selectedCategory.length === 0}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Sub-subcategory</Label>
-                <NewMultiSelect
-                  category={subSubCategories}
-                  categoryId={selectedSubSubCategory}
-                  setCategoryId={setSelectedSubSubCategory}
-                  placeholder="Select sub-subcategories..."
-                  disabled={selectedSubCategory.length === 0}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Colors</Label>
-                <NewMultiSelect
-                  category={colors}
-                  categoryId={selectedColors}
-                  setCategoryId={setSelectedColors}
-                  placeholder="Select colors..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Materials</Label>
-                <NewMultiSelect
-                  category={materials}
-                  categoryId={selectedMaterials}
-                  setCategoryId={setSelectedMaterials}
-                  placeholder="Select materials..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Sizes</Label>
-                <NewMultiSelect
-                  category={sizes}
-                  categoryId={selectedSizes}
-                  setCategoryId={setSelectedSizes}
-                  placeholder="Select sizes..."
-                />
-              </div>
-            </div>
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
 
-          {/* Additional Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Additional Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="purity">Purity</Label>
-                <Input
-                  id="purity"
-                  value={formData.purity}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({ ...formData, purity: e.target.value })
-                  }
-                  placeholder="e.g. 80%"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="weight">Weight (g) *</Label>
-                <Input
-                  id="weight"
-                  value={formData.weight}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({ ...formData, weight: e.target.value })
-                  }
-                  placeholder="e.g. 15"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="stock">Stock *</Label>
-                <Input
-                  type="number"
-                  id="stock"
-                  value={formData.stock}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({ ...formData, stock: e.target.value })
-                  }
-                  placeholder="Enter available stock"
-                  min="0"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="estimated_delivery_time">
-                  Estimated Delivery Time *
-                </Label>
-                <Input
-                  id="estimated_delivery_time"
-                  value={formData.estimated_delivery_time}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({
-                      ...formData,
-                      estimated_delivery_time: e.target.value,
-                    })
-                  }
-                  placeholder="e.g., 3-5 business days"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="order">Display Order</Label>
-                <Input
-                  type="number"
-                  id="order"
-                  value={formData.order}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({ ...formData, order: parseInt(e.target.value) || 0 })
-                  }
-                  placeholder="Enter display order"
-                  min="0"
-                />
-              </div>
-            </div>
-          </div>
+          <Separator />
 
-          {/* Product Status */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Product Status</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {([
-                { id: "isFeatured" as const, label: "Featured" },
-                { id: "isNewArrival" as const, label: "New Arrival" },
-                { id: "isBestSeller" as const, label: "Best Seller" },
-                { id: "isTopRated" as const, label: "Top Rated" },
-                { id: "isUpsell" as const, label: "Upsell" },
-                { id: "isOnSale" as const, label: "On Sale" },
-                { id: "isPersonalized" as const, label: "Personalized" },
-                { id: "isGift" as const, label: "Gift" },
-              ] as const).map((toggle: { id: BooleanKeys; label: string }) => (
-                <div key={toggle.id} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id={toggle.id}
-                    checked={formData[toggle.id] ?? false}
+          {/* Section 3: Categories & Tags */}
+          <Collapsible defaultOpen>
+            <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-left group">
+              <h3 className="text-lg font-medium">Categories & Tags</h3>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
+                <div className="space-y-2">
+                  <Label>Category *</Label>
+                  <NewMultiSelect
+                    category={categories}
+                    categoryId={selectedCategory}
+                    setCategoryId={setSelectedCategory}
+                    placeholder="Select categories..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Subcategory</Label>
+                  <NewMultiSelect
+                    category={subCategories}
+                    categoryId={selectedSubCategory}
+                    setCategoryId={setSelectedSubCategory}
+                    placeholder="Select subcategories..."
+                    disabled={selectedCategory.length === 0}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Sub-subcategory</Label>
+                  <NewMultiSelect
+                    category={subSubCategories}
+                    categoryId={selectedSubSubCategory}
+                    setCategoryId={setSelectedSubSubCategory}
+                    placeholder="Select sub-subcategories..."
+                    disabled={selectedSubCategory.length === 0}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Colors</Label>
+                  <NewMultiSelect
+                    category={colors}
+                    categoryId={selectedColors}
+                    setCategoryId={setSelectedColors}
+                    placeholder="Select colors..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Materials</Label>
+                  <NewMultiSelect
+                    category={materials}
+                    categoryId={selectedMaterials}
+                    setCategoryId={setSelectedMaterials}
+                    placeholder="Select materials..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Sizes</Label>
+                  <NewMultiSelect
+                    category={sizes}
+                    categoryId={selectedSizes}
+                    setCategoryId={setSelectedSizes}
+                    placeholder="Select sizes..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Tags</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={!formData.name || tagLoading}
+                      onClick={handleAutoTag}
+                      className="gap-2 transition-all duration-200 hover:scale-105"
+                    >
+                      {tagLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4" />
+                      )}
+                      {tagLoading ? "Generating..." : "Auto-tag with AI"}
+                    </Button>
+                  </div>
+                  <div className="max-w-md">
+                    <TagsInput
+                      value={formData.tags}
+                      onChange={(tags: string[]) =>
+                        setFormData({ ...formData, tags })
+                      }
+                      placeholder="Type a tag and press Enter"
+                      label="Product Tags"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Separator />
+
+          {/* Section 4: Dimensions */}
+          <Collapsible defaultOpen>
+            <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-left group">
+              <h3 className="text-lg font-medium">Dimensions</h3>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+                <div className="space-y-2">
+                  <Label htmlFor="weight">Weight (g) *</Label>
+                  <Input
+                    id="weight"
+                    value={formData.weight}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setFormData({ ...formData, weight: e.target.value })
+                    }
+                    placeholder="e.g. 15"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="length">Length (cm)</Label>
+                  <Input
+                    type="number"
+                    id="length"
+                    value={formData.length}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setFormData({ ...formData, length: e.target.value })
+                    }
+                    placeholder="e.g. 25"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="height">Height (cm)</Label>
+                  <Input
+                    type="number"
+                    id="height"
+                    value={formData.height}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setFormData({ ...formData, height: e.target.value })
+                    }
+                    placeholder="e.g. 15"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="breadth">Breadth (cm)</Label>
+                  <Input
+                    type="number"
+                    id="breadth"
+                    value={formData.breadth}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setFormData({ ...formData, breadth: e.target.value })
+                    }
+                    placeholder="e.g. 10"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sku">SKU</Label>
+                  <Input
+                    id="sku"
+                    value={formData.sku}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setFormData({ ...formData, sku: e.target.value })
+                    }
+                    placeholder="e.g. TOY-001"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="type">Type</Label>
+                  <Input
+                    id="type"
+                    value={formData.type}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setFormData({ ...formData, type: e.target.value })
+                    }
+                    placeholder="e.g. Educational, Puzzle, Outdoor"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="videoUrl">Video URL</Label>
+                  <Input
+                    id="videoUrl"
+                    value={formData.videoUrl}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setFormData({ ...formData, videoUrl: e.target.value })
+                    }
+                    placeholder="e.g. https://youtube.com/watch?v=..."
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    YouTube, Vimeo, or direct .mp4 / .webm link
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="stock">Stock *</Label>
+                  <Input
+                    type="number"
+                    id="stock"
+                    value={formData.stock}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setFormData({ ...formData, stock: e.target.value })
+                    }
+                    placeholder="Enter available stock"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="estimated_delivery_time">
+                    Estimated Delivery Time *
+                  </Label>
+                  <Input
+                    id="estimated_delivery_time"
+                    value={formData.estimated_delivery_time}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       setFormData({
                         ...formData,
-                        [toggle.id]: e.target.checked,
+                        estimated_delivery_time: e.target.value,
                       })
                     }
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                    placeholder="e.g., 3-5 business days"
+                    required
                   />
-                  <Label htmlFor={toggle.id} className="cursor-pointer">
-                    {toggle.label}
-                  </Label>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Images */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Product Images</h3>
-
-            {/* Main Image */}
-            <div className="space-y-2">
-              <Label>Main Image *</Label>
-              <div className="flex items-center justify-center w-full">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Cloud />
-                    <p className="mb-2 text-sm text-gray-500">
-                      Click to upload
-                    </p>
-                    <p className="text-xs text-gray-500">PNG, JPG, JPEG</p>
-                  </div>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleMainImageChange}
+                <div className="space-y-2">
+                  <Label htmlFor="order">Display Order</Label>
+                  <Input
+                    type="number"
+                    id="order"
+                    value={formData.order}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setFormData({ ...formData, order: parseInt(e.target.value) || 0 })
+                    }
+                    placeholder="Enter display order"
+                    min="0"
                   />
-                </label>
+                </div>
               </div>
-              {formData.mainImagePreview && (
-                <div className="relative w-20 h-20">
-                  <img
-                    src={formData.mainImagePreview}
-                    alt="Main"
-                    className="w-full h-full object-cover rounded"
-                  />
-                  <button
-                    type="button"
-                    onClick={removeMainImage}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-            </div>
+            </CollapsibleContent>
+          </Collapsible>
 
-            {/* Additional Images */}
-            <div className="space-y-2">
-              <Label>Additional Images</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-                {formData.additionalImages?.map((src: File | null, index: number) => (
-                  <div key={index} className="flex flex-col items-center gap-2">
-                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
-                      <div className="flex flex-col items-center justify-center">
+          <Separator />
+
+          {/* Section 5: Age */}
+          <Collapsible defaultOpen>
+            <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-left group">
+              <h3 className="text-lg font-medium">Age</h3>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-4">
+                <div className="space-y-2">
+                  <Label htmlFor="minimumAge">Minimum Age</Label>
+                  <Select
+                    value={formData.minimumAge}
+                    onValueChange={(val: string) =>
+                      setFormData({ ...formData, minimumAge: val })
+                    }
+                  >
+                    <SelectTrigger id="minimumAge">
+                      <SelectValue placeholder="Select minimum age" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AGE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="idealAge">Ideal Age</Label>
+                  <Select
+                    value={formData.idealAge}
+                    onValueChange={(val: string) =>
+                      setFormData({ ...formData, idealAge: val })
+                    }
+                  >
+                    <SelectTrigger id="idealAge">
+                      <SelectValue placeholder="Select ideal age" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AGE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="maximumAge">Maximum Age</Label>
+                  <Select
+                    value={formData.maximumAge}
+                    onValueChange={(val: string) =>
+                      setFormData({ ...formData, maximumAge: val })
+                    }
+                  >
+                    <SelectTrigger id="maximumAge">
+                      <SelectValue placeholder="Select maximum age" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AGE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Separator />
+
+          {/* Section 6: Status Toggles */}
+          <Collapsible defaultOpen>
+            <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-left group">
+              <h3 className="text-lg font-medium">Status Toggles</h3>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="space-y-4 pb-4">
+                <div className="max-w-xs">
+                  <Label htmlFor="product-status">Listing Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(val: "active" | "inactive" | "draft") =>
+                      setFormData({ ...formData, status: val })
+                    }
+                  >
+                    <SelectTrigger id="product-status" className="mt-1">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active — Visible on website</SelectItem>
+                      <SelectItem value="inactive">Inactive — Hidden from website</SelectItem>
+                      <SelectItem value="draft">Draft — Not published yet</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {([
+                    { id: "isFeatured" as const, label: "Featured" },
+                    { id: "isNewArrival" as const, label: "New Arrival" },
+                    { id: "isBestSeller" as const, label: "Best Seller" },
+                    { id: "isTopRated" as const, label: "Top Rated" },
+                    { id: "isUpsell" as const, label: "Upsell" },
+                    { id: "isOnSale" as const, label: "On Sale" },
+                    { id: "isPersonalized" as const, label: "Personalized" },
+                    { id: "isGift" as const, label: "Gift" },
+                  ] as const).map((toggle: { id: BooleanKeys; label: string }) => (
+                    <div key={toggle.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={toggle.id}
+                        checked={formData[toggle.id] ?? false}
+                        onCheckedChange={(checked: boolean) =>
+                          setFormData({
+                            ...formData,
+                            [toggle.id]: checked,
+                          })
+                        }
+                      />
+                      <Label htmlFor={toggle.id} className="cursor-pointer">
+                        {toggle.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Separator />
+
+          {/* Section 7: Product Images */}
+          <Collapsible defaultOpen>
+            <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-left group">
+              <h3 className="text-lg font-medium">Product Images</h3>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="space-y-6 pb-4">
+                {/* Main Image */}
+                <div className="space-y-2">
+                  <Label>Main Image *</Label>
+                  <div className="flex items-center justify-center w-full">
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-accent transition">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
                         <Cloud />
-                        <p className="text-xs text-gray-500 mt-1">
-                          Image {index + 1}
+                        <p className="mb-2 text-sm text-muted-foreground">
+                          Click to upload
                         </p>
+                        <p className="text-xs text-muted-foreground">PNG, JPG, JPEG</p>
                       </div>
                       <input
                         type="file"
                         className="hidden"
                         accept="image/*"
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAdditionalImageChange(e, index)}
+                        onChange={handleMainImageChange}
                       />
                     </label>
-                    {formData.additionalImagePreviews[index] && (
-                      <div className="relative w-16 h-16">
-                        <img
-                          src={formData.additionalImagePreviews[index]}
-                          alt={`Additional ${index + 1}`}
-                          className="w-full h-full object-cover rounded"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeAdditionalImage(index)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    )}
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Images Url To Remove</h3>
-            <div className="flex flex-col space-y-2">
-              {formData.additionalImagePreviews?.map(
-                (url: string, index: number) =>
-                  url &&
-                  url.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.toyshop.com"}/`) && (
-                    <div key={index} className="flex items-center space-x-2">
-                      <input
-                        type="text"
-                        value={url}
-                        readOnly
-                        className="flex-1 border border-gray-300 rounded px-2 py-1"
+                  {formData.mainImagePreview && (
+                    <div className="relative w-20 h-20">
+                      <img
+                        src={formData.mainImagePreview}
+                        alt="Main"
+                        className="w-full h-full object-cover rounded"
                       />
                       <button
                         type="button"
-                        onClick={() => toggleRemoveImagesUrl(url)}
-                        className="bg-red-500 text-white rounded px-2 py-1 hover:bg-red-600"
+                        onClick={removeMainImage}
+                        className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 hover:bg-destructive/90"
                       >
-                        {removeImagesUrl.includes(url) ? "Undo" : "Remove"}
+                        <X className="w-4 h-4" />
                       </button>
                     </div>
-                  )
-              )}
-            </div>
-          </div>
+                  )}
+                </div>
+
+                {/* Additional Images */}
+                <div className="space-y-2">
+                  <Label>Additional Images</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+                    {formData.additionalImages?.map((src: File | null, index: number) => (
+                      <div key={index} className="flex flex-col items-center gap-2">
+                        <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-accent transition">
+                          <div className="flex flex-col items-center justify-center">
+                            <Cloud />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Image {index + 1}
+                            </p>
+                          </div>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAdditionalImageChange(e, index)}
+                          />
+                        </label>
+                        {formData.additionalImagePreviews[index] && (
+                          <div className="relative w-16 h-16">
+                            <img
+                              src={formData.additionalImagePreviews[index]}
+                              alt={`Additional ${index + 1}`}
+                              className="w-full h-full object-cover rounded"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeAdditionalImage(index)}
+                              className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 hover:bg-destructive/90"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Images Url To Remove */}
+                {formData.additionalImagePreviews?.some(
+                  (url: string) => url && url.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com"}/`)
+                ) && (
+                  <div className="space-y-2">
+                    <Label>Images to Remove</Label>
+                    <div className="flex flex-col space-y-2">
+                      {formData.additionalImagePreviews?.map(
+                        (url: string, index: number) =>
+                          url &&
+                          url.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com"}/`) && (
+                            <div key={index} className="flex items-center space-x-2">
+                              <input
+                                type="text"
+                                value={url}
+                                readOnly
+                                className="flex-1 border border-input rounded px-2 py-1 bg-background text-sm"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => toggleRemoveImagesUrl(url)}
+                                className="bg-destructive text-white rounded px-2 py-1 text-sm hover:bg-destructive/90"
+                              >
+                                {removeImagesUrl.includes(url) ? "Undo" : "Remove"}
+                              </button>
+                            </div>
+                          )
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Separator />
 
           {/* Form Actions */}
-          <div className="flex justify-end space-x-4 pt-4 border-t">
+          <div className="flex justify-end space-x-4 py-4">
             <Button type="button" variant="outline" onClick={closeDrawer}>
               Cancel
             </Button>

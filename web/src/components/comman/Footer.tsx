@@ -82,7 +82,7 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
               {
                 Icon: Award,
                 title: "Certified Quality",
-                desc: "Hallmarked Products",
+                desc: "Safe & Tested",
               },
               {
                 Icon: Heart,
@@ -123,8 +123,8 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
               />
             </div>
             <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-              Discover timeless elegance with our exquisite collection of
-              handcrafted jewelry. Subscribe to get exclusive offers and new
+              Discover endless fun with our exciting collection of toys and
+              games. Subscribe to get exclusive offers and new
               arrivals.
             </p>
 

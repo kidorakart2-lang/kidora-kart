@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { api, ApiClientError } from "@/lib/api";
@@ -36,7 +36,7 @@ const StarRating = ({ rating, onRatingChange, readOnly = false }: StarRatingProp
         <Star
           size={20}
           className={`${
-            star <= rating ? "fill-amber-400 text-amber-400" : "text-gray-300"
+            star <= rating ? "fill-amber-400 text-amber-400" : "text-muted"
           }`}
         />
       </button>
@@ -193,7 +193,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-16">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
       </div>
     );
   }
@@ -233,7 +233,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
               <DialogContent className="sm:max-w-md w-full z-[1500]">
                 <DialogHeader>
-                  <DialogTitle className="text-2xl font-bold text-gray-800">
+                  <DialogTitle className="text-2xl font-bold text-foreground">
                     Write a Review
                   </DialogTitle>
                 </DialogHeader>
@@ -255,25 +255,25 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                         />
                       </svg>
                     </div>
-                    <p className="text-lg font-medium text-gray-800">
+                    <p className="text-lg font-medium text-foreground">
                       Thank you for your review!
                     </p>
-                    <p className="text-gray-600 mt-1">
+                    <p className="text-muted-foreground mt-1">
                       Your review has been submitted successfully.
                     </p>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-4 py-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Your Rating <span className="text-red-500">*</span>
+                      <label className="block text-sm font-medium text-foreground mb-1">
+                        Your Rating <span className="text-destructive">*</span>
                       </label>
                       <StarRating
                         rating={formData.rating}
                         onRatingChange={handleRatingChange}
                       />
                       {formErrors.rating && (
-                        <p className="mt-1 text-sm text-red-500">
+                        <p className="mt-1 text-sm text-destructive">
                           {formErrors.rating}
                         </p>
                       )}
@@ -282,9 +282,9 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                     <div>
                       <label
                         htmlFor="comment"
-                        className="block text-sm font-medium text-gray-700 mb-1"
+                        className="block text-sm font-medium text-foreground mb-1"
                       >
-                        Your Review <span className="text-red-500">*</span>
+                        Your Review <span className="text-destructive">*</span>
                       </label>
                       <Textarea
                         id="comment"
@@ -298,7 +298,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                         placeholder="Share your experience with this product..."
                       />
                       {formErrors.comment && (
-                        <p className="mt-1 text-sm text-red-500">
+                        <p className="mt-1 text-sm text-destructive">
                           {formErrors.comment}
                         </p>
                       )}
@@ -333,11 +333,11 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                   {averageRating.toFixed(1)}
                 </span>
               </div>
-              <span className="text-gray-600">
+              <span className="text-muted-foreground">
                 ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-muted rounded-full h-2">
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: `${(averageRating / 5) * 100}%` }}
@@ -353,7 +353,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                 key={i}
                 variants={itemVariants}
                 whileHover={{ x: 8 }}
-                className="p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-amber-100/50 hover:border-amber-200 transition-all cursor-pointer"
+                className="p-6 bg-background/60 backdrop-blur-sm rounded-2xl border border-amber-100/50 hover:border-amber-200 transition-all cursor-pointer"
                 onClick={() =>
                   setExpandedReview(expandedReview === i ? null : i)
                 }
@@ -361,18 +361,18 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                    <Image src={review?.userId?.avatar ||"placeholder.svg"} alt={review?.userId?.name ?? "Customer"} width={50} height={50} className="rounded-full" />
-                    <h4 className="font-semibold text-gray-900">
+                    <h4 className="font-semibold text-foreground">
                       Customer {review?.userId?.name}
                     </h4>
                     <div className="flex items-center gap-1 mt-1">
                       <StarRating rating={review.rating} readOnly />
                     </div>
                   </div>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-muted-foreground">
                     {new Date(review?.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                <p className="text-gray-700 line-clamp-2">{review?.comment}</p>
+                <p className="text-foreground line-clamp-2">{review?.comment}</p>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"

@@ -39,6 +39,10 @@ interface Order {
   packageId?: string;
   createdAt: string;
   shippingAddress?: OrderAddress;
+  shipping?: {
+    carrier?: string;
+    estimatedDelivery?: string;
+  };
   payment?: {
     method?: string;
     status?: string;
@@ -102,9 +106,9 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
       />
 
       <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[999] w-full max-w-4xl max-h-[calc(100vh-5rem)] overflow-auto animate-in zoom-in-95 fade-in duration-200 print:static print:max-h-none print:max-w-full print:overflow-visible print:translate-x-0 print:translate-y-0 print:w-full print:h-auto">
-        <div className="bg-white border border-gray-200 shadow-2xl print:border-0 print:shadow-none print:m-0">
+        <div className="bg-card border border-border shadow-2xl print:border-0 print:shadow-none print:m-0">
           {/* Header with buttons - Hidden on print */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 print:hidden bg-gray-50">
+          <div className="flex items-center justify-between p-4 border-b border-border print:hidden bg-muted">
             <h2 className="text-lg font-semibold">Order Receipt</h2>
             <div className="flex items-center gap-2">
               <Button
@@ -129,21 +133,21 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
           <div className="p-8 print:p-4" id="receipt-content">
             {/* Company Header */}
             <div className="border-b-2 border-black pb-4 mb-6">
-              <h1 className="text-2xl font-bold mb-1">Jewellery Wala</h1>
-              <p className="text-sm text-gray-600">Order Invoice</p>
+              <h1 className="text-2xl font-bold mb-1">Kidora Kart</h1>
+              <p className="text-sm text-muted-foreground">Order Invoice</p>
             </div>
 
             {/* Order Info Bar */}
-            <div className="bg-gray-50 p-4 rounded-lg mb-6 print:bg-gray-100">
+            <div className="bg-muted p-4 rounded-lg mb-6 print:bg-muted">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-gray-500 uppercase mb-1">
+                  <p className="text-xs text-muted-foreground uppercase mb-1">
                     Order Number
                   </p>
                   <p className="font-semibold text-sm">{order.orderId}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase mb-1">
+                  <p className="text-xs text-muted-foreground uppercase mb-1">
                     Order Date
                   </p>
                   <p className="font-semibold text-sm">
@@ -156,9 +160,9 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
             {/* Package ID - Prominent Display */}
             <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
               <div className="flex items-center gap-3">
-                <Package className="h-6 w-6 text-blue-600" />
+                <Package className="h-6 w-6 text-primary" />
                 <div>
-                  <p className="text-xs text-gray-600 uppercase font-semibold">
+                  <p className="text-xs text-muted-foreground uppercase font-semibold">
                     Package ID
                   </p>
                   <p className="text-lg font-bold text-blue-900">
@@ -166,13 +170,32 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
                   </p>
                 </div>
               </div>
+              {order.shipping?.carrier && (
+                <div className="mt-3 pt-3 border-t border-blue-200">
+                  <p className="text-xs text-muted-foreground uppercase font-semibold">
+                    Shipping Estimate
+                  </p>
+                  <p className="text-sm text-blue-800 mt-1">
+                    Courier: {order.shipping.carrier}
+                  </p>
+                  {order.shipping.estimatedDelivery && (
+                    <p className="text-sm text-blue-800">
+                      Est. Delivery: {new Date(order.shipping.estimatedDelivery).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Addresses Section */}
             <div className="grid grid-cols-2 gap-6 mb-6 print:grid-cols-2">
               {/* Shipping Address */}
               <div>
-                <h3 className="text-sm font-bold uppercase text-gray-700 mb-3 pb-1 border-b border-gray-300">
+                <h3 className="text-sm font-bold uppercase text-foreground mb-3 pb-1 border-b border-border">
                   Shipping Address
                 </h3>
                 <div className="text-sm space-y-1">
@@ -197,11 +220,11 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
 
             {/* Order Items Table */}
             <div className="mb-6">
-              <h3 className="text-sm font-bold uppercase text-gray-700 mb-3 pb-1 border-b border-gray-300">
+              <h3 className="text-sm font-bold uppercase text-foreground mb-3 pb-1 border-b border-border">
                 Order Items
               </h3>
               <table className="w-full text-sm">
-                <thead className="bg-gray-100 border-y border-gray-300">
+                <thead className="bg-muted border-y border-border">
                   <tr>
                     <th className="text-left py-3 px-2 font-semibold">
                       Product
@@ -217,10 +240,10 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
                 </thead>
                 <tbody>
                   {order.items?.map((item, i) => (
-                    <tr key={i} className="border-b border-gray-200">
+                    <tr key={i} className="border-b border-border">
                       <td className="py-4 px-2">
                         <div className="flex gap-3 items-start">
-                          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded border border-gray-200 print:h-12 print:w-12">
+                          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded border border-border print:h-12 print:w-12">
                             <Image
                               src={item.images?.[0] || "/placeholder.svg"}
                               alt={item.name}
@@ -234,17 +257,17 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
                             {item.colorId &&
                               typeof item.colorId === "object" &&
                               item.colorId.name && (
-                                <p className="text-xs text-gray-600">
+                                <p className="text-xs text-muted-foreground">
                                   Color: {item.colorId.name}
                                 </p>
                               )}
                             {item.sizeId && (
-                              <p className="text-xs text-gray-600">
+                              <p className="text-xs text-muted-foreground">
                                 Size: {item.sizeId.name}
                               </p>
                             )}
                             {item.isPersonalized && item.personalizedName && (
-                              <p className="text-xs text-gray-600">
+                              <p className="text-xs text-muted-foreground">
                                 Personalized: {item.personalizedName}
                               </p>
                             )}
@@ -272,14 +295,14 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
               <div className="w-80">
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Subtotal:</span>
+                    <span className="text-muted-foreground">Subtotal:</span>
                     <span className="font-semibold">
                       ₹{order.pricing?.subtotal?.toLocaleString("en-IN")}
                     </span>
                   </div>
                   {(order.pricing?.discount?.amount ?? 0) > 0 && (
                     <div className="flex justify-between py-2">
-                      <span className="text-gray-600">Discount:</span>
+                      <span className="text-muted-foreground">Discount:</span>
                       <span className="font-semibold text-green-600">
                         -₹
                         {order.pricing?.discount?.amount?.toLocaleString(
@@ -290,18 +313,18 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
                   )}
                   {(order.pricing?.shipping ?? 0) > 0 ? (
                     <div className="flex justify-between py-2">
-                      <span className="text-gray-600">Shipping:</span>
+                      <span className="text-muted-foreground">Shipping:</span>
                       <span className="font-semibold">
                         ₹{order.pricing?.shipping?.toLocaleString("en-IN")}
                       </span>
                     </div>
                   ) : (
                     <div className="flex justify-between py-2">
-                      <span className="text-gray-600">Shipping:</span>
+                      <span className="text-muted-foreground">Shipping:</span>
                       <span className="font-semibold text-green-600">FREE</span>
                     </div>
                   )}
-                  <div className="flex justify-between py-3 border-t-2 border-gray-300 text-base">
+                  <div className="flex justify-between py-3 border-t-2 border-border text-base">
                     <span className="font-bold">Order Total:</span>
                     <span className="font-bold text-lg">
                       ₹{order.pricing?.total?.toLocaleString("en-IN")}
@@ -317,20 +340,20 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
                 <h4 className="font-semibold text-sm mb-2">
                   Customer Note:
                 </h4>
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-foreground">
                   {order.notes.customer}
                 </p>
               </div>
             )}
 
             {/* Footer */}
-            <div className="border-t-2 border-gray-200 pt-6 mt-6">
+            <div className="border-t-2 border-border pt-6 mt-6">
               <div className="text-center space-y-2">
                 <p className="font-semibold">Thank you for your order!</p>
-                <p className="text-sm text-gray-600">
-                  Questions about your order? Contact us at {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@toyshop.com"}
+                <p className="text-sm text-muted-foreground">
+                  Questions about your order? Contact us at {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@kidorakart.com"}
                 </p>
-                <p className="text-xs text-gray-500 mt-4">
+                <p className="text-xs text-muted-foreground mt-4">
                   This is a computer-generated invoice and does not require a
                   signature.
                 </p>

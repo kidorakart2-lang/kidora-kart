@@ -20,7 +20,7 @@ export default function DashboardLayout({
         className={`transition-all duration-300 ${isMobile ? "pl-0" : sidebarCollapsed ? "pl-16" : "pl-64"}`}
       >
         <Header />
-        <main className="p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <main className="p-6">
           {children}
         </main>
       </div>

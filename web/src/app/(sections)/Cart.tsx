@@ -6,11 +6,9 @@ import {
   ShoppingCart,
   Plus,
   Minus,
-  X,
   ChevronRight,
   Loader2,
   ShoppingBag,
-  Sparkles,
   ArrowRight,
   Trash2,
 } from "lucide-react";
@@ -268,10 +266,9 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
   };
 
   const subtotal = effectiveCart?._data?.totalPrice || 0;
-  const discountAmount = subtotal * 0;
-  const finalSubtotal = subtotal - discountAmount;
-  const shipping = finalSubtotal > 1000 ? 0 : 50;
-  const estimatedTotal = finalSubtotal + shipping;
+  const discountAmount = 0;
+  const shipping = 50;
+  const estimatedTotal = subtotal + shipping - discountAmount;
 
   const isGuestHydrating =
     !hasServerData && reduxCartItems.length > 0 && guestProductsLoading;
@@ -282,35 +279,28 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     }
     return (
       <div className="min-h-[70vh] flex items-center justify-center py-16">
-        <div className="text-center space-y-8 max-w-md px-4">
-          <div className="relative inline-block">
-            <div className="w-32 h-32 mx-auto mb-6 relative">
-              <AnimatedCart />
-            </div>
-            <div className="absolute -top-2 -right-2">
-              <Sparkles className="w-6 h-6 text-brand-500 animate-pulse" />
-            </div>
+        <div className="text-center space-y-6 max-w-sm px-4">
+          <div className="w-20 h-20 mx-auto rounded-full bg-muted flex items-center justify-center">
+            <ShoppingCart className="w-10 h-10 text-muted-foreground" strokeWidth={1.5} />
           </div>
 
-          <div className="space-y-3">
-            <h2 className="text-2xl md:text-3xl font-serif text-foreground">
+          <div className="space-y-2">
+            <h2 className="text-2xl fw-heading text-foreground tracking-tight">
               Your Cart is Empty
             </h2>
-            <p className="text-muted-foreground text-base">
-              Discover our exquisite jewelry collection and add items to your
-              cart
+            <p className="text-muted-foreground text-sm">
+              Discover our toy collection and add items to get started.
             </p>
           </div>
 
-          <button
-            onClick={() => router.push("/category/new-arrival")}
-            className="inline-flex items-center gap-2 btn-gradient font-medium py-3 px-8
-                     rounded-full transition-all duration-300 shadow-sm transform hover:scale-105"
+          <Link
+            href="/category/new-arrival"
+            className="inline-flex items-center gap-2 btn-gradient fw-cta py-3 px-8
+                     rounded-xl transition-all duration-300 shadow-sm"
           >
             <ShoppingBag size={18} />
             Start Shopping
-            <ChevronRight size={18} />
-          </button>
+          </Link>
         </div>
       </div>
     );
@@ -318,32 +308,18 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
   return (
     <>
-      <main className="py-12 md:py-16 bg-gradient-to-b from-brand-50/30 via-white to-brand-50/30 min-h-screen">
+      <main className="py-12 md:py-16 bg-gradient-to-b from-background via-background to-muted/30 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 mb-4">
-              <Sparkles className="w-5 h-5 text-brand-600 animate-pulse" />
-              <span className="text-sm font-medium text-muted-foreground tracking-wider uppercase">
-                Your Selection
-              </span>
-              <Sparkles className="w-5 h-5 text-brand-600 animate-pulse" />
-            </div>
-
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif text-foreground mb-4 tracking-wide">
+          <div className="mb-10">
+            <h1 className="text-3xl md:text-4xl fw-heading text-foreground tracking-tight">
               Shopping Cart
             </h1>
-
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-brand-600"></div>
-              <div className="w-3 h-3 bg-brand-600 rounded-full"></div>
-              <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-brand-600"></div>
-            </div>
-
-            <p className="text-muted-foreground text-base">
+            <p className="text-muted-foreground text-sm mt-2 font-light">
               {effectiveCart?._data?.totalItems || 0}{" "}
               {effectiveCart?._data?.totalItems === 1 ? "item" : "items"} in your cart
             </p>
+            <div className="h-px bg-gradient-to-r from-border via-border to-transparent mt-4" />
           </div>
 
           {(effectiveCart?._data?.items?.length ?? 0) > 0 && (
@@ -353,16 +329,10 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                 {effectiveCart?._data?.items.map((item) => (
                   <div
                     key={item._id}
-                    className="group bg-background rounded-2xl p-5 sm:p-6 shadow-md hover:shadow-xl 
-                             transition-all duration-300 border border-border hover:border-brand-200 
+                    className="group bg-background rounded-2xl p-5 sm:p-6 shadow-sm
+                             transition-all duration-300 border border-border
                              relative overflow-hidden"
                   >
-                    {/* Hover Gradient */}
-                    <div
-                      className="absolute inset-0 bg-gradient-to-br from-brand-50/0 to-transparent 
-                                  group-hover:from-brand-50/50 transition-all duration-500 pointer-events-none"
-                    />
-
                     <div className="flex gap-4 sm:gap-6 relative z-10">
                       {/* Product Image */}
                       <Link
@@ -370,8 +340,8 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                         className="flex-shrink-0"
                       >
                         <div
-                          className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden border-2 border-border 
-                                      group-hover:border-brand-300 transition-all duration-300 bg-gradient-to-br from-brand-50 to-muted"
+                          className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden border border-border
+                                      transition-all duration-300 bg-muted"
                         >
                           <Image
                             src={item.product.image ?? "/placeholder.svg"}
@@ -391,8 +361,8 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                               href={`/product-details/${item.product.slug}`}
                             >
                               <h3
-                                className="text-base sm:text-lg font-semibold text-foreground mb-2 
-                                           group-hover:text-brand-700 transition-colors line-clamp-2"
+                                className="text-base sm:text-lg font-semibold text-foreground mb-2
+                                           transition-colors line-clamp-2"
                               >
                                 {item.product.name}
                               </h3>
@@ -427,7 +397,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                             )}
 
                             {/* Price */}
-                            <p className="text-xl sm:text-2xl font-bold text-brand-600">
+                            <p className="text-xl sm:text-2xl font-bold text-foreground">
                               ₹
                               {(
                                 item.product.discount_price ||
@@ -439,14 +409,14 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                           {/* Remove Button */}
                           <button
                             onClick={() => removeItem(item._id)}
-                            className="flex-shrink-0 w-9 h-9 rounded-full bg-muted hover:bg-brand-accent-50 
-                                     border border-border hover:border-brand-accent-300 flex items-center justify-center 
-                                     transition-all duration-300 group/btn hover:scale-110"
+                            className="flex-shrink-0 w-9 h-9 rounded-full bg-muted hover:bg-destructive/10
+                                     border border-border hover:border-destructive/30 flex items-center justify-center
+                                     transition-all duration-300 group/btn"
                             aria-label="Remove item"
                           >
                             <Trash2
                               size={16}
-                              className="text-muted-foreground group-hover/btn:text-brand-accent-500 transition-colors"
+                              className="text-muted-foreground group-hover/btn:text-destructive transition-colors"
                             />
                           </button>
                         </div>
@@ -488,22 +458,16 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                         </div>
                       </div>
                     </div>
-
-                    {/* Bottom Shine */}
-                    <div
-                      className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent 
-                                  via-brand-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                    />
                   </div>
                 ))}
               </div>
 
               {/* Order Summary */}
               <div className="lg:col-span-1">
-                <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-xl border border-border sticky top-24">
+                <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border sticky top-24">
                   <div className="flex items-center gap-2 mb-6">
-                    <ShoppingBag className="w-5 h-5 text-brand-600" />
-                    <h2 className="text-xl font-semibold text-foreground">
+                    <ShoppingBag className="w-5 h-5 text-muted-foreground" />
+                    <h2 className="text-lg font-semibold text-foreground">
                       Order Summary
                     </h2>
                   </div>
@@ -528,39 +492,10 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
                     <div className="flex justify-between text-muted-foreground">
                       <span>Shipping</span>
-                      <span className="font-semibold">
-                        {shipping === 0 ? (
-                          <span className="text-emerald-600 flex items-center gap-1">
-                            <Sparkles size={14} />
-                            Free
-                          </span>
-                        ) : (
-                          <span className="text-foreground">
-                            ₹{shipping.toFixed(2)}
-                          </span>
-                        )}
+                      <span className="font-semibold text-foreground">
+                        ₹{shipping.toFixed(2)}
                       </span>
                     </div>
-
-                    {finalSubtotal < 1000 && (
-                      <div className="bg-brand-50 border border-brand-200 rounded-lg p-3">
-                        <p className="text-xs text-brand-800">
-                          Add ₹{(1000 - finalSubtotal).toFixed(2)} more for free
-                          shipping!
-                        </p>
-                        <div className="mt-2 bg-background rounded-full h-2 overflow-hidden">
-                          <div
-                            className="bg-gradient-to-r from-brand-400 to-brand-600 h-full transition-all duration-500"
-                            style={{
-                              width: `${Math.min(
-                                (finalSubtotal / 950) * 100,
-                                100
-                              )}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Total */}
@@ -568,7 +503,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                     <span className="text-lg font-semibold text-foreground">
                       Estimated Total
                     </span>
-                    <span className="text-2xl font-bold text-brand-600">
+                    <span className="text-2xl font-bold text-foreground">
                       ₹{estimatedTotal.toFixed(2)}
                     </span>
                   </div>
@@ -577,8 +512,8 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                   <div className="space-y-3">
                     <Link href="/checkout?type=cart">
                       <button
-                        className="w-full btn-gradient font-semibold 
-                                       py-4 rounded-xl transition-all duration-300 shadow-sm transform hover:scale-[1.02]
+                        className="w-full btn-gradient fw-cta
+                                       py-4 rounded-xl transition-all duration-300 shadow-sm
                                        flex items-center justify-center gap-2"
                       >
                         Proceed to Checkout
@@ -588,9 +523,9 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
                     <Link href="/">
                       <button
-                        className="w-full mt-4  bg-background border-2 border-border hover:border-brand-400 
-                                       text-muted-foreground hover:text-brand-700 font-medium py-4 rounded-xl 
-                                       transition-all duration-300 hover:bg-brand-50"
+                        className="w-full mt-4 bg-background border border-border hover:border-foreground/30
+                                       text-muted-foreground hover:text-foreground fw-cta py-4 rounded-xl
+                                       transition-all duration-300"
                       >
                         Continue Shopping
                       </button>
@@ -629,7 +564,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                           />
                         </svg>
                       </div>
-                      <span>BIS Hallmark Certified</span>
+                      <span>100% Safe & Tested</span>
                     </div>
                   </div>
                 </div>
@@ -647,29 +582,15 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 const CartSkeleton = ({ itemCount }: { itemCount: number }) => {
   const cards = Array.from({ length: Math.max(itemCount, 1) });
   return (
-    <main className="py-12 md:py-16 bg-gradient-to-b from-brand-50/30 via-white to-brand-50/30 min-h-screen">
+    <main className="py-12 md:py-16 bg-gradient-to-b from-background via-background to-muted/30 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <Sparkles className="w-5 h-5 text-brand-600 animate-pulse" />
-            <span className="text-sm font-medium text-muted-foreground tracking-wider uppercase">
-              Your Selection
-            </span>
-            <Sparkles className="w-5 h-5 text-brand-600 animate-pulse" />
-          </div>
-
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif text-foreground mb-4 tracking-wide">
+        <div className="mb-10">
+          <h1 className="text-3xl md:text-4xl fw-heading text-foreground tracking-tight">
             Shopping Cart
           </h1>
-
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-brand-600"></div>
-            <Loader2 className="w-4 h-4 text-brand-600 animate-spin" />
-            <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-brand-600"></div>
-          </div>
-
-          <p className="text-muted-foreground text-base">Loading your cart…</p>
+          <p className="text-muted-foreground text-sm mt-2 font-light">Loading your cart…</p>
+          <div className="h-px bg-gradient-to-r from-border via-border to-transparent mt-4" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -724,25 +645,10 @@ export const LoadingUi = ({ hidden }: { hidden: boolean }) => {
       }
     >
       <div className="text-center">
-        <Loader2 className="w-12 h-12 animate-spin text-brand-600 mx-auto mb-3" />
-        <p className="text-muted-foreground text-sm">Updating ...</p>
+        <Loader2 className="w-10 h-10 animate-spin text-foreground mx-auto mb-3" />
+        <p className="text-muted-foreground text-sm">Updating…</p>
       </div>
     </div>
   );
 };
 
-const AnimatedCart = () => {
-  return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      <div
-        className="absolute inset-0 rounded-full border-2 border-brand-300 animate-ping"
-        style={{ animationDuration: "2s" }}
-      />
-      <div className="absolute inset-4 rounded-full border-2 border-brand-400 animate-pulse" />
-      <ShoppingCart
-        className="w-16 h-16 text-brand-500 relative z-10"
-        strokeWidth={1.5}
-      />
-    </div>
-  );
-};

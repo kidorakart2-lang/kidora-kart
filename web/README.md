@@ -1,6 +1,6 @@
 # Web — Storefront
 
-Next.js 16 customer-facing storefront for the Toy Shop e-commerce platform.
+Next.js 16 customer-facing storefront for the Kidora Kart e-commerce platform.
 
 ## Tech Stack
 
@@ -188,7 +188,7 @@ Copy `web/.env.example` to `.env.local`:
 ```
 NEXT_PUBLIC_API_URL=http://localhost:5000/
 REVALIDATE_SECRET=your-random-secret-here
-NEXT_PUBLIC_CDN_HOST=cdn.toyshop.com
+NEXT_PUBLIC_CDN_HOST=cdn.kidorakart.com
 ```
 
 | Variable | Description |
@@ -196,6 +196,9 @@ NEXT_PUBLIC_CDN_HOST=cdn.toyshop.com
 | `NEXT_PUBLIC_API_URL` | Backend API base URL for server component data fetching |
 | `REVALIDATE_SECRET` | Shared secret with admin panel — validates `/api/revalidate` requests |
 | `NEXT_PUBLIC_CDN_HOST` | CDN hostname used in Content-Security-Policy header and next/image remotePatterns |
+| `AI_PROVIDER` | **Backend-only.** AI provider: `"gemini"` (default) or `"openrouter"`. See `api/.env.example` |
+| `OPENROUTER_API_KEY` | **Backend-only.** OpenRouter API key (required when `AI_PROVIDER=openrouter`). See `api/.env.example` |
+| `OPENROUTER_MODEL` | **Backend-only.** OpenRouter model ID, e.g. `"openrouter/free"` (default). See `api/.env.example` |
 
 ## Cache Components (`"use cache"`)
 

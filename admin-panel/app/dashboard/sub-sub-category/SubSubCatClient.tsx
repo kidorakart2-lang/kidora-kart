@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import NewMultiSelect from "../../../components/NewMultiSelect";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import SingleImageUploader from "@/components/SingleImageUploader";
+import BannersSelect from "@/components/BannersSelect";
 
 export interface SubSubCategoryItem {
   _id: string;
@@ -72,9 +73,10 @@ export default function SubSubCategoriesClient({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [formData, setFormData] = useState<{ name: string; image: any }>({
+  const [formData, setFormData] = useState<{ name: string; image: any; bannerId: string }>({
     name: "",
     image: null,
+    bannerId: "",
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -98,7 +100,7 @@ export default function SubSubCategoriesClient({
     mutationFn: createSubSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subSubCategories"] });
-      invalidateCache(["categories", "homepage", "navigation"]);
+      invalidateCache(["categories", "homepage", "navigation", "banners"]);
       toast({ title: "Sub sub category created successfully" });
       closeDrawer();
     },
@@ -111,7 +113,7 @@ export default function SubSubCategoriesClient({
     mutationFn: updateSubSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subSubCategories"] });
-      invalidateCache(["categories", "homepage", "navigation"]);
+      invalidateCache(["categories", "homepage", "navigation", "banners"]);
       toast({ title: "Sub sub category updated successfully" });
       closeDrawer();
     },
@@ -124,7 +126,7 @@ export default function SubSubCategoriesClient({
     mutationFn: deleteSubSubCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subSubCategories"] });
-      invalidateCache(["categories", "homepage", "navigation"]);
+      invalidateCache(["categories", "homepage", "navigation", "banners"]);
       toast({ title: "Sub sub category deleted successfully" });
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
@@ -140,7 +142,7 @@ export default function SubSubCategoriesClient({
     mutationFn: changeSubSubCategoryStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subSubCategories"] });
-      invalidateCache(["categories", "homepage", "navigation"]);
+      invalidateCache(["categories", "homepage", "navigation", "banners"]);
       toast({ title: "Sub sub category status updated successfully" });
     },
     onError: (error) => {
@@ -151,7 +153,7 @@ export default function SubSubCategoriesClient({
   const closeDrawer = () => {
     setDrawerOpen(false);
     setEditingCategory(null);
-    setFormData({ name: "", image: null });
+    setFormData({ name: "", image: null, bannerId: "" });
     setImagePreview(null);
     setCategoryId([]);
   };
@@ -161,6 +163,7 @@ export default function SubSubCategoriesClient({
     setFormData({
       name: category.name || "",
       image: null,
+      bannerId: (category as any).bannerId || "",
     });
     setCategoryId(
       Array.isArray(category.subCategory)
@@ -205,6 +208,7 @@ export default function SubSubCategoriesClient({
 
     const submitData = new FormData();
     submitData.append("name", formData.name);
+    if (formData.bannerId) submitData.append("bannerId", formData.bannerId);
     if (formData.image instanceof File) {
       submitData.append("image", formData.image);
     }
@@ -274,7 +278,7 @@ export default function SubSubCategoriesClient({
           <Button
             onClick={() => {
               setEditingCategory(null);
-              setFormData({ name: "", image: null });
+              setFormData({ name: "", image: null, bannerId: "" });
               setImagePreview(null);
               setCategoryId([]);
               setDrawerOpen(true);
@@ -303,7 +307,7 @@ export default function SubSubCategoriesClient({
             <Button
               onClick={() => {
                 setEditingCategory(null);
-                setFormData({ name: "", image: null });
+                setFormData({ name: "", image: null, bannerId: "" });
                 setImagePreview(null);
                 setCategoryId([]);
                 setDrawerOpen(true);
@@ -436,6 +440,12 @@ export default function SubSubCategoriesClient({
             }}
             disabled={isPending}
             className="animate-in slide-in-from-right duration-300 delay-150"
+          />
+
+          <BannersSelect
+            value={formData.bannerId}
+            onChange={(bannerId) => setFormData({ ...formData, bannerId })}
+            disabled={isPending}
           />
 
           <div className="space-y-2 animate-in slide-in-from-right duration-300 delay-75 z-[2000] h-full">

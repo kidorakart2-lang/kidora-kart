@@ -38,6 +38,11 @@ const categorySchema = new Schema(
       type: String,
       trim: true,
     },
+    bannerId: {
+      type: Schema.Types.ObjectId,
+      ref: "banners",
+      default: null,
+    },
   },
   {
     timestamps: true,

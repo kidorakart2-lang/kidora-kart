@@ -4,7 +4,7 @@ import { siteConfig, defaultMetadata } from "@/lib/utils";
 
 export function generateMetadata() {
   const baseTitle = "My Account";
-  const baseDescription = `Manage your jewellery preferences, orders, and personal information at ${siteConfig.name}.`;
+  const baseDescription = `Manage your toy preferences, orders, and personal information at ${siteConfig.name}.`;
 
   return {
     ...defaultMetadata,

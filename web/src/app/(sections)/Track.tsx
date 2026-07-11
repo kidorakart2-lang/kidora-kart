@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { LoadingUi } from "./Cart";
+import { siteConfig } from "@/lib/utils";
 import { motion } from "motion/react";
 import {
   Package,
@@ -27,14 +28,18 @@ import {
   Phone,
   Mail,
   Search,
+  Printer,
 } from "lucide-react";
 import { toast } from "sonner";
+import { getAuthToken } from "@/lib/getAuthToken";
 import type { OrderTrackingResponse } from "@/types";
 
 export default function OrderTracking() {
   const [orderNumber, setOrderNumber] = useState("");
   const [searchOrderId, setSearchOrderId] = useState<string>("");
   const [retryLoading, setRetryLoading] = useState(false);
+  const [trackingData, setTrackingData] = useState<Record<string, unknown> | null>(null);
+  const [trackingLoading, setTrackingLoading] = useState(false);
 
   const searchParams = useSearchParams();
   const urlOrderId = searchParams?.get("orderId") || "";
@@ -101,7 +106,7 @@ export default function OrderTracking() {
         key: keyId,
         amount: amount * 100,
         currency: currency,
-        name: "Jewellery walla",
+        name: "Kidora Kart",
         description: `Order ${orderIdVal}`,
         order_id: razorpayOrderId,
         prefill: {
@@ -148,11 +153,49 @@ export default function OrderTracking() {
     }
   };
 
+  // ── Fetch Shiprocket tracking data when order has tracking info ──
+  useEffect(() => {
+    if (effectiveOrderId && orderDetails?.order?.shipping?.trackingNumber) {
+      fetchShiprocketTracking(effectiveOrderId);
+    } else {
+      setTrackingData(null);
+    }
+  }, [effectiveOrderId, orderDetails?.order?.shipping?.trackingNumber]);
+
+  const fetchShiprocketTracking = async (orderId: string) => {
+    setTrackingLoading(true);
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL + "api/website";
+      const token = getAuthToken();
+      const res = await fetch(`${API_URL}/shipping/track/${orderId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: "include",
+      });
+      if (res.ok) {
+        const json = await res.json() as { success: boolean; data?: Record<string, unknown> };
+        if (json.success && json.data) {
+          setTrackingData(json.data);
+        }
+      }
+    } catch {
+      // Tracking fetch failed silently
+      setTrackingData(null);
+    }
+    setTrackingLoading(false);
+  };
+
   const handleTrackOrder = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (orderNumber.trim()) {
       setSearchOrderId(orderNumber);
     }
+  };
+
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = `Invoice-${orderDetails?.order?.orderId || "order"}`;
+    window.print();
+    document.title = originalTitle;
   };
 
   const fetchOrder = () => {
@@ -186,7 +229,7 @@ export default function OrderTracking() {
       return "bg-destructive text-destructive-foreground";
     }
     if (isActive) {
-      return "bg-brand-500 text-background";
+      return "bg-foreground text-background";
     }
     if (isCompleted) {
       return "bg-emerald-500 text-background";
@@ -208,7 +251,7 @@ export default function OrderTracking() {
 
   if (effectiveOrderId && !orderDetails?.order) {
     return (
-      <div className="min-h-[50vh] bg-gradient-to-b from-background to-brand-50/30 p-4 md:p-10 flex flex-col items-center justify-center">
+      <div className="min-h-[50vh] bg-gradient-to-b from-background to-muted/30 p-4 md:p-10 flex flex-col items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -236,22 +279,22 @@ export default function OrderTracking() {
     orderDetails?.order?.status === "pending";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-brand-50/30 p-4 md:p-10">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 p-4 md:p-10">
       {effectiveOrderId == "" || !effectiveOrderId ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="max-w-3xl mx-auto"
         >
-          <h1 className="text-3xl font-light text-foreground tracking-tight mb-2">Track Your Order</h1>
+           <h1 className="text-3xl fw-heading text-foreground tracking-tight mb-2">Track Your Order</h1>
           <p className="text-muted-foreground font-sans mb-6">
             Enter your order details to see its current status. <br />
-            <span className="text-brand-500 text-sm">
+            <span className="text-muted-foreground text-sm">
               or You Can Check your order status in Profile
             </span>
           </p>
 
-          <div className="bg-background rounded-2xl shadow-sm border border-brand-100 p-6 mb-10">
+          <div className="bg-background rounded-2xl shadow-sm border border-border p-6 mb-10">
             <div className="mb-4">
               <Label className="block text-muted-foreground font-medium mb-1">
                 Order Number
@@ -267,7 +310,7 @@ export default function OrderTracking() {
             </div>
             <Button
               onClick={handleTrackOrder}
-              className="btn-gradient font-semibold px-6 py-2 rounded-xl"
+              className="btn-gradient fw-cta px-6 py-2 rounded-xl"
             >
               <Search className="w-4 h-4 mr-2" />
               Track Order
@@ -275,22 +318,120 @@ export default function OrderTracking() {
           </div>
         </motion.div>
       ) : (
+        <>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="max-w-5xl mx-auto space-y-6"
+          className="max-w-5xl mx-auto space-y-6 screen-only"
         >
-          {/* Order Header — clean white card instead of gradient */}
+          {/* Print styles — hide everything except the invoice section */}
+          <style>{`
+            @media print {
+              body { background: white !important; }
+              @page { margin: 1.5cm; }
+              .no-print { display: none !important; }
+              .print-break-inside { break-inside: avoid; }
+              .bg-gradient-to-b { background: white !important; }
+              .print-only { display: block !important; }
+              .print-only-table { display: table !important; }
+              .screen-only { display: none !important; }
+              .print\:hidden { display: none !important; }
+            }
+            .print-only { display: none; }
+          `}</style>
+
+          {/* ── Screen-only order header ── */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-background rounded-2xl p-6 shadow-sm border border-brand-100"
+            className="bg-background rounded-2xl p-6 shadow-sm border border-border"
           >
             <div className="flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <h1 className="text-2xl md:text-3xl font-light text-foreground tracking-tight mb-2">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-2xl md:text-3xl fw-heading text-foreground tracking-tight mb-2">
                   Order {orderDetails?.order?.orderId}
                 </h1>
+
+                {/* AWB / Tracking Number — prominent badge */}
+                {orderDetails?.order?.shipping?.trackingNumber && (
+                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500/10 to-indigo-600/5 text-indigo-700 px-4 py-2 rounded-xl border border-indigo-200 shadow-sm mb-3">
+                    <Package className="w-4 h-4 text-indigo-500" />
+                    <span className="font-semibold text-sm">AWB:</span>
+                    <span className="font-mono font-bold text-sm tracking-wide">
+                      {orderDetails.order.shipping.trackingNumber}
+                    </span>
+                    {orderDetails?.order?.shipping?.trackingUrl && (
+                      <a
+                        href={orderDetails.order.shipping.trackingUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-indigo-700 hover:text-indigo-900 underline ml-2"
+                      >
+                        Track on Shiprocket →
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {/* Estimated Delivery Subheading — prominent at top */}
+                {orderDetails?.order?.shipping?.estimatedDelivery && !isDelivered && !isCancelled && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15, duration: 0.4 }}
+                    className="mb-2"
+                  >
+                    <div className="inline-flex flex-col bg-gradient-to-r from-brand-500/10 to-brand-600/5 text-brand-700 px-4 py-2 rounded-xl border border-brand-200 shadow-sm">
+                      <div className="flex items-center gap-2">
+                        <Truck className="w-4 h-4 text-brand-500" />
+                        <span className="font-semibold text-sm">
+                          Estimated Delivery:
+                        </span>
+                        <span className="font-bold text-sm">
+                          {new Date(orderDetails.order.shipping.estimatedDelivery).toLocaleDateString("en-IN", {
+                            weekday: "short",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </div>
+                      {orderDetails?.order?.shipping?.carrier && (
+                        <p className="text-[10px] text-brand-600/70 mt-0.5">
+                          via {orderDetails.order.shipping.carrier}
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* For delivered orders — show 'Delivered on' instead */}
+                {isDelivered && orderDetails?.order?.statusHistory?.find((s) => s.status === "delivered") && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15, duration: 0.4 }}
+                    className="mb-2"
+                  >
+                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500/10 to-emerald-600/5 text-emerald-700 px-4 py-2 rounded-xl border border-emerald-200 shadow-sm">
+                      <CheckCircle className="w-4 h-4 text-emerald-500" />
+                      <span className="font-semibold text-sm">
+                        Delivered:
+                      </span>
+                      <span className="font-bold text-sm">
+                        {new Date(
+                          orderDetails.order.statusHistory.find((s) => s.status === "delivered")!.timestamp
+                        ).toLocaleDateString("en-IN", {
+                          weekday: "short",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+
                 <p className="text-muted-foreground text-sm flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   Placed on{" "}
@@ -306,30 +447,48 @@ export default function OrderTracking() {
                   )}
                 </p>
               </div>
-              {isCancelled && (
-                <div className="bg-destructive/10 px-4 py-2 rounded-xl border border-destructive/20">
-                  <p className="font-semibold flex items-center gap-2 text-destructive">
-                    <XCircle className="w-5 h-5" />
-                    Order Cancelled
-                  </p>
-                </div>
-              )}
-              {isDelivered && (
-                <div className="bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200">
-                  <p className="font-semibold flex items-center gap-2 text-emerald-700">
-                    <CheckCircle className="w-5 h-5" />
-                    Delivered Successfully
-                  </p>
-                </div>
-              )}
-              {isPaymentFailed && (
-                <div className="bg-brand-50 px-4 py-2 rounded-xl border border-brand-200">
-                  <p className="font-semibold flex items-center gap-2 text-brand-700">
-                    <AlertTriangle className="w-5 h-5" />
-                    Payment Failed
-                  </p>
-                </div>
-              )}
+              <div className="flex items-center gap-3 no-print">
+                <button
+                  onClick={handlePrint}
+                  className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted transition-colors"
+                  title="Print invoice"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print
+                </button>
+                {orderDetails?.order?.shipping?.carrier && orderDetails?.order?.status !== "delivered" && !isCancelled && (
+                  <div className="bg-blue-50 px-3 py-2 rounded-xl border border-blue-200" title={`Courier: ${orderDetails.order.shipping.carrier}`}>
+                    <p className="font-semibold flex items-center gap-1.5 text-blue-700 text-xs whitespace-nowrap">
+                      <Truck className="w-3.5 h-3.5" />
+                      {orderDetails.order.shipping.carrier}
+                    </p>
+                  </div>
+                )}
+                {isCancelled && (
+                  <div className="bg-destructive/10 px-4 py-2 rounded-xl border border-destructive/20">
+                    <p className="font-semibold flex items-center gap-2 text-destructive">
+                      <XCircle className="w-5 h-5" />
+                      Order Cancelled
+                    </p>
+                  </div>
+                )}
+                {isDelivered && (
+                  <div className="bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200">
+                    <p className="font-semibold flex items-center gap-2 text-emerald-700">
+                      <CheckCircle className="w-5 h-5" />
+                      Delivered Successfully
+                    </p>
+                  </div>
+                )}
+                {isPaymentFailed && (
+                  <div className="bg-muted px-4 py-2 rounded-xl border border-border">
+                    <p className="font-semibold flex items-center gap-2 text-foreground">
+                      <AlertTriangle className="w-5 h-5" />
+                      Payment Failed
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
 
@@ -339,10 +498,10 @@ export default function OrderTracking() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
-              className={`bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md ${isPaymentFailed ? "opacity-70" : ""}`}
+              className={`bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border transition-all hover:shadow-md ${isPaymentFailed ? "opacity-70" : ""}`}
             >
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 rounded-full bg-brand-600 text-background flex items-center justify-center text-sm font-medium shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-medium shadow-sm">
                   1
                 </div>
                 <div>
@@ -586,10 +745,10 @@ export default function OrderTracking() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
-            className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md"
+            className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border transition-all hover:shadow-md"
           >
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-8 h-8 rounded-full bg-brand-600 text-background flex items-center justify-center text-sm font-medium shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-medium shadow-sm">
                 2
               </div>
               <div>
@@ -629,7 +788,7 @@ export default function OrderTracking() {
                       <span className="text-sm text-muted-foreground">
                         Qty: {item.quantity}
                       </span>
-                      <span className="text-lg font-semibold text-brand-600">
+                      <span className="text-lg font-semibold text-foreground">
                         ₹{item.priceAtPurchase.toLocaleString("en-IN")}
                       </span>
                     </div>
@@ -653,9 +812,9 @@ export default function OrderTracking() {
                       </p>
                     )}
                     {item.isPersonalized && item.personalizedName && (
-                      <p className="text-sm text-muted-foreground mt-2 bg-brand-50 px-2 py-1 rounded inline-block">
+                      <p className="text-sm text-muted-foreground mt-2 bg-muted px-2 py-1 rounded inline-block">
                         <span className="font-medium">Personalized:</span>{" "}
-                        <span className="text-brand-600">
+                        <span className="text-foreground">
                           {item.personalizedName}
                         </span>
                       </p>
@@ -669,14 +828,14 @@ export default function OrderTracking() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="mt-4 p-4 bg-brand-accent-50 border-l-4 border-brand-accent-400 rounded-r-lg"
+                className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg"
               >
                 <div className="flex items-start gap-2">
-                  <Gift className="w-5 h-5 text-brand-accent-600 flex-shrink-0 mt-0.5" />
+                  <Gift className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-brand-accent-900">Gift Order</p>
+                    <p className="font-semibold text-blue-900">Gift Order</p>
                     {orderDetails?.order?.giftMessage && (
-                      <p className="text-sm text-brand-accent-700 mt-1">
+                      <p className="text-sm text-blue-700 mt-1">
                         <span className="font-medium">Message:</span>{" "}
                         {orderDetails?.order?.giftMessage}
                       </p>
@@ -692,10 +851,10 @@ export default function OrderTracking() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
-            className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md"
+            className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border transition-all hover:shadow-md"
           >
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-brand-600 text-background flex items-center justify-center text-sm font-medium shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-medium shadow-sm">
                 3
               </div>
               <h2 className="font-semibold text-foreground text-base">
@@ -735,7 +894,7 @@ export default function OrderTracking() {
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.45, duration: 0.5, ease: "easeOut" }}
-                className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md"
+                className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border transition-all hover:shadow-md"
               >
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
@@ -774,7 +933,7 @@ export default function OrderTracking() {
                               : orderDetails.order.cancellation
                                   .refundStatus === "failed"
                               ? "text-destructive"
-                              : "text-brand-600"
+                              : "text-foreground"
                           }`}
                         >
                           {orderDetails.order.cancellation.refundStatus
@@ -826,10 +985,10 @@ export default function OrderTracking() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
-            className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md"
+            className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border transition-all hover:shadow-md"
           >
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-brand-600 text-background flex items-center justify-center text-sm font-medium shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-medium shadow-sm">
                 4
               </div>
               <h2 className="font-semibold text-foreground text-base">
@@ -880,7 +1039,7 @@ export default function OrderTracking() {
               )}
               <div className="flex justify-between font-bold text-lg pt-3 border-t border-border">
                 <span className="text-foreground">Total</span>
-                <span className="text-brand-600">
+                <span className="text-foreground">
                   ₹
                   {orderDetails?.order?.pricing?.total?.toLocaleString(
                     "en-IN"
@@ -895,12 +1054,12 @@ export default function OrderTracking() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55, duration: 0.5, ease: "easeOut" }}
-            className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md"
+            className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border transition-all hover:shadow-md"
           >
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 rounded-full bg-brand-600 text-background flex items-center justify-center text-sm font-medium shadow-sm">
+                  <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-medium shadow-sm">
                     5
                   </div>
                   <h2 className="font-semibold text-foreground text-base">
@@ -940,7 +1099,7 @@ export default function OrderTracking() {
               {!isDelivered && !isCancelled && (
                 <div>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-brand-600 text-background flex items-center justify-center text-sm font-medium shadow-sm">
+                    <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-medium shadow-sm">
                       6
                     </div>
                     <h2 className="font-semibold text-foreground text-base">
@@ -949,35 +1108,133 @@ export default function OrderTracking() {
                   </div>
                   <div className="space-y-3">
                     {orderDetails?.order?.shippingAddress?.instructions && (
-                      <div className="bg-brand-50 p-4 rounded-xl border-l-4 border-brand-400">
-                        <p className="text-sm font-medium text-brand-900 mb-1">
+                      <div className="bg-muted p-4 rounded-xl border-l-4 border-border">
+                        <p className="text-sm font-medium text-foreground mb-1">
                           Delivery Instructions
                         </p>
-                        <p className="text-sm text-brand-700">
+                        <p className="text-sm text-muted-foreground">
                           {orderDetails?.order?.shippingAddress?.instructions}
                         </p>
                       </div>
                     )}
 
-                    <div className="bg-brand-50 p-4 rounded-xl border-l-4 border-brand-400">
-                      <p className="text-sm font-medium text-brand-900 mb-1">
+                    <div className="bg-muted p-4 rounded-xl border-l-4 border-border">
+                      <p className="text-sm font-medium text-foreground mb-1">
                         Package ID
                       </p>
-                      <p className="text-sm text-brand-700 font-mono">
+                      <p className="text-sm text-muted-foreground font-mono">
                         {orderDetails?.order?.packageId}
                       </p>
                     </div>
+
+                    {orderDetails?.order?.shipping?.carrier && (
+                      <>
+                        {/* Shipping Estimate — richer details */}
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-50/50 p-4 rounded-xl border-l-4 border-blue-400">
+                          <p className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                            <Truck className="w-4 h-4" />
+                            Shipping Estimate
+                          </p>
+                          <div className="space-y-1.5 text-sm">
+                            <div className="flex items-center justify-between">
+                              <span className="text-blue-600">Courier Partner</span>
+                              <span className="font-medium text-blue-900">{orderDetails.order.shipping.carrier}</span>
+                            </div>
+                            {orderDetails.order.shipping.estimatedDelivery && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-blue-600">Estimated Delivery</span>
+                                <span className="font-semibold text-blue-800">
+                                  {new Date(orderDetails.order.shipping.estimatedDelivery).toLocaleDateString("en-IN", {
+                                    weekday: "short",
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                  })}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Live Shiprocket Tracking */}
+                        {orderDetails?.order?.shipping?.trackingNumber && (
+                          <div className="bg-gradient-to-br from-indigo-50 to-indigo-50/50 p-4 rounded-xl border-l-4 border-indigo-400">
+                            <p className="text-sm font-semibold text-indigo-900 mb-2 flex items-center gap-2">
+                              <Package className="w-4 h-4" />
+                              Shipment Tracking
+                            </p>
+
+                            <div className="space-y-1.5 text-sm">
+                              <div className="flex items-center justify-between">
+                                <span className="text-indigo-600">AWB Number</span>
+                                <span className="font-mono font-bold text-indigo-900">
+                                  {orderDetails.order.shipping.trackingNumber}
+                                </span>
+                              </div>
+
+                              {orderDetails.order.shipping.carrier && (
+                                <div className="flex items-center justify-between">
+                                  <span className="text-indigo-600">Courier</span>
+                                  <span className="font-medium text-indigo-800">{orderDetails.order.shipping.carrier}</span>
+                                </div>
+                              )}
+
+                              {orderDetails.order.shipping.shippedAt && (
+                                <div className="flex items-center justify-between">
+                                  <span className="text-indigo-600">Shipped On</span>
+                                  <span className="font-medium text-indigo-800">
+                                    {new Date(orderDetails.order.shipping.shippedAt).toLocaleDateString("en-IN", {
+                                      year: "numeric",
+                                      month: "short",
+                                      day: "numeric",
+                                    })}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            {trackingLoading && (
+                              <div className="animate-pulse flex items-center gap-2 text-xs text-indigo-600 mt-2">
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                Fetching tracking updates...
+                              </div>
+                            )}
+
+                            {trackingData && (
+                              <div className="mt-2 pt-2 border-t border-indigo-200">
+                                <ShiprocketTrackingStatus
+                                  shiprocketTracking={trackingData.shiprocketTracking as Record<string, unknown> | null}
+                                  currentStatus={trackingData.currentStatus as string}
+                                />
+                              </div>
+                            )}
+
+                            {orderDetails?.order?.shipping?.trackingUrl && (
+                              <a
+                                href={orderDetails.order.shipping.trackingUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-xs font-medium text-indigo-700 hover:text-indigo-900 underline mt-2"
+                              >
+                                <Truck className="w-3 h-3" />
+                                Track on Shiprocket →
+                              </a>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               )}
 
               {/* Customer's own order note */}
               {orderDetails?.order?.notes?.customer && (
-                <div className="bg-brand-accent-50 p-4 rounded-xl border-l-4 border-brand-accent-400">
-                  <p className="text-sm font-medium text-brand-accent-900 mb-1">
+                <div className="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-400">
+                  <p className="text-sm font-medium text-blue-900 mb-1">
                     Your Note
                   </p>
-                  <p className="text-sm text-brand-accent-700">
+                  <p className="text-sm text-blue-700">
                     {orderDetails?.order?.notes?.customer}
                   </p>
                 </div>
@@ -990,7 +1247,7 @@ export default function OrderTracking() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
-            className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md"
+            className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border transition-all hover:shadow-md"
           >
             <h2 className="font-semibold text-foreground text-base mb-4">
               Track Another Order
@@ -1006,7 +1263,7 @@ export default function OrderTracking() {
               />
               <Button
                 onClick={handleTrackOrder}
-                className="btn-gradient font-semibold px-6 py-2 rounded-xl"
+                className="btn-gradient fw-cta px-6 py-2 rounded-xl"
               >
                 <Search className="w-4 h-4 mr-2" />
                 Track Order
@@ -1014,6 +1271,225 @@ export default function OrderTracking() {
             </div>
           </motion.div>
         </motion.div>
+
+        {/* ── Print-only Invoice Section ── */}
+        <div className="print-only bg-white" id="print-invoice">
+            {/* Company Header */}
+            <div className="border-b-2 border-black pb-4 mb-6">
+              <h1 className="text-2xl font-bold mb-1">{siteConfig.name}</h1>
+              <p className="text-sm text-gray-600">Order Invoice</p>
+            </div>
+
+            {/* Order Info Bar */}
+            <div className="bg-gray-50 p-4 rounded-lg mb-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase mb-1">Order Number</p>
+                  <p className="font-semibold">{orderDetails?.order?.orderId}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 uppercase mb-1">Order Date</p>
+                  <p className="font-semibold">
+                    {new Date(orderDetails?.order?.createdAt ?? "").toLocaleDateString("en-IN", {
+                      day: "numeric", month: "short", year: "numeric",
+                      hour: "2-digit", minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tracking / AWB Info */}
+            {orderDetails?.order?.shipping?.trackingNumber && (
+              <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <Package className="h-6 w-6 text-indigo-600" />
+                  <div>
+                    <p className="text-xs text-gray-600 uppercase font-semibold">AWB / Tracking ID</p>
+                    <p className="text-lg font-bold text-indigo-900">
+                      {orderDetails.order.shipping.trackingNumber}
+                    </p>
+                  </div>
+                </div>
+                {orderDetails.order.shipping.carrier && (
+                  <p className="text-xs text-indigo-700 mt-1">
+                    Courier: {orderDetails.order.shipping.carrier}
+                  </p>
+                )}
+                {orderDetails.order.shipping.trackingUrl && (
+                  <p className="text-xs text-indigo-700 mt-1">
+                    Track at: {orderDetails.order.shipping.trackingUrl}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Package ID */}
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <Package className="h-6 w-6 text-blue-600" />
+                <div>
+                  <p className="text-xs text-gray-600 uppercase font-semibold">Package ID</p>
+                  <p className="text-lg font-bold text-blue-900">{orderDetails?.order?.packageId}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Shipping Address */}
+            <div className="mb-6">
+              <h3 className="text-sm font-bold uppercase text-gray-700 mb-3 pb-1 border-b border-gray-300">
+                Shipping Address
+              </h3>
+              <div className="text-sm space-y-1">
+                <p className="font-semibold">{orderDetails?.order?.shippingAddress?.fullName}</p>
+                <p>{orderDetails?.order?.shippingAddress?.street}</p>
+                <p>{orderDetails?.order?.shippingAddress?.area}</p>
+                <p>{orderDetails?.order?.shippingAddress?.city}, {orderDetails?.order?.shippingAddress?.state} {orderDetails?.order?.shippingAddress?.pincode}</p>
+                <p>India</p>
+                <p className="pt-2">Phone: {orderDetails?.order?.shippingAddress?.phone}</p>
+                <p>Email: {orderDetails?.order?.shippingAddress?.email}</p>
+              </div>
+            </div>
+
+            {/* Order Items Table */}
+            <div className="mb-6">
+              <h3 className="text-sm font-bold uppercase text-gray-700 mb-3 pb-1 border-b border-gray-300">
+                Order Items
+              </h3>
+              <table className="print-only-table w-full text-sm border-collapse">
+                <thead>
+                  <tr className="bg-gray-100 border-y border-gray-300">
+                    <th className="text-left py-3 px-2 font-semibold">Product</th>
+                    <th className="text-center py-3 px-2 font-semibold">Qty</th>
+                    <th className="text-right py-3 px-2 font-semibold">Price</th>
+                    <th className="text-right py-3 px-2 font-semibold">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orderDetails?.order?.items?.map((item, i) => (
+                    <tr key={i} className="border-b border-gray-200">
+                      <td className="py-3 px-2">
+                        <p className="font-medium">{item.name}</p>
+                        <p className="text-xs text-gray-500">Color: {item.colorId?.name}</p>
+                        {item.sizeId && <p className="text-xs text-gray-500">Size: {item.sizeId.name}</p>}
+                        {item.isPersonalized && item.personalizedName && (
+                          <p className="text-xs text-gray-500">Personalized: {item.personalizedName}</p>
+                        )}
+                      </td>
+                      <td className="py-3 px-2 text-center">{item.quantity}</td>
+                      <td className="py-3 px-2 text-right">₹{item.priceAtPurchase?.toLocaleString("en-IN")}</td>
+                      <td className="py-3 px-2 text-right font-semibold">
+                        ₹{(item.priceAtPurchase * item.quantity)?.toLocaleString("en-IN")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Order Summary */}
+            <div className="flex justify-end mb-6">
+              <div className="w-80">
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-600">Subtotal:</span>
+                    <span className="font-semibold">₹{orderDetails?.order?.pricing?.subtotal?.toLocaleString("en-IN")}</span>
+                  </div>
+                  {(orderDetails?.order?.pricing?.discount?.amount ?? 0) > 0 && (
+                    <div className="flex justify-between py-2">
+                      <span className="text-gray-600">Discount:</span>
+                      <span className="font-semibold text-green-600">
+                        -₹{orderDetails?.order?.pricing?.discount?.amount?.toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-600">Shipping:</span>
+                    <span className="font-semibold">
+                      {(orderDetails?.order?.pricing?.shipping ?? 0) > 0
+                        ? `₹${orderDetails?.order?.pricing?.shipping?.toLocaleString("en-IN")}`
+                        : "FREE"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-3 border-t-2 border-gray-300 text-base">
+                    <span className="font-bold">Total:</span>
+                    <span className="font-bold text-lg">₹{orderDetails?.order?.pricing?.total?.toLocaleString("en-IN")}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Info */}
+            <div className="mb-6 text-sm text-gray-600">
+              <p>Payment Method: {orderDetails?.order?.payment?.method === "COD" ? "Cash on Delivery" : orderDetails?.order?.payment?.method}</p>
+              <p>Payment Status: <span className="capitalize">{orderDetails?.order?.payment?.status?.replace("_", " ")}</span></p>
+            </div>
+
+            {/* Customer Note */}
+            {orderDetails?.order?.notes?.customer && (
+              <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400">
+                <h4 className="font-semibold text-sm mb-2">Customer Note:</h4>
+                <p className="text-sm text-gray-700">{orderDetails.order.notes.customer}</p>
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="border-t-2 border-gray-200 pt-6 mt-6">
+              <div className="text-center space-y-2">
+                <p className="font-semibold">Thank you for your order!</p>
+                <p className="text-sm text-gray-600">
+                  Questions? Contact us at {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@kidorakart.com"}
+                </p>
+                <p className="text-xs text-gray-500 mt-4">
+                  This is a computer-generated invoice and does not require a signature.
+                </p>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ShiprocketTrackingStatus({
+  shiprocketTracking,
+  currentStatus,
+}: {
+  shiprocketTracking: Record<string, unknown> | null;
+  currentStatus: string;
+}) {
+  const status =
+    (shiprocketTracking?.status as string) || currentStatus || "Pending";
+  const isDelivered = status === "Delivered";
+  const isInTransit =
+    status === "In Transit" || status === "Out for Delivery";
+  const edd = shiprocketTracking?.EDD as string | undefined;
+
+  return (
+    <div className="space-y-1.5 mt-1">
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs text-indigo-600">Status:</span>
+        <span
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+            isDelivered
+              ? "bg-green-100 text-green-800"
+              : isInTransit
+                ? "bg-blue-100 text-blue-800"
+                : "bg-amber-100 text-amber-800"
+          }`}
+        >
+          {status}
+        </span>
+      </div>
+      {edd && (
+        <p className="text-xs text-indigo-600">
+          EDD:{" "}
+          {new Date(edd).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+          })}
+        </p>
       )}
     </div>
   );

@@ -37,7 +37,7 @@ export default function NotFound() {
 
         <div className="mt-16 text-muted-foreground/60 text-sm">
           <p>
-            &copy; <CopyrightYear /> Jewellery Walla. All rights reserved.
+            &copy; <CopyrightYear /> Kidora Kart. All rights reserved.
           </p>
         </div>
       </div>

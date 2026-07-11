@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: process.env.NEXT_PUBLIC_CDN_HOST || "cdn.toyshop.com",
+        hostname: process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com",
       },
       {
         protocol: "https",

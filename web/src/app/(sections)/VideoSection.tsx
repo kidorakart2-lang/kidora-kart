@@ -149,7 +149,7 @@ export function VideoSection({
 
             {subtitle && (
               <p
-                className="text-base md:text-lg lg:text-xl mb-8 text-muted-foreground font-light max-w-lg leading-relaxed animate-video-fade-in"
+                className="text-base md:text-lg lg:text-xl mb-8 text-muted-foreground fw-body max-w-lg leading-relaxed animate-video-fade-in"
                 style={{ animationDelay: '0.6s' }}
               >
                 {subtitle}

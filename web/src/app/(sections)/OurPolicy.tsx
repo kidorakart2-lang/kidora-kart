@@ -16,7 +16,7 @@ const OurPolicy = () => {
     {
       title: "Quality Assurance",
       description:
-        `At ${siteConfig.name}, we are committed to providing our customers with the highest quality jewelry. Each piece is carefully crafted and inspected to ensure it meets our strict quality standards before reaching you.`,
+        `At ${siteConfig.name}, we are committed to providing our customers with the highest quality toys. Each product is carefully curated and inspected to ensure it meets our strict quality standards before reaching you.`,
       icon: Shield,
     },
     {
@@ -43,10 +43,10 @@ const OurPolicy = () => {
           transition={{ duration: 0.5 }}
           className="mb-12"
         >
-          <h1 className="text-3xl md:text-4xl font-serif text-foreground mb-3">
+           <h1 className="text-3xl md:text-4xl fw-heading text-foreground mb-3">
             Our Policies
           </h1>
-          <div className="w-16 h-0.5 bg-brand-600 mb-4"></div>
+          <div className="w-16 h-0.5 bg-foreground mb-4"></div>
           <p className="text-muted-foreground text-base leading-relaxed">
             At {siteConfig.name}, we are committed to providing you with an
             exceptional shopping experience. Here's how we ensure your
@@ -66,10 +66,10 @@ const OurPolicy = () => {
             return (
               <div
                 key={index}
-                className="border-l-4 border-brand-500 pl-6 py-2"
+                className="border-l-4 border-foreground/20 pl-6 py-2"
               >
                 <div className="flex items-start gap-3 mb-2">
-                  <IconComponent className="w-5 h-5 text-brand-600 mt-1 flex-shrink-0" />
+                  <IconComponent className="w-5 h-5 text-muted-foreground mt-1 flex-shrink-0" />
                   <h2 className="text-xl font-semibold text-foreground">
                     {policy.title}
                   </h2>
@@ -99,7 +99,7 @@ const OurPolicy = () => {
           <div className="space-y-6">
             <div>
               <div className="flex items-start gap-2 mb-2">
-                <Clock className="w-5 h-5 text-brand-600 mt-0.5 flex-shrink-0" />
+                <Clock className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                 <h3 className="text-lg font-semibold text-foreground">
                   Order Cancellation
                 </h3>
@@ -114,7 +114,7 @@ const OurPolicy = () => {
 
             <div>
               <div className="flex items-start gap-2 mb-2">
-                <RefreshCw className="w-5 h-5 text-brand-600 mt-0.5 flex-shrink-0" />
+                <RefreshCw className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                 <h3 className="text-lg font-semibold text-foreground">
                   Refund Processing
                 </h3>
@@ -128,10 +128,10 @@ const OurPolicy = () => {
               </p>
             </div>
 
-            <div className="bg-brand-50 border border-brand-200 rounded-lg p-4 pl-7">
+            <div className="bg-muted border border-border rounded-lg p-4 pl-7">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                <strong className="text-foreground">Note:</strong> For custom or
-                personalized jewelry, cancellations may not be available once
+                <strong className="text-foreground">Note:</strong> For personalized or custom
+                toy orders, cancellations may not be available once
                 production has begun. Please contact us immediately if you need
                 to make changes.
               </p>
@@ -179,12 +179,11 @@ const OurPolicy = () => {
             </p>
             <p>
               We're{" "}
-              <strong className="text-brand-700">
-                BIS Hallmark Certified
+              <strong className="text-foreground">
+                100% Quality Guaranteed
               </strong>
-              , ensuring authenticity and quality in every item. Product prices
-              may fluctuate according to current market rates of gold, silver,
-              and gemstones.
+              , ensuring safety and quality in every item. All our toys meet
+              the highest safety standards for your child's enjoyment.
             </p>
           </div>
         </motion.div>
@@ -202,29 +201,29 @@ const OurPolicy = () => {
           <div className="space-y-6">
             <div>
               <div className="flex items-start gap-2 mb-2">
-                <Ruler className="w-5 h-5 text-brand-600 mt-0.5 flex-shrink-0" />
+                <Ruler className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                 <h3 className="text-lg font-semibold text-foreground">
                   Size Guide
                 </h3>
               </div>
               <p className="text-muted-foreground leading-relaxed pl-7">
-                Unsure about your ring or bracelet size? Visit our size guide or
-                contact our customer service for assistance in finding your
-                perfect fit.
+                Unsure about which toy is right for your child? Contact our
+                customer service for assistance in finding the perfect toy
+                for any age group.
               </p>
             </div>
 
             <div>
               <div className="flex items-start gap-2 mb-2">
-                <Sparkles className="w-5 h-5 text-brand-600 mt-0.5 flex-shrink-0" />
+                <Sparkles className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                 <h3 className="text-lg font-semibold text-foreground">
                   Custom Orders
                 </h3>
               </div>
               <p className="text-muted-foreground leading-relaxed pl-7">
-                Looking for something unique? We offer custom jewelry design
-                services. Contact us to discuss your vision and we'll bring it
-                to life.
+                Looking for something special? We offer custom toy and gift
+                options. Contact us to discuss your needs and we'll help find
+                the perfect present.
               </p>
             </div>
           </div>

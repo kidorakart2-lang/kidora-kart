@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Pencil, Trash2, Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import AiAssistButton from "@/components/ai-assist-button"
 import type { FAQ } from "@/lib/types";
 
 
@@ -269,7 +270,17 @@ export default function FAQsPage() {
           </div>
 
           <div className="space-y-2 animate-in slide-in-from-right duration-300 delay-75">
-            <Label htmlFor="answer">Answer</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="answer">Answer</Label>
+              {formData.question.trim() && (
+                <AiAssistButton
+                  context={{ question: formData.question }}
+                  onResult={(text) => setFormData({ ...formData, answer: text })}
+                  label="Generate Answer"
+                  endpoint="/api/admin/ai/generate-general-faq-answer"
+                />
+              )}
+            </div>
             <Textarea
               id="answer"
               value={formData.answer}

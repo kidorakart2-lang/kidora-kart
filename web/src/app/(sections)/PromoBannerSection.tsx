@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { motion } from "motion/react"
-import { Sparkles, ArrowRight, Loader2 } from "lucide-react"
+import { ArrowRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
@@ -111,14 +111,6 @@ export function PromoBannerSection({
         transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
       />
 
-      <motion.div
-        className="absolute top-1/4 right-1/3"
-        animate={{ y: [0, -20, 0], opacity: [0.3, 0.6, 0.3] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <Sparkles className="w-6 h-6 text-foreground/30" />
-      </motion.div>
-
       <div className="absolute inset-0 flex items-center">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -128,19 +120,8 @@ export function PromoBannerSection({
             transition={{ duration: 1, ease: "easeOut" }}
             viewport={{ once: true }}
           >
-            <motion.div
-              className="flex items-center gap-3 mb-6"
-              initial={{ width: 0, opacity: 0 }}
-              whileInView={{ width: "auto", opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              viewport={{ once: true }}
-            >
-              <div className="w-12 h-[2px] bg-gradient-to-r" style={{ backgroundImage: `linear-gradient(to right, var(--brand-primary), var(--brand-secondary, var(--brand-primary)))` }} />
-              <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
-            </motion.div>
-
             <motion.h2
-              className="text-3xl md:text-5xl lg:text-6xl font-serif mb-6 leading-[1.2]"
+              className="text-3xl md:text-5xl lg:text-6xl fw-heading mb-6 leading-[1.2]"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
@@ -170,16 +151,6 @@ export function PromoBannerSection({
                 </Link>
               </motion.div>
             )}
-
-            <motion.div
-              className="flex items-center gap-2 mt-8"
-              initial={{ width: 0, opacity: 0 }}
-              whileInView={{ width: "200px", opacity: 1 }}
-              transition={{ duration: 1, delay: 1 }}
-              viewport={{ once: true }}
-            >
-              <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent" style={{ backgroundImage: `linear-gradient(to right, var(--brand-primary), transparent)` }} />
-            </motion.div>
           </motion.div>
         </div>
       </div>

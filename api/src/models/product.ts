@@ -66,12 +66,58 @@ const productSchema = new Schema(
       type: String,
       required: [true, "Please enter a description"],
     },
-    purity: {
+    shortDescription: {
       type: String,
+      default: "",
     },
     weight: {
       type: String,
       required: [true, "Please enter a weight greater than or equal to 10 grams"],
+    },
+    length: {
+      type: Number,
+      default: null,
+    },
+    height: {
+      type: Number,
+      default: null,
+    },
+    breadth: {
+      type: Number,
+      default: null,
+    },
+    minimumAge: {
+      type: Number,
+      default: null,
+    },
+    idealAge: {
+      type: Number,
+      default: null,
+      validate: {
+        validator: function (this: any, value: number) {
+          // Skip validation if any age field is null/undefined
+          if (value == null || this.minimumAge == null || this.maximumAge == null) return true;
+          return value >= this.minimumAge && value <= this.maximumAge;
+        },
+        message: "Ideal age must be between minimum age and maximum age",
+      },
+    },
+    maximumAge: {
+      type: Number,
+      default: null,
+    },
+    type: {
+      type: String,
+    },
+    sku: {
+      type: String,
+    },
+    tags: {
+      type: [String],
+      default: [],
+    },
+    videoUrl: {
+      type: String,
     },
     code: {
       type: String,
@@ -80,6 +126,10 @@ const productSchema = new Schema(
     price: {
       type: Number,
       required: [true, "Please enter a price"],
+      validate: {
+        validator: (v: number) => v > 0,
+        message: "Price must be greater than 0",
+      },
     },
     discount_price: {
       type: Number,
@@ -88,13 +138,16 @@ const productSchema = new Schema(
     stock: {
       type: Number,
       required: [true, "Please enter a stock"],
+      min: [0, "Stock cannot be negative"],
     },
     estimated_delivery_time: {
       type: String,
       required: [true, "Please enter a estimated delivery time"],
     },
     status: {
-      type: Boolean,
+      type: String,
+      enum: ["active", "inactive", "draft"],
+      default: "draft",
       required: [true, "Please enter a status"],
     },
     isPersonalized: { type: Boolean, default: false },

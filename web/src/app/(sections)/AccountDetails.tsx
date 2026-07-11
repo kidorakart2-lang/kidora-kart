@@ -14,7 +14,7 @@ const AccountDetailsContent = () => {
             className="bg-background rounded-xl shadow-lg p-5 md:p-8 border border-border"
             aria-labelledby="account-heading"
         >
-            <h1 id="account-heading" className="text-2xl md:text-3xl font-semibold text-foreground mb-6">
+             <h1 id="account-heading" className="text-2xl md:text-3xl fw-heading text-foreground mb-6">
                 Account Details
             </h1>
 
@@ -108,7 +108,7 @@ const AccountDetailsContent = () => {
                 <div className="flex justify-end pt-2">
                     <button
                         type="submit"
-                        className="px-6 py-2.5 bg-brand-500 text-background text-sm md:text-base font-semibold rounded-lg shadow hover:bg-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-300 transition-all duration-300 transform hover:scale-105"
+                         className="px-6 py-2.5 btn-gradient text-sm md:text-base fw-cta rounded-lg shadow transition-all duration-300"
                     >
                         Update Information
                     </button>
@@ -142,14 +142,14 @@ const AccountPage = () => {
                                     <li key={item.name}>
                                         <Link
                                             href={item.href}
-                                            className={`flex items-center p-2.5 rounded-lg text-sm font-medium transition-all duration-300
+                                            className={`flex items-center p-2.5 rounded-lg text-sm fw-body transition-all duration-300
                         ${active
-                                                    ? 'bg-brand-50 text-brand-700 font-semibold shadow-sm scale-[1.03]'
-                                                    : 'text-muted-foreground hover:bg-muted hover:text-foreground hover:scale-[1.02]'
+                                                    ? 'bg-muted text-foreground fw-heading'
+                                                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                                                 }`}
                                         >
                                             <item.icon
-                                                className={`w-5 h-5 mr-3 transition-transform duration-300 ${active ? 'scale-110 text-brand-600' : ''}`}
+                                                className={`w-5 h-5 mr-3 transition-transform duration-300 ${active ? 'scale-110 text-foreground' : ''}`}
                                             />
                                             <span>{item.name}</span>
                                         </Link>
@@ -159,7 +159,7 @@ const AccountPage = () => {
                             <li className="pt-3 border-t mt-3">
                                 <Link
                                     href="/logout"
-                                    className="flex items-center p-2.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 font-medium transition-all duration-300"
+                                    className="flex items-center p-2.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 fw-body transition-all duration-300"
                                 >
                                     <LogOut className="w-5 h-5 mr-3" />
                                     Logout

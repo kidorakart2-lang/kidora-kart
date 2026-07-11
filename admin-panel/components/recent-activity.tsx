@@ -22,7 +22,7 @@ interface RecentActivityProps {
 
 export function RecentActivity({ activity }: RecentActivityProps) {
   return (
-    <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+    <Card>
       <CardHeader>
         <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
@@ -31,8 +31,7 @@ export function RecentActivity({ activity }: RecentActivityProps) {
           {activity?.map((item, index) => (
             <div
               key={item._id}
-              className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-all duration-200 animate-in slide-in-from-left"
-              style={{ animationDelay: `${index * 50}ms` }}
+              className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-all duration-200"
             >
               <Avatar className="h-10 w-10 border-2 border-border">
                 <AvatarImage
@@ -49,7 +48,7 @@ export function RecentActivity({ activity }: RecentActivityProps) {
                   </span>
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Joined on : {new Date(item.createdAt).toLocaleDateString()}
+                  Joined on {new Date(item.createdAt).toLocaleDateString()}
                 </p>
               </div>
             </div>

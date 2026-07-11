@@ -11,6 +11,7 @@ import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "@/redux/store/store";
 import OrederSummery from "@/components/comman/OrederSummery";
 import { useProductsByIds, useProduct } from "@/lib/useProduct";
+import { useShippingEstimate } from "@/lib/useShippingEstimate";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -38,7 +39,7 @@ import { getAuthToken } from "@/lib/getAuthToken";
 import { openLoginModal } from "@/redux/features/uiSlice";
 import { useProfileBootstrap } from "@/hooks/useProfileBootstrap";
 import type { CheckoutFormData, OrderSummaryCartItem, ProductData } from "@/types";
-import { ArrowLeft, Shield, Truck, RotateCcw } from "lucide-react";
+import { ArrowLeft, Shield, Truck, RotateCcw, Loader2, MapPin } from "lucide-react";
 import { INDIAN_STATES, siteConfig } from "@/lib/utils";
 
 // Generates a fresh UUID v4 per checkout attempt.
@@ -180,7 +181,7 @@ export default function Checkout() {
         area: user?.address?.area || "",
         city: user?.address?.city || "",
         state: user?.address?.state || "",
-        pincode: user?.address?.pincode || "",
+        pincode: String(user?.address?.pincode ?? ""),
         instructions: user?.address?.instructions || "",
       },
       notes: "",
@@ -205,6 +206,29 @@ export default function Checkout() {
   }, [orderData]);
 
   const [showAddressPrompt, setShowAddressPrompt] = useState(false);
+
+  // Build stable items array for the shipping estimate query
+  const estimateItems = useMemo(
+    () =>
+      cartItems
+        .filter((item) => !!item.product?._id)
+        .map((item) => ({
+          productId: item.product!._id,
+          quantity: item.quantity || 1,
+        })),
+    [cartItems],
+  );
+
+  // React Query handles caching, dedup, auto-fetch on pincode change,
+  // AbortController cleanup, and background refetching.
+  const {
+    data: shippingEstimate,
+    isFetching,
+    refetch,
+  } = useShippingEstimate(
+    orderData.shippingAddress.pincode,
+    estimateItems,
+  );
 
   // Helper to load address from profile
   const loadProfileAddress = () => {
@@ -359,6 +383,9 @@ export default function Checkout() {
       }),
         isCodAdvance,
         idempotencyKey: idempotencyKeyRef.current,
+        shippingCharge: shippingEstimate?.estimatedCharge,
+        shippingCourier: shippingEstimate?.courierName,
+        shippingEtd: shippingEstimate?.etd,
       };
 
       const createOrderResponse = await createOrder(orderPayload);
@@ -381,7 +408,7 @@ export default function Checkout() {
         key: keyId,
         amount: amount * 100, // Amount in paise
         currency: currency,
-        name: "Jewellery walla",
+        name: "Kidora Kart",
         description: `Order #${orderId}`,
         image: logo || "/images/logo.webp", // Your logo
         order_id: razorpayOrderId,
@@ -470,7 +497,7 @@ export default function Checkout() {
 
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-3xl md:text-4xl font-light text-foreground tracking-tight">
+           <h1 className="text-3xl md:text-4xl fw-heading text-foreground tracking-tight">
             Checkout
           </h1>
           <p className="text-muted-foreground text-sm mt-2 font-light">
@@ -610,27 +637,96 @@ export default function Checkout() {
                   <label className="text-sm font-medium text-muted-foreground">
                     Pincode *
                   </label>
-                  <input
-                    type="text"
-                    value={orderData.shippingAddress.pincode}
-                    onChange={(e) => {
-                      // Only allow numbers and limit to 6 digits
-                      const value = e.target.value
-                        .replace(/\D/g, "")
-                        .slice(0, 6);
-                      setOrderData({
-                        ...orderData,
-                        shippingAddress: {
-                          ...orderData.shippingAddress,
-                          pincode: value,
-                        },
-                      });
-                    }}
-                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
-                    maxLength={6}
-                    required
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={orderData.shippingAddress.pincode}
+                      onChange={(e) => {
+                        // Only allow numbers and limit to 6 digits
+                        const value = e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 6);
+                        setOrderData({
+                          ...orderData,
+                          shippingAddress: {
+                            ...orderData.shippingAddress,
+                            pincode: value,
+                          },
+                        });
+                      }}
+                      className="flex-1 px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                      maxLength={6}
+                      required
+                      placeholder="Enter 6-digit pincode"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => refetch()}
+                      disabled={orderData.shippingAddress.pincode.length !== 6}
+                      className="shrink-0 border-brand-300 hover:bg-brand-50 hover:text-brand-700 transition-all"
+                    >
+                      {isFetching ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin mr-1" />
+                          Checking
+                        </>
+                      ) : (
+                        <>
+                          <MapPin size={14} className="mr-1" />
+                          Check
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
+
+                {/* Shipping Estimate Card / Loading Skeleton */}
+                {isFetching && !shippingEstimate ? (
+                  /* Skeleton while first fetch is in progress */
+                  <div className="col-span-full -mt-2">
+                    <div className="border border-border rounded-xl p-4 animate-pulse">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-4 h-4 rounded bg-muted-foreground/20" />
+                          <div className="h-4 w-28 rounded bg-muted-foreground/20" />
+                        </div>
+                        <div className="h-5 w-36 rounded-full bg-muted-foreground/20" />
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-border">
+                        <div className="w-3 h-3 rounded bg-muted-foreground/20" />
+                        <div className="h-3 w-40 rounded bg-muted-foreground/20" />
+                      </div>
+                    </div>
+                  </div>
+                ) : shippingEstimate ? (
+                  <div className="col-span-full -mt-2">
+                    <div className={`bg-brand-50 border border-brand-200 rounded-xl p-4 transition-all hover:shadow-sm ${isFetching ? 'opacity-60' : ''}`}>
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <Truck className="w-4 h-4 text-brand-600" />
+                          <span className="text-sm font-semibold text-brand-900">
+                            ₹{shippingEstimate.estimatedCharge} shipping
+                          </span>
+                        </div>
+                        {shippingEstimate.etd && (
+                          <span className="text-xs text-brand-700 bg-brand-100 px-2.5 py-1 rounded-full font-medium">
+                            Est. delivery {shippingEstimate.etd}
+                          </span>
+                        )}
+                      </div>
+                      {shippingEstimate.courierName && (
+                        <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-brand-200/60">
+                          <MapPin className="w-3 h-3 text-brand-500" />
+                          <span className="text-xs text-brand-600">
+                            {shippingEstimate.courierName}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
 
                 {/* Street */}
                 <div className="space-y-1">
@@ -908,6 +1004,7 @@ export default function Checkout() {
                   type={purchaseType}
                   orderData={orderData}
                   coupon={couponCode}
+                  shippingEstimate={shippingEstimate}
                 />
 
                 {/* Payment Options */}
@@ -939,7 +1036,7 @@ export default function Checkout() {
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
-                        className="w-full py-5 px-6 rounded-xl font-medium transition-all border-2 border-brand-200 hover:border-brand-400 hover:bg-brand-50/50 text-foreground"
+                        className="w-full py-5 px-6 rounded-xl fw-cta transition-all border-2 border-brand-200 hover:border-brand-400 hover:bg-brand-50/50 text-foreground"
                         variant="outline"
                       >
                         Cash on Delivery
@@ -1012,7 +1109,7 @@ export default function Checkout() {
                   {[
                     { icon: Shield, label: "Secure Payment", color: "text-green-600", bg: "bg-green-100" },
                     { icon: RotateCcw, label: "Easy Returns", color: "text-brand-600", bg: "bg-brand-100" },
-                    { icon: Truck, label: "Free Shipping", color: "text-brand-600", bg: "bg-brand-100" },
+                    { icon: Truck, label: "Fast Shipping", color: "text-brand-600", bg: "bg-brand-100" },
                   ].map(({ icon: Icon, label, color, bg }) => (
                     <div key={label} className="text-center">
                       <div className={`w-10 h-10 mx-auto ${bg} rounded-full flex items-center justify-center ${color} mb-1.5`}>

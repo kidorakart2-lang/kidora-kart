@@ -18,7 +18,7 @@ export const getWishlist = asyncHandler(
     }
 
     const items = (
-      wishlist.products as unknown as Array<{
+      (wishlist as Record<string, unknown>).products as Array<{
         _id: string;
         name: string;
         price: number;
@@ -55,7 +55,7 @@ export const addToWishlist = asyncHandler(
 
       const product = await Product.findOne({
         _id: productId,
-        status: true,
+        status: "active",
         deletedAt: null,
       }).lean().session(session);
 

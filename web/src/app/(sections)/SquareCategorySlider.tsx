@@ -25,15 +25,15 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
     <section className="w-full py-6 bg-section">
       <div className="text-center mb-8 font-serif mt-4">
         <div className="inline-flex items-center justify-center gap-3 mb-2">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl text-gradient-brand relative inline-block font-light tracking-wide">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl text-gradient-brand relative inline-block fw-heading tracking-wide">
             {heading || "Discover Our Collection"}
             <span className="absolute bottom-[-12px] left-1/2 transform -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent" style={{ backgroundImage: `linear-gradient(to right, transparent, var(--brand-primary), transparent)` }} />
             <span className="absolute bottom-[-16px] left-1/2 transform -translate-x-1/2 w-2 h-2 rotate-45 shadow-lg" style={{ backgroundColor: "var(--brand-primary)" }} />
           </h2>
         </div>
 
-        <p className="text-sm sm:text-base text-muted-foreground font-light tracking-widest italic mt-4">
-          Timeless Elegance, Crafted for You
+        <p className="text-sm sm:text-base text-muted-foreground fw-body tracking-widest italic mt-4">
+          Fun for Kids of All Ages
         </p>
       </div>
 

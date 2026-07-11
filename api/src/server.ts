@@ -30,6 +30,7 @@ import suggestionRoutes from "./routes/web/suggestion.routes.js";
 import coupenRoutes from "./routes/web/coupen.routes.js";
 import productFaqRoutes from "./routes/web/productFaq.routes.js";
 import homePageRoutes from "./routes/web/homePage.routes.js";
+import shiprocketRoutes from "./routes/web/shiprocket.routes.js";
 import materialRoutes from "./routes/admin/material.routes.js";
 import sizeRoutes from "./routes/admin/size.routes.js";
 import colorRoutes from "./routes/admin/color.routes.js";
@@ -94,12 +95,14 @@ app.use(urlencodedParser);
 
 app.use(cookieParser());
 
-function sanitize(obj: unknown): unknown {
+type Sanitizable = string | number | boolean | null | undefined | Record<string, unknown> | unknown[];
+
+function sanitize(obj: Sanitizable): Sanitizable {
   if (typeof obj !== "object" || obj === null) return obj;
-  if (Array.isArray(obj)) return obj.map(sanitize);
+  if (Array.isArray(obj)) return obj.map((item) => sanitize(item as Sanitizable));
   return Object.keys(obj as Record<string, unknown>).reduce((acc, key) => {
     const k = key.replace(/^\$/, "").replace(/\./g, "");
-    (acc as Record<string, unknown>)[k] = sanitize((obj as Record<string, unknown>)[key]);
+    (acc as Record<string, unknown>)[k] = sanitize((obj as Record<string, unknown>)[key] as Sanitizable);
     return acc;
   }, {} as Record<string, unknown>);
 }
@@ -144,6 +147,7 @@ app.use("/api/website/result", suggestionRoutes);
 app.use("/api/website/coupen", coupenRoutes);
 app.use("/api/website/product-faq", productFaqRoutes);
 app.use("/api/website/home-page", homePageRoutes);
+app.use("/api/website/shipping", shiprocketRoutes);
 
 // ── Swagger Docs ──
 // Available in all environments in development; in production only when ENABLE_SWAGGER=true

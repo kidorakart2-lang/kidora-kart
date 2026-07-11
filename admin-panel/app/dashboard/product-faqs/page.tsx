@@ -536,7 +536,7 @@ export default function ProductFAQsPage() {
                       }}
                       onResult={(text) => updateEntry(i, "answer", text)}
                       label="Generate Answer"
-                      page="faq-answer"
+                      endpoint="/api/admin/ai/generate-faq-answer"
                     />
                   )}
                 </div>

@@ -8,16 +8,14 @@ interface StatCardProps {
   value: number;
   change: number;
   icon: LucideIcon;
-  delay?: number;
 }
 
-export function StatCard({ title, value, icon: Icon, delay = 0 }: StatCardProps) {
+export function StatCard({ title, value, icon: Icon }: StatCardProps) {
   const displayValue = value;
 
   return (
     <Card
-      className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4"
-      style={{ animationDelay: `${delay}ms` }}
+      className="overflow-hidden transition-all duration-300 hover:shadow-lg"
     >
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">

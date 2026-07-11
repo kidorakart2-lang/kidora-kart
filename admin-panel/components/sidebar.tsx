@@ -16,7 +16,6 @@ import {
   Star,
   Palette,
   Ruler,
-  Settings,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -30,6 +29,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import type { LucideIcon } from "lucide-react";
 import { useAdminLogo } from "@/hooks/useAdminLogo";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MenuItem {
   icon: LucideIcon;
@@ -68,7 +73,6 @@ const menuItems: MenuItem[] = [
   { icon: House, label: "Home Page", href: "/dashboard/home-page" },
   { icon: HelpCircle, label: "Product FAQs", href: "/dashboard/product-faqs" },
   { icon: Sparkles, label: "AI Responses", href: "/dashboard/ai-responses" },
-  { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ];
 
 interface SidebarProps {
@@ -78,6 +82,7 @@ interface SidebarProps {
 export function Sidebar({ onCollapsedChange }: SidebarProps) {
   const { logoUrl } = useAdminLogo();
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobileSheetOpen, setMobileSheetOpen] = useState(false);
   const pathname = usePathname();
 
   const isMobile = useIsMobile();
@@ -111,9 +116,8 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
                   <span className="text-primary-foreground font-bold text-sm">T</span>
                 </div>
               )}
-            </div>
-            <span className="font-bold text-lg text-sidebar-foreground">
-              Toy Shop
+            </div>              <span className="font-bold text-lg text-sidebar-foreground">
+              Kidora Kart
             </span>
           </div>
         )}
@@ -122,7 +126,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
             variant="ghost"
             size="icon"
             onClick={() => setCollapsed(!collapsed)}
-            className="transition-all duration-300 hover:scale-110"
+            className="transition-all duration-300"
           >
             {collapsed ? (
               <ChevronRight className="h-4 w-4" />
@@ -134,36 +138,44 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
       </div>
 
       <nav className="flex-1 overflow-y-auto p-2 space-y-1 no-scroll">
-        {menuItems.map((item, index) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
+        <TooltipProvider>
+          {menuItems.map((item, index) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
-                "hover:bg-sidebar-accent hover:scale-[1.02] hover:translate-x-1",
-                "animate-in slide-in-from-left duration-300",
-                isActive &&
-                  "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg scale-[1.02] hover:bg-sidebar-primary",
-                !isActive && "text-sidebar-foreground",
-              )}
-              style={{ animationDelay: `${index * 30}ms` }}
-            >
-              <Icon
+            const linkContent = (
+              <Link
+                key={item.href}
+                href={item.href}
                 className={cn(
-                  "h-5 w-5 flex-shrink-0",
-                  isActive && "animate-pulse",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
+                  "hover:bg-sidebar-accent",
+                  isActive &&
+                    "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg hover:bg-sidebar-primary",
+                  !isActive && "text-sidebar-foreground",
                 )}
-              />
-              {!collapsed && (
-                <span className="font-medium truncate">{item.label}</span>
-              )}
-            </Link>
-          );
-        })}
+              >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                {(!collapsed || (isMobile && isMobileSheetOpen)) && (
+                  <span className="font-medium truncate">{item.label}</span>
+                )}
+              </Link>
+            );
+
+            if (collapsed && !isMobile) {
+              return (
+                <Tooltip key={item.href} delayDuration={0}>
+                  <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+                  <TooltipContent side="right" sideOffset={8}>
+                    {item.label}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            }
+
+            return <div key={item.href}>{linkContent}</div>;
+          })}
+        </TooltipProvider>
       </nav>
     </div>
   );
@@ -171,18 +183,18 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
   // Mobile: render sidebar content inside a Sheet overlay
   if (isMobile) {
     return (
-      <Sheet>
+      <Sheet open={isMobileSheetOpen} onOpenChange={setMobileSheetOpen}>
         <SheetTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
-            className="fixed left-3 top-3 z-50 h-9 w-9 rounded-lg border border-sidebar-border bg-sidebar text-sidebar-foreground shadow-md transition-all duration-200 hover:scale-110 md:hidden"
+            className="fixed left-3 top-3 z-50 h-9 w-9 rounded-lg border border-sidebar-border bg-sidebar text-sidebar-foreground shadow-md transition-opacity opacity-50 hover:opacity-100 md:hidden"
           >
             <Menu className="h-5 w-5" />
             <span className="sr-only">Open navigation menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-72 p-0 bg-sidebar">
+        <SheetContent side="left" className="w-64 p-0 bg-sidebar">
           {sidebarContent}
         </SheetContent>
       </Sheet>

@@ -118,9 +118,9 @@ export default function MyOrders() {
   };
 
   const statusColors: Record<string, string> = {
-    pending: "bg-brand-100 text-brand-800 border-brand-300",
-    confirmed: "bg-brand-100 text-brand-800 border-brand-300",
-    shipped: "bg-brand-accent-100 text-brand-accent-800 border-brand-accent-300",
+    pending: "bg-muted text-muted-foreground border-border",
+    confirmed: "bg-muted text-muted-foreground border-border",
+    shipped: "bg-blue-50 text-blue-700 border-blue-200",
     delivered: "bg-green-100 text-green-800 border-green-300",
     cancelled: "bg-muted text-muted-foreground border-border",
     payment_failed: "bg-red-100 text-red-800 border-red-300",
@@ -144,12 +144,12 @@ export default function MyOrders() {
         className="max-w-7xl w-full mx-auto"
       >
         <div className="flex items-center gap-3 mb-8">
-          <div className="p-3 rounded-xl shadow-lg">
-            <Package className="w-8 h-8 text-brand-600" />
+          <div className="p-3 rounded-xl bg-muted">
+            <Package className="w-8 h-8 text-muted-foreground" />
           </div>
           <div>
-            <h1 className="text-4xl font-bold ">My Orders</h1>
-            <p className="text-brand-700/70 text-sm">
+             <h1 className="text-4xl fw-heading">My Orders</h1>
+            <p className="text-muted-foreground text-sm">
               Track and manage your purchases
             </p>
           </div>
@@ -162,8 +162,8 @@ export default function MyOrders() {
           className="mb-6"
         >
           <div className="flex items-center gap-2 mb-3">
-            <Filter className="w-4 h-4 text-brand-600" />
-            <span className="text-sm font-medium text-brand-900">
+            <Filter className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">
               Filter by status
             </span>
           </div>
@@ -186,7 +186,7 @@ export default function MyOrders() {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="w-12 h-12 border-4 border-brand-200 border-t-brand-500 rounded-full"
+              className="w-12 h-12 border-4 border-border border-t-foreground rounded-full"
             />
           </div>
         ) : (
@@ -199,10 +199,10 @@ export default function MyOrders() {
               className="space-y-4"
             >
               {orders.length === 0 ? (
-                <Card className="border-brand-200 bg-background/80 backdrop-blur">
+                <Card className="border-border bg-background">
                   <CardContent className="py-20 text-center">
-                    <Package className="w-16 h-16 text-brand-300 mx-auto mb-4" />
-                    <p className="text-brand-700 font-medium">
+                    <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground font-medium">
                       No orders found yet
                     </p>
                   </CardContent>
@@ -219,10 +219,10 @@ export default function MyOrders() {
                       <CardHeader className="">
                         <div className="flex justify-between items-start">
                           <div>
-                            <h3 className="text-lg font-semibold text-brand-900">
+                            <h3 className="text-lg font-semibold text-foreground">
                               Order #{order.orderId}
                             </h3>
-                            <p className="text-sm text-brand-600">
+                            <p className="text-sm text-muted-foreground">
                               {new Date(order.createdAt).toLocaleDateString(
                                 "en-US",
                                 {
@@ -262,7 +262,7 @@ export default function MyOrders() {
                                 alt={item.name}
                                 width={80}
                                 height={80}
-                                className="w-20 h-20 cursor-pointer object-cover rounded-md border-2 border-brand-200"
+                                className="w-20 h-20 cursor-pointer object-cover rounded-md border border-border"
                               />
                               <div
                                 onClick={() =>
@@ -272,33 +272,33 @@ export default function MyOrders() {
                                 }
                                 className="flex-1 cursor-pointer"
                               >
-                                <p className="font-medium text-brand-900">
+                                <p className="font-medium text-foreground">
                                   {item.name}
                                 </p>
-                                <p className="text-sm text-brand-600">
+                                <p className="text-sm text-muted-foreground">
                                   Quantity: {item.quantity}
                                 </p>
                                 {/* Color display */}
                                 {item.color && (
-                                  <p className="text-sm text-brand-600 flex items-center gap-1">
+                                  <p className="text-sm text-muted-foreground flex items-center gap-1">
                                     Color:{" "}
                                     <span
                                       style={{
                                         backgroundColor: item.color.code,
                                       }}
-                                      className="w-3 h-3 rounded-full border border-brand-300 inline-block"
+                                      className="w-3 h-3 rounded-full border border-border inline-block"
                                     />
                                     <span>{item.color.name}</span>
                                   </p>
                                 )}
                                 {/* Size display */}
                                 {item.sizeId && (
-                                  <p className="text-sm text-brand-600">
+                                  <p className="text-sm text-muted-foreground">
                                     Size: {item.sizeId.name}
                                   </p>
                                 )}
                                 {item.isPersonalized && (
-                                  <p className="text-sm text-brand-600 font-medium">
+                                  <p className="text-sm text-muted-foreground font-medium">
                                     ✨ Personalized Name :{" "}
                                     {item.personalizedName}
                                   </p>
@@ -309,8 +309,8 @@ export default function MyOrders() {
                         </div>
                       </CardContent>
 
-                      <CardFooter className="flex flex-wrap gap-2 justify-between items-center border-t border-brand-100 bg-gradient-to-r from-brand-50/50 to-brand-50/50">
-                        <div className="text-lg font-bold text-brand-900">
+                      <CardFooter className="flex flex-wrap gap-2 justify-between items-center border-t border-border bg-muted/30">
+                        <div className="text-lg font-semibold text-foreground">
                           Total: ₹{order.pricing.total}
                         </div>
                         <div className="flex gap-2">
@@ -373,19 +373,19 @@ export default function MyOrders() {
               onClick={() => setPage(page - 1)}
               disabled={page === 1}
               variant="outline"
-              className="border-brand-300 text-brand-700 hover:bg-brand-100 disabled:opacity-50"
+              className="border-border text-foreground hover:bg-muted disabled:opacity-50"
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
               Previous
             </Button>
-            <span className="px-2 py-2 bg-gradient-to-r from-brand-500 to-brand-600 text-background rounded-lg flex shadow-md">
+            <span className="px-2 py-2 bg-foreground text-background rounded-lg flex shadow-md">
               Page {page}
             </span>
             <Button
               onClick={() => setPage(page + 1)}
               disabled={page >= (orderData?.totalPages ?? 1)}
               variant="outline"
-              className="border-brand-300 text-brand-700 hover:bg-brand-100 disabled:opacity-50"
+              className="border-border text-foreground hover:bg-muted disabled:opacity-50"
             >
               Next
               <ChevronRight className="w-4 h-4 ml-1" />
@@ -413,7 +413,7 @@ export default function MyOrders() {
           </DialogHeader>
 
           <div className="px-6 py-5 space-y-4 overflow-y-auto custom-scrollbar flex-1 min-h-0">
-            <div className="bg-brand-50 border border-brand-200 rounded-lg p-3">
+            <div className="bg-muted border border-border rounded-lg p-3">
               <p className="text-xs text-muted-foreground mb-1">Order Number</p>
               <p className="font-mono text-sm font-semibold text-foreground break-all">
                 {selectedOrderId}
@@ -444,7 +444,7 @@ export default function MyOrders() {
                     className={`text-left px-3 py-2 rounded-md text-sm border transition-colors ${
                       cancelReason === reason
                         ? "border-destructive bg-destructive/5 text-destructive font-medium"
-                        : "border-border hover:border-brand-300 hover:bg-brand-50 text-foreground"
+                        : "border-border hover:border-border hover:bg-muted text-foreground"
                     }`}
                   >
                     {reason}

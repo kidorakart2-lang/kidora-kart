@@ -15,6 +15,7 @@ import {
   IndianRupee,
   ArrowLeftRight,
   ShoppingCart,
+  Copy,
 } from "lucide-react";
 import { Drawer } from "@/components/drawer";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +24,15 @@ import { api, ApiClientError } from "@/lib/api";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import RefundedOrdersAdmin from "@/components/RefundedOrdersAdmin";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 interface OrderItem {
   productId: string;
   name: string;
@@ -45,6 +55,14 @@ interface OrderData {
   items?: OrderItem[];
   pricing?: {
     total: number;
+    subtotal?: number;
+    shipping?: number;
+  };
+  shipping?: {
+    carrier?: string;
+    estimatedDelivery?: string;
+    trackingNumber?: string;
+    trackingUrl?: string;
   };
   payment?: {
     status?: string;
@@ -97,12 +115,37 @@ export default function OrdersPage() {
     setDrawerOpen(true);
     setSelectedOrder(order);
   };
-
   const handleDelete = (_id: number) => {
     toast({
       title: "Order deletion not supported",
       description: "Use cancel action instead",
     });
+  };
+
+  const handleShipWithShiprocket = async (order: OrderData) => {
+    try {
+      const response = await api.post<{ success: boolean; message?: string; data?: unknown }>(
+        "/api/website/shipping/create",
+        { orderId: order.orderId },
+      );
+      if (response.success) {
+        toast({
+          title: "Success",
+          description: "Shipment created via Shiprocket successfully",
+        });
+        loadOrders();
+        invalidateCache(["products"]);
+        setDrawerOpen(false);
+      } else {
+        throw new ApiClientError(response.message || "Failed to create shipment via Shiprocket", 400);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof ApiClientError ? error.message : "Failed to create shipment via Shiprocket",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleMarkToShipped = async (order: OrderData) => {
@@ -155,7 +198,6 @@ export default function OrdersPage() {
       });
     }
   };
-
   const handlePrint = (order: OrderData) => {
     setSelectedOrder(order);
     setReceiptOpen(true);
@@ -369,8 +411,34 @@ export default function OrdersPage() {
           </div>
 
           {loading ? (
-            <div className="animate-pulse space-y-4">
-              <div className="h-96 bg-muted rounded-lg"></div>
+            <div className="space-y-4">
+              <Skeleton className="h-10 w-full max-w-sm" />
+              <div className="rounded-lg border border-border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      {["Order ID", "Customer", "Total", "Status", "Date"].map((h) => (
+                        <TableHead key={h}>{h}</TableHead>
+                      ))}
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        {["Order ID", "Customer", "Total", "Status", "Date"].map((h) => (
+                          <TableCell key={h}><Skeleton className="h-5 w-full" /></TableCell>
+                        ))}
+                        <TableCell>
+                          <div className="flex justify-end gap-2">
+                            <Skeleton className="h-8 w-8 rounded" />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           ) : (
             <DataTable
@@ -381,6 +449,8 @@ export default function OrdersPage() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               searchPlaceholder="Search orders..."
+              emptyTitle="No orders yet"
+              emptyDescription="Orders will appear here once customers start placing them."
             />
           )}
       <Drawer
@@ -396,20 +466,20 @@ export default function OrdersPage() {
           <div className="space-y-2">
             <label
               htmlFor="reason"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-foreground"
             >
               Reason for Cancellation
-              <span className="text-red-500 ml-1">*</span>
+              <span className="text-destructive ml-1">*</span>
             </label>
             <textarea
               name="reason"
               id="reason"
               rows={5}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
               placeholder="Please provide a reason for cancelling this order..."
               required
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               This information will be shared with the customer.
             </p>
           </div>
@@ -444,7 +514,18 @@ export default function OrdersPage() {
         <Badge variant="default" className="font-mono capitalize text-md mb-4">
           {selectedOrder?.status}
         </Badge>
-        {selectedOrder?.status !== "shipped" && (
+        {selectedOrder?.status === "confirmed" && (
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => selectedOrder && handleShipWithShiprocket(selectedOrder)}
+            className="transition-all duration-200 hover:scale-105 w-full bg-blue-600 hover:bg-blue-700"
+          >
+            <Truck className="h-4 w-4 mr-2" />
+            Ship with Shiprocket
+          </Button>
+        )}
+        {selectedOrder?.status !== "shipped" && selectedOrder?.status !== "confirmed" && (
           <Button
             variant="outline"
             size="sm"
@@ -523,9 +604,69 @@ export default function OrdersPage() {
                 )}
               </div>
               <div className="border-t pt-2">
+                <p className="font-medium">Subtotal:</p>
+                <p className="text-muted-foreground">
+                  ₹{selectedOrder?.pricing?.subtotal?.toFixed(2) ?? "0.00"}
+                </p>
+              </div>
+              <div className="border-t pt-2">
+                <p className="font-medium">Shipping Charge:</p>
+                <p className="text-muted-foreground">
+                  ₹{selectedOrder?.pricing?.shipping?.toFixed(2) ?? "0.00"}
+                </p>
+                {selectedOrder?.shipping?.carrier && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Courier: {selectedOrder.shipping.carrier}
+                    {selectedOrder.shipping.estimatedDelivery && (
+                      <span className="ml-2">
+                        EDD: {new Date(selectedOrder.shipping.estimatedDelivery).toLocaleDateString("en-IN")}
+                      </span>
+                    )}
+                  </p>
+                )}
+                {selectedOrder?.shipping?.trackingNumber && (
+                  <div className="mt-2 p-2 bg-indigo-50 border border-indigo-200 rounded-md">
+                    <p className="text-xs font-semibold text-indigo-700 flex items-center gap-1">
+                      <Truck className="h-3 w-3" />
+                      AWB / Tracking ID
+                    </p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p className="text-sm font-mono text-indigo-900 font-bold">
+                        {selectedOrder.shipping.trackingNumber}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const awb = selectedOrder?.shipping?.trackingNumber;
+                          if (awb) {
+                            navigator.clipboard.writeText(awb)
+                              .then(() => toast({ title: "AWB copied to clipboard" }))
+                              .catch(() => toast({ title: "Failed to copy", variant: "destructive" }));
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 bg-indigo-100 hover:bg-indigo-200 px-2 py-0.5 rounded transition-colors"
+                      >
+                        <Copy className="h-3 w-3" />
+                        Copy
+                      </button>
+                    </div>
+                    <p className="text-xs text-indigo-600 mt-1">
+                      <a
+                        href={`https://shiprocket.in/tracking/${selectedOrder.shipping.trackingNumber}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline hover:text-indigo-800"
+                      >
+                        Track on Shiprocket →
+                      </a>
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="border-t pt-2">
                 <p className="font-medium">Total:</p>
                 <p className="text-muted-foreground">
-                  {selectedOrder?.pricing?.total?.toFixed(2) ?? "0.00"}
+                  ₹{selectedOrder?.pricing?.total?.toFixed(2) ?? "0.00"}
                 </p>
               </div>
               <div className="border-t pt-2">
@@ -544,7 +685,7 @@ export default function OrdersPage() {
                       height={100}
                       className="rounded-lg"
                     />
-                    <div className="bg-white p-2 flex-col  shadow-md flex gap-1">
+                    <div className="bg-card p-2 flex-col  shadow-md flex gap-1">
                       <p className="text-sm font-medium truncate">
                         {item.name}
                       </p>
@@ -558,7 +699,7 @@ export default function OrdersPage() {
                       {item.isPersonalized && (
                         <p className="text-sm font-medium truncate">
                           Personalized Name:{" "}
-                          <span className="text-amber-500 text-underline">
+                          <span className="text-primary text-underline">
                             {item.personalizedName}
                           </span>
                         </p>
@@ -606,6 +747,7 @@ export default function OrdersPage() {
                 ))}
               </div>
             </div>
+
           </div>
         )}
       </Drawer>

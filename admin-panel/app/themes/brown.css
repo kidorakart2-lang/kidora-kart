@@ -1,0 +1,56 @@
+/*
+ * Brown Theme — Warm caramel accents (light)
+ * Font weights: normal (400/400/500)
+ *
+ * Usage: set next-themes theme to "brown"
+ * Applies class "brown" on <html>
+ */
+
+html.brown {
+  --background: oklch(0.98 0.005 70);
+  --foreground: oklch(0.20 0.02 50);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.20 0.02 50);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.20 0.02 50);
+
+  --primary: oklch(0.62 0.08 60);
+  --primary-foreground: oklch(0.99 0 0);
+
+  --secondary: oklch(0.95 0.01 70);
+  --secondary-foreground: oklch(0.20 0.02 50);
+
+  --muted: oklch(0.95 0.01 70);
+  --muted-foreground: oklch(0.45 0.01 60);
+
+  --accent: oklch(0.95 0.01 70);
+  --accent-foreground: oklch(0.20 0.02 50);
+
+  --destructive: oklch(0.58 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.88 0.01 70);
+  --input: oklch(0.88 0.01 70);
+  --ring: oklch(0.62 0.08 60);
+
+  --chart-1: oklch(0.62 0.08 60);
+  --chart-2: oklch(0.55 0.12 30);
+  --chart-3: oklch(0.65 0.10 90);
+  --chart-4: oklch(0.50 0.14 15);
+  --chart-5: oklch(0.58 0.06 45);
+
+  --radius: 0.625rem;
+
+  --sidebar: oklch(0.97 0.005 70);
+  --sidebar-foreground: oklch(0.20 0.02 50);
+  --sidebar-primary: oklch(0.62 0.08 60);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.95 0.01 70);
+  --sidebar-accent-foreground: oklch(0.20 0.02 50);
+  --sidebar-border: oklch(0.88 0.01 70);
+  --sidebar-ring: oklch(0.62 0.08 60);
+
+  color-scheme: light;
+}

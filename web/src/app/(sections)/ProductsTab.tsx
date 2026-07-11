@@ -25,41 +25,23 @@ export default async function ProductsTab() {
     <section className="py-16 lg:py-20 relative overflow-hidden bg-section">
       <div className="section-container relative z-10">
         <div className="text-center mb-12 lg:mb-16">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
-            <span className="text-sm font-medium tracking-wider uppercase" style={{ color: "var(--muted-foreground)" }}>
-              Explore Our Range
-            </span>
-            <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
-          </div>
-
           <h2 className="section-heading mb-4">
             Our Products Collection
           </h2>
-
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <div className="w-16 h-0.5 bg-gradient-to-r from-transparent" style={{ backgroundImage: `linear-gradient(to right, transparent, var(--brand-primary))` }} />
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "var(--brand-primary)" }} />
-            <div className="w-16 h-0.5 bg-gradient-to-l from-transparent" style={{ backgroundImage: `linear-gradient(to left, transparent, var(--brand-primary))` }} />
-          </div>
-
-          <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base lg:text-lg font-light leading-relaxed">
-            Discover our exquisite collection of handcrafted jewellery, designed
-            to add elegance to your every moment.
+          <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base lg:text-lg fw-body leading-relaxed">
+            Discover our exciting collection of toys and games, designed
+            to bring joy and learning to every child's day.
           </p>
         </div>
 
         <Tabs defaultValue={tabItems[0].value} className="w-full">
           <div className="flex justify-center mb-6 lg:mb-10">
-            <TabsList className="inline-flex bg-card backdrop-blur-sm rounded-full p-1.5 shadow-xl border" style={{ borderColor: "color-mix(in srgb, var(--brand-primary) 15%, transparent)" }}>
+            <TabsList className="inline-flex bg-card backdrop-blur-sm rounded-full p-1.5 shadow-xl border border-border">
               {tabItems.map((tab) => (
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="px-6 md:px-8 py-3 md:py-3.5 rounded-full font-semibold text-xs md:text-sm uppercase transition-all duration-300"
-                  style={{
-                    color: "var(--muted-foreground)",
-                  }}
+                  className="px-6 md:px-8 py-3 md:py-3.5 rounded-full fw-cta text-xs md:text-sm uppercase transition-all duration-300 text-muted-foreground"
                 >
                   <span className="hidden md:inline mr-2">{tab.icon}</span>
                   {tab.label}
@@ -89,7 +71,7 @@ export default async function ProductsTab() {
                       <Link href={`/category/shop-by-category?q=${tab.value}`}>
                         <Button
                           variant="outline"
-                          className="group relative px-8 py-6 rounded-full font-semibold text-sm uppercase tracking-wider shadow-md overflow-hidden"
+                          className="group relative px-8 py-6 rounded-full fw-cta text-sm uppercase tracking-wider shadow-md overflow-hidden"
                         >
                           <span className="relative flex items-center gap-3">
                             View All {tab.label}
@@ -104,7 +86,7 @@ export default async function ProductsTab() {
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-muted rounded-full mb-4">
                       <Sparkles className="w-8 h-8 text-muted-foreground" />
                     </div>
-                    <p className="text-lg font-light text-muted-foreground">
+                    <p className="text-lg fw-body text-muted-foreground">
                       No {tab.label.toLowerCase()} found at the moment.
                     </p>
                     <p className="text-sm mt-2" style={{ color: "var(--muted-foreground)" }}>

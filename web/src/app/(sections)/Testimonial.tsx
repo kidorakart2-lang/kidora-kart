@@ -19,7 +19,7 @@ const Testimonial = ({ data }: { data: any[] | null | undefined }) => {
       <span
         key={index}
         className="text-lg"
-        style={{ color: index < rating ? "var(--brand-primary)" : "var(--muted-foreground)" }}
+        style={{ color: index < rating ? "var(--foreground)" : "var(--muted-foreground)" }}
       >
         ★
       </span>
@@ -35,28 +35,9 @@ const Testimonial = ({ data }: { data: any[] | null | undefined }) => {
     >
       <div className="section-container relative z-10 max-w-5xl">
         <div className="text-center mb-12 lg:mb-16 ">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <Quote className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
-            <span className="text-sm font-medium tracking-wider uppercase" style={{ color: "var(--muted-foreground)" }}>
-              Customer Stories
-            </span>
-            <Quote className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
-          </div>
-
           <h2 className="section-heading mb-4">
             What Our Customers Say
           </h2>
-
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <div className="w-16 h-0.5 bg-gradient-to-r from-transparent"
-              style={{ backgroundImage: `linear-gradient(to right, transparent, var(--brand-primary))` }}
-            />
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "var(--brand-primary)" }} />
-            <div className="w-16 h-0.5 bg-gradient-to-l from-transparent"
-              style={{ backgroundImage: `linear-gradient(to left, transparent, var(--brand-primary))` }}
-            />
-          </div>
-
           <p className="section-subheading">
             Real experiences from our valued customers who trust us with their precious moments
           </p>
@@ -115,7 +96,7 @@ const Testimonial = ({ data }: { data: any[] | null | undefined }) => {
                     </div>
 
                     <blockquote className="flex-1 relative z-10 mb-6">
-                      <p className="text-sm md:text-base leading-relaxed text-center font-light italic text-muted-foreground" itemProp="reviewBody">
+                      <p className="text-sm md:text-base leading-relaxed text-center fw-body italic text-muted-foreground" itemProp="reviewBody">
                         &ldquo;{t.description}&rdquo;
                       </p>
                     </blockquote>
@@ -125,7 +106,7 @@ const Testimonial = ({ data }: { data: any[] | null | undefined }) => {
                     </div>
 
                     <figcaption className="text-center relative z-10">
-                      <p className="font-semibold text-base md:text-lg mb-1" style={{ color: "var(--brand-heading)" }} itemProp="author">
+                      <p className="font-semibold text-base md:text-lg mb-1 text-foreground" itemProp="author">
                         {t.title}
                       </p>
                     </figcaption>
@@ -139,8 +120,7 @@ const Testimonial = ({ data }: { data: any[] | null | undefined }) => {
 
           <div className="flex justify-center gap-4 mt-12">
             <button
-              className="swiper-button-prev static w-12 h-12 rounded-full bg-card border-2 transition-colors duration-300 flex items-center justify-center after:content-none"
-              style={{ borderColor: "var(--brand-primary)", color: "var(--brand-primary)" }}
+              className="swiper-button-prev static w-12 h-12 rounded-full bg-card border-2 border-border text-foreground transition-colors duration-300 flex items-center justify-center after:content-none hover:bg-muted"
               aria-label="Previous testimonial"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -148,8 +128,7 @@ const Testimonial = ({ data }: { data: any[] | null | undefined }) => {
               </svg>
             </button>
             <button
-              className="swiper-button-next static w-12 h-12 rounded-full bg-card border-2 transition-colors duration-300 flex items-center justify-center after:content-none"
-              style={{ borderColor: "var(--brand-primary)", color: "var(--brand-primary)" }}
+              className="swiper-button-next static w-12 h-12 rounded-full bg-card border-2 border-border text-foreground transition-colors duration-300 flex items-center justify-center after:content-none hover:bg-muted"
               aria-label="Next testimonial"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">

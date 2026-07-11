@@ -20,7 +20,7 @@ export default function FAQPage({ data }: { data: FAQItem[] | null | undefined }
     <section className="bg-background text-foreground px-4 sm:px-6 lg:px-8 py-16 max-w-5xl mx-auto">
       {/* Header */}
       <div className="text-center mb-12">
-        <h1 className="text-3xl md:text-4xl font-serif text-foreground mb-4 tracking-tight">
+         <h1 className="text-3xl md:text-4xl fw-heading text-foreground mb-4 tracking-tight">
           Frequently Asked Questions
         </h1>
         <p className="text-muted-foreground max-w-2xl font-sans mx-auto text-base md:text-md">
@@ -42,7 +42,7 @@ export default function FAQPage({ data }: { data: FAQItem[] | null | undefined }
             value={`item-${index}`}
             className="border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 "
           >
-            <AccordionTrigger className="w-full flex justify-between items-center text-left px-5 py-5 hover:bg-brand-50 transition-colors duration-300 hover:no-underline">
+            <AccordionTrigger className="w-full flex justify-between items-center text-left px-5 py-5 hover:bg-muted/50 transition-colors duration-300 hover:no-underline">
               <span className="text-md font-sans text-foreground">
                 {faq.question}
               </span>
@@ -63,7 +63,7 @@ export default function FAQPage({ data }: { data: FAQItem[] | null | undefined }
         </p>
         <a
           href={`mailto:${siteConfig.contact.email}`}
-          className="text-brand-700 font-semibold hover:underline hover:text-brand-800 transition-colors"
+          className="text-foreground font-semibold hover:underline transition-colors"
         >
           Contact us at {siteConfig.contact.email}
         </a>

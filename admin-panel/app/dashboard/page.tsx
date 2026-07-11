@@ -16,10 +16,12 @@ import {
   type TopCategoryItem,
   type UserGrowthItem,
 } from "@/components/dashboard-charts";
-import { ShoppingCart, Users, Package, IndianRupee, AlertCircle, RefreshCw } from "lucide-react";
+import { ShoppingCart, Users, Package, IndianRupee, RefreshCw } from "lucide-react";
 import PendingPaymentFix from "@/components/PendingPaymentFix";
 import { api, ApiClientError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/ui/error-state";
 
 interface DashboardStats {
   lastWeek: {
@@ -101,14 +103,17 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-muted rounded"></div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-32 bg-muted rounded-lg"></div>
-            ))}
-          </div>
+      <div className="flex flex-col gap-6">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-96" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Skeleton className="h-[108px]" />
+          <Skeleton className="h-[108px]" />
+          <Skeleton className="h-[108px]" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-[416px]" />
+          <Skeleton className="h-[416px]" />
         </div>
       </div>
     );
@@ -128,24 +133,17 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">Welcome back! Here&apos;s what&apos;s happening today.</p>
         </div>
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="rounded-full bg-destructive/10 p-4 mb-4">
-            <AlertCircle className="h-8 w-8 text-destructive" />
-          </div>
-          <h2 className="text-xl font-semibold mb-2">Failed to load dashboard</h2>
-          <p className="text-muted-foreground mb-6 max-w-md">{errMsg}</p>
-          <Button onClick={() => { refetchStats(); refetchActivity(); }}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Retry
-          </Button>
-        </div>
+        <ErrorState
+          message={errMsg}
+          onRetry={() => { refetchStats(); refetchActivity(); }}
+        />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="animate-in fade-in slide-in-from-top duration-300">
+      <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
           Welcome back! Here&apos;s what&apos;s happening today.
@@ -162,21 +160,18 @@ export default function DashboardPage() {
               value={stats?.lastWeek?.newUsers ?? 0}
               change={0}
               icon={Users}
-              delay={0}
             />
             <StatCard
               title="New Orders"
               value={stats?.lastWeek?.newOrders ?? 0}
               change={0}
               icon={ShoppingCart}
-              delay={100}
             />
             <StatCard
               title="Revenue"
               value={stats?.lastWeek?.revenue ?? 0}
               change={0}
               icon={IndianRupee}
-              delay={200}
             />
           </div>
         </div>
@@ -189,28 +184,24 @@ export default function DashboardPage() {
               value={stats?.totals?.users ?? 0}
               change={0}
               icon={Users}
-              delay={0}
             />
             <StatCard
               title="Total Orders"
               value={stats?.totals?.orders ?? 0}
               change={0}
               icon={ShoppingCart}
-              delay={100}
             />
             <StatCard
               title="Total Products"
               value={stats?.totals?.products ?? 0}
               change={0}
               icon={Package}
-              delay={200}
             />
             <StatCard
               title="Revenue"
               value={stats?.totals?.revenue ?? 0}
               change={0}
               icon={IndianRupee}
-              delay={250}
             />
           </div>
         </div>

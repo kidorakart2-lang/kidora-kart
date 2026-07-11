@@ -43,13 +43,11 @@ export function AlertDialogUse({
         </div>
 
         <div className="flex items-center justify-end gap-2 pt-2">
-          <AlertDialogCancel className="transition-all duration-200 hover:scale-105">
-            Cancel
-          </AlertDialogCancel>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={confirmDisabled}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all duration-200 hover:scale-105"
+            className="bg-destructive text-white hover:bg-destructive/90"
           >
             {confirmText}
           </AlertDialogAction>
