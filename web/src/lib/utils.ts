@@ -111,7 +111,7 @@ export const siteConfig: SiteConfig = {
 
   themeColor: "#F58E00", // SSR fallback — overridden at runtime by ClientThemeColor from --brand-500 CSS var
   twitterHandle: "@kidorakart",
-  googleVerification: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "4jBIp_u1ex8ub0zCeOXN-UnbczFciy1aAO90vr7yhH8",
+  googleVerification: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "",
 
   categories: [
     "Action Figures",

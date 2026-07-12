@@ -21,6 +21,7 @@ import {
   clearAccessTokenCookie,
   clearRefreshTokenCookie,
 } from "../../lib/tokens.js";
+import { verifyTurnstileToken } from "../../lib/turnstile.js";
 
 const OAUTH_STATE_SECRET = env.JWT_SECRET + "_oauth_state";
 const OAUTH_STATE_EXPIRY = "10m";
@@ -82,11 +83,23 @@ export const registerUser = async (
     return fail(res, "All fields are required", 400);
   }
   try {
-    const { name, email, password } = req.body as {
+    const { name, email, password, turnstileToken } = req.body as {
       name?: string;
       email?: string;
       password?: string;
+      turnstileToken?: string;
     };
+
+    // ── Turnstile bot verification ───────────────────────────────
+    if (env.TURNSTILE_SECRET_KEY) {
+      if (!turnstileToken) {
+        return fail(res, "Bot verification failed. Please complete the security check.", 400);
+      }
+      const valid = await verifyTurnstileToken(turnstileToken);
+      if (!valid) {
+        return fail(res, "Bot verification failed. Please try again.", 400);
+      }
+    }
 
     if (!name || !email || !password) {
       return fail(res, "All fields are required", 400);

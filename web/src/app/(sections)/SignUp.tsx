@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { register, setProfile } from "@/redux/features/auth";
 import { clearGuestCart } from "@/redux/features/cart";
 import Cookies from "js-cookie";
@@ -38,6 +39,9 @@ const SignUpPage = () => {
   });
   const [error, setError] = useState(""); //  error state
   const [loading, setLoading] = useState(false); // 👈 loading state
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileError, setTurnstileError] = useState(false);
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
 
   const router = useRouter();
   const dispatch = useDispatch();
@@ -59,18 +63,31 @@ const SignUpPage = () => {
     setLoading(true); // show loading state
 
     try {
+      if (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !turnstileToken) {
+        setTurnstileError(true);
+        return setError("Please complete the security check.");
+      }
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}api/website/user/register`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify(formData),
+          body: JSON.stringify({ ...formData, turnstileToken }),
         }
       );
 
       const data = await response.json();
       if (!response.ok || !data._status) {
+        // If the error is Turnstile-related, reset the widget
+        if (
+          data._message?.toLowerCase().includes("verification") ||
+          data._message?.toLowerCase().includes("bot")
+        ) {
+          turnstileRef.current?.reset();
+          setTurnstileToken(null);
+        }
         return setError(
           data._message || "Failed to sign up. Please try again."
         );
@@ -204,6 +221,37 @@ const SignUpPage = () => {
                   setFormData((prev) => ({ ...prev, password: val }));
                 }}
               />
+
+              {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+                <>
+                  <div className="flex justify-center">
+                    <Turnstile
+                      ref={turnstileRef}
+                      siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                      options={{
+                        theme: "auto",
+                      }}
+                      onSuccess={(token) => {
+                        setTurnstileToken(token);
+                        setTurnstileError(false);
+                      }}
+                      onExpire={() => {
+                        setTurnstileToken(null);
+                        setTurnstileError(true);
+                      }}
+                      onError={() => {
+                        setTurnstileToken(null);
+                        setTurnstileError(true);
+                      }}
+                    />
+                  </div>
+                  {turnstileError && !turnstileToken && (
+                    <p className="text-destructive text-xs text-center" role="alert">
+                      Please complete the security check
+                    </p>
+                  )}
+                </>
+              )}
 
               {/* Error Message */}
               {error && (

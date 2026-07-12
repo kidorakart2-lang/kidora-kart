@@ -5,25 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
-  Package,
-  Users,
-  ShoppingCart,
-  FolderTree,
-  ImageIcon,
-  MessageSquare,
-  HelpCircle,
-  Star,
-  Palette,
-  Ruler,
   ChevronLeft,
   ChevronRight,
   Menu,
-  Bot,
-  House,
-  History,
-  Sparkles,
 } from "lucide-react";
+import { NAV_ITEMS_WITH_ICONS } from "@/lib/nav-items";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -42,38 +28,7 @@ interface MenuItem {
   href: string;
 }
 
-const menuItems: MenuItem[] = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Package, label: "Products", href: "/dashboard/products" },
-  { icon: Users, label: "Users", href: "/dashboard/users" },
-  { icon: History, label: "Audit Log", href: "/dashboard/audit-log" },
-  { icon: ImageIcon, label: "Logos", href: "/dashboard/logos" },
-  { icon: ShoppingCart, label: "Orders", href: "/dashboard/orders" },
-  { icon: FolderTree, label: "Categories", href: "/dashboard/categories" },
-  {
-    icon: FolderTree,
-    label: "Sub Categories",
-    href: "/dashboard/sub-category",
-  },
-  {
-    icon: FolderTree,
-    label: "Sub Sub Categories",
-    href: "/dashboard/sub-sub-category",
-  },
-  { icon: ImageIcon, label: "Banners", href: "/dashboard/banners" },
-  {
-    icon: MessageSquare,
-    label: "Testimonials",
-    href: "/dashboard/testimonials",
-  },
-  { icon: HelpCircle, label: "FAQs", href: "/dashboard/faqs" },
-  { icon: Star, label: "Why Choose Us", href: "/dashboard/why-choose-us" },
-  { icon: Palette, label: "Materials & Colors", href: "/dashboard/materials" },
-  { icon: Ruler, label: "Sizes", href: "/dashboard/sizes" },
-  { icon: House, label: "Home Page", href: "/dashboard/home-page" },
-  { icon: HelpCircle, label: "Product FAQs", href: "/dashboard/product-faqs" },
-  { icon: Sparkles, label: "AI Responses", href: "/dashboard/ai-responses" },
-];
+const menuItems = NAV_ITEMS_WITH_ICONS;
 
 interface SidebarProps {
   onCollapsedChange?: (collapsed: boolean) => void;
@@ -147,6 +102,9 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => {
+                  if (isMobile) setMobileSheetOpen(false);
+                }}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
                   "hover:bg-sidebar-accent",

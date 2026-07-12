@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { api, ApiClientError } from "@/lib/api"
 import { invalidateCache } from "@/lib/invalidate-cache"
 import { Button } from "@/components/ui/button"
@@ -26,8 +27,6 @@ import type { FAQ } from "@/lib/types";
 
 
 export default function FAQsPage() {
-  const [faqs, setFaqs] = useState<FAQ[]>([])
-  const [loading, setLoading] = useState(true)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editingFaq, setEditingFaq] = useState<FAQ | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -40,26 +39,14 @@ export default function FAQsPage() {
   })
   const { toast } = useToast()
 
-  useEffect(() => {
-    loadFaqs()
-  }, [deletedFilter])
-
-  const loadFaqs = async () => {
-    setLoading(true)
-    try {
+  const { data: faqs = [], isLoading: loading, refetch } = useQuery<FAQ[]>({
+    queryKey: ["faqs", deletedFilter],
+    queryFn: async () => {
       const filter = deletedFilter === "active" ? undefined : deletedFilter
       const data = await api.post<FAQ[]>("/api/admin/faq/view", { isDeletedAt: filter })
-      setFaqs(data ?? [])
-    } catch (error) {
-      toast({
-        title: "Error loading FAQs",
-        description: error instanceof ApiClientError ? error.message : "Failed to load FAQs",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
+      return data ?? []
+    },
+  })
 
   const handleEdit = (faq: FAQ) => {
     setEditingFaq(faq)
@@ -81,7 +68,7 @@ export default function FAQsPage() {
 
     try {
       await api.put("/api/admin/faq/destroy", { id: faqToDelete })
-      loadFaqs()
+      refetch()
       invalidateCache(["faq"])
       toast({ title: "FAQ deleted successfully" })
     } catch (error) {
@@ -99,7 +86,7 @@ export default function FAQsPage() {
   const handleChangeStatus = async (faq: FAQ) => {
     try {
       await api.post("/api/admin/faq/change-status", { id: faq._id })
-      loadFaqs()
+      refetch()
       invalidateCache(["faq"])
       toast({ title: "FAQ status updated successfully" })
     } catch (error) {
@@ -117,12 +104,12 @@ export default function FAQsPage() {
     try {
       if (editingFaq) {
         await api.put(`/api/admin/faq/update/${editingFaq._id}`, formData)
-        loadFaqs()
+        refetch()
         invalidateCache(["faq"])
         toast({ title: "FAQ updated successfully" })
       } else {
         await api.post("/api/admin/faq/create", formData)
-        loadFaqs()
+        refetch()
         invalidateCache(["faq"])
         toast({ title: "FAQ created successfully" })
       }

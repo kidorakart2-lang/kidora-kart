@@ -2,13 +2,12 @@
 
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface AlertDialogUseProps {
   isOpen: boolean;
@@ -30,7 +29,7 @@ export function AlertDialogUse({
   confirmDisabled = false,
 }: AlertDialogUseProps) {
   return (
-    <AlertDialog open={isOpen} onOpenChange={onClose}>
+    <AlertDialog open={isOpen}>
       <AlertDialogContent className="max-w-md">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
@@ -43,14 +42,15 @@ export function AlertDialogUse({
         </div>
 
         <div className="flex items-center justify-end gap-2 pt-2">
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
+          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button
+            type="button"
             onClick={onConfirm}
             disabled={confirmDisabled}
             className="bg-destructive text-white hover:bg-destructive/90"
           >
             {confirmText}
-          </AlertDialogAction>
+          </Button>
         </div>
       </AlertDialogContent>
     </AlertDialog>

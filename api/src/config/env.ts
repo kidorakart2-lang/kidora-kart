@@ -59,6 +59,8 @@ const envSchema = z.object({
   SHIPROCKET_PASSWORD: z.string().optional(),
   SHIPROCKET_TOKEN: z.string().optional(), // Cached JWT — service regenerates on 401
 
+  TURNSTILE_SECRET_KEY: z.string().optional(),
+
   REVALIDATE_SECRET: z.string().optional(),
 
   ENABLE_SWAGGER: z

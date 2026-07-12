@@ -108,11 +108,11 @@ export default function PendingPaymentFix() {
   };
 
   return (
-    <Card className="mb-6 border-orange-200 bg-orange-50/50">
+    <Card className="mb-6 border-border bg-card">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-orange-700 flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
               Pending Payment Verification
             </CardTitle>
@@ -125,7 +125,7 @@ export default function PendingPaymentFix() {
             onClick={checkPendingPayments}
             disabled={loading}
             variant="outline"
-            className="border-orange-300 text-orange-700 hover:bg-orange-100"
+            className="border-border text-foreground hover:bg-muted"
           >
             {loading ? (
               <>
@@ -170,7 +170,7 @@ export default function PendingPaymentFix() {
                     </TableCell>
                     <TableCell>₹{order.razorpay.amount}</TableCell>
                     <TableCell>
-                      <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-green-500 text-white shadow hover:bg-green-500/80">
+                      <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/90">
                         {order.razorpay.status}
                       </span>
                     </TableCell>

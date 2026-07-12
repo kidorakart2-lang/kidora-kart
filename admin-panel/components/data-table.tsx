@@ -376,6 +376,7 @@ function DataTableContent<T extends BaseItem>({
                             variant="ghost"
                             size="icon"
                             onClick={() => onEdit(item)}
+                            aria-label="Edit item"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -386,6 +387,7 @@ function DataTableContent<T extends BaseItem>({
                             size="icon"
                             onClick={() => onDelete(item._id as number)}
                             className="text-destructive hover:text-destructive"
+                            aria-label="Delete item"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

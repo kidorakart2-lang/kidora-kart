@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Bell, Search, User, History } from "lucide-react";
+import { ArrowRight, Bell, Search, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeSwitcher } from "./theme-switcher";
@@ -14,68 +14,74 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { AlertDialogUse } from "./alert-dialog";
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { toast } from "@/lib/toast";
-
-interface MenuItem {
-  label: string;
-  href: string;
-}
+import { NAV_ITEMS, type NavItem } from "@/lib/nav-items";
 
 export function Header() {
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
   const [bar, setBar] = useState(false);
-  const [result, setResult] = useState<MenuItem[]>([]);
+  const [result, setResult] = useState<NavItem[]>([]);
   const [query, setQuery] = useState("");
+  const [scrolled, setScrolled] = useState(false);
 
-  const menuItems: MenuItem[] = useMemo(
-    () => [
-      { label: "Dashboard", href: "/dashboard" },
-      { label: "Products", href: "/dashboard/products" },
-      { label: "Users", href: "/dashboard/users" },
-      { label: "Audit Log", href: "/dashboard/audit-log" },
-      { label: "Logos", href: "/dashboard/logos" },
-      { label: "Orders", href: "/dashboard/orders" },
-      { label: "Categories", href: "/dashboard/categories" },
-      { label: "Sub Categories", href: "/dashboard/sub-category" },
-      { label: "Sub Sub Categories", href: "/dashboard/sub-sub-category" },
-      { label: "Banners", href: "/dashboard/banners" },
-      { label: "Testimonials", href: "/dashboard/testimonials" },
-      { label: "FAQs", href: "/dashboard/faqs" },
-      { label: "Why Choose Us", href: "/dashboard/why-choose-us" },
-      { label: "Materials & Colors", href: "/dashboard/materials" },
-      { label: "Sizes", href: "/dashboard/sizes" },
-      { label: "AI Helpers", href: "/dashboard/ai-helpers" },
-      { label: "Home Page", href: "/dashboard/home-page" },
-      { label: "Product FAQs", href: "/dashboard/product-faqs" },
-    ],
-    [],
-  );
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const menuItems = NAV_ITEMS;
+
+  // Debounced search — prevents dropdown from flickering on rapid input
   const getSearchResult = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setQuery(query);
-    setBar(true);
+    const value = e.target.value;
+    setQuery(value);
 
-    if (query.trim() === "") {
+    // Cancel any pending close
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+
+    if (value.trim() === "") {
       setResult([]);
       setBar(false);
       return;
     }
 
     const filtered = menuItems
-      .filter((item) => item.label.toLowerCase().includes(query.toLowerCase()))
+      .filter((item) => item.label.toLowerCase().includes(value.toLowerCase()))
       .slice(0, 5);
 
     setResult(filtered);
+    setBar(true);
   };
 
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(e.target as Node)
+      ) {
+        setBar(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Scroll-based header shrinking
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   // ── Proactive token refresh ──────────────────────────────────────
-  // Refresh the access token every 10 minutes (before the 15-min expiry)
-  // to prevent race conditions from parallel auto-refresh attempts.
   const refreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const doTokenRefresh = useCallback(async () => {
@@ -83,7 +89,6 @@ export function Header() {
       await fetch("/api/admin/user/refresh", {
         method: "POST",
         credentials: "include",
-        // Don't wait for the response — fire-and-forget
       });
     } catch {
       // Silently ignore — auto-refresh in middleware handles edge cases
@@ -91,10 +96,8 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    // Start the interval
     refreshIntervalRef.current = setInterval(doTokenRefresh, 10 * 60 * 1000);
 
-    // Also refresh on page visibility change (user returns after idle)
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
         doTokenRefresh();
@@ -123,17 +126,26 @@ export function Header() {
   };
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 px-6">
+      <header
+        className={`sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 px-6 transition-all duration-300 ${
+          scrolled ? "h-12" : "h-14"
+        }`}
+      >
         <div className="flex-1 flex items-center gap-4">
-          <div className="relative w-full max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div ref={searchContainerRef} className="relative w-full max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               onChange={getSearchResult}
               placeholder="Search..."
-              className="pl-10"
+              className="pl-9 h-8 text-sm"
+              onFocus={() => {
+                if (query.trim() !== "" && result.length > 0) {
+                  setBar(true);
+                }
+              }}
             />
             {bar && result.length > 0 && (
-              <ul className="absolute z-10 bg-popover border border-border rounded-md mt-1 w-full shadow-md">
+              <ul className="absolute z-50 bg-popover border border-border rounded-md mt-1 w-full shadow-lg">
                 {result.map((item, i) => (
                   <li key={i} className="border-b border-border last:border-b-0">
                     <Link
@@ -150,17 +162,17 @@ export function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <ThemeSwitcher />
 
           <Button
             variant="ghost"
             size="icon"
-            className="relative"
+            className="relative h-8 w-8"
             onClick={() => toast.info("No new notifications")}
+            aria-label="Notifications"
           >
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full animate-pulse"></span>
+            <Bell className="h-4 w-4" />
           </Button>
 
           <DropdownMenu>
@@ -168,9 +180,10 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className=""
+                className="h-8 w-8"
+                aria-label="Account menu"
               >
-                <User className="h-5 w-5" />
+                <User className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,8 +35,6 @@ import SingleImageUploader from "@/components/SingleImageUploader";
 
 export default function BannersPage() {
   const [btnLoading, setBtnLoading] = useState(false);
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -118,30 +117,15 @@ export default function BannersPage() {
 
   const [deletedFilter, setDeletedFilter] = useState<string>("active");
 
-  useEffect(() => {
-    loadBanners();
-  }, [deletedFilter]);
-
-  const loadBanners = async () => {
-    setLoading(true);
-    try {
+  const { data: banners = [], isLoading: loading, refetch } = useQuery<Banner[]>({
+    queryKey: ["banners", deletedFilter],
+    queryFn: async () => {
       const data = await api.post<Banner[]>("/api/admin/banner/view", {
         isDeletedAt: deletedFilter === "active" ? undefined : deletedFilter,
       });
-      setBanners(data ?? []);
-    } catch (error) {
-      toast({
-        title: "Error loading banners",
-        description:
-          error instanceof ApiClientError
-            ? error.message
-            : "Failed to load banners",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data ?? [];
+    },
+  });
 
   const handleEdit = (banner: Banner) => {
     setEditingBanner(banner);
@@ -168,7 +152,7 @@ export default function BannersPage() {
       await api.put(`/api/admin/banner/delete/${bannerToDelete}`, {
         id: bannerToDelete,
       });
-      loadBanners();
+      refetch();
       invalidateCache(["homepage"]);
       toast({ title: "Banner deleted successfully" });
     } catch (error) {
@@ -213,7 +197,7 @@ export default function BannersPage() {
           `/api/admin/banner/update/${editingBanner._id}`,
           formDataToSend,
         );
-        loadBanners();
+        refetch();
         invalidateCache(["homepage"]);
         toast({ title: "Banner updated successfully" });
       } catch (error) {
@@ -232,7 +216,7 @@ export default function BannersPage() {
       setBtnLoading(true);
       try {
         await api.post("/api/admin/banner/create", formDataToSend);
-        loadBanners();
+        refetch();
         invalidateCache(["homepage"]);
         toast({ title: "Banner created successfully" });
       } catch (error) {
@@ -267,7 +251,7 @@ export default function BannersPage() {
   const handleStatusChange = async (id: string) => {
     try {
       await api.post("/api/admin/banner/change-status", { id });
-      loadBanners();
+      refetch();
       invalidateCache(["homepage"]);
     } catch (error) {
       toast({

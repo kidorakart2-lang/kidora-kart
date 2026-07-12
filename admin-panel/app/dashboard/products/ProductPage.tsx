@@ -1,7 +1,8 @@
 "use client";
 
 import { api, ApiClientError } from "@/lib/api";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -251,6 +252,7 @@ const saveProduct = async ({ formData, editingProduct }: { formData: FormData; e
 };
 
 export default function ProductsPage() {
+  const isMobile = useIsMobile();
   const [selectedCategory, setSelectedCategory] = useState<string[]>([]);
   const [selectedSubCategory, setSelectedSubCategory] = useState<string[]>([]);
   const [selectedSubSubCategory, setSelectedSubSubCategory] = useState<string[]>([]);
@@ -264,6 +266,9 @@ export default function ProductsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [formData, setFormData] = useState<ProductFormData>(INITIAL_FORM_STATE);
   const [tagLoading, setTagLoading] = useState(false);
+  const [statusConfirmOpen, setStatusConfirmOpen] = useState(false);
+  const [pendingStatusProduct, setPendingStatusProduct] = useState<Product | null>(null);
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
 
   const { toast } = useToast();
   const router = useRouter();
@@ -355,6 +360,9 @@ export default function ProductsPage() {
 
   const statusMutation = useMutation({
     mutationFn: changeProductStatus,
+    onMutate: (id) => {
+      setTogglingIds((prev) => new Set(prev).add(id));
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       invalidateCache(["products", "homepage", "best-sellers", "flash-sale"]);
@@ -362,6 +370,13 @@ export default function ProductsPage() {
     },
     onError: (error: Error) => {
       toast({ title: "Error updating product status", variant: "destructive" });
+    },
+    onSettled: (_data, _error, id) => {
+      setTogglingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     },
   });
 
@@ -377,7 +392,16 @@ export default function ProductsPage() {
       toast({
         title: `Product ${editingProduct ? "updated" : "created"} successfully`,
       });
-      closeDrawer();
+      setDrawerOpen(false);
+      setEditingProduct(null);
+      setSelectedCategory([]);
+      setSelectedSubCategory([]);
+      setSelectedSubSubCategory([]);
+      setSelectedColors([]);
+      setSelectedMaterials([]);
+      setSelectedSizes([]);
+      setFormData(INITIAL_FORM_STATE);
+      setRemoveImagesUrl([]);
     },
     onError: (error: Error) => {
       toast({
@@ -676,7 +700,7 @@ export default function ProductsPage() {
     saveMutation.mutate({ formData: formDataToSend, editingProduct });
   };
 
-  const closeDrawer = () => {
+  const closeDrawer = useCallback(() => {
     setDrawerOpen(false);
     setEditingProduct(null);
     setSelectedCategory([]);
@@ -687,7 +711,7 @@ export default function ProductsPage() {
     setSelectedSizes([]);
     setFormData(INITIAL_FORM_STATE);
     setRemoveImagesUrl([]);
-  };
+  }, []);
 
   const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -789,7 +813,16 @@ export default function ProductsPage() {
   };
 
   const handleStatusChange = (item: Product) => {
-    statusMutation.mutate(item._id);
+    setPendingStatusProduct(item);
+    setStatusConfirmOpen(true);
+  };
+
+  const confirmStatusChange = () => {
+    if (pendingStatusProduct) {
+      statusMutation.mutate(pendingStatusProduct._id);
+    }
+    setPendingStatusProduct(null);
+    setStatusConfirmOpen(false);
   };
 
   const toggleRemoveImagesUrl = (url: string) => {
@@ -874,8 +907,8 @@ export default function ProductsPage() {
       label: "Status",
       render: (item: Product) => {
         const statusStyles: Record<string, string> = {
-          active: "bg-green-50 text-green-700 border-green-200",
-          inactive: "bg-red-50 text-red-700 border-red-200",
+          active: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+          inactive: "bg-destructive/10 text-destructive border-destructive/20",
           draft: "bg-secondary text-secondary-foreground border-secondary",
         };
         const statusLabels: Record<string, string> = {
@@ -885,12 +918,12 @@ export default function ProductsPage() {
         };
         return (
           <Button
-            disabled={statusMutation.isPending}
+            disabled={togglingIds.has(item._id)}
             variant="outline"
             className={`font-mono cursor-pointer border ${statusStyles[item.status] ?? "bg-muted text-foreground"}`}
             onClick={() => handleStatusChange(item)}
           >
-            {statusMutation.isPending
+            {togglingIds.has(item._id)
               ? "Changing.."
               : statusLabels[item.status] ?? item.status}
           </Button>
@@ -994,7 +1027,6 @@ export default function ProductsPage() {
           <ExportButtons data={products as unknown as Record<string, unknown>[]} filename="products" />
           <Button
             onClick={() => {
-              closeDrawer();
               setDrawerOpen(true);
             }}
             className="transition-all duration-200 hover:scale-105"
@@ -1022,7 +1054,7 @@ export default function ProductsPage() {
         isOpen={drawerOpen}
         onClose={closeDrawer}
         title={editingProduct ? "Edit Product" : "Add New Product"}
-        className="!w-[60vw] !max-w-[1800px]"
+        className={isMobile ? "!w-full" : "!w-[60vw] !max-w-[1800px]"}
       >
         <form onSubmit={handleSubmit} className="space-y-0">
           {/* Section 1: Basic Information */}
@@ -1082,7 +1114,7 @@ export default function ProductsPage() {
           <Separator />
 
           {/* Section 2: Description */}
-          <Collapsible defaultOpen>
+          <Collapsible defaultOpen={!isMobile}>
             <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-left group">
               <h3 className="text-lg font-medium">Description</h3>
               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
@@ -1174,7 +1206,7 @@ export default function ProductsPage() {
           <Separator />
 
           {/* Section 3: Categories & Tags */}
-          <Collapsible defaultOpen>
+          <Collapsible defaultOpen={!isMobile}>
             <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-left group">
               <h3 className="text-lg font-medium">Categories & Tags</h3>
               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
@@ -1274,7 +1306,7 @@ export default function ProductsPage() {
           <Separator />
 
           {/* Section 4: Dimensions */}
-          <Collapsible defaultOpen>
+          <Collapsible defaultOpen={!isMobile}>
             <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-left group">
               <h3 className="text-lg font-medium">Dimensions</h3>
               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
@@ -1422,7 +1454,7 @@ export default function ProductsPage() {
           <Separator />
 
           {/* Section 5: Age */}
-          <Collapsible defaultOpen>
+          <Collapsible defaultOpen={!isMobile}>
             <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-left group">
               <h3 className="text-lg font-medium">Age</h3>
               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
@@ -1496,7 +1528,7 @@ export default function ProductsPage() {
           <Separator />
 
           {/* Section 6: Status Toggles */}
-          <Collapsible defaultOpen>
+          <Collapsible defaultOpen={!isMobile}>
             <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-left group">
               <h3 className="text-lg font-medium">Status Toggles</h3>
               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
@@ -1556,7 +1588,7 @@ export default function ProductsPage() {
           <Separator />
 
           {/* Section 7: Product Images */}
-          <Collapsible defaultOpen>
+          <Collapsible defaultOpen={!isMobile}>
             <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-left group">
               <h3 className="text-lg font-medium">Product Images</h3>
               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
@@ -1701,6 +1733,15 @@ export default function ProductsPage() {
         onConfirm={confirmDelete}
         title="Delete Product"
         description="Are you sure you want to delete this product? This action cannot be undone."
+      />
+
+      <AlertDialogUse
+        isOpen={statusConfirmOpen}
+        onClose={() => { setStatusConfirmOpen(false); setPendingStatusProduct(null); }}
+        onConfirm={confirmStatusChange}
+        title="Change Product Status"
+        description={`Are you sure you want to change the status of "${pendingStatusProduct?.name ?? ""}" to ${pendingStatusProduct?.status === "active" ? "inactive" : "active"}?`}
+        confirmText="Change Status"
       />
     </div>
   );

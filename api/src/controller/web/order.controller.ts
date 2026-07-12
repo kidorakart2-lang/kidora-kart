@@ -1342,7 +1342,16 @@ export const handleWebhook = async (
       .update(rawBody)
       .digest("hex");
 
-    if (signature !== expectedSignature) {
+    if (!signature) {
+      res.status(400).json({ error: "Missing signature" });
+      return;
+    }
+
+    const sigVerified = crypto.timingSafeEqual(
+      Buffer.from(expectedSignature, "hex"),
+      Buffer.from(signature, "hex"),
+    );
+    if (!sigVerified) {
       res.status(400).json({ error: "Invalid signature" });
       return;
     }

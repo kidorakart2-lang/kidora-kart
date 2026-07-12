@@ -64,35 +64,35 @@ export interface ChartData {
 // ── Chart Configurations ───────────────────────────────────────────────
 
 const revenueChartConfig: ChartConfig = {
-  revenue: { label: "Revenue", color: "var(--chart-1))" },
-  target: { label: "Target", color: "var(--chart-3))" },
+  revenue: { label: "Revenue", color: "var(--chart-1)" },
+  target: { label: "Target", color: "var(--chart-3)" },
 };
 
 const orderStatusConfig: ChartConfig = {
-  delivered: { label: "Delivered", color: "var(--chart-1))" },
-  processing: { label: "Processing", color: "var(--chart-2))" },
-  shipped: { label: "Shipped", color: "var(--chart-3))" },
-  pending: { label: "Pending", color: "var(--chart-4))" },
-  cancelled: { label: "Cancelled", color: "var(--chart-5))" },
+  delivered: { label: "Delivered", color: "var(--chart-1)" },
+  processing: { label: "Processing", color: "var(--chart-2)" },
+  shipped: { label: "Shipped", color: "var(--chart-3)" },
+  pending: { label: "Pending", color: "var(--chart-4)" },
+  cancelled: { label: "Cancelled", color: "var(--chart-5)" },
 };
 
 const categoryConfig: ChartConfig = {};
 
 const growthConfig: ChartConfig = {
-  users: { label: "New Users", color: "var(--chart-3))" },
+  users: { label: "New Users", color: "var(--chart-3)" },
 };
 
 const monthlyBarConfig: ChartConfig = {
-  orders: { label: "Orders", color: "var(--chart-3))" },
-  revenue: { label: "Revenue", color: "var(--chart-1))" },
+  orders: { label: "Orders", color: "var(--chart-3)" },
+  revenue: { label: "Revenue", color: "var(--chart-1)" },
 };
 
 const statusColorMap: Record<string, string> = {
-  delivered: "var(--chart-1))",
-  processing: "var(--chart-2))",
-  shipped: "var(--chart-3))",
-  pending: "var(--chart-4))",
-  cancelled: "var(--chart-5))",
+  delivered: "var(--chart-1)",
+  processing: "var(--chart-2)",
+  shipped: "var(--chart-3)",
+  pending: "var(--chart-4)",
+  cancelled: "var(--chart-5)",
 };
 
 // ── Chart Components ───────────────────────────────────────────────────
@@ -190,7 +190,7 @@ export function OrderStatusChart({ data }: OrderStatusChartProps) {
 
   const colouredData = data.map((item) => ({
     ...item,
-    fill: statusColorMap[item.status] ?? "var(--chart-5))",
+    fill: statusColorMap[item.status] ?? "var(--chart-5)",
   }));
 
   return (
@@ -438,8 +438,8 @@ export function UserGrowthChart({ data }: UserGrowthChartProps) {
           <AreaChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
             <defs>
               <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--chart-3))" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="var(--chart-3))" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--chart-3)" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="var(--chart-3)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

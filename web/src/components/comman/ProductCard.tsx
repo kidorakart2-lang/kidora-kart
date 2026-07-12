@@ -15,7 +15,7 @@ import type { RootState } from "@/redux/store/store";
 
 export default function ProductCard({ data }: { data: ProductData }) {
   const cartItem = useSelector((state: RootState) =>
-    (state.cart?.cartItems ?? []).find((item) => item.productId === data?._id)
+    (state.cart?.cartItems ?? []).find((item) => item.productId === data?._id),
   );
 
   const cartObj = {
@@ -31,7 +31,9 @@ export default function ProductCard({ data }: { data: ProductData }) {
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const isWishlisted = useSelector((state: RootState) =>
-    (state.wishlist?.wishlistItems ?? []).find((item) => item._id === data?._id)
+    (state.wishlist?.wishlistItems ?? []).find(
+      (item) => item._id === data?._id,
+    ),
   );
 
   const dispatch = useDispatch();
@@ -74,21 +76,23 @@ export default function ProductCard({ data }: { data: ProductData }) {
               body: JSON.stringify({
                 productId: data?._id,
               }),
-            }
+            },
           );
           const responseData = await response.json();
           if (response.ok || responseData._status) {
             dispatch(
               removeFromWishlist({
                 _id: data?._id,
-              })
+              }),
             );
             toast.success(responseData._message);
           } else {
             toast.error(responseData._message);
           }
         } catch (err) {
-          toast.error(err instanceof Error ? err.message : "Something went wrong");
+          toast.error(
+            err instanceof Error ? err.message : "Something went wrong",
+          );
         } finally {
           setWishlistLoading(false);
         }
@@ -98,7 +102,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
           removeFromWishlist({
             _id: data?._id,
             isGuest: true,
-          })
+          }),
         );
         toast.success("Removed from wishlist");
         setWishlistLoading(false);
@@ -119,7 +123,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
               body: JSON.stringify({
                 productId: data?._id,
               }),
-            }
+            },
           );
           const responseData = await response.json();
           if (response.ok || responseData._status) {
@@ -127,14 +131,16 @@ export default function ProductCard({ data }: { data: ProductData }) {
               addToWishlist({
                 _id: data?._id,
                 slug: data?.slug,
-              })
+              }),
             );
             toast.success(responseData._message);
           } else {
             toast.error(responseData._message);
           }
         } catch (err) {
-          toast.error(err instanceof Error ? err.message : "Something went wrong");
+          toast.error(
+            err instanceof Error ? err.message : "Something went wrong",
+          );
         } finally {
           setWishlistLoading(false);
         }
@@ -145,7 +151,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
             _id: data?._id,
             slug: data?.slug,
             isGuest: true,
-          })
+          }),
         );
         toast.success("Added to wishlist");
         setWishlistLoading(false);
@@ -172,7 +178,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
               Authorization: `Bearer ${getAuthToken()}`,
             },
             body: JSON.stringify(cartObj),
-          }
+          },
         );
         const responseData = await response.json();
         if (response.ok || responseData._status) {
@@ -182,7 +188,9 @@ export default function ProductCard({ data }: { data: ProductData }) {
           toast.error(responseData._message);
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Something went wrong");
+        toast.error(
+          err instanceof Error ? err.message : "Something went wrong",
+        );
       } finally {
         setLoading(false);
       }
@@ -247,7 +255,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
               ? `Remove ${data.name} from wishlist`
               : `Add ${data.name} to wishlist`
           }
-           aria-pressed={!!isWishlisted}
+          aria-pressed={!!isWishlisted}
           className={`w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-border
                    hover:bg-background flex items-center justify-center
                    transition-all duration-300 shadow-lg hover:shadow-xl
@@ -282,7 +290,9 @@ export default function ProductCard({ data }: { data: ProductData }) {
           {/* Main image */}
           <div
             className={`absolute inset-0 transition-opacity duration-500 ${
-              isHovered && data?.images != null && data.images.length > 0 ? "opacity-0" : "opacity-100"
+              isHovered && data?.images != null && data.images.length > 0
+                ? "opacity-0"
+                : "opacity-100"
             }`}
           >
             <Image
@@ -458,13 +468,12 @@ export default function ProductCard({ data }: { data: ProductData }) {
               {loading
                 ? "Adding..."
                 : data.stock === 0
-                ? "Out of Stock"
-                : "Add to Cart"}
+                  ? "Out of Stock"
+                  : "Add to Cart"}
             </span>
           </Button>
         </div>
       </div>
-
     </article>
   );
 }

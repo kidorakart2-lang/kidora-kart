@@ -16,8 +16,7 @@ import {
   type TopCategoryItem,
   type UserGrowthItem,
 } from "@/components/dashboard-charts";
-import { ShoppingCart, Users, Package, IndianRupee, RefreshCw } from "lucide-react";
-import PendingPaymentFix from "@/components/PendingPaymentFix";
+import { ShoppingCart, Users, Package, IndianRupee } from "lucide-react";
 import { api, ApiClientError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -206,8 +205,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-
-      <PendingPaymentFix />
 
       {/* ── Charts Grid ── */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

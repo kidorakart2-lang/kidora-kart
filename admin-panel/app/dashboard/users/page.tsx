@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { BaseItem, Column } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -46,8 +47,6 @@ interface AdminUser extends BaseItem {
 }
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -65,27 +64,15 @@ export default function UsersPage() {
   const { toast } = useToast();
   const [deletedFilter, setDeletedFilter] = useState<string>("active");
 
-  useEffect(() => {
-    loadUsers();
-  }, [deletedFilter]);
-
-  const loadUsers = async () => {
-    setLoading(true);
-    try {
+  const { data: users = [], isLoading: loading, refetch } = useQuery<AdminUser[]>({
+    queryKey: ["users", deletedFilter],
+    queryFn: async () => {
       const data = await api.post<AdminUser[]>("/api/admin/user/findAllUser", {
         isDeletedAt: deletedFilter === "active" ? undefined : deletedFilter,
       });
-      setUsers(data || []);
-    } catch (error) {
-      toast({
-        title: "Error loading users",
-        description: error instanceof ApiClientError ? error.message : "Request failed",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data || [];
+    },
+  });
 
   const handleEdit = (user: AdminUser) => {
     setEditingUser(user);
@@ -108,7 +95,7 @@ export default function UsersPage() {
     try {
       await api.post(`/api/admin/user/delete/${userToDelete}`, {});
       toast({ title: "User deleted successfully" });
-      loadUsers();
+      refetch();
     } catch (error) {
       toast({
         title: error instanceof ApiClientError ? error.message : "Operation failed",
@@ -142,7 +129,7 @@ export default function UsersPage() {
           role: formData.role,
         });
         toast({ title: "User created successfully" });
-        loadUsers();
+        refetch();
         setDrawerOpen(false);
         setEditingUser(null);
         setFormData({ name: "", email: "", password: "", role: "user" });
@@ -168,7 +155,7 @@ export default function UsersPage() {
       setDrawerOpen(false);
       setEditingUser(null);
       setFormData({ name: "", email: "", password: "", role: "user" });
-      loadUsers();
+      refetch();
     } catch (error) {
       toast({
         title: error instanceof ApiClientError ? error.message : "Verification failed",

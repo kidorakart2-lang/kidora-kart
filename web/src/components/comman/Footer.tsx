@@ -330,6 +330,23 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
           </p>
         </div>
       </div>
+
+      {/* Designed by */}
+      <div className="border-t border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 text-center">
+          <p className="text-xs text-muted-foreground">
+            Designed by{" "}
+            <a
+              href="https://my-portfolio-nine-eta-bo1n0vx4mt.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground transition-colors"
+            >
+              Gaurav Dadhich
+            </a>
+          </p>
+        </div>
+      </div>
     </footer>
   );
 }

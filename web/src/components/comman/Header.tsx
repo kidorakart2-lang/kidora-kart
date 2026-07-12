@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   useRef,
+  useCallback,
   type FormEvent,
   type MouseEvent,
   type TouchEvent,
@@ -23,7 +24,6 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { motion, type Variants } from "motion/react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -48,7 +48,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { PlaceholdersAndVanishInput } from "../ui/placeholders-and-vanish-input";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
@@ -59,12 +58,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { openLoginModal, setNavigation } from "@/redux/features/uiSlice";
 import type { UiNavigationData } from "@/redux/features/uiSlice";
 import Cookies from "js-cookie";
-import { getAuthToken } from "@/lib/getAuthToken";
 import { login, logout, setProfile } from "@/redux/features/auth";
 import { setWishlist } from "@/redux/features/wishlist";
 import { updateFullCart } from "@/redux/features/cart";
-import { useSearchSuggestions, type SuggestionData } from "@/lib/useSearchSuggestions";
 import { siteConfig } from "@/lib/utils";
+import { SearchBar } from "./SearchBar";
 
 interface SubSubCategory {
   _id: string;
@@ -91,11 +89,6 @@ interface MobileLinkProps {
   href: string;
 }
 
-interface SearchBarProps {
-  className?: string;
-  inputId?: string;
-}
-
 interface HeaderProps {
   navigationData: UiNavigationData;
 }
@@ -115,12 +108,11 @@ export default function Header({ navigationData }: HeaderProps) {
   const [isOffcanvasOpen, setIsOffcanvasOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [announcementDismissed, setAnnouncementDismissed] = useState(false);
   const cartCount = useSelector((state: RootState) => state.cart.totalQuantity);
   const wishlistCount = useSelector(
     (state: RootState) => state.wishlist.totalQuantity,
   );
-
-  const pathName = usePathname();
 
   const router = useRouter();
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLogin);
@@ -129,7 +121,8 @@ export default function Header({ navigationData }: HeaderProps) {
     unknown
   >;
   const logo = useSelector((state: RootState) => state.logo.logo) as
-    string | null;
+    | string
+    | null;
 
   const dispatch = useDispatch();
   const loginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -158,18 +151,27 @@ export default function Header({ navigationData }: HeaderProps) {
   // Sync cart to Redux from React Query cache (for cart badge count)
   useEffect(() => {
     if (!cartData?.items) return;
-    const items = cartData.items.map((item: { product?: { _id: string }; quantity?: number; color?: { _id: string }; size?: { _id: string } }) => ({
-      productId: item.product?._id ?? "",
-      quantity: item.quantity ?? 1,
-      colorId: item.color?._id ?? null,
-      sizeId: item.size?._id ?? null,
-      isGuest: false,
-    }));
-    dispatch(updateFullCart({
-      items,
-      totalPrice: cartData.totalPrice ?? 0,
-      totalItems: cartData.totalItems ?? items.length,
-    }));
+    const items = cartData.items.map(
+      (item: {
+        product?: { _id: string };
+        quantity?: number;
+        color?: { _id: string };
+        size?: { _id: string };
+      }) => ({
+        productId: item.product?._id ?? "",
+        quantity: item.quantity ?? 1,
+        colorId: item.color?._id ?? null,
+        sizeId: item.size?._id ?? null,
+        isGuest: false,
+      }),
+    );
+    dispatch(
+      updateFullCart({
+        items,
+        totalPrice: cartData.totalPrice ?? 0,
+        totalItems: cartData.totalItems ?? items.length,
+      }),
+    );
   }, [cartData, dispatch]);
 
   useEffect(() => {
@@ -192,14 +194,22 @@ export default function Header({ navigationData }: HeaderProps) {
     dispatch(setNavigation(navigationData));
   }, [navigationData]);
 
-  // Cart + wishlist are now fetched by useCartView / useWishlistView hooks
-  // (enabled automatically when token exists).  No manual fetch needed.
-
   // SCROLL EFFECT
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 150);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Announcement bar: check localStorage
+  useEffect(() => {
+    const dismissed = localStorage.getItem("announcement-dismissed");
+    if (dismissed === "true") setAnnouncementDismissed(true);
+  }, []);
+
+  const dismissAnnouncement = useCallback(() => {
+    setAnnouncementDismissed(true);
+    localStorage.setItem("announcement-dismissed", "true");
   }, []);
 
   const MobileLink = ({ name, href }: MobileLinkProps) => (
@@ -229,7 +239,7 @@ export default function Header({ navigationData }: HeaderProps) {
             >
               {/* sub category accordian  */}
               <AccordionItem value="item-1" className="border-b-0">
-                          <AccordionTrigger className="py-3 px-4 text-foreground hover:bg-muted rounded-lg font-medium">
+                <AccordionTrigger className="py-3 px-4 text-foreground hover:bg-muted rounded-lg font-medium">
                   <Link href={cat.slug == "home" ? "/" : cat.slug}>
                     {cat.name}
                   </Link>
@@ -244,7 +254,7 @@ export default function Header({ navigationData }: HeaderProps) {
                     >
                       {/* sub sub category accordian */}
                       <AccordionItem value="item-1" className="border-b-0">
-                <AccordionTrigger className="py-3 px-4 text-foreground hover:bg-muted rounded-lg font-medium">
+                        <AccordionTrigger className="py-3 px-4 text-foreground hover:bg-muted rounded-lg font-medium">
                           <SheetClose asChild>
                             <Link
                               href={"/category/" + cat.slug + "/" + menu.slug}
@@ -283,7 +293,10 @@ export default function Header({ navigationData }: HeaderProps) {
         </div>
       ))}
       <div className="border-t border-[color-mix(in_srgb,var(--brand-primary)_15%,transparent)] pt-3 mt-3">
-        <p className="text-xs font-semibold uppercase tracking-wider px-4 mb-2" style={{ color: 'var(--brand-heading)' }}>
+        <p
+          className="text-xs font-semibold uppercase tracking-wider px-4 mb-2"
+          style={{ color: "var(--brand-heading)" }}
+        >
           Quick Links
         </p>
         <MobileLink name="About Us" href="/about" />
@@ -343,14 +356,22 @@ export default function Header({ navigationData }: HeaderProps) {
 
   return (
     <>
-      <div className="w-full text-center bg-gradient-to-r from-[var(--brand-primary-dark)] via-[var(--brand-primary-dark)] to-[var(--brand-primary-darker)] text-background text-sm py-2.5 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,.1)_50%,transparent_75%,transparent_100%)] bg-[length:250%_250%] animate-shimmer"></div>
-        <span className="relative z-10 flex items-center justify-center gap-2 font-medium">
-          <Truck className="inline rotate-y-180" size={16} />
-          Free Shipping above ₹1000 | Welcome to{" "}
-          {process.env.NEXT_PUBLIC_APP_NAME}
-        </span>
-      </div>
+      {!announcementDismissed && (
+        <div className="w-full text-center bg-gradient-to-r from-[var(--brand-primary-dark)] via-[var(--brand-primary-dark)] to-[var(--brand-primary-darker)] text-background text-sm py-2.5 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,.1)_50%,transparent_75%,transparent_100%)] bg-[length:250%_250%] animate-shimmer" />
+          <span className="relative z-10 flex items-center justify-center gap-2 font-medium">
+            <Truck className="inline rotate-y-180" size={16} />
+            Kidora Kart — Our brand new website is here! Explore now
+          </span>
+          <button
+            onClick={dismissAnnouncement}
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 p-1 rounded-full hover:bg-white/20 transition-colors"
+            aria-label="Dismiss announcement"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       <header className="max-w-screen w-full bg-background/95 z-[190] sticky top-0 left-0 shadow-lg border-b  border-[color-mix(in_srgb,var(--brand-primary)_15%,transparent)]">
         {/* Main Header Bar */}
@@ -400,9 +421,15 @@ export default function Header({ navigationData }: HeaderProps) {
                   aria-label="View wishlist"
                 >
                   <Heart
-                    fill={wishlistCount > 0 ? "var(--brand-primary-dark)" : "none"}
+                    fill={
+                      wishlistCount > 0 ? "var(--brand-primary-dark)" : "none"
+                    }
                     size={22}
-                    className={wishlistCount > 0 ? "text-[var(--brand-primary-dark)]" : ""}
+                    className={
+                      wishlistCount > 0
+                        ? "text-[var(--brand-primary-dark)]"
+                        : ""
+                    }
                   />
                   {wishlistCount > 0 && (
                     <Badge className="absolute -top-1.5 -right-1.5 size-5 flex items-center justify-center p-0 bg-gradient-to-br from-[var(--brand-primary-dark)] to-[var(--brand-primary-darker)] hover:from-[var(--brand-primary-darker)] hover:to-[color-mix(in_srgb,var(--brand-primary-darker)_80%,black)] text-xs shadow-lg border-2 border-white">
@@ -421,12 +448,14 @@ export default function Header({ navigationData }: HeaderProps) {
                 onClick={() => router.push("/cart")}
               >
                 <ShoppingCartIcon
-                    fill={cartCount > 0 ? "var(--brand-primary-dark)" : "none"}
-                    size={24}
-                    className={cartCount > 0 ? "text-[var(--brand-primary-dark)]" : ""}
-                  />
-                  {cartCount > 0 && (
-                    <Badge className="absolute -top-1.5 -right-1.5 w-5 h-5 flex items-center justify-center p-0 bg-gradient-to-br from-[var(--brand-primary-dark)] to-[var(--brand-primary-darker)] hover:from-[var(--brand-primary-darker)] hover:to-[color-mix(in_srgb,var(--brand-primary-darker)_80%,black)] text-xs shadow-lg border-2 border-white">
+                  fill={cartCount > 0 ? "var(--brand-primary-dark)" : "none"}
+                  size={24}
+                  className={
+                    cartCount > 0 ? "text-[var(--brand-primary-dark)]" : ""
+                  }
+                />
+                {cartCount > 0 && (
+                  <Badge className="absolute -top-1.5 -right-1.5 w-5 h-5 flex items-center justify-center p-0 bg-gradient-to-br from-[var(--brand-primary-dark)] to-[var(--brand-primary-darker)] hover:from-[var(--brand-primary-darker)] hover:to-[color-mix(in_srgb,var(--brand-primary-darker)_80%,black)] text-xs shadow-lg border-2 border-white">
                     {cartCount}
                   </Badge>
                 )}
@@ -462,7 +491,7 @@ export default function Header({ navigationData }: HeaderProps) {
                           alt="User Avatar"
                           width={28}
                           height={28}
-                           className="rounded-full size-6 md:size-7 border-2 border-[color-mix(in_srgb,var(--brand-primary)_30%,transparent)]"
+                          className="rounded-full size-6 md:size-7 border-2 border-[color-mix(in_srgb,var(--brand-primary)_30%,transparent)]"
                         />
                       </div>
                     ) : (
@@ -517,7 +546,10 @@ export default function Header({ navigationData }: HeaderProps) {
                       </p>
                       <div className="space-y-2 flex flex-col gap-2">
                         <Link href="/login" className="cursor-pointer">
-                          <Button variant="gradient" className="w-full shadow-sm">
+                          <Button
+                            variant="gradient"
+                            className="w-full shadow-sm"
+                          >
                             Sign In
                           </Button>
                         </Link>
@@ -659,188 +691,6 @@ export default function Header({ navigationData }: HeaderProps) {
     </>
   );
 }
-
-const SearchBar = ({ className, inputId }: SearchBarProps) => {
-  const value = useSelector((state: RootState) => state.ui.searchValue);
-  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
-  const router = useRouter();
-  const pathname = usePathname();
-
-  // React Query — search suggestions with debounced query key + 5min cache
-  const { data: suggestions, isFetching } = useSearchSuggestions(value);
-
-  // Open/close the suggestions dropdown based on query state
-  useEffect(() => {
-    if (value.trim().length <= 1) {
-      setIsSuggestionsOpen(false);
-      return;
-    }
-    // Show spinner immediately while fetching
-    if (isFetching) {
-      setIsSuggestionsOpen(true);
-      return;
-    }
-    // Show when results arrive
-    if (suggestions) {
-      if (suggestions.suggestions.length > 0 || suggestions.products.length > 0) {
-        setIsSuggestionsOpen(true);
-      } else {
-        setIsSuggestionsOpen(false);
-      }
-    }
-  }, [suggestions, value, isFetching]);
-
-  // Close suggestions when route changes
-  useEffect(() => {
-    setIsSuggestionsOpen(false);
-  }, [pathname]);
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const formElements = form.elements as HTMLFormControlsCollection & {
-      search: HTMLInputElement;
-    };
-    const searchValue = formElements.search.value;
-    router.push(`/category/shop-by-category?q=${searchValue}`);
-  };
-  const suggestionVariants: Variants = {
-    open: {
-      opacity: 1,
-      height: "auto",
-      transition: {
-        duration: 0.3,
-        ease: "easeInOut",
-      },
-    },
-    closed: {
-      opacity: 0,
-      height: 0,
-      transition: {
-        duration: 0.2,
-        ease: "easeInOut",
-      },
-    },
-  };
-
-  return (
-    <div className={`relative ${className}`}>
-      <PlaceholdersAndVanishInput
-        placeholders={[
-          "Search for Toys",
-          "Buy Educational Toys",
-          "Search for action figures",
-          "Find Gift Items",
-        ]}
-        onSubmit={handleSubmit}
-        inputId={inputId}
-      />
-      <Search
-        size={20}
-        className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 text-[var(--brand-primary-dark)] pointer-events-none"
-      />
-
-      {isSuggestionsOpen && (
-        <motion.div
-          initial="closed"
-          animate={isSuggestionsOpen ? "open" : "closed"}
-          variants={suggestionVariants}
-          className="absolute top-full left-0 right-0 h-auto w-[78%] md:w-full mt-1 bg-background rounded-lg shadow-lg z-[200] border border-border overflow-x-hidden overflow-y-auto no-scrollbar"
-        >
-          {/* Loading state */}
-          {isFetching && (
-            <div className="p-6 flex items-center justify-center gap-2">
-              <div className="w-4 h-4 border-2 border-brand-300 border-t-brand-600 rounded-full animate-spin" />
-              <span className="text-xs text-muted-foreground">Searching...</span>
-            </div>
-          )}
-
-          {!isFetching && (
-          <div className="grid grid-cols-[30%_auto] divide-x divide-border">
-            {/* Suggestions Column */}
-            {(suggestions?.suggestions?.length ?? 0) > 0 ||
-            (suggestions?.products?.length ?? 0) > 0 ? (
-              <>
-                <div className="p-4">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 ">
-                    <span>Suggestions</span>
-                  </h3>
-                  <div className="space-y-2">
-                    {suggestions?.suggestions?.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        className="w-full text-left p-2 hover:bg-muted rounded-md transition-colors text-sm"
-                        onClick={() =>
-                          router.push(
-                            `/category/shop-by-category?q=${suggestion}`,
-                          )
-                        }
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Products Column */}
-                <div className="p-4">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center justify-between">
-                    <span>Products</span>
-                    <span
-                      onClick={() => setIsSuggestionsOpen(false)}
-                      className="cursor-pointer"
-                    >
-                      <X size={20} />
-                    </span>
-                  </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 overflow-auto no-scrollbar">
-                    {suggestions?.products?.map((product) => (
-                      <Link
-                        onClick={() => setIsSuggestionsOpen(false)}
-                        key={product._id}
-                        href={`/product-details/${product.slug}`}
-                        className="group flex flex-col items-center p-3 hover:bg-muted rounded-lg transition-colors"
-                      >
-                        <div className="relative w-full aspect-square mb-2 bg-muted rounded-md overflow-hidden">
-                          <Image
-                            src={product.image}
-                            alt={product.name}
-                            fill
-                            sizes="96px"
-                            className="object-cover group-hover:scale-105 transition-transform"
-                          />
-                        </div>
-                        <p className="text-sm font-medium  line-clamp-2">
-                          {product.name}
-                        </p>
-                        <p className="text-[var(--brand-primary-dark)] font-medium mt-1">
-                          ₹{product.discount_price || product.price}
-                        </p>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="p-4 col-span-2 text-center text-muted-foreground">
-                <h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center justify-between">
-                  <span>No suggestions found</span>
-                  <span
-                    onClick={() => setIsSuggestionsOpen(false)}
-                    className="cursor-pointer"
-                  >
-                    <X size={20} />
-                  </span>
-                </h3>
-              </div>
-            )}
-          </div>
-          )}
-        </motion.div>
-      )}
-    </div>
-  );
-};
 
 const urlPrfix = (slug: string) => {
   if (slug == "home") return "/";

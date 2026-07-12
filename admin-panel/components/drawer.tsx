@@ -40,6 +40,7 @@ export function Drawer({ isOpen, onClose, title, children, className, side = "ri
               size="icon"
               onClick={onClose}
               className="transition-opacity opacity-50 hover:opacity-100"
+              aria-label="Close drawer"
             >
               <X className="h-5 w-5" />
             </Button>
