@@ -8,7 +8,7 @@ const csp = `
   img-src 'self' data: blob: https://*.r2.dev https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com"} https://lh3.googleusercontent.com;
   font-src 'self' data:;
   connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"} https://challenges.cloudflare.com;
-  frame-src https://*.razorpay.com https://challenges.cloudflare.com;
+  frame-src https://*.razorpay.com https://challenges.cloudflare.com https://www.youtube.com;
   frame-ancestors 'none';
 `
   .replace(/\s{2,}/g, " ")

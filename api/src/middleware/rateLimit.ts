@@ -15,6 +15,7 @@ interface RateLimiters {
   orderVerify: RequestHandler;
   orderCOD: RequestHandler;
   cancelOrder: RequestHandler;
+  aiAgentChat: RequestHandler;
   webhook: RequestHandler;
 }
 
@@ -95,6 +96,12 @@ const rateLimiters: RateLimiters = {
     windowMs: 15 * 60 * 1000,
     max: 5,
     message: "Too many cancel attempts, please try again later",
+  }),
+
+  aiAgentChat: rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 15,
+    message: "AI agent: too many requests, please try again later",
   }),
 
   webhook: rateLimit({

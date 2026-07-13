@@ -52,6 +52,7 @@ import adminProductFaqRoutes from "./routes/admin/adminProductFaq.routes.js";
 import homePageAdminRoutes from "./routes/admin/homePage.routes.js";
 import aiRoutes from "./routes/admin/ai.routes.js";
 import aiResponseRoutes from "./routes/admin/aiResponse.routes.js";
+import aiAgentRoutes from "./routes/admin/ai-agent.routes.js";
 import auditLogRoutes from "./routes/admin/auditLog.routes.js";
 import { getCsrfToken } from "./controller/csrf.controller.js";
 
@@ -89,7 +90,17 @@ app.use(
   }),
 );
 
-app.use(compression());
+// Skip compression for streaming AI agent responses (buffering kills SSE/NDJSON streaming)
+app.use(compression({
+  filter: (req, res) => {
+    if (req.path === "/api/admin/ai-agent/chat") {
+      return false;
+    }
+    // Use default filter for everything else
+    return compression.filter(req, res);
+  },
+}));
+
 
 app.use(urlencodedParser);
 
@@ -185,6 +196,7 @@ app.use("/api/admin/home-page", homePageAdminRoutes);
 app.use("/api/admin/audit-log", auditLogRoutes);
 app.use("/api/admin/ai", aiRoutes);
 app.use("/api/admin/ai-response", aiResponseRoutes);
+app.use("/api/admin/ai-agent", aiAgentRoutes);
 app.get("/api/admin/csrf-token", getCsrfToken);
 
 app.get("/", (_req, res) => {

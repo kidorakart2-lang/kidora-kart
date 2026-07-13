@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -12,6 +13,12 @@ export default function DashboardLayout({
 }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isMobile = useIsMobile();
+  const pathname = usePathname();
+
+  // AI Agent page gets a full-screen layout without sidebar/header
+  if (pathname === "/dashboard/ai-agent") {
+    return <>{children}</>;
+  }
 
   return (
     <div className="min-h-screen bg-background">

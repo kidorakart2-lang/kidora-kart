@@ -215,7 +215,7 @@ export default function ProductListing() {
             }`}
           >
             {sortedProducts.map((p, index) => (
-              <ProductCard data={p} key={`${p._id}-${index}`} {...p} />
+              <ProductCard data={p} key={`${p._id}-${index}`} />
             ))}
           </div>
 

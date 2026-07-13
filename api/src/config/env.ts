@@ -36,17 +36,22 @@ const envSchema = z.object({
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
 
   RESEND_API_KEY: z.string().optional(),
-  TWILLO_VERIFY_SERVICE_SID: z.string().optional(),
-  TWILLO_ACCOUNT_SID: z.string().optional(),
-  TWILLO_AUTH_TOKEN: z.string().optional(),
 
-  AI_PROVIDER: z.enum(["gemini", "openrouter"]).default("gemini"),
+  AI_PROVIDER: z.enum(["gemini", "openrouter", "llm7", "huggingface"]).default("openrouter"),
 
   GEMINI_API_KEY: z.string().optional(),
-  GEMINI_MODEL: z.string().default("gemini-2.0-flash"),
+  GEMINI_MODEL: z.string().default("gemini-2.5-flash"),
 
   OPENROUTER_API_KEY: z.string().optional(),
   OPENROUTER_MODEL: z.string().default("openrouter/free"),
+
+  LLM7_API_KEY: z.string().optional(),
+  LLM7_BASE_URL: z.string().optional(),
+  LLM7_MODEL: z.string().default("gpt-4o-mini-2024-07-18"),
+
+  HUGGINGFACE_API_KEY: z.string().optional(),
+  HUGGINGFACE_BASE_URL: z.string().optional(),
+  HUGGINGFACE_MODEL: z.string().default("meta-llama/Llama-3.3-70B-Instruct"),
 
   AI_DAILY_TOKEN_BUDGET: z.coerce.number().int().positive().default(100000),
 

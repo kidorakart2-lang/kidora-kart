@@ -102,6 +102,8 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
+                target={item.target}
+                rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
                 onClick={() => {
                   if (isMobile) setMobileSheetOpen(false);
                 }}

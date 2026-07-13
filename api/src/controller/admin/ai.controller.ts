@@ -1,53 +1,43 @@
 import type { Request, Response } from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateText } from "ai";
+import {
+  resolveModel,
+  listConfiguredProviders,
+  type AiProviderName,
+  registry,
+} from "../../lib/ai-providers.js";
+
+const configuredProvider = (): AiProviderName | null => {
+  const providers = listConfiguredProviders();
+  return providers.length > 0 ? providers[0] ?? null : null;
+};
 import { env } from "../../config/env.js";
 import { logger } from "../../lib/logger.js";
-import { callOpenRouter } from "../../lib/openrouter.js";
 import AiResponse from "../../models/aiResponse.js";
 /// <reference path="../../types/express.d.ts" />
 
 // ── Provider helpers ────────────────────────────────────────────────
 
-function checkAiConfigured(): string | null {
-  if (env.AI_PROVIDER === "openrouter") {
-    if (!env.OPENROUTER_API_KEY) return null;
-    return "openrouter";
-  }
-  // Default: gemini
-  if (!env.GEMINI_API_KEY) return null;
-  return "gemini";
-}
 
-const NOT_CONFIGURED = { _status: false, _message: "AI is not configured on the server" } as const;
+
+const NOT_CONFIGURED = {
+  _status: false,
+  _message: "AI is not configured on the server",
+} as const;
 
 async function generateWithProvider(
   systemPrompt: string,
   userPrompt: string,
 ): Promise<string> {
-  const provider = checkAiConfigured();
-
-  if (provider === "openrouter") {
-    return callOpenRouter(env.OPENROUTER_API_KEY!, {
-      model: env.OPENROUTER_MODEL || "openrouter/free",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.5,
-      maxTokens: 2048,
-    });
-  }
-
-  // Default: Gemini — prepend system instructions to the user prompt
-  const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY!);
-  const model = genAI.getGenerativeModel({
-    model: env.GEMINI_MODEL || "gemini-2.5-flash",
+  const model = resolveModel();
+  const { text } = await generateText({
+    model,
+    system: systemPrompt,
+    prompt: userPrompt,
+    temperature: 0.5,
+    maxOutputTokens: 2048,
   });
-  const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
-    generationConfig: { temperature: 0.5, maxOutputTokens: 2048 },
-  });
-  return result.response.text().trim();
+  return text.trim();
 }
 
 /**
@@ -93,7 +83,7 @@ Product name: ${name}
 Category: ${category || "N/A"}
 Material: ${material || "N/A"}
 Type: ${type || "N/A"}
-Price: \u20B9${price || "N/A"}
+Price: ₹${price || "N/A"}
 
 Paragraph 1: Age group and play value
 Paragraph 2: Features and educational benefits
@@ -104,74 +94,75 @@ Paragraph 3: Safety and care instructions`;
 
 /**
  * GET /api/admin/ai/health
- * Returns the configured AI provider status without consuming tokens.
- *
- * For OpenRouter: calls GET /api/v1/key to verify the key is valid.
- * For Gemini: attempts to list models via the SDK.
+ * Returns per-provider status without consuming tokens.
  */
 export const checkAiHealth = async (
   _req: Request,
   res: Response,
 ): Promise<Response> => {
-  const provider = checkAiConfigured();
+  const providers = listConfiguredProviders();
 
-  if (!provider) {
-    const details: Record<string, unknown> = {
-      configured: false,
-      provider: env.AI_PROVIDER,
-      model: env.AI_PROVIDER === "openrouter" ? env.OPENROUTER_MODEL : env.GEMINI_MODEL,
-    };
-    if (env.AI_PROVIDER === "openrouter") {
-      details.missingKey = "OPENROUTER_API_KEY";
-    } else {
-      details.missingKey = "GEMINI_API_KEY";
-    }
-    return res.status(200).json({
-      _status: true,
-      _message: "AI provider not configured — missing API key",
-      _data: details,
-    });
-  }
-
-  // Reachability check
-  let reachable = false;
-  let checkError: string | null = null;
-  let keyLabel: string | null = null;
-
-  try {
-    if (provider === "openrouter") {
-      // GET /api/v1/key returns key metadata without consuming quota
-      const keyRes = await fetch("https://openrouter.ai/api/v1/key", {
-        headers: { Authorization: `Bearer ${env.OPENROUTER_API_KEY!}` },
-      });
-      if (keyRes.ok) {
-        reachable = true;
-        const keyData = (await keyRes.json()) as { label?: string; credit?: number; usage?: number } | null;
-        keyLabel = keyData?.label || null;
-      } else {
-        const errBody = await keyRes.text().catch(() => "");
-        checkError = `API key check failed (${keyRes.status}): ${errBody}`;
+  // Run reachability checks in parallel
+  const statuses = await Promise.all(
+    (Object.keys(registry) as AiProviderName[]).map(async (name) => {
+      const def = registry[name];
+      if (!def.isConfigured()) {
+        return { provider: name, configured: false, reachable: false };
       }
-    } else {
-      // Gemini has no cost-free ping endpoint — assume configured = reachable
-      reachable = true;
-    }
-  } catch (err) {
-    checkError = err instanceof Error ? err.message : String(err);
-  }
+
+      let reachable = false;
+      let checkError: string | null = null;
+      let keyLabel: string | null = null;
+
+      try {
+        if (name === "openrouter") {
+          const keyRes = await fetch(
+            "https://openrouter.ai/api/v1/key",
+            { headers: { Authorization: `Bearer ${env.OPENROUTER_API_KEY!}` } },
+          );
+          if (keyRes.ok) {
+            reachable = true;
+            const keyData = (await keyRes.json()) as {
+              label?: string;
+            } | null;
+            keyLabel = keyData?.label || null;
+          } else {
+            const errBody = await keyRes.text().catch(() => "");
+            checkError = `API key check failed (${keyRes.status}): ${errBody}`;
+          }
+        } else {
+          // Gemini / LLM7 / HuggingFace have no cost-free ping — assume configured = reachable
+          reachable = true;
+        }
+      } catch (err) {
+        checkError = err instanceof Error ? err.message : String(err);
+      }
+
+      return {
+        provider: name,
+        configured: true,
+        reachable,
+        model: def.defaultModel,
+        ...(keyLabel ? { keyLabel } : {}),
+        ...(checkError ? { error: checkError } : {}),
+      };
+    }),
+  );
+
+  const configuredCount = providers.length;
+  const configuredProvider = providers[0] || null;
 
   return res.status(200).json({
     _status: true,
-    _message: reachable
-      ? `AI provider "${provider}" is reachable`
-      : `AI provider "${provider}" configured but not reachable`,
+    _message:
+      configuredCount > 0
+        ? `${configuredCount} AI provider(s) configured`
+        : "No AI providers configured",
     _data: {
-      configured: true,
-      provider,
-      model: provider === "openrouter" ? env.OPENROUTER_MODEL : env.GEMINI_MODEL,
-      reachable,
-      ...(keyLabel ? { keyLabel } : {}),
-      ...(checkError ? { error: checkError } : {}),
+      configured: configuredCount > 0,
+      provider: configuredProvider || env.AI_PROVIDER,
+      providers: statuses,
+      activeProvider: configuredProvider || null,
     },
   });
 };
@@ -180,23 +171,22 @@ export const checkAiHealth = async (
  * POST /api/admin/ai/generate-description
  * Body: { name, category, material, purity, price, page? }
  * Returns: { _status: true, _data: { text: "..." } }
- *
- * Saves every generated response to the aiResponse collection for history.
  */
 export const generateProductDescription = async (
   req: Request,
   res: Response,
 ): Promise<Response> => {
   try {
-    const { name, category, material, type, price, page, question } = req.body as {
-      name?: string;
-      category?: string;
-      material?: string;
-      type?: string;
-      price?: string;
-      page?: string;
-      question?: string;
-    };
+    const { name, category, material, type, price, page, question } =
+      req.body as {
+        name?: string;
+        category?: string;
+        material?: string;
+        type?: string;
+        price?: string;
+        page?: string;
+        question?: string;
+      };
 
     if (!name) {
       return res.status(400).json({
@@ -205,7 +195,7 @@ export const generateProductDescription = async (
       });
     }
 
-    if (!checkAiConfigured()) {
+    if (!configuredProvider()) {
       return res.status(503).json(NOT_CONFIGURED);
     }
 
@@ -219,7 +209,7 @@ export const generateProductDescription = async (
       question,
     });
 
-    // Save to history — non-blocking, don't fail if save errors
+    // Save to history — non-blocking
     try {
       await AiResponse.create({
         prompt: `${name} | ${page || "product-description"}`,
@@ -238,7 +228,9 @@ export const generateProductDescription = async (
     });
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : "Failed to generate description. Please try again.";
+      err instanceof Error
+        ? err.message
+        : "Failed to generate description. Please try again.";
     logger.error({ err }, "Error generating product description");
     return res.status(500).json({
       _status: false,
@@ -251,8 +243,6 @@ export const generateProductDescription = async (
  * POST /api/admin/ai/generate-faq-answer
  * Body: { name, question }
  * Returns: { _status: true, _data: { text: "..." } }
- *
- * Generates a concise customer support answer for a product FAQ.
  */
 export const generateFaqAnswer = async (
   req: Request,
@@ -278,7 +268,7 @@ export const generateFaqAnswer = async (
       });
     }
 
-    if (!checkAiConfigured()) {
+    if (!configuredProvider()) {
       return res.status(503).json(NOT_CONFIGURED);
     }
 
@@ -312,7 +302,9 @@ Question: ${question}`;
     });
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : "Failed to generate FAQ answer. Please try again.";
+      err instanceof Error
+        ? err.message
+        : "Failed to generate FAQ answer. Please try again.";
     logger.error({ err }, "Error generating FAQ answer");
     return res.status(500).json({
       _status: false,
@@ -325,8 +317,6 @@ Question: ${question}`;
  * POST /api/admin/ai/generate-general-faq-answer
  * Body: { question }
  * Returns: { _status: true, _data: { text: "..." } }
- *
- * Generates a helpful answer for a general (non-product) FAQ question.
  */
 export const generateGeneralFaqAnswer = async (
   req: Request,
@@ -342,7 +332,7 @@ export const generateGeneralFaqAnswer = async (
       });
     }
 
-    if (!checkAiConfigured()) {
+    if (!configuredProvider()) {
       return res.status(503).json(NOT_CONFIGURED);
     }
 
@@ -376,7 +366,9 @@ Question: ${question}`;
     });
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : "Failed to generate FAQ answer. Please try again.";
+      err instanceof Error
+        ? err.message
+        : "Failed to generate FAQ answer. Please try again.";
     logger.error({ err }, "Error generating FAQ answer");
     return res.status(500).json({
       _status: false,
@@ -389,8 +381,6 @@ Question: ${question}`;
  * POST /api/admin/ai/generate-short-description
  * Body: { name, category, material, type, price }
  * Returns: { _status: true, _data: { text: "..." } }
- *
- * Generates a concise 1-2 sentence short description for product cards.
  */
 export const generateShortDescription = async (
   req: Request,
@@ -412,7 +402,7 @@ export const generateShortDescription = async (
       });
     }
 
-    if (!checkAiConfigured()) {
+    if (!configuredProvider()) {
       return res.status(503).json(NOT_CONFIGURED);
     }
 
@@ -428,7 +418,7 @@ Product name: ${name}
 Category: ${category || "N/A"}
 Material: ${material || "N/A"}
 Type: ${type || "N/A"}
-Price: \u20B9${price || "N/A"}
+Price: ₹${price || "N/A"}
 
 Focus on what makes this product special for kids — key benefit and play value.`;
 
@@ -453,7 +443,9 @@ Focus on what makes this product special for kids — key benefit and play value
     });
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : "Failed to generate short description. Please try again.";
+      err instanceof Error
+        ? err.message
+        : "Failed to generate short description. Please try again.";
     logger.error({ err }, "Error generating short description");
     return res.status(500).json({
       _status: false,
@@ -466,8 +458,6 @@ Focus on what makes this product special for kids — key benefit and play value
  * POST /api/admin/ai/generate-tags
  * Body: { name, description }
  * Returns: { _status: true, _data: { text: "tag1, tag2, tag3" } }
- *
- * Generates relevant product tags from the product name and description.
  */
 export const generateProductTags = async (
   req: Request,
@@ -486,11 +476,12 @@ export const generateProductTags = async (
       });
     }
 
-    if (!checkAiConfigured()) {
+    if (!configuredProvider()) {
       return res.status(503).json(NOT_CONFIGURED);
     }
 
-    const systemPrompt = "You are an e-commerce SEO specialist for a toy store. Return ONLY a comma-separated list of tags, nothing else.";
+    const systemPrompt =
+      "You are an e-commerce SEO specialist for a toy store. Return ONLY a comma-separated list of tags, nothing else.";
 
     const userPrompt = `Generate 5-10 relevant, single-word or short-phrase tags for the following product.
 
@@ -524,7 +515,9 @@ Rules:
     });
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : "Failed to generate tags. Please try again.";
+      err instanceof Error
+        ? err.message
+        : "Failed to generate tags. Please try again.";
     logger.error({ err }, "Error generating product tags");
     return res.status(500).json({
       _status: false,

@@ -428,6 +428,7 @@ import {
   sendDeliveryOTP,
   confirmCODOrder,
   cancelOrderByAdmin,
+  syncStuckPayments,
 } from "../../controller/web/order.controller.js";
 import protect, { adminOnly } from "../../middleware/authMiddleware.js";
 import { uploadNone } from "../../middleware/uploadMiddleware.js";
@@ -482,6 +483,9 @@ router.post(
 router.post("/buy-with-cod", protect, rateLimit.orderCOD, uploadNone, confirmCODOrder);
 
 router.post("/cancel-by-admin", protect, adminOnly, uploadNone, cancelOrderByAdmin);
+
+// Sync stuck payments — checks all pending orders against Razorpay for captured payments
+router.post("/sync-stuck-payments", protect, adminOnly, uploadNone, syncStuckPayments);
 
 router.post("/all", protect, adminOnly, uploadNone, getAllOrders);
 

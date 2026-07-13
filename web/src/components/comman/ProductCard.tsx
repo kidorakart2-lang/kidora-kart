@@ -1,8 +1,15 @@
 "use client";
-import { Heart, ShoppingCart, Eye, Sparkles, Star } from "lucide-react";
+import {
+  Heart,
+  ShoppingCart,
+  Eye,
+  Sparkles,
+  Star,
+  Loader2,
+} from "lucide-react";
 import Image from "next/image";
 import { Button } from "../ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { getAuthToken } from "@/lib/getAuthToken";
@@ -13,23 +20,33 @@ import { addToWishlist, removeFromWishlist } from "@/redux/features/wishlist";
 import type { ProductData } from "@/types";
 import type { RootState } from "@/redux/store/store";
 
+/**
+ * Matches the populated "colors" collection shape (see colorSchema):
+ * `code` is a free-form CSS color value — usually a hex string like
+ * "#FF5733", occasionally a plain color name — so it's used as-is.
+ */
+type ColorOption = {
+  _id: string;
+  name?: string;
+  code: string;
+};
+
+const getSwatchColor = (color: ColorOption) => color.code || "#D4D4D8";
+
 export default function ProductCard({ data }: { data: ProductData }) {
   const cartItem = useSelector((state: RootState) =>
     (state.cart?.cartItems ?? []).find((item) => item.productId === data?._id),
   );
 
-  const cartObj = {
-    productId: data?._id,
-    slug: data?.slug,
-    quantity:
-      cartItem && typeof cartItem.quantity === "number" ? cartItem.quantity : 1,
-    colorId: data?.colors?.[0]?._id,
-    sizeId: data?.sizes?.[0]?._id || null,
-  };
+  const colorOptions = (data?.colors ?? []) as unknown as ColorOption[];
 
   const [loading, setLoading] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [selectedColorId, setSelectedColorId] = useState<string | undefined>(
+    colorOptions?.[0]?._id,
+  );
+
   const isWishlisted = useSelector((state: RootState) =>
     (state.wishlist?.wishlistItems ?? []).find(
       (item) => item._id === data?._id,
@@ -37,6 +54,15 @@ export default function ProductCard({ data }: { data: ProductData }) {
   );
 
   const dispatch = useDispatch();
+
+  const cartObj = {
+    productId: data?._id,
+    slug: data?.slug,
+    quantity:
+      cartItem && typeof cartItem.quantity === "number" ? cartItem.quantity : 1,
+    colorId: selectedColorId ?? data?.colors?.[0]?._id,
+    sizeId: data?.sizes?.[0]?._id || null,
+  };
 
   const displayPrice = data?.price;
   const displayCurrentPrice = data?.discount_price;
@@ -48,6 +74,17 @@ export default function ProductCard({ data }: { data: ProductData }) {
     displayPrice && displayCurrentPrice
       ? displayPrice - displayCurrentPrice
       : 0;
+
+  const hasSecondaryImage = Boolean(data?.images && data.images.length > 0);
+
+  // Both images are already mounted in the DOM (crossfade below) so the
+  // browser fetches the secondary image as soon as the card is in view —
+  // this warms the cache before hover, avoiding a flash-of-blank on swap.
+  useEffect(() => {
+    if (!hasSecondaryImage || typeof window === "undefined") return;
+    const preload = new window.Image();
+    preload.src = data.images![0];
+  }, [hasSecondaryImage, data?.images]);
 
   const handleImageHover = (hovered: boolean) => {
     setIsHovered(hovered);
@@ -161,6 +198,8 @@ export default function ProductCard({ data }: { data: ProductData }) {
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
+    if (loading || data.stock === 0) return;
+
     const isLoggedIn = !!getAuthToken();
 
     setLoading(true);
@@ -204,7 +243,10 @@ export default function ProductCard({ data }: { data: ProductData }) {
 
   return (
     <article
-      className="group relative bg-background rounded-2xl overflow-hidden shadow-sm transition-all duration-500 border border-border"
+      className="group relative bg-background rounded-2xl overflow-hidden border border-border
+                 shadow-[0_1px_2px_rgba(16,24,40,0.04)]
+                 hover:shadow-[0_12px_24px_-8px_rgba(16,24,40,0.12),0_4px_8px_-4px_rgba(16,24,40,0.08)]
+                 hover:-translate-y-1 transition-[transform,box-shadow] duration-300 ease-out will-change-transform"
       itemScope
       itemType="https://schema.org/Product"
       role="article"
@@ -233,49 +275,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
         <meta itemProp="url" content={`/product-details/${data.slug}`} />
       </div>
 
-      {/* Top Actions Bar */}
-      <div className="absolute top-3 left-3 right-3 z-20 flex justify-between items-start">
-        {/* Discount Badge */}
-        {discountPercentage > 0 && (
-          <div
-            className="bg-destructive text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 animate-in fade-in slide-in-from-left duration-300"
-            role="status"
-            aria-label={`${discountPercentage} percent discount`}
-          >
-            <Sparkles className="w-3 h-3" />
-            {discountPercentage}% OFF
-          </div>
-        )}
-
-        {/* Wishlist Button */}
-        <button
-          disabled={wishlistLoading}
-          aria-label={
-            isWishlisted
-              ? `Remove ${data.name} from wishlist`
-              : `Add ${data.name} to wishlist`
-          }
-          aria-pressed={!!isWishlisted}
-          className={`w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-border
-                   hover:bg-background flex items-center justify-center
-                   transition-all duration-300 shadow-lg hover:shadow-xl
-                   hover:scale-110 active:scale-90
-                   ${wishlistLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-          onClick={handleWishlistToggle}
-          type="button"
-        >
-          <Heart
-            size={18}
-            fill={isWishlisted ? "currentColor" : "none"}
-            className={`transition-colors ${
-              isWishlisted ? "text-brand-accent-500" : "text-muted-foreground"
-            }`}
-            aria-hidden="true"
-          />
-        </button>
-      </div>
-
-      {/* Image Container */}
+      {/* 1. Product Image */}
       <Link
         href={`/product-details/${data.slug}`}
         aria-label={`View details for ${data.name}`}
@@ -283,42 +283,51 @@ export default function ProductCard({ data }: { data: ProductData }) {
         prefetch={false}
       >
         <div
-          className="relative h-64 sm:h-72 bg-gradient-to-br from-brand-50 to-muted overflow-hidden"
+          className="relative aspect-[4/5] bg-gradient-to-br from-brand-50 to-muted overflow-hidden"
           onMouseEnter={() => handleImageHover(true)}
           onMouseLeave={() => handleImageHover(false)}
         >
+          {/* Discount badge */}
+          {discountPercentage > 0 && (
+            <div
+              className="absolute top-3 left-3 z-20 bg-destructive text-white px-2.5 py-1 rounded-full text-[11px] font-bold shadow-md flex items-center gap-1 animate-in fade-in slide-in-from-left duration-300"
+              role="status"
+              aria-label={`${discountPercentage} percent discount`}
+            >
+              <Sparkles className="w-3 h-3" />
+              {discountPercentage}% OFF
+            </div>
+          )}
+
           {/* Main image */}
           <div
-            className={`absolute inset-0 transition-opacity duration-500 ${
-              isHovered && data?.images != null && data.images.length > 0
-                ? "opacity-0"
-                : "opacity-100"
-            }`}
+            className={`absolute inset-0 transition-[opacity,transform] duration-300 ease-out ${
+              isHovered && hasSecondaryImage ? "opacity-0" : "opacity-100"
+            } ${isHovered ? "scale-[1.04]" : "scale-100"}`}
           >
             <Image
-              width={500}
-              height={500}
+              fill
               src={data?.image ?? ""}
               alt={`${data.name} - Product image`}
-              className="w-full h-full object-cover cursor-pointer group-hover:scale-110 transition-transform duration-700"
+              className="object-cover cursor-pointer"
               itemProp="image"
               title={data.name}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
           </div>
-          {/* Hover image */}
-          {data?.images != null && data.images.length > 0 && (
+
+          {/* Secondary image — crossfades in on hover */}
+          {hasSecondaryImage && (
             <div
-              className={`absolute inset-0 transition-opacity duration-500 ${
-                isHovered ? "opacity-100" : "opacity-0"
+              className={`absolute inset-0 transition-[opacity,transform] duration-300 ease-out ${
+                isHovered ? "opacity-100 scale-[1.04]" : "opacity-0 scale-100"
               }`}
             >
               <Image
-                width={500}
-                height={500}
-                src={data.images[0]}
+                fill
+                src={data.images![0]}
                 alt={`${data.name} - Product image hover`}
-                className="w-full h-full object-cover cursor-pointer group-hover:scale-110 transition-transform duration-700"
+                className="object-cover cursor-pointer"
                 itemProp="image"
                 title={data.name}
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -326,20 +335,20 @@ export default function ProductCard({ data }: { data: ProductData }) {
             </div>
           )}
 
-          {/* Quick View Overlay */}
+          {/* Quick View overlay */}
           <div
-            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
+            className={`absolute inset-0 flex items-end justify-center pb-4 transition-opacity duration-300 ${
               isHovered ? "opacity-100" : "opacity-0"
             }`}
             style={{ pointerEvents: isHovered ? "auto" : "none" }}
           >
             <div
-              className={`bg-background rounded-full px-6 py-3 flex items-center gap-2 shadow-xl transition-all duration-300 ${
-                isHovered ? "scale-100 opacity-100" : "scale-90 opacity-0"
+              className={`bg-background/95 backdrop-blur-sm rounded-full px-5 py-2.5 flex items-center gap-2 shadow-lg transition-transform duration-300 ${
+                isHovered ? "translate-y-0" : "translate-y-2"
               }`}
             >
-              <Eye className="w-5 h-5 text-brand-700" />
-              <span className="text-sm font-semibold text-foreground">
+              <Eye className="w-4 h-4 text-brand-700" />
+              <span className="text-xs font-semibold text-foreground">
                 Quick View
               </span>
             </div>
@@ -347,94 +356,68 @@ export default function ProductCard({ data }: { data: ProductData }) {
         </div>
       </Link>
 
-      {/* Product Details */}
-      <div className="p-5">
-        {/* Tags — above title */}
-        {data.tags && data.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2">
-            {data.tags.slice(0, 3).map((tag, i) => (
-              <span
-                key={i}
-                className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand-50 text-brand-700 border border-brand-200"
-              >
-                {tag}
-              </span>
-            ))}
-            {data.tags.length > 3 && (
-              <span className="text-[10px] text-muted-foreground self-center">
-                +{data.tags.length - 3}
-              </span>
-            )}
-          </div>
-        )}
+      {/* 2. Wishlist button — floats over the image, top-right */}
+      <button
+        disabled={wishlistLoading}
+        aria-label={
+          isWishlisted
+            ? `Remove ${data.name} from wishlist`
+            : `Add ${data.name} to wishlist`
+        }
+        aria-pressed={!!isWishlisted}
+        className={`absolute top-3 right-3 z-20 w-9 h-9 rounded-full bg-background/90 backdrop-blur-sm border border-border
+                 hover:bg-background flex items-center justify-center
+                 transition-all duration-200 shadow-md hover:shadow-lg
+                 hover:scale-110 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2
+                 ${wishlistLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+        onClick={handleWishlistToggle}
+        type="button"
+      >
+        <Heart
+          size={17}
+          fill={isWishlisted ? "currentColor" : "none"}
+          className={`transition-colors ${
+            isWishlisted ? "text-brand-accent-500" : "text-muted-foreground"
+          }`}
+          aria-hidden="true"
+        />
+      </button>
 
-        {/* Category */}
-        {data.subCategory && data.subCategory.length > 0 && (
-          <p className="text-[10px] uppercase tracking-wider text-brand-700 font-bold mb-2 flex items-center gap-1">
-            <span className="w-1 h-1 bg-brand-700 rounded-full"></span>
-            <span itemProp="category">
-              {data.subCategory.map((cat) => cat.name).join(", ")}
-            </span>
-          </p>
-        )}
-
-        {/* Product Name */}
-        <Link href={`/product-details/${data.slug}`} prefetch={false}>
-          <h3
-            className="text-base sm:text-lg font-semibold text-foreground mb-3 line-clamp-2
-                     group-hover:text-brand-700 transition-colors cursor-pointer leading-tight"
-            itemProp="name"
-          >
-            {data.name}
-          </h3>
-        </Link>
-
-        {/* Short Description */}
-        {data.shortDescription && (
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
-            {data.shortDescription}
-          </p>
-        )}
-
-        {/* Pricing */}
-        <div className="mb-4" role="group" aria-label="Product pricing">
-          <div className="flex items-baseline gap-2 mb-1">
-            {displayCurrentPrice && (
-              <span
-                className="text-2xl font-bold text-foreground"
-                itemProp="price"
-                aria-label={`Current price: ${displayCurrentPrice} rupees`}
-              >
-                ₹{displayCurrentPrice}
-              </span>
-            )}
-            {displayPrice && displayPrice !== displayCurrentPrice && (
-              <span
-                className="text-sm text-muted-foreground line-through"
-                aria-label={`Original price: ${displayPrice} rupees`}
-              >
-                ₹{displayPrice}
-              </span>
-            )}
-          </div>
-          {savings > 0 && (
-            <span
-              className="inline-block text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-md"
-              aria-label={`You save: ${savings} rupees`}
+      {/* Details */}
+      <div className="p-4 sm:p-5 flex flex-col gap-3">
+        {/* 3 & 4. Name + category */}
+        <div className="space-y-1">
+          <Link href={`/product-details/${data.slug}`} prefetch={false}>
+            <h3
+              className="text-[15px] sm:text-base font-semibold text-foreground line-clamp-2
+                       group-hover:text-brand-700 transition-colors cursor-pointer leading-snug"
+              itemProp="name"
             >
-              Save ₹{savings}
-            </span>
+              {data.name}
+            </h3>
+          </Link>
+          {data.category && (
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+              <span itemProp="category">
+                {(Array.isArray(data.category)
+                  ? data.category
+                  : [data.category]
+                )
+                  .map((cat) => cat.name)
+                  .join(", ")}
+              </span>
+            </p>
           )}
         </div>
 
-        {/* Rating */}
+        {/* 5. Rating */}
         {(data.rating ?? 0) > 0 && (
-          <div className="flex items-center gap-1.5 mb-4">
+          <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star
                   key={i}
-                  size={13}
+                  size={12}
                   className={
                     i < Math.round(data.rating!)
                       ? "fill-yellow-400 text-yellow-400"
@@ -451,28 +434,108 @@ export default function ProductCard({ data }: { data: ProductData }) {
           </div>
         )}
 
-        {/* Add to Cart Button */}
-        <div role="group" aria-label="Product actions">
-          <Button
-            disabled={loading || data.stock === 0}
-            variant="gradient"
-            className="w-full py-6 rounded-xl text-sm font-semibold uppercase tracking-wider
-                     flex items-center justify-center gap-2 shadow-sm
-                     transition-all duration-300"
-            onClick={handleAddToCart}
-            aria-label={`Add ${data.name} to cart`}
-            type="button"
-          >
-            <ShoppingCart size={16} aria-hidden="true" />
-            <span>
-              {loading
-                ? "Adding..."
-                : data.stock === 0
-                  ? "Out of Stock"
-                  : "Add to Cart"}
+        {/* 6. Price */}
+        <div
+          role="group"
+          aria-label="Product pricing"
+          className="flex items-baseline gap-2 flex-wrap"
+        >
+          {displayCurrentPrice && (
+            <span
+              className="text-xl sm:text-2xl font-bold text-foreground tracking-tight"
+              itemProp="price"
+              aria-label={`Current price: ${displayCurrentPrice} rupees`}
+            >
+              ₹{displayCurrentPrice}
             </span>
-          </Button>
+          )}
+          {displayPrice && displayPrice !== displayCurrentPrice && (
+            <span
+              className="text-sm text-muted-foreground line-through"
+              aria-label={`Original price: ${displayPrice} rupees`}
+            >
+              ₹{displayPrice}
+            </span>
+          )}
+          {savings > 0 && (
+            <span
+              className="text-[11px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded"
+              aria-label={`You save: ${savings} rupees`}
+            >
+              Save ₹{savings}
+            </span>
+          )}
         </div>
+
+        {/* 7. Color variants */}
+        {colorOptions.length > 0 && (
+          <div
+            className="flex items-center gap-2 flex-wrap"
+            role="group"
+            aria-label="Available colors"
+          >
+            {colorOptions.slice(0, 6).map((color) => {
+              const isSelected = selectedColorId === color._id;
+              return (
+                <button
+                  key={color._id}
+                  type="button"
+                  aria-label={
+                    color.name ? `Select color ${color.name}` : "Select color"
+                  }
+                  aria-pressed={isSelected}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSelectedColorId(color._id);
+                  }}
+                  className={`relative w-6 h-6 rounded-full transition-all duration-200 ease-out
+                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2
+                            ${isSelected ? "scale-110 shadow-md" : "hover:scale-105"}`}
+                  style={{
+                    backgroundColor: getSwatchColor(color),
+                    boxShadow: isSelected
+                      ? "0 0 0 2px var(--background), 0 0 0 3.5px var(--brand-primary)"
+                      : "0 0 0 1px rgba(0,0,0,0.08)",
+                  }}
+                  title={color.name}
+                />
+              );
+            })}
+            {colorOptions.length > 6 && (
+              <span className="text-[11px] text-muted-foreground">
+                +{colorOptions.length - 6}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* 8. Add to Cart */}
+        <Button
+          disabled={loading || data.stock === 0}
+          variant="gradient"
+          className="w-full h-11 rounded-xl text-sm font-semibold
+                   flex items-center justify-center gap-2
+                   shadow-sm hover:shadow-md active:scale-[0.98]
+                   disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-sm disabled:active:scale-100
+                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2
+                   transition-all duration-200"
+          onClick={handleAddToCart}
+          aria-label={`Add ${data.name} to cart`}
+          type="button"
+        >
+          {loading ? (
+            <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+          ) : (
+            <ShoppingCart size={16} aria-hidden="true" />
+          )}
+          <span>
+            {loading
+              ? "Adding..."
+              : data.stock === 0
+                ? "Out of Stock"
+                : "Add to Cart"}
+          </span>
+        </Button>
       </div>
     </article>
   );

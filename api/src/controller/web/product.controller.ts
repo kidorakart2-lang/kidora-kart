@@ -225,7 +225,7 @@ export const getProductByFilter = async (
       ]);
       const allSearchWords = trimmedSearch.split(/\s+/);
 
-      let genderSubCategoryIds: string[] = [];
+      const genderSubCategoryIds: string[] = [];
       for (const word of allSearchWords) {
         const lowerWord = word.toLowerCase();
         if (genderKeywords.men.includes(lowerWord)) {

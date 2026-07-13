@@ -4,10 +4,11 @@ const aiResponseSchema = new Schema(
   {
     prompt: { type: String, required: [true, "Prompt is required"] },
     response: { type: String, required: [true, "Response is required"] },
+    messages: { type: Schema.Types.Mixed, default: null },
     page: {
       type: String,
       required: [true, "Page context is required"],
-      enum: ["product-description", "faq", "banner", "seo", "other"],
+      enum: ["product-description", "faq", "banner", "seo", "other", "ai-agent"],
     },
     adminId: {
       type: Schema.Types.ObjectId,

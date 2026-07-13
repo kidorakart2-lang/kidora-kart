@@ -1376,10 +1376,11 @@ export const handleWebhook = async (
         await handleRefundFailed(payload);
         break;
       case "payment.captured":
+        await handlePaymentCaptured(eventPayload?.payload?.payment?.entity);
+        break;
       case "order.paid":
-        // These events are handled by the client polling verifyPayment
-        // Store for audit purposes
-        logger.info({ event, paymentId: eventPayload?.payload?.payment?.entity?.id }, "Webhook received");
+        // order.paid has payload.order.entity (different structure) — log for audit
+        logger.info({ event, orderId: eventPayload?.payload?.order?.entity?.id }, "order.paid webhook received");
         break;
       case "payment.failed":
         await handlePaymentFailed(eventPayload?.payload?.payment?.entity);
@@ -1436,6 +1437,83 @@ async function handleRefundFailed(refundData: {
     order.cancellation.refundStatus = "failed";
     order.cancellation.refundError = refundData.error_description;
     await order.save();
+  }
+}
+
+async function handlePaymentCaptured(paymentEntity: Record<string, unknown> | null | undefined): Promise<void> {
+  if (!paymentEntity?.order_id) return;
+  try {
+    const razorpayOrderId = paymentEntity.order_id as string;
+    const razorpayPaymentId = paymentEntity.id as string;
+
+    const order = await Order.findOne({
+      "payment.razorpay.orderId": razorpayOrderId,
+    });
+
+    if (!order || order.status !== "pending") return;
+
+    // Only process if the payment isn't already captured on this order
+    if (order.payment?.razorpay?.paymentId === razorpayPaymentId) return;
+
+    order.status = "confirmed";
+    if (order.payment) {
+      order.payment.status = "completed";
+      order.payment.verified = true;
+      order.payment.method = "razorpay";
+      if (!order.payment.razorpay) order.payment.razorpay = {};
+      order.payment.razorpay.paymentId = razorpayPaymentId;
+      order.payment.transactionId = razorpayPaymentId;
+      order.payment.paidAt = new Date();
+    }
+
+    const packageId = generatePackageId();
+    order.packageId = packageId;
+
+    await order.save();
+
+    // Deduct stock
+    const stockResults = await Promise.all(
+      order.items.map((item) =>
+        Product.findOneAndUpdate(
+          { _id: item.productId, stock: { $gte: item.quantity } },
+          { $inc: { stock: -item.quantity } },
+          { new: true, projection: { _id: 1 } },
+        ),
+      ),
+    );
+    const failedIdx = stockResults.findIndex((r) => !r);
+    if (failedIdx !== -1) {
+      logger.warn({ orderId: order.orderId, item: order.items[failedIdx]?.name }, "Stock deduction failed for some items during webhook auto-confirm");
+    }
+
+    // Send confirmation email in the background
+    enqueue(async () => {
+      await sendEmail(
+        order.shippingAddress?.email ?? "",
+        "orderConfirmed",
+        {
+          orderId: order.orderId,
+          packageId,
+          orderDate: new Date().toLocaleString(),
+          customerName: order.shippingAddress?.fullName || "Customer",
+          orderTotal: order.pricing?.total,
+          subtotal: order.pricing?.subtotal,
+          discount: order.pricing?.discount?.amount || 0,
+          shipping: order.pricing?.shipping,
+          total: order.pricing?.total,
+          deliveryOTP: "...",
+          contactEmail: env.MY_GMAIL,
+          items: order.items,
+          shippingAddress: order.shippingAddress,
+          billingAddress: order.billingAddress || order.shippingAddress,
+          paymentMethod: "Online Payment",
+        },
+      );
+    });
+
+    logger.info({ orderId: order.orderId, razorpayPaymentId }, "Order auto-confirmed via payment.captured webhook");
+  } catch (err) {
+    logger.error(err, "Failed to handle payment.captured webhook");
   }
 }
 
@@ -1634,6 +1712,123 @@ export const confirmCODOrder = async (
     res.status(500).json({
       success: false,
       message: "Failed to confirm COD order",           error: "Internal Server Error",
+    });
+  }
+};
+
+// ── Stuck payment recovery ─────────────────────────────────────────
+// Scans all "pending" orders that have a Razorpay order ID, checks
+// Razorpay's server for actual payment status, and auto-confirms any
+// that were captured but our webhook/callback missed.
+
+export const syncStuckPayments = async (
+  _req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    // Find all orders stuck in "pending" with a Razorpay order ID
+    const stuckOrders = await Order.find({
+      status: "pending",
+      "payment.razorpay.orderId": { $exists: true, $ne: "" },
+    })
+      .select("orderId payment.razorpay status pricing.total createdAt")
+      .lean();
+
+    const report = {
+      scanned: stuckOrders.length,
+      fixed: 0,
+      failed: 0,
+      skipped: 0,
+      errors: [] as string[],
+      details: [] as Array<{ orderId: string; status: string; paymentId?: string }>,
+    };
+
+    for (const order of stuckOrders) {
+      const razorpayOrderId = order.payment?.razorpay?.orderId;
+      if (!razorpayOrderId) {
+        report.skipped++;
+        continue;
+      }
+
+      try {
+        // Fetch all payments for this Razorpay order
+        const response = await razorpay.orders.fetchPayments(
+          razorpayOrderId,
+        ) as { items?: Array<{ id: string; status: string; amount: number }> };
+
+        const payments = response?.items || [];
+        const capturedPayment = payments.find(
+          (p) => p.status === "captured",
+        );
+
+        if (!capturedPayment) {
+          report.skipped++;
+          report.details.push({
+            orderId: order.orderId,
+            status: "no_captured_payment",
+          });
+          continue;
+        }
+
+        // Update order to confirmed
+        await Order.updateOne(
+          { _id: order._id },
+          {
+            $set: {
+              status: "confirmed",
+              "payment.status": "completed",
+              "payment.verified": true,
+              "payment.method": "razorpay",
+              "payment.razorpay.paymentId": capturedPayment.id,
+              "payment.transactionId": capturedPayment.id,
+              "payment.paidAt": new Date(),
+              packageId: generatePackageId(),
+            },
+          },
+        );
+
+        // Deduct stock (was never deducted since the webhook/callback failed)
+        const fullOrder = await Order.findOne({ _id: order._id }).select("items").lean();
+        if (fullOrder?.items) {
+          await Promise.all(
+            fullOrder.items.map((item) =>
+              Product.findByIdAndUpdate(item.productId, {
+                $inc: { stock: -item.quantity },
+              }),
+            ),
+          );
+        }
+
+        report.fixed++;
+        report.details.push({
+          orderId: order.orderId,
+          status: "confirmed",
+          paymentId: capturedPayment.id,
+        });
+
+        logger.info(
+          { orderId: order.orderId, razorpayPaymentId: capturedPayment.id },
+          "Stuck payment recovered via sync endpoint",
+        );
+      } catch (err) {
+        report.failed++;
+        const msg = err instanceof Error ? err.message : "Unknown error";
+        report.errors.push(`Order ${order.orderId}: ${msg}`);
+        logger.error({ err, orderId: order.orderId }, "syncStuckPayments: failed to process order");
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Scanned ${report.scanned} stuck orders, fixed ${report.fixed}`,
+      data: report,
+    });
+  } catch (error) {
+    logger.error(error, "syncStuckPayments error");
+    res.status(500).json({
+      success: false,
+      message: "Failed to sync stuck payments",
+      error: "Internal Server Error",
     });
   }
 };

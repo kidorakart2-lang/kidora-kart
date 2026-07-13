@@ -9,6 +9,17 @@ export interface MaterialItem {
   name: string;
 }
 
+export interface CategoryRef {
+  _id: string;
+  name: string;
+  slug: string;
+}
+
+export interface MaterialRef {
+  _id: string;
+  name: string;
+}
+
 export interface ProductData {
   _id: string;
   name: string;
@@ -21,8 +32,8 @@ export interface ProductData {
   stock?: number;
   description?: string;
   shortDescription?: string;
-  category?: string;
-  material?: string;
+  category?: CategoryRef[];
+  material?: MaterialRef[];
   isPersonalized?: boolean;
   subCategory?: { _id: string; name: string }[];
   colors?: { _id: string; name: string; code?: string }[];

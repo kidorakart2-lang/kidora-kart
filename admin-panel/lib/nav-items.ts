@@ -19,6 +19,7 @@ import type { LucideIcon } from "lucide-react";
 export interface NavItem {
   label: string;
   href: string;
+  target?: string;
 }
 
 export interface NavItemWithIcon extends NavItem {
@@ -44,6 +45,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Home Page", href: "/dashboard/home-page" },
   { label: "Product FAQs", href: "/dashboard/product-faqs" },
   { label: "AI Responses", href: "/dashboard/ai-responses" },
+  { label: "AI Agent", href: "/dashboard/ai-agent", target: "_blank" },
 ];
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -65,6 +67,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   "Home Page": House,
   "Product FAQs": HelpCircle,
   "AI Responses": Sparkles,
+  "AI Agent": Sparkles,
 };
 
 export const NAV_ITEMS_WITH_ICONS: NavItemWithIcon[] = NAV_ITEMS.map(

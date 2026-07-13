@@ -25,6 +25,7 @@ import { api, ApiClientError } from "@/lib/api";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import RefundedOrdersAdmin from "@/components/RefundedOrdersAdmin";
 import PendingPaymentFix from "@/components/PendingPaymentFix";
+import SyncStuckPayments from "@/components/SyncStuckPayments";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -377,6 +378,7 @@ export default function OrdersPage() {
         </div>
 
         <PendingPaymentFix />
+        <SyncStuckPayments />
 
         <TabsList>
           <TabsTrigger value="orders" className="flex items-center gap-2">

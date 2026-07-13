@@ -6,7 +6,7 @@ import type { Variants } from "motion/react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ImageZoom from "./image-zoom";
-import ProductVideoPlayer from "./product-video";
+import ProductVideoPlayer, { VideoThumbnail } from "./product-video";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
@@ -169,7 +169,6 @@ export default function ImageSlider({
                   onClick={() => {
                     setDirection(index > currentImage ? 1 : -1);
                     setCurrentImage(index);
-                    // If the video was showing, switch back to images
                     if (showVideo && onShowVideo) {
                       onShowVideo();
                     }
@@ -197,33 +196,11 @@ export default function ImageSlider({
             {/* Video thumbnail in the Swiper strip */}
             {videoUrl && (
               <SwiperSlide className="!w-auto">
-                <motion.button
+                <VideoThumbnail
+                  videoUrl={videoUrl}
                   onClick={() => onShowVideo?.()}
-                  whileHover={{ scale: 1, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  aria-label="Watch product video"
-                  tabIndex={0}
-                  className={`flex-shrink-0 size-20 md:size-28 overflow-hidden border-3 transition-all rounded-md relative ${
-                    showVideo
-                      ? "border-brand-500 shadow-lg ring-2 ring-brand-200"
-                      : "border-brand-100 hover:border-brand-300"
-                  }`}
-                >
-                  <div className="w-full h-full bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="w-6 h-6 md:w-8 md:h-8 text-brand-600"
-                        fill="currentColor"
-                      >
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                      <span className="text-[9px] md:text-[10px] font-medium text-brand-700 leading-tight">
-                        Video
-                      </span>
-                    </div>
-                  </div>
-                </motion.button>
+                  isActive={!!showVideo}
+                />
               </SwiperSlide>
             )}
           </Swiper>
