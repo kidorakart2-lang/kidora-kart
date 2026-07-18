@@ -10,11 +10,11 @@ import { getCategoryHref } from "@/lib/category-nav";
 // Tier colors progress from "affordable" to "premium" — the color
 // itself encodes where a band sits in the price range, same as the
 // dot meter below it.
-const TIER_PALETTE = [
-  { bg: "#51CF66", soft: "#EBFBEE" }, // value — fresh green
-  { bg: "#4DABF7", soft: "#E7F5FF" }, // popular — sky
-  { bg: "#F59F00", soft: "#FFF3BF" }, // favourites — gold
-  { bg: "#9775FA", soft: "#F3F0FF" }, // ultimate — plum
+const TIER_TOKENS = [
+  { icon: "var(--brand-card-3-icon)", soft: "var(--brand-card-3-bg)" }, // value — green
+  { icon: "var(--brand-card-5-icon)", soft: "var(--brand-card-5-bg)" }, // popular — sky
+  { icon: "var(--brand-card-1-icon)", soft: "var(--brand-card-1-bg)" }, // favourites — gold
+  { icon: "var(--brand-card-4-icon)", soft: "var(--brand-card-4-bg)" }, // ultimate — plum
 ] as const;
 
 // Alternating string lengths + tilt so the tags read as hand-hung,
@@ -80,7 +80,7 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-10 md:gap-x-6">
           {priceCategories.map((item, index) => {
             const Icon = item.icon;
-            const tier = TIER_PALETTE[index % TIER_PALETTE.length];
+            const tier = TIER_TOKENS[index % TIER_TOKENS.length];
 
             return (
               <div
@@ -91,12 +91,12 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
                 <div className="flex flex-col items-center">
                   <span
                     className={`w-px border-l-2 border-dashed ${STRING_LENGTH[index]} opacity-70`}
-                    style={{ borderColor: tier.bg }}
+                    style={{ borderColor: tier.icon }}
                     aria-hidden="true"
                   />
                   <span
                     className="h-3 w-3 rounded-full border-2 bg-section"
-                    style={{ borderColor: tier.bg }}
+                    style={{ borderColor: tier.icon }}
                     aria-hidden="true"
                   />
                 </div>
@@ -106,7 +106,7 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
                   className="relative -mt-1.5 w-full rounded-2xl rounded-tl-sm border-2 bg-card p-5 md:p-6 flex flex-col items-center text-center min-h-[188px] transition-shadow duration-300"
                   style={{
                     borderColor: tier.soft,
-                    boxShadow: `0 8px 0 0 ${tier.bg}`,
+                    boxShadow: `0 8px 0 0 ${tier.icon}`,
                   }}
                 >
                   <div
@@ -115,7 +115,7 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
                   >
                     <Icon
                       className="h-5 w-5"
-                      style={{ color: tier.bg }}
+                      style={{ color: tier.icon }}
                       strokeWidth={2}
                     />
                   </div>
@@ -132,13 +132,13 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
                     className="flex items-center gap-1 mb-4"
                     aria-hidden="true"
                   >
-                    {TIER_PALETTE.map((_, dotIndex) => (
+                    {TIER_TOKENS.map((_, dotIndex) => (
                       <span
                         key={dotIndex}
                         className="h-1.5 w-1.5 rounded-full transition-colors"
                         style={{
                           backgroundColor:
-                            dotIndex <= index ? tier.bg : "var(--muted)",
+                            dotIndex <= index ? tier.icon : "var(--muted)",
                         }}
                       />
                     ))}
@@ -157,9 +157,9 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
                       }
                       className="group/btn inline-flex items-center gap-1.5 rounded-full px-6 py-2 text-sm font-medium text-white transition-all duration-200 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-card"
                       style={{
-                        backgroundColor: tier.bg,
+                        backgroundColor: tier.icon,
                         // @ts-expect-error -- CSS custom property for focus ring color
-                        "--tw-ring-color": tier.bg,
+                        "--tw-ring-color": tier.icon,
                       }}
                     >
                       Shop Now

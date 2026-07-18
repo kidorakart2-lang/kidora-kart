@@ -7,22 +7,22 @@ import type { ProductData } from "@/types";
 
 const TAB_TIERS = {
   silver: {
-    color: "#4DABF7",
-    soft: "#E7F5FF",
+    color: "var(--brand-card-5-icon)",
+    soft: "var(--brand-card-5-bg)",
     icon: Gem,
     label: "Silver Collection",
     tagline: "Timeless elegance in sterling silver",
   },
   gold: {
-    color: "#F59F00",
-    soft: "#FFF3BF",
+    color: "var(--brand-card-1-icon)",
+    soft: "var(--brand-card-1-bg)",
     icon: Crown,
     label: "Gold Collection",
     tagline: "Luxury crafted in precious gold",
   },
   gift: {
-    color: "#FF6B6B",
-    soft: "#FFE3E3",
+    color: "var(--brand-card-2-icon)",
+    soft: "var(--brand-card-2-bg)",
     icon: GiftIcon,
     label: "Gift Collection",
     tagline: "Perfect presents for every occasion",

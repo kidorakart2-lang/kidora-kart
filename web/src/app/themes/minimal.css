@@ -83,6 +83,10 @@ body.minimal {
   --brand-card-4-icon: #ec4899;
   --brand-card-4-ring: #fbcfe8;
 
+  --brand-card-5-bg: #eff6ff;
+  --brand-card-5-icon: #3b82f6;
+  --brand-card-5-ring: #bfdbfe;
+
   /* Brand scale (green) */
   --brand-50: #f0fdf4;
   --brand-100: #dcfce7;

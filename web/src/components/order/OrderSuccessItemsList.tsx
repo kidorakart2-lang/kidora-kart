@@ -20,13 +20,15 @@ export default function OrderSuccessItemsList({
           key={item._id}
           className="flex items-center gap-4 p-3 bg-muted rounded-xl"
         >
-          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-background rounded-lg overflow-hidden shadow-sm flex-shrink-0 border border-border">
-            {item.images?.[0] && (
+          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-lg overflow-hidden shadow-sm flex-shrink-0 border border-border flex items-center justify-center">
+            {item.images?.[0] ? (
               <img
                 src={item.images[0]}
                 alt={item.name}
                 className="w-full h-full object-cover"
               />
+            ) : (
+              <span className="text-[10px] text-muted-foreground select-none">No img</span>
             )}
           </div>
           <div className="flex-1 min-w-0">

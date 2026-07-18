@@ -21,10 +21,11 @@ async function getNavCategories(): Promise<import("@/types").CategoryData[]> {
   }
 }
 
-const TIER_COLORS = {
-  soft: "#EBFBEE",
-  colors: ["#51CF66", "#4DABF7", "#F59F00"], // action, board games, blocks
-};
+const TIER_COLORS = [
+  "var(--brand-card-3-icon)", // action figures — green
+  "var(--brand-card-5-icon)", // board games — sky
+  "var(--brand-card-1-icon)", // building blocks — gold
+] as const;
 
 export default async function ProductsTab() {
   const [actionFiguresData, boardGamesData, buildingBlocksData, categories] =
@@ -41,21 +42,21 @@ export default async function ProductsTab() {
       label: "Action Figures",
       data: actionFiguresData,
       icon: Zap,
-      color: TIER_COLORS.colors[0],
+      color: TIER_COLORS[0],
     },
     {
       value: "board-games",
       label: "Board Games",
       data: boardGamesData,
       icon: Dices,
-      color: TIER_COLORS.colors[1],
+      color: TIER_COLORS[1],
     },
     {
       value: "building-blocks",
       label: "Building Blocks",
       data: buildingBlocksData,
       icon: Boxes,
-      color: TIER_COLORS.colors[2],
+      color: TIER_COLORS[2],
     },
   ];
 
@@ -151,7 +152,7 @@ export default async function ProductsTab() {
                   <div className="text-center py-20 bg-card/50 rounded-2xl border">
                     <div
                       className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
-                      style={{ backgroundColor: `${tab.color}1A` }}
+                      style={{ backgroundColor: "color-mix(in srgb, " + tab.color + " 10%, transparent)" }}
                     >
                       <Sparkles
                         className="w-8 h-8"

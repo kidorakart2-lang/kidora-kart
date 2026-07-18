@@ -31,13 +31,12 @@ const iconMap: Record<string, typeof Gem> = {
 };
 
 // Toy-box palette — one candy color per card, cycled by index.
-// Kept as inline style (not Tailwind classes) since these are fixed
-// brand accents independent of the light/dark theme tokens.
-const TOY_PALETTE = [
-  { bg: "#FF6B6B", soft: "#FFE3E3", shadow: "rgba(255,107,107,0.35)" }, // coral
-  { bg: "#4DABF7", soft: "#E7F5FF", shadow: "rgba(77,171,247,0.35)" }, // sky
-  { bg: "#F59F00", soft: "#FFF3BF", shadow: "rgba(245,159,0,0.35)" }, // amber
-  { bg: "#51CF66", soft: "#EBFBEE", shadow: "rgba(81,207,102,0.35)" }, // grass
+// Uses CSS custom properties from the theme so colors adapt in dark mode.
+const TOY_TOKENS = [
+  { icon: "var(--brand-card-2-icon)", soft: "var(--brand-card-2-bg)" },  // coral
+  { icon: "var(--brand-card-5-icon)", soft: "var(--brand-card-5-bg)" },  // sky
+  { icon: "var(--brand-card-1-icon)", soft: "var(--brand-card-1-bg)" },  // amber
+  { icon: "var(--brand-card-3-icon)", soft: "var(--brand-card-3-bg)" },  // grass
 ] as const;
 
 // Alternating resting tilts so the row reads like toys set down on a
@@ -65,7 +64,7 @@ const WhyChooseUsItem = ({
   index: number;
 }) => {
   const IconComponent = iconMap[item.image] || Gem;
-  const palette = TOY_PALETTE[index % TOY_PALETTE.length];
+  const palette = TOY_TOKENS[index % TOY_TOKENS.length];
   const tilt = TILTS[index % TILTS.length];
 
   return (
@@ -76,27 +75,27 @@ const WhyChooseUsItem = ({
         className="relative overflow-visible rounded-[28px] border-2 bg-card pt-9 transition-shadow duration-300"
         style={{
           borderColor: palette.soft,
-          boxShadow: `0 10px 0 0 ${palette.bg}`,
+          boxShadow: `0 10px 0 0 color-mix(in srgb, ${palette.icon} 35%, transparent)`,
         }}
       >
         {/* Icon badge, popped above the card edge like a block stud */}
         <div className="absolute -top-8 left-1/2 -translate-x-1/2">
           <div
             className="flex h-16 w-16 items-center justify-center rounded-2xl ring-4 ring-background transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
-            style={{ backgroundColor: palette.bg }}
+            style={{ backgroundColor: palette.icon }}
           >
             <IconComponent size={28} className="text-white" strokeWidth={2} />
           </div>
           {/* two little studs either side, echoing a toy brick */}
           <span
             className="absolute -top-1.5 left-1"
-            style={{ color: palette.bg }}
+            style={{ color: palette.icon }}
           >
             <span className="block h-2 w-2 rounded-full bg-current opacity-60" />
           </span>
           <span
             className="absolute -top-1.5 right-1"
-            style={{ color: palette.bg }}
+            style={{ color: palette.icon }}
           >
             <span className="block h-2 w-2 rounded-full bg-current opacity-60" />
           </span>
@@ -129,7 +128,7 @@ const WhyChooseUsContent = async () => {
 };
 
 const SkeletonCard = ({ index }: { index: number }) => {
-  const palette = TOY_PALETTE[index % TOY_PALETTE.length];
+  const palette = TOY_TOKENS[index % TOY_TOKENS.length];
   return (
     <div className="relative pt-9">
       <div
@@ -165,7 +164,8 @@ const WhyChooseUs = () => {
             {/* hand-drawn squiggle underline — the section's signature mark */}
             <svg
               viewBox="0 0 120 12"
-              className="absolute -bottom-3 left-1/2 h-3 w-28 -translate-x-1/2 text-[#FF6B6B]"
+              className="absolute -bottom-3 left-1/2 h-3 w-28 -translate-x-1/2"
+              style={{ color: "var(--brand-card-2-icon)" }}
               fill="none"
               aria-hidden="true"
             >

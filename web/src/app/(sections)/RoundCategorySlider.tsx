@@ -10,11 +10,11 @@ import "swiper/css";
 import Link from "next/link";
 
 const TOY_PALETTE = [
-  "#FF6B6B", // coral
-  "#4DABF7", // sky
-  "#F59F00", // amber
-  "#51CF66", // grass
-  "#9775FA", // plum
+  "var(--brand-card-2-icon)", // coral
+  "var(--brand-card-5-icon)", // sky
+  "var(--brand-card-1-icon)", // amber
+  "var(--brand-card-3-icon)", // grass
+  "var(--brand-card-4-icon)", // plum
 ] as const;
 
 export default function RoundCategorySlider({ heading }: { heading?: string }) {

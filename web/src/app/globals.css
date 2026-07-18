@@ -131,20 +131,24 @@
   --brand-heading: #d97706;
 
   --brand-card-1-bg: oklch(0.987 0.022 95.277);
-  --brand-card-1-icon: oklch(0.555 0.163 48.998);
+  --brand-card-1-icon: oklch(0.63 0.16 55);
   --brand-card-1-ring: oklch(0.879 0.169 91.605);
 
   --brand-card-2-bg: oklch(0.969 0.015 12.422);
-  --brand-card-2-icon: oklch(0.514 0.222 16.935);
+  --brand-card-2-icon: oklch(0.60 0.18 20);
   --brand-card-2-ring: oklch(0.892 0.058 10.001);
 
   --brand-card-3-bg: oklch(0.979 0.021 166.113);
-  --brand-card-3-icon: oklch(0.627 0.194 149.214);
+  --brand-card-3-icon: oklch(0.70 0.18 150);
   --brand-card-3-ring: oklch(0.901 0.058 154.194);
 
   --brand-card-4-bg: oklch(0.977 0.013 308.299);
-  --brand-card-4-icon: oklch(0.558 0.288 302.321);
+  --brand-card-4-icon: oklch(0.62 0.24 300);
   --brand-card-4-ring: oklch(0.897 0.059 305.03);
+
+  --brand-card-5-bg: oklch(0.965 0.03 231);
+  --brand-card-5-icon: oklch(0.65 0.14 240);
+  --brand-card-5-ring: oklch(0.85 0.08 231);
 
   --brand-50: #fffbeb;
   --brand-100: #fef3c7;
@@ -251,6 +255,10 @@
   --brand-card-4-icon: oklch(0.85 0.12 300);
   --brand-card-4-ring: oklch(0.35 0.06 300);
 
+  --brand-card-5-bg: oklch(0.25 0.06 231);
+  --brand-card-5-icon: oklch(0.80 0.12 240);
+  --brand-card-5-ring: oklch(0.35 0.06 231);
+
   --brand-50: #2d1f00;
   --brand-100: #3d2b00;
   --brand-200: #5c4200;
@@ -329,6 +337,13 @@
   .hover-glow:hover {
     box-shadow: 0 0 20px color-mix(in srgb, var(--brand-primary) 30%, transparent);
   }
+
+  /* ── Chunky "toy block" drop shadows, keyed to brand-card tiers ── */
+  .shadow-chunky-1 { box-shadow: 0 6px 0 0 var(--brand-card-1-icon); }
+  .shadow-chunky-2 { box-shadow: 0 6px 0 0 var(--brand-card-2-icon); }
+  .shadow-chunky-3 { box-shadow: 0 6px 0 0 var(--brand-card-3-icon); }
+  .shadow-chunky-4 { box-shadow: 0 6px 0 0 var(--brand-card-4-icon); }
+  .shadow-chunky-5 { box-shadow: 0 6px 0 0 var(--brand-card-5-icon); }
 
   /* ── Custom scrollbar (brand-themed) ── */
   .custom-scrollbar {
