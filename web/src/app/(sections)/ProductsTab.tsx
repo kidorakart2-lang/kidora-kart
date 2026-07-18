@@ -1,52 +1,108 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductCard from "@/components/comman/ProductCard";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Zap, Dices, Boxes, Sparkles, ArrowRight } from "lucide-react";
 
 import type { ProductData } from "@/types";
 import { getProducts } from "@/lib/get-products";
+import { getCategoryHref } from "@/lib/category-nav";
+
+async function getNavCategories(): Promise<import("@/types").CategoryData[]> {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}api/website/nav`,
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data._data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+const TIER_COLORS = {
+  soft: "#EBFBEE",
+  colors: ["#51CF66", "#4DABF7", "#F59F00"], // action, board games, blocks
+};
 
 export default async function ProductsTab() {
-  const [payalData, necklaceData, braceletData] = await Promise.all([
-    getProducts("earrings"),
-    getProducts("necklace"),
-    getProducts("bracelet"),
-  ]);
+  const [actionFiguresData, boardGamesData, buildingBlocksData, categories] =
+    await Promise.all([
+      getProducts("action-figures"),
+      getProducts("board-games"),
+      getProducts("building-blocks"),
+      getNavCategories(),
+    ]);
 
   const tabItems = [
-    { value: "earrings", label: "EarRings", data: payalData, icon: "✦" },
-    { value: "necklace", label: "Necklaces", data: necklaceData, icon: "◆" },
-    { value: "bracelet", label: "Bracelets", data: braceletData, icon: "○" },
+    {
+      value: "action-figures",
+      label: "Action Figures",
+      data: actionFiguresData,
+      icon: Zap,
+      color: TIER_COLORS.colors[0],
+    },
+    {
+      value: "board-games",
+      label: "Board Games",
+      data: boardGamesData,
+      icon: Dices,
+      color: TIER_COLORS.colors[1],
+    },
+    {
+      value: "building-blocks",
+      label: "Building Blocks",
+      data: buildingBlocksData,
+      icon: Boxes,
+      color: TIER_COLORS.colors[2],
+    },
   ];
 
   return (
     <section className="py-16 lg:py-20 relative overflow-hidden bg-section">
       <div className="section-container relative z-10">
         <div className="text-center mb-12 lg:mb-16">
-          <h2 className="section-heading mb-4">
+          <h2 className="section-heading relative inline-block mb-4">
             Our Products Collection
+            <svg
+              viewBox="0 0 120 12"
+              className="absolute -bottom-3 left-1/2 h-3 w-28 -translate-x-1/2"
+              style={{ color: "var(--brand-primary)" }}
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M2 8 Q 20 1 40 7 T 78 6 T 118 4"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            </svg>
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base lg:text-lg fw-body leading-relaxed">
-            Discover our exciting collection of toys and games, designed
-            to bring joy and learning to every child's day.
+          <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base lg:text-lg fw-body leading-relaxed mt-6">
+            Discover our exciting collection of toys and games, designed to
+            bring joy and learning to every child&apos;s day.
           </p>
         </div>
 
         <Tabs defaultValue={tabItems[0].value} className="w-full">
           <div className="flex justify-center mb-6 lg:mb-10">
-            <TabsList className="inline-flex bg-card backdrop-blur-sm rounded-full p-1.5 shadow-xl border border-border">
-              {tabItems.map((tab) => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="px-6 md:px-8 py-3 md:py-3.5 rounded-full fw-cta text-xs md:text-sm uppercase transition-all duration-300 text-muted-foreground"
-                >
-                  <span className="hidden md:inline mr-2">{tab.icon}</span>
-                  {tab.label}
-                </TabsTrigger>
-              ))}
+            <TabsList className="inline-flex bg-card rounded-full p-1.5 shadow-xl border border-border gap-1">
+              {tabItems.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    style={{ ["--tab-active-bg" as string]: tab.color }}
+                    className="flex items-center px-6 md:px-8 py-3 md:py-3.5 rounded-full fw-cta text-xs md:text-sm uppercase transition-all duration-300 text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-[var(--tab-active-bg)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
+                    <Icon className="h-4 w-4 md:mr-2" />
+                    <span className="hidden md:inline">{tab.label}</span>
+                  </TabsTrigger>
+                );
+              })}
             </TabsList>
           </div>
 
@@ -60,7 +116,7 @@ export default async function ProductsTab() {
                 {tab.data && tab.data.length > 0 ? (
                   <>
                     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
-                      {tab.data.map((product: ProductData, index: number) => (
+                      {tab.data.map((product: ProductData) => (
                         <div key={product._id}>
                           <ProductCard data={product} />
                         </div>
@@ -68,28 +124,44 @@ export default async function ProductsTab() {
                     </div>
 
                     <div className="text-center mt-12">
-                      <Link href={`/category/shop-by-category?q=${tab.value}`}>
-                        <Button
-                          variant="outline"
-                          className="group relative px-8 py-6 rounded-full fw-cta text-sm uppercase tracking-wider shadow-md overflow-hidden"
+                      <Link href={getCategoryHref(categories, tab.value)}>
+                        <button
+                          type="button"
+                          className="group inline-flex items-center gap-3 rounded-full border-2 px-8 py-4 fw-cta text-sm uppercase tracking-wider transition-all duration-300 hover:text-white active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-section"
+                          style={{
+                            borderColor: tab.color,
+                            color: tab.color,
+                            ["--tw-ring-color" as string]: tab.color,
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor = tab.color)
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                              "transparent")
+                          }
                         >
-                          <span className="relative flex items-center gap-3">
-                            View All {tab.label}
-                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                          </span>
-                        </Button>
+                          View All {tab.label}
+                          <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+                        </button>
                       </Link>
                     </div>
                   </>
                 ) : (
-                  <div className="text-center py-20 bg-card/50 backdrop-blur-sm rounded-2xl border">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-muted rounded-full mb-4">
-                      <Sparkles className="w-8 h-8 text-muted-foreground" />
+                  <div className="text-center py-20 bg-card/50 rounded-2xl border">
+                    <div
+                      className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
+                      style={{ backgroundColor: `${tab.color}1A` }}
+                    >
+                      <Sparkles
+                        className="w-8 h-8"
+                        style={{ color: tab.color }}
+                      />
                     </div>
                     <p className="text-lg fw-body text-muted-foreground">
                       No {tab.label.toLowerCase()} found at the moment.
                     </p>
-                    <p className="text-sm mt-2" style={{ color: "var(--muted-foreground)" }}>
+                    <p className="text-sm mt-2 text-muted-foreground">
                       Check back soon for new arrivals!
                     </p>
                   </div>

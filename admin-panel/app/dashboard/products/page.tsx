@@ -1,7 +1,4 @@
-import React from "react";
 import ProductsPage from "./ProductPage";
-import { cache } from "react";
-import Cookies from "js-cookie";
 
 // const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 // const getAuthHeaders = async () => ({

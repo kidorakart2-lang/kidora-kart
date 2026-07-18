@@ -2,36 +2,8 @@ import { siteConfig, defaultMetadata } from "@/lib/utils";
 import { notFound, redirect } from "next/navigation";
 import { cacheLife, cacheTag } from "next/cache";
 import { productTag, TAG_PRODUCTS } from "@/lib/revalidation-tags";
+import type { ProductData } from "@/types";
 import ProductDetailsPage from "./ProductDetail";
-
-interface ProductDetail {
-  _id: string;
-  name: string;
-  price: number;
-  discount_price?: number;
-  image?: string;
-  images?: string[];
-  stock: number;
-  slug: string;
-  description?: string;
-  short_description?: string;
-  sku?: string;
-  tags?: string[];
-  rating?: number;
-  reviewCount?: number;
-  category?: { _id: string; name: string }[];
-  subCategory?: { _id: string; name: string }[];
-  subSubCategory?: { _id: string; name: string }[];
-  weight?: string;
-  length?: number;
-  height?: number;
-  breadth?: number;
-  minimumAge?: number;
-  idealAge?: number;
-  maximumAge?: number;
-  type?: string;
-  videoUrl?: string;
-}
 
 interface ProductDetailsPageProps {
   params: Promise<{ slug: string }>;
@@ -76,7 +48,7 @@ export async function generateMetadata({ params }: ProductDetailsPageProps) {
   const price = product.discount_price || product.price;
   const currency = "INR";
   const availability =
-    product.stock > 0
+    (product.stock ?? 0) > 0
       ? "https://schema.org/InStock"
       : "https://schema.org/OutOfStock";
 
@@ -150,12 +122,12 @@ export async function generateMetadata({ params }: ProductDetailsPageProps) {
   };
 }
 
-export async function generateProductSchema(product: ProductDetail, productUrl: string) {
+export async function generateProductSchema(product: ProductData, productUrl: string) {
   const productImage = product.image || `${siteConfig.url}/images/og-image.jpg`;
   const price = product.discount_price || product.price;
   const currency = "INR";
   const availability =
-    product.stock > 0
+    (product.stock ?? 0) > 0
       ? "https://schema.org/InStock"
       : "https://schema.org/OutOfStock";
 
@@ -289,7 +261,7 @@ async function getProducts(slug: string) {
   }
 
   const data = await response.json();
-  return data?._status ? (data._data as ProductDetail) : null;
+  return data?._status ? (data._data as ProductData) : null;
 }
 
 export default async function Page({ params }: ProductDetailsPageProps) {

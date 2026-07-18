@@ -302,7 +302,7 @@ export default function ProductFAQsPage() {
               <SelectItem value="deleted">Deleted Only</SelectItem>
             </SelectContent>
           </Select>
-          <ExportButtons data={faqSets as unknown as Record<string, unknown>[]} filename="product-faq-sets" />
+          <ExportButtons data={faqSets} filename="product-faq-sets" />
           <Button onClick={openCreateDrawer} className="transition-all duration-200 hover:scale-105">
             <Plus className="h-4 w-4 mr-2" />
             Add FAQ Set

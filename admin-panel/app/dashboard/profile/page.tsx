@@ -1,4 +1,3 @@
-import React from "react";
 import { cookies } from "next/headers";
 import Profile from "./Profile";
 import { api } from "@/lib/api";

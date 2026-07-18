@@ -7,8 +7,16 @@ import ProductCard from "@/components/comman/ProductCard";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store/store";
+import type { CategoryData } from "@/types";
+import { getCategoryHref } from "@/lib/category-nav";
 
 const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: string }) => {
+  const navigation = useSelector((state: RootState) => state.ui.navigation);
+  const categories = (navigation as { _data?: CategoryData[] })?._data ?? [];
+  const viewMoreHref = getCategoryHref(categories);
+
   if (!data || !Array.isArray(data) || data.length === 0) return null;
 
   return (
@@ -52,7 +60,7 @@ const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: st
         </div>
 
         <div className="text-center mt-12">
-          <Link href="/category/shop-by-category">
+          <Link href={viewMoreHref}>
             <Button
               variant="gradient"
               size="lg"

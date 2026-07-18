@@ -14,6 +14,7 @@ import {
   TAG_HOMEPAGE,
   TAG_TESTIMONIALS,
 } from "@/lib/revalidation-tags";
+import type { BannerItem } from "@/types";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -22,12 +23,6 @@ export interface HomeSection {
   type: string;
   config: Record<string, unknown>;
   order: number;
-}
-
-interface BannerItem {
-  _id?: string;
-  image: string;
-  link?: { url?: string | null; type?: string };
 }
 
 // ── Home page sections ─────────────────────────────────────────────────

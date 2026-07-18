@@ -103,7 +103,7 @@ export const SearchBar = ({ className, inputId }: SearchBarProps) => {
       />
       <Search
         size={20}
-        className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 text-[var(--brand-primary-dark)] pointer-events-none"
+        className="hidden md:block absolute left-9 top-1/2 -translate-y-1/2 text-[var(--brand-primary-dark)] pointer-events-none"
       />
 
       {isSuggestionsOpen && (

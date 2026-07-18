@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,19 +12,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, RefreshCcw, AlertTriangle, CheckCircle, XCircle, Ban } from "lucide-react";
 import { api, ApiClientError } from "@/lib/api";
-
-interface SyncResult {
-  scanned: number;
-  fixed: number;
-  failed: number;
-  skipped: number;
-  errors: Array<{ orderId: string; error: string }>;
-  details: Array<{
-    orderId: string;
-    status: "fixed" | "skipped" | "failed";
-    note: string;
-  }>;
-}
+import type { SyncResult } from "@/lib/types";
 
 export default function SyncStuckPayments() {
   const [loading, setLoading] = useState(false);

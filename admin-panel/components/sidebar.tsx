@@ -13,7 +13,6 @@ import { NAV_ITEMS_WITH_ICONS } from "@/lib/nav-items";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import type { LucideIcon } from "lucide-react";
 import { useAdminLogo } from "@/hooks/useAdminLogo";
 import {
   Tooltip,
@@ -21,12 +20,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-interface MenuItem {
-  icon: LucideIcon;
-  label: string;
-  href: string;
-}
 
 const menuItems = NAV_ITEMS_WITH_ICONS;
 

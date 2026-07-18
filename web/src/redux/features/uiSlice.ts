@@ -4,6 +4,7 @@ import type { RootState } from "../store/store";
 interface SubCategoryItem {
   slug: string;
   name: string;
+  subSubCategories?: Array<{ _id?: string; name?: string; slug?: string }>;
 }
 
 interface NavigationItem {

@@ -36,11 +36,6 @@ const orderSchema = new Schema(
           ref: "colors",
           required: true,
         },
-        sizeId: {
-          type: Schema.Types.ObjectId,
-          ref: "sizes",
-          default: null,
-        },
         name: { type: String, required: true },
         description: { type: String },
         quantity: {

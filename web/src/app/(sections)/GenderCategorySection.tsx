@@ -6,13 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-interface CategoryItem {
-  _id: string;
-  name: string;
-  image?: string;
-  slug?: string;
-}
-
 interface GenderCategorySectionProps {
   heading?: string;
   sourceType?: string;

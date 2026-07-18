@@ -218,7 +218,6 @@ const options: swaggerJsdoc.Options = {
             subSubCategory: { type: "object" },
             colors: { type: "array", items: { $ref: "#/components/schemas/Color" } },
             material: { type: "object" },
-            sizes: { type: "array", items: { $ref: "#/components/schemas/Size" } },
             isNewArrival: { type: "boolean" },
             isBestSeller: { type: "boolean" },
             isFeatured: { type: "boolean" },
@@ -236,7 +235,6 @@ const options: swaggerJsdoc.Options = {
             _id: { type: "string" },
             product: { $ref: "#/components/schemas/Product" },
             color: { type: "string" },
-            size: { type: "string" },
             quantity: { type: "integer" },
             itemTotal: { type: "number" },
           },
@@ -256,7 +254,7 @@ const options: swaggerJsdoc.Options = {
             productId: { type: "string" },
             quantity: { type: "integer", minimum: 1, default: 1 },
             colorId: { type: "string" },
-            sizeId: { type: "string" },
+
           },
         },
         UpdateCartItemInput: {
@@ -336,7 +334,7 @@ const options: swaggerJsdoc.Options = {
                   productId: { type: "string" },
                   quantity: { type: "integer" },
                   colorId: { type: "string" },
-                  sizeId: { type: "string" },
+      
                 },
               },
             },
@@ -469,13 +467,6 @@ const options: swaggerJsdoc.Options = {
           },
         },
         Material: {
-          type: "object",
-          properties: {
-            _id: { type: "string" },
-            name: { type: "string" },
-          },
-        },
-        Size: {
           type: "object",
           properties: {
             _id: { type: "string" },
@@ -694,7 +685,6 @@ const options: swaggerJsdoc.Options = {
             subSubCategory: { type: "string" },
             colors: { type: "array", items: { type: "string" } },
             material: { type: "string" },
-            sizes: { type: "array", items: { type: "string" } },
             isNewArrival: { type: "boolean" },
             isBestSeller: { type: "boolean" },
             isFeatured: { type: "boolean" },
@@ -774,14 +764,6 @@ const options: swaggerJsdoc.Options = {
           },
         },
         AdminMaterialInput: {
-          type: "object",
-          required: ["name"],
-          properties: {
-            name: { type: "string" },
-            status: { type: "string", enum: ["active", "inactive"] },
-          },
-        },
-        AdminSizeInput: {
           type: "object",
           required: ["name"],
           properties: {

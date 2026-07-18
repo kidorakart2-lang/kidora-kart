@@ -20,7 +20,7 @@ import { getAuthToken } from "@/lib/getAuthToken";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LoadingUi } from "./Cart";
+import LoadingOverlay from "@/components/comman/LoadingOverlay";
 
 import type { UserDetails } from "@/types";
 
@@ -96,7 +96,7 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
 
   return (
     <div className="space-y-8">
-      <LoadingUi hidden={loading} />
+      <LoadingOverlay hidden={loading} />
       {/* Security Section */}
       <div className="space-y-6">
         <h3 className="text-sm font-semibold text-muted-foreground mb-4">Security</h3>

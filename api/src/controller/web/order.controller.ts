@@ -18,47 +18,20 @@ import {
   checkServiceability,
   getPickupLocations,
 } from "../../lib/shiprocket.js";
-
-interface RefundResponse {
-  id: string;
-  entity: string;
-  amount: number;
-  currency: string;
-  status: string;
-  payment_id: string;
-  created_at: number;
-}
+import { generateOTP, generatePackageId, type RefundResponse, type OrderItemInput } from "./order.helpers.js";
+import {
+  handleRefundCreated,
+  handleRefundProcessed,
+  handleRefundFailed,
+  handlePaymentCaptured,
+  handlePaymentFailed,
+} from "./order.webhook.js";
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
   key_id: env.RAZORPAY_KEY_ID ?? "",
   key_secret: env.RAZORPAY_KEY_SECRET ?? "",
 });
-
-// Generate 6-digit OTP (cryptographically secure)
-const generateOTP = (): string => {
-  return String(crypto.randomInt(100000, 1000000));
-};
-
-const generatePackageId = (): string => {
-  return `${env.APP_NAME}-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
-};
-
-type OrderItemInput = {
-  productId: string;
-  colorId: string;
-  sizeId: string | null;
-  name: string;
-  description?: string;
-  quantity: number;
-  isPersonalized: boolean;
-  personalizedName: string | null;
-  priceAtPurchase: number;
-  subtotal: number;
-  addedFrom: string;
-  images: string[];
-  sku?: string;
-};
 
 // 1. Create Order (from Cart or Direct Purchase)
 export const createOrder = async (
@@ -87,7 +60,6 @@ export const createOrder = async (
         productId: string;
         quantity: number;
         colorId: string;
-        sizeId?: string;
       }>;
       isPersonalizedName?: string;
       shippingAddress: {
@@ -141,7 +113,7 @@ export const createOrder = async (
         cart.items.map((ci) => ({
           productId: String(ci.product),
           colorId: String(ci.color),
-          sizeId: ci.size ? String(ci.size) : null,
+
           quantity: ci.quantity,
         })),
       );
@@ -167,7 +139,6 @@ export const createOrder = async (
     const orderItems: OrderItemInput[] = validatedItems.map((vi) => ({
       productId: vi.productId,
       colorId: vi.colorId,
-      sizeId: vi.sizeId,
       name: vi.name,
       description: vi.description,
       quantity: vi.quantity,
@@ -868,7 +839,6 @@ export const getUserOrders = async (
       .limit(limitNum)
       .skip((pageNum - 1) * limitNum)
       .populate("items.productId", "name images slug")
-      .populate("items.sizeId", "name value")
       .lean();
 
     const count = await Order.countDocuments(query);
@@ -906,7 +876,6 @@ export const getOrderById = async (
       .populate("items.productId", "name images slug")
       .select("-payment.razorpay.signature") // TODO: frontend OrderData uses createdAt, updatedAt for display
       .populate("items.colorId", "name code")
-      .populate("items.sizeId", "name value")
       .lean();
 
     if (!order) {
@@ -941,7 +910,6 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
     const order = await Order.findOne(filter)
       .populate("items.productId", "name images slug")
       .populate("items.colorId", "name code")
-      .populate("items.sizeId", "name value")
       .select("-payment.razorpay.signature") // TODO: frontend OrderData uses createdAt, updatedAt for display
       .lean();
 
@@ -1299,7 +1267,6 @@ export const getAllOrders = async (
       .sort({ createdAt: -1 }) // TODO: frontend OrderData uses createdAt, updatedAt for display
       .populate("items.productId", "name images slug")
       .populate("items.colorId", "name")
-      .populate("items.sizeId", "name")
       .select("-payment.razorpay.signature")
       .lean();
 
@@ -1396,171 +1363,6 @@ export const handleWebhook = async (
     res.status(500).json({ error: "Webhook processing failed" });
   }
 };
-
-async function handleRefundProcessed(refundData: { id: string }): Promise<void> {
-  const order = await Order.findOne({
-    "cancellation.refundId": refundData.id,
-  });
-  if (order && order.cancellation) {
-    order.cancellation.refundStatus = "completed";
-    order.cancellation.refundedAt = new Date();
-    await order.save();
-
-    sendEmail(order.shippingAddress?.email ?? "", "RefundProcessed", {
-      user: {
-        name: order.shippingAddress?.fullName ?? "Customer",
-        email: order.shippingAddress?.email ?? "",
-      },
-      order: {
-        _id: order._id,
-        orderId: order.orderId,
-        createdAt: order.createdAt,
-        pricing: order.pricing,
-        cancellation: order.cancellation,
-        shippingAddress: order.shippingAddress,
-        pendingStatus: !!order.payment?.status,
-      },
-    }).catch((err) =>
-      logger.error(err, "Failed to send refund processed email"),
-    );
-  }
-}
-
-async function handleRefundFailed(refundData: {
-  id: string;
-  error_description?: string;
-}): Promise<void> {
-  const order = await Order.findOne({
-    "cancellation.refundId": refundData.id,
-  });
-  if (order && order.cancellation) {
-    order.cancellation.refundStatus = "failed";
-    order.cancellation.refundError = refundData.error_description;
-    await order.save();
-  }
-}
-
-async function handlePaymentCaptured(paymentEntity: Record<string, unknown> | null | undefined): Promise<void> {
-  if (!paymentEntity?.order_id) return;
-  try {
-    const razorpayOrderId = paymentEntity.order_id as string;
-    const razorpayPaymentId = paymentEntity.id as string;
-
-    const order = await Order.findOne({
-      "payment.razorpay.orderId": razorpayOrderId,
-    });
-
-    if (!order || order.status !== "pending") return;
-
-    // Only process if the payment isn't already captured on this order
-    if (order.payment?.razorpay?.paymentId === razorpayPaymentId) return;
-
-    order.status = "confirmed";
-    if (order.payment) {
-      order.payment.status = "completed";
-      order.payment.verified = true;
-      order.payment.method = "razorpay";
-      if (!order.payment.razorpay) order.payment.razorpay = {};
-      order.payment.razorpay.paymentId = razorpayPaymentId;
-      order.payment.transactionId = razorpayPaymentId;
-      order.payment.paidAt = new Date();
-    }
-
-    const packageId = generatePackageId();
-    order.packageId = packageId;
-
-    await order.save();
-
-    // Deduct stock
-    const stockResults = await Promise.all(
-      order.items.map((item) =>
-        Product.findOneAndUpdate(
-          { _id: item.productId, stock: { $gte: item.quantity } },
-          { $inc: { stock: -item.quantity } },
-          { new: true, projection: { _id: 1 } },
-        ),
-      ),
-    );
-    const failedIdx = stockResults.findIndex((r) => !r);
-    if (failedIdx !== -1) {
-      logger.warn({ orderId: order.orderId, item: order.items[failedIdx]?.name }, "Stock deduction failed for some items during webhook auto-confirm");
-    }
-
-    // Send confirmation email in the background
-    enqueue(async () => {
-      await sendEmail(
-        order.shippingAddress?.email ?? "",
-        "orderConfirmed",
-        {
-          orderId: order.orderId,
-          packageId,
-          orderDate: new Date().toLocaleString(),
-          customerName: order.shippingAddress?.fullName || "Customer",
-          orderTotal: order.pricing?.total,
-          subtotal: order.pricing?.subtotal,
-          discount: order.pricing?.discount?.amount || 0,
-          shipping: order.pricing?.shipping,
-          total: order.pricing?.total,
-          deliveryOTP: "...",
-          contactEmail: env.MY_GMAIL,
-          items: order.items,
-          shippingAddress: order.shippingAddress,
-          billingAddress: order.billingAddress || order.shippingAddress,
-          paymentMethod: "Online Payment",
-        },
-      );
-    });
-
-    logger.info({ orderId: order.orderId, razorpayPaymentId }, "Order auto-confirmed via payment.captured webhook");
-  } catch (err) {
-    logger.error(err, "Failed to handle payment.captured webhook");
-  }
-}
-
-async function handlePaymentFailed(paymentEntity: { id?: string; description?: string; error_description?: string; order_id?: string } | null): Promise<void> {
-  if (!paymentEntity?.order_id) return;
-  try {
-    const order = await Order.findOne({
-      "payment.razorpay.paymentId": paymentEntity.id,
-    });
-    if (order && order.status === "pending") {
-      order.status = "payment_failed";
-      if (order.payment) order.payment.status = "failed";
-      await order.save();
-    }
-  } catch (err) {
-    logger.error(err, "Failed to handle payment.failed webhook");
-  }
-}
-
-async function handleRefundCreated(refundData: { id: string }): Promise<void> {
-  const order = await Order.findOne({
-    "cancellation.refundId": refundData.id,
-  });
-  if (order && order.cancellation) {
-    order.cancellation.refundStatus = "initiated";
-    await order.save();
-
-    sendEmail(order.shippingAddress?.email ?? "", "orderCancelled", {
-      user: {
-        name: order.shippingAddress?.fullName ?? "Customer",
-        email: order.shippingAddress?.email ?? "",
-      },
-      order: {
-        _id: order._id,
-        orderId: order.orderId,
-        createdAt: order.createdAt,
-        pricing: order.pricing,
-        cancellation: order.cancellation,
-        shippingAddress: order.shippingAddress,
-        pendingStatus: true,
-        paymentRefundStatus: order.cancellation.refundStatus,
-      },
-    }).catch((emailError) => {
-      logger.error(emailError, "Failed to send cancellation email");
-    });
-  }
-}
 
 export const confirmCODOrder = async (
   req: Request,

@@ -12,7 +12,7 @@ export interface MaterialItem {
 export interface CategoryRef {
   _id: string;
   name: string;
-  slug: string;
+  slug?: string;
 }
 
 export interface MaterialRef {
@@ -32,12 +32,14 @@ export interface ProductData {
   stock?: number;
   description?: string;
   shortDescription?: string;
+  short_description?: string;
   category?: CategoryRef[];
   material?: MaterialRef[];
   isPersonalized?: boolean;
-  subCategory?: { _id: string; name: string }[];
+  subCategory?: { _id: string; name: string; slug?: string }[];
+  subSubCategory?: CategoryRef[];
   colors?: { _id: string; name: string; code?: string }[];
-  sizes?: { _id: string; name: string }[];
+
   rating?: number;
   reviewCount?: number;
   weight?: string;
@@ -50,6 +52,15 @@ export interface ProductData {
   type?: string;
   sku?: string;
   tags?: string[];
+  videoUrl?: string;
+  isNewArrival?: boolean;
+  estimated_delivery_time?: string;
+}
+
+export interface SubSubCategoryData {
+  _id?: string;
+  name?: string;
+  slug?: string;
 }
 
 export interface SubCategoryData {
@@ -57,6 +68,7 @@ export interface SubCategoryData {
   slug: string;
   name: string;
   image?: string;
+  subSubCategories?: SubSubCategoryData[];
 }
 
 export interface CategoryData {
@@ -94,8 +106,7 @@ export interface DirectPurchaseItem {
   product: ProductData;
   colorCode: string;
   colorName: string;
-  sizeName: string;
-  sizeId: string;
+
 }
 
 export interface OrderSummaryCartItem {
@@ -105,12 +116,28 @@ export interface OrderSummaryCartItem {
   color?: { _id: string; code: string; name: string };
   colorCode?: string;
   colorName?: string;
-  size?: { _id: string; name: string };
-  sizeName?: string;
-  sizeId?: string;
+
   isPersonalized?: boolean;
 }
 
 export interface NavigationData extends CategoryData {
   subCategories?: SubCategoryData[];
 }
+
+export type LogoData = {
+  logo: string;
+};
+
+export interface BannerItem {
+  _id?: string;
+  image: string;
+  link?: { url?: string | null; type?: string };
+}
+
+export interface BannerLinkData {
+  type?: string;
+  target?: string;
+  externalUrl?: string;
+  label?: string;
+}
+

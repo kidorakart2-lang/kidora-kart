@@ -43,12 +43,10 @@ function useAuthBootstrap() {
 
   // Sync cart to Redux when React Query returns data
   useEffect(() => {
-    if (!cartData?.items) return;
-    const items = cartData.items.map((item: { product?: { _id: string }; quantity?: number; color?: { _id: string }; size?: { _id: string } }) => ({
+    if (!cartData?.items) return;        const items = cartData.items.map((item: { product?: { _id: string }; quantity?: number; color?: { _id: string } }) => ({
       productId: item.product?._id ?? "",
       quantity: item.quantity ?? 1,
       colorId: item.color?._id ?? null,
-      sizeId: item.size?._id ?? null,
       isGuest: false,
     }));
     dispatch(updateFullCart({

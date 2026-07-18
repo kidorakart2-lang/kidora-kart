@@ -1,44 +1,31 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import Image from "next/image";
 import { useOrderById } from "@/lib/useOrders";
 import { retryPayment, verifyPayment } from "@/lib/orderService";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { LoadingUi } from "./Cart";
-import { siteConfig } from "@/lib/utils";
+import LoadingOverlay from "@/components/comman/LoadingOverlay";
 import { motion } from "motion/react";
 import {
-  Package,
-  CheckCircle,
-  Truck,
-  MapPin,
-  Clock,
-  XCircle,
-  Gift,
-  FileText,
-  AlertTriangle,
-  Loader2,
-  RefreshCw,
-  Check,
-  CreditCard,
-  Phone,
-  Mail,
-  Search,
-  Printer,
+  Package, CheckCircle, Truck, Clock, XCircle, AlertTriangle,
+  Loader2, RefreshCw, Phone, Mail, Search, Printer,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getAuthToken } from "@/lib/getAuthToken";
-import type { OrderTrackingResponse } from "@/types";
+import OrderTimeline from "@/components/track/OrderTimeline";
+import OrderItemsList from "@/components/track/OrderItemsList";
+import OrderSummaryCard from "@/components/track/OrderSummaryCard";
+import CancellationDetails from "@/components/track/CancellationDetails";
+import PrintInvoice from "@/components/track/PrintInvoice";
+import ShiprocketTrackingStatus, { type ShiprocketTrackingData } from "@/components/track/ShiprocketTrackingStatus";
 
 export default function OrderTracking() {
   const [orderNumber, setOrderNumber] = useState("");
   const [searchOrderId, setSearchOrderId] = useState<string>("");
   const [retryLoading, setRetryLoading] = useState(false);
-  const [trackingData, setTrackingData] = useState<Record<string, unknown> | null>(null);
+  const [trackingData, setTrackingData] = useState<{ shiprocketTracking?: ShiprocketTrackingData; currentStatus?: string } | null>(null);
   const [trackingLoading, setTrackingLoading] = useState(false);
 
   const searchParams = useSearchParams();
@@ -172,7 +159,7 @@ export default function OrderTracking() {
         credentials: "include",
       });
       if (res.ok) {
-        const json = await res.json() as { success: boolean; data?: Record<string, unknown> };
+        const json = await res.json() as { success: boolean; data?: { shiprocketTracking?: ShiprocketTrackingData; currentStatus?: string } };
         if (json.success && json.data) {
           setTrackingData(json.data);
         }
@@ -202,51 +189,9 @@ export default function OrderTracking() {
     refetch();
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Clock className="w-5 h-5" />;
-      case "confirmed":
-        return <CheckCircle className="w-5 h-5" />;
-      case "shipped":
-        return <Truck className="w-5 h-5" />;
-      case "delivered":
-        return <Package className="w-5 h-5" />;
-      case "cancelled":
-        return <XCircle className="w-5 h-5" />;
-      case "payment_failed":
-        return <AlertTriangle className="w-5 h-5" />;
-      default:
-        return <Clock className="w-5 h-5" />;
-    }
-  };
 
-  const getStatusColor = (status: string, isActive: boolean, isCompleted: boolean) => {
-    if (status === "cancelled") {
-      return "bg-destructive text-destructive-foreground";
-    }
-    if (status === "payment_failed") {
-      return "bg-destructive text-destructive-foreground";
-    }
-    if (isActive) {
-      return "bg-foreground text-background";
-    }
-    if (isCompleted) {
-      return "bg-emerald-500 text-background";
-    }
-    return "bg-muted text-muted-foreground";
-  };
-
-  const getProgressWidth = (status: string) => {
-    if (status === "cancelled") return "0%";
-    if (status === "pending") return "0%";
-    if (status === "confirmed") return "33%";
-    if (status === "shipped") return "66%";
-    if (status === "delivered") return "100%";
-    return "0%";
-  };
   if (isLoading) {
-    return <LoadingUi hidden={isLoading} />;
+    return <LoadingOverlay hidden={isLoading} />;
   }
 
   if (effectiveOrderId && !orderDetails?.order) {
@@ -492,181 +437,20 @@ export default function OrderTracking() {
             </div>
           </motion.div>
 
-          {/* Order Status Timeline — white card */}
-          {!isCancelled && (
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
-              className={`bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border transition-all hover:shadow-md ${isPaymentFailed ? "opacity-70" : ""}`}
-            >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-medium shadow-sm">
-                  1
-                </div>
-                <div>
-                  <h2 className="font-semibold text-foreground text-base">
-                    Order Status
-                  </h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Tracking your order progress
-                  </p>
-                </div>
-              </div>
-              <div className="relative">
-                {/* Desktop Timeline */}
-                <div className="hidden md:block">
-                  <div className="flex items-center justify-between mb-8 relative">
-                    {/* Progress Line */}
-                    <div className="absolute top-5 left-0 right-0 h-1 bg-muted mx-5">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{
-                          width: getProgressWidth(
-                            orderDetails?.order?.status ?? "pending"
-                          ),
-                        }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full bg-emerald-500"
-                      />
-                    </div>
+          <OrderTimeline
+            status={orderDetails?.order?.status ?? "pending"}
+            statusHistory={orderDetails?.order?.statusHistory}
+            isCancelled={isCancelled}
+            isPaymentFailed={isPaymentFailed}
+          />
 
-                    {/* Status Points */}
-                    {["pending", "confirmed", "shipped", "delivered"].map(
-                      (status, index) => {
-                        const statusItem =
-                          orderDetails?.order?.statusHistory.find(
-                            (s) => s.status === status
-                          );
-                        const isActive = !!(
-                          statusItem &&
-                          statusItem.status === orderDetails?.order?.status
-                        );
-                        const isCompleted =
-                          orderDetails?.order?.statusHistory.some(
-                            (s) => s.status === status
-                          ) ?? false;
-
-                        return (
-                          <motion.div
-                            key={status}
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 0.1 * index }}
-                            className="flex flex-col items-center relative z-10"
-                          >
-                            <motion.div
-                              animate={isActive ? { scale: [1, 1.1, 1] } : {}}
-                              transition={{ repeat: Infinity, duration: 2 }}
-                              className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${getStatusColor(
-                                status,
-                                isActive,
-                                isCompleted
-                              )}`}
-                            >
-                              {getStatusIcon(status)}
-                            </motion.div>
-                            <span className="text-sm font-medium mt-2 capitalize">
-                              {status}
-                            </span>
-                            {statusItem && (
-                              <span className="text-xs text-muted-foreground mt-1">
-                                {new Date(
-                                  statusItem.timestamp
-                                ).toLocaleDateString("en-IN")}
-                              </span>
-                            )}
-                          </motion.div>
-                        );
-                      }
-                    )}
-                  </div>
-                </div>
-
-                {/* Mobile Timeline */}
-                <div className="md:hidden space-y-4">
-                  {["pending", "confirmed", "shipped", "delivered"].map(
-                    (status, index) => {
-                      const statusItem =
-                        orderDetails?.order?.statusHistory.find(
-                          (s) => s.status === status
-                        );
-                      const isActive = !!(
-                        statusItem &&
-                        statusItem.status === orderDetails?.order?.status
-                      );
-                      const isCompleted =
-                        orderDetails?.order?.statusHistory.some(
-                          (s) => s.status === status
-                        ) ?? false;
-
-                      return (
-                        <motion.div
-                          key={status}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.1 * index }}
-                          className="flex items-center gap-4"
-                        >
-                          <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${getStatusColor(
-                              status,
-                              isActive,
-                              isCompleted
-                            )}`}
-                          >
-                            {getStatusIcon(status)}
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium capitalize">{status}</p>
-                            {statusItem && (
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(
-                                  statusItem.timestamp
-                                ).toLocaleDateString("en-IN", {
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </p>
-                            )}
-                          </div>
-                        </motion.div>
-                      );
-                    }
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Cancelled Status — white card */}
           {isCancelled && (
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
-              className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-destructive/20"
-            >
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }} className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-destructive/20">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
-                  <XCircle className="w-8 h-8 text-destructive" />
-                </div>
+                <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center"><XCircle className="w-8 h-8 text-destructive" /></div>
                 <div>
                   <h3 className="text-xl font-semibold text-foreground">Order Cancelled</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    This order was cancelled on{" "}
-                    {new Date(
-                      orderDetails?.order?.statusHistory?.find(
-                        (s) => s.status === "cancelled"
-                      )?.timestamp || orderDetails?.order?.updatedAt
-                    ).toLocaleDateString("en-IN", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">This order was cancelled on {new Date(orderDetails?.order?.statusHistory?.find((s) => s.status === "cancelled")?.timestamp || orderDetails?.order?.updatedAt).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })}</p>
                 </div>
               </div>
             </motion.div>
@@ -738,113 +522,11 @@ export default function OrderTracking() {
                 </span>
               </div>
             </motion.div>
-          )}
-
-          {/* Order Items — white card */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
-            className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border transition-all hover:shadow-md"
-          >
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-medium shadow-sm">
-                2
-              </div>
-              <div>
-                <h2 className="font-semibold text-foreground text-base">
-                  Order Items
-                </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {orderDetails?.order?.items?.length ?? 0} items in this order
-                </p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              {orderDetails?.order?.items?.map((item, index) => (
-                <motion.div
-                  key={item._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * index }}
-                  className="flex items-center gap-4 p-3 bg-muted rounded-xl hover:bg-muted/80 transition-colors"
-                >
-                  <Link href={`/product-details/${item.productId.slug}`}>
-                    <div className="w-24 h-24 bg-background rounded-lg overflow-hidden shadow-sm flex-shrink-0 border border-border">
-                      <Image
-                        src={item.images?.[0] || "/placeholder.jpg"}
-                        alt={item.name}
-                        width={96}
-                        height={96}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </Link>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground truncate">
-                      {item.name}
-                    </h3>
-                    <div className="flex items-center gap-4 mt-1 flex-wrap">
-                      <span className="text-sm text-muted-foreground">
-                        Qty: {item.quantity}
-                      </span>
-                      <span className="text-lg font-semibold text-foreground">
-                        ₹{item.priceAtPurchase.toLocaleString("en-IN")}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1">
-                      <span>Color :</span>{" "}
-                      <span
-                        style={{
-                          backgroundColor: `${item?.colorId?.code}`,
-                          width: "20px",
-                          height: "20px",
-                          borderRadius: "50%",
-                          display: "inline-block",
-                          marginRight: "5px",
-                        }}
-                      ></span>{" "}
-                      {item?.colorId?.name}
-                    </p>
-                    {item?.sizeId && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        <span>Size :</span> {item?.sizeId?.name}
-                      </p>
-                    )}
-                    {item.isPersonalized && item.personalizedName && (
-                      <p className="text-sm text-muted-foreground mt-2 bg-muted px-2 py-1 rounded inline-block">
-                        <span className="font-medium">Personalized:</span>{" "}
-                        <span className="text-foreground">
-                          {item.personalizedName}
-                        </span>
-                      </p>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {orderDetails?.order?.isGift && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg"
-              >
-                <div className="flex items-start gap-2">
-                  <Gift className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-blue-900">Gift Order</p>
-                    {orderDetails?.order?.giftMessage && (
-                      <p className="text-sm text-blue-700 mt-1">
-                        <span className="font-medium">Message:</span>{" "}
-                        {orderDetails?.order?.giftMessage}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </motion.div>
+          )}          <OrderItemsList
+            items={orderDetails?.order?.items ?? []}
+            isGift={orderDetails?.order?.isGift}
+            giftMessage={orderDetails?.order?.giftMessage}
+          />
 
           {/* Payment Method — white card */}
           <motion.div
@@ -887,167 +569,10 @@ export default function OrderTracking() {
             </div>
           </motion.div>
 
-          {/* Refund Status — white card */}
-          {orderDetails?.order?.status === "cancelled" &&
-            orderDetails?.order?.cancellation && (
-              <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.45, duration: 0.5, ease: "easeOut" }}
-                className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border transition-all hover:shadow-md"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
-                    <XCircle className="w-4 h-4" />
-                  </div>
-                  <h3 className="font-semibold text-foreground text-base">
-                    Cancellation Details
-                  </h3>
-                </div>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Reason</span>
-                    <span className="font-medium text-foreground">
-                      {orderDetails.order.cancellation.reason || "Not specified"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Cancelled On</span>
-                    <span className="font-medium text-foreground">
-                      {new Date(
-                        orderDetails.order.cancellation.cancelledAt
-                      ).toLocaleDateString()}
-                    </span>
-                  </div>
-
-                  {orderDetails.order.cancellation.refundStatus && (
-                    <>
-                      <div className="border-t border-border my-3"></div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Refund Status</span>
-                        <span
-                          className={`font-medium ${
-                            orderDetails.order.cancellation.refundStatus ===
-                            "completed"
-                              ? "text-emerald-600"
-                              : orderDetails.order.cancellation
-                                  .refundStatus === "failed"
-                              ? "text-destructive"
-                              : "text-foreground"
-                          }`}
-                        >
-                          {orderDetails.order.cancellation.refundStatus
-                            .charAt(0)
-                            .toUpperCase() +
-                            orderDetails.order.cancellation.refundStatus.slice(
-                              1
-                            )}
-                        </span>
-                      </div>
-
-                      {orderDetails.order.cancellation.refundAmount > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Refund Amount</span>
-                          <span className="font-medium text-foreground">
-                            ₹
-                            {orderDetails.order.cancellation.refundAmount.toLocaleString(
-                              "en-IN"
-                            )}
-                          </span>
-                        </div>
-                      )}
-
-                      {orderDetails.order.cancellation.refundedAt && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Processed On</span>
-                          <span className="font-medium text-foreground">
-                            {new Date(
-                              orderDetails.order.cancellation.refundedAt
-                            ).toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-
-                      {orderDetails.order.cancellation.refundError && (
-                        <div className="mt-2 p-2 bg-destructive/10 text-destructive text-sm rounded-lg">
-                          <span className="font-medium">Refund Error:</span>{" "}
-                          {orderDetails.order.cancellation.refundError}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </motion.div>
-            )}
-
-          {/* Order Summary — white card, sticky */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
-            className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border transition-all hover:shadow-md"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-medium shadow-sm">
-                4
-              </div>
-              <h2 className="font-semibold text-foreground text-base">
-                Order Summary
-              </h2>
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span className="text-foreground">
-                  ₹
-                  {orderDetails?.order?.pricing?.subtotal?.toLocaleString(
-                    "en-IN"
-                  )}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Shipping</span>
-                <span className="text-foreground">
-                  {orderDetails?.order?.pricing?.shipping?.toLocaleString(
-                    "en-IN"
-                  ) === "0"
-                    ? "Free"
-                    : `₹${orderDetails?.order?.pricing?.shipping?.toLocaleString("en-IN")}`}
-                </span>
-              </div>
-              {orderDetails?.order?.pricing?.discount?.amount != null &&
-                orderDetails.order.pricing.discount.amount > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-emerald-600">Discount</span>
-                  <span className="text-emerald-600">
-                    -₹
-                    {orderDetails?.order?.pricing?.discount?.amount?.toLocaleString(
-                      "en-IN"
-                    )}
-                  </span>
-                </div>
-              )}
-              {orderDetails?.order?.payment?.codAdvance && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Amount Left</span>
-                  <span className="text-foreground">
-                    ₹
-                    {orderDetails?.order?.pricing.total -
-                      orderDetails?.order?.pricing.advance}
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-between font-bold text-lg pt-3 border-t border-border">
-                <span className="text-foreground">Total</span>
-                <span className="text-foreground">
-                  ₹
-                  {orderDetails?.order?.pricing?.total?.toLocaleString(
-                    "en-IN"
-                  )}
-                </span>
-              </div>
-            </div>
-          </motion.div>
+          <CancellationDetails cancellation={orderDetails?.order?.cancellation} />          <OrderSummaryCard
+            pricing={orderDetails?.order?.pricing}
+            isCodAdvance={orderDetails?.order?.payment?.codAdvance}
+          />
 
           {/* Shipping Address — white card */}
           <motion.div
@@ -1203,8 +728,8 @@ export default function OrderTracking() {
                             {trackingData && (
                               <div className="mt-2 pt-2 border-t border-indigo-200">
                                 <ShiprocketTrackingStatus
-                                  shiprocketTracking={trackingData.shiprocketTracking as Record<string, unknown> | null}
-                                  currentStatus={trackingData.currentStatus as string}
+                                  shiprocketTracking={trackingData.shiprocketTracking ?? null}
+                                  currentStatus={trackingData.currentStatus ?? "Pending"}
                                 />
                               </div>
                             )}
@@ -1272,225 +797,11 @@ export default function OrderTracking() {
           </motion.div>
         </motion.div>
 
-        {/* ── Print-only Invoice Section ── */}
-        <div className="print-only bg-white" id="print-invoice">
-            {/* Company Header */}
-            <div className="border-b-2 border-black pb-4 mb-6">
-              <h1 className="text-2xl font-bold mb-1">{siteConfig.name}</h1>
-              <p className="text-sm text-gray-600">Order Invoice</p>
-            </div>
-
-            {/* Order Info Bar */}
-            <div className="bg-gray-50 p-4 rounded-lg mb-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-gray-500 uppercase mb-1">Order Number</p>
-                  <p className="font-semibold">{orderDetails?.order?.orderId}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 uppercase mb-1">Order Date</p>
-                  <p className="font-semibold">
-                    {new Date(orderDetails?.order?.createdAt ?? "").toLocaleDateString("en-IN", {
-                      day: "numeric", month: "short", year: "numeric",
-                      hour: "2-digit", minute: "2-digit",
-                    })}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Tracking / AWB Info */}
-            {orderDetails?.order?.shipping?.trackingNumber && (
-              <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6">
-                <div className="flex items-center gap-3">
-                  <Package className="h-6 w-6 text-indigo-600" />
-                  <div>
-                    <p className="text-xs text-gray-600 uppercase font-semibold">AWB / Tracking ID</p>
-                    <p className="text-lg font-bold text-indigo-900">
-                      {orderDetails.order.shipping.trackingNumber}
-                    </p>
-                  </div>
-                </div>
-                {orderDetails.order.shipping.carrier && (
-                  <p className="text-xs text-indigo-700 mt-1">
-                    Courier: {orderDetails.order.shipping.carrier}
-                  </p>
-                )}
-                {orderDetails.order.shipping.trackingUrl && (
-                  <p className="text-xs text-indigo-700 mt-1">
-                    Track at: {orderDetails.order.shipping.trackingUrl}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Package ID */}
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-              <div className="flex items-center gap-3">
-                <Package className="h-6 w-6 text-blue-600" />
-                <div>
-                  <p className="text-xs text-gray-600 uppercase font-semibold">Package ID</p>
-                  <p className="text-lg font-bold text-blue-900">{orderDetails?.order?.packageId}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Shipping Address */}
-            <div className="mb-6">
-              <h3 className="text-sm font-bold uppercase text-gray-700 mb-3 pb-1 border-b border-gray-300">
-                Shipping Address
-              </h3>
-              <div className="text-sm space-y-1">
-                <p className="font-semibold">{orderDetails?.order?.shippingAddress?.fullName}</p>
-                <p>{orderDetails?.order?.shippingAddress?.street}</p>
-                <p>{orderDetails?.order?.shippingAddress?.area}</p>
-                <p>{orderDetails?.order?.shippingAddress?.city}, {orderDetails?.order?.shippingAddress?.state} {orderDetails?.order?.shippingAddress?.pincode}</p>
-                <p>India</p>
-                <p className="pt-2">Phone: {orderDetails?.order?.shippingAddress?.phone}</p>
-                <p>Email: {orderDetails?.order?.shippingAddress?.email}</p>
-              </div>
-            </div>
-
-            {/* Order Items Table */}
-            <div className="mb-6">
-              <h3 className="text-sm font-bold uppercase text-gray-700 mb-3 pb-1 border-b border-gray-300">
-                Order Items
-              </h3>
-              <table className="print-only-table w-full text-sm border-collapse">
-                <thead>
-                  <tr className="bg-gray-100 border-y border-gray-300">
-                    <th className="text-left py-3 px-2 font-semibold">Product</th>
-                    <th className="text-center py-3 px-2 font-semibold">Qty</th>
-                    <th className="text-right py-3 px-2 font-semibold">Price</th>
-                    <th className="text-right py-3 px-2 font-semibold">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orderDetails?.order?.items?.map((item, i) => (
-                    <tr key={i} className="border-b border-gray-200">
-                      <td className="py-3 px-2">
-                        <p className="font-medium">{item.name}</p>
-                        <p className="text-xs text-gray-500">Color: {item.colorId?.name}</p>
-                        {item.sizeId && <p className="text-xs text-gray-500">Size: {item.sizeId.name}</p>}
-                        {item.isPersonalized && item.personalizedName && (
-                          <p className="text-xs text-gray-500">Personalized: {item.personalizedName}</p>
-                        )}
-                      </td>
-                      <td className="py-3 px-2 text-center">{item.quantity}</td>
-                      <td className="py-3 px-2 text-right">₹{item.priceAtPurchase?.toLocaleString("en-IN")}</td>
-                      <td className="py-3 px-2 text-right font-semibold">
-                        ₹{(item.priceAtPurchase * item.quantity)?.toLocaleString("en-IN")}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Order Summary */}
-            <div className="flex justify-end mb-6">
-              <div className="w-80">
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Subtotal:</span>
-                    <span className="font-semibold">₹{orderDetails?.order?.pricing?.subtotal?.toLocaleString("en-IN")}</span>
-                  </div>
-                  {(orderDetails?.order?.pricing?.discount?.amount ?? 0) > 0 && (
-                    <div className="flex justify-between py-2">
-                      <span className="text-gray-600">Discount:</span>
-                      <span className="font-semibold text-green-600">
-                        -₹{orderDetails?.order?.pricing?.discount?.amount?.toLocaleString("en-IN")}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Shipping:</span>
-                    <span className="font-semibold">
-                      {(orderDetails?.order?.pricing?.shipping ?? 0) > 0
-                        ? `₹${orderDetails?.order?.pricing?.shipping?.toLocaleString("en-IN")}`
-                        : "FREE"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-3 border-t-2 border-gray-300 text-base">
-                    <span className="font-bold">Total:</span>
-                    <span className="font-bold text-lg">₹{orderDetails?.order?.pricing?.total?.toLocaleString("en-IN")}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Payment Info */}
-            <div className="mb-6 text-sm text-gray-600">
-              <p>Payment Method: {orderDetails?.order?.payment?.method === "COD" ? "Cash on Delivery" : orderDetails?.order?.payment?.method}</p>
-              <p>Payment Status: <span className="capitalize">{orderDetails?.order?.payment?.status?.replace("_", " ")}</span></p>
-            </div>
-
-            {/* Customer Note */}
-            {orderDetails?.order?.notes?.customer && (
-              <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400">
-                <h4 className="font-semibold text-sm mb-2">Customer Note:</h4>
-                <p className="text-sm text-gray-700">{orderDetails.order.notes.customer}</p>
-              </div>
-            )}
-
-            {/* Footer */}
-            <div className="border-t-2 border-gray-200 pt-6 mt-6">
-              <div className="text-center space-y-2">
-                <p className="font-semibold">Thank you for your order!</p>
-                <p className="text-sm text-gray-600">
-                  Questions? Contact us at {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@kidorakart.com"}
-                </p>
-                <p className="text-xs text-gray-500 mt-4">
-                  This is a computer-generated invoice and does not require a signature.
-                </p>
-              </div>
-            </div>
-          </div>
+        <PrintInvoice order={orderDetails?.order} />
         </>
       )}
     </div>
   );
 }
 
-function ShiprocketTrackingStatus({
-  shiprocketTracking,
-  currentStatus,
-}: {
-  shiprocketTracking: Record<string, unknown> | null;
-  currentStatus: string;
-}) {
-  const status =
-    (shiprocketTracking?.status as string) || currentStatus || "Pending";
-  const isDelivered = status === "Delivered";
-  const isInTransit =
-    status === "In Transit" || status === "Out for Delivery";
-  const edd = shiprocketTracking?.EDD as string | undefined;
 
-  return (
-    <div className="space-y-1.5 mt-1">
-      <div className="flex items-center gap-1.5">
-        <span className="text-xs text-indigo-600">Status:</span>
-        <span
-          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
-            isDelivered
-              ? "bg-green-100 text-green-800"
-              : isInTransit
-                ? "bg-blue-100 text-blue-800"
-                : "bg-amber-100 text-amber-800"
-          }`}
-        >
-          {status}
-        </span>
-      </div>
-      {edd && (
-        <p className="text-xs text-indigo-600">
-          EDD:{" "}
-          {new Date(edd).toLocaleDateString("en-IN", {
-            day: "numeric",
-            month: "short",
-          })}
-        </p>
-      )}
-    </div>
-  );
-}

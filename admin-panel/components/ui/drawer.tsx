@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import * as DrawerPrimitive from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 

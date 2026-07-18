@@ -58,7 +58,7 @@ export type BaseItem = {
 };
 
 export interface Column<T> {
-  key: keyof T;
+  key: string | keyof T;
   label: string;
   render?: (item: T) => ReactNode;
 }
@@ -365,7 +365,7 @@ function DataTableContent<T extends BaseItem>({
                     <TableCell key={String(column.key)}>
                       {column.render
                         ? column.render(item)
-                        : (item[column.key] as ReactNode)}
+                        : (item[column.key as keyof T] as ReactNode)}
                     </TableCell>
                   ))}
                   {!hideActions && (

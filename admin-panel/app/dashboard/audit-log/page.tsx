@@ -39,16 +39,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { LucideIcon } from "lucide-react";
-
-interface AuditEntry {
-  _id: string;
-  action: string;
-  admin: { _id: string; email: string } | null;
-  target: { _id: string; email: string } | null;
-  details: string;
-  ip: string;
-  createdAt: string;
-}
+import type { AuditEntry } from "@/lib/types";
 
 const actionConfig: Record<
   string,

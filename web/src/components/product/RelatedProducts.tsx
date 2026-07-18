@@ -1,15 +1,11 @@
-import React, { useState, useEffect } from "react";
 import ProductCard from "../comman/ProductCard";
 import { useRelatedProducts } from "@/lib/useRelatedProducts";
 import { Skeleton } from "../ui/skeleton";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Pagination } from "swiper/modules";
+import { Autoplay } from "swiper/modules";
 import "swiper/css";
 import { motion } from "motion/react";
 import { Sparkles } from "lucide-react";
-import type { ProductData } from "@/types";
-
-interface RelatedProduct extends ProductData {}
 
 export default function RelatedProducts({ id, subCategory, subSubCategory }: { id: string; subCategory: string[]; subSubCategory: string[] }) {
   const { data: relatedProducts = [], isLoading } = useRelatedProducts(subCategory, subSubCategory);

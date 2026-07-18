@@ -5,7 +5,7 @@ import Image from "next/image";
 import { getAuthToken } from "@/lib/getAuthToken";
 import { toast } from "sonner";
 import { useEffect, useState, useMemo } from "react";
-import { LoadingUi } from "./Cart";
+import LoadingOverlay from "@/components/comman/LoadingOverlay";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
@@ -28,7 +28,7 @@ interface WishlistDisplayItem {
 export default function Wishlist({
   wishlist,
 }: {
-  wishlist: Record<string, unknown> | null;
+  wishlist: WishlistProduct[] | { items: WishlistProduct[] } | null;
 }) {
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const router = useRouter();
@@ -109,7 +109,7 @@ export default function Wishlist({
 
   // Determine which items to render: SSR data (server) or guest items with TanStack Query
   const displayItems: WishlistDisplayItem[] = hasServerData
-    ? ((wishlist?.items ?? wishlist) as WishlistProduct[]).map((item) => ({
+    ? (Array.isArray(wishlist) ? wishlist : (wishlist?.items ?? [])).map((item) => ({
         _id: item._id,
         name: item.name,
         image: item.image ?? "/placeholder.svg",
@@ -162,7 +162,7 @@ export default function Wishlist({
   if (isLoading) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
-        <LoadingUi hidden={false} />
+        <LoadingOverlay hidden={false} />
       </div>
     );
   }
@@ -226,7 +226,7 @@ export default function Wishlist({
         </div>
       </section>
 
-      <LoadingUi hidden={wishlistLoading} />
+      <LoadingOverlay hidden={wishlistLoading} />
     </>
   );
 }

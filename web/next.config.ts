@@ -17,7 +17,6 @@ const csp = `
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   cacheComponents: true,
-  optimizePackageImports: ["lucide-react"],
   cacheLife: CACHE,
   images: {
     formats: ["image/avif", "image/webp"],
@@ -36,7 +35,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com",
+        hostname: process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.in",
+      },
+      {
+        protocol: "https",
+        hostname: "placehold.co",
       },
     ],
     deviceSizes: [360, 640, 750, 1080, 1200, 1920],
@@ -80,7 +83,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/(about-us|contact-us|faq|story|our-policy|order-track)",
+        source: "/(contact-us|faq|our-policy|order-track)",
         headers: [
           {
             key: "Cache-Control",

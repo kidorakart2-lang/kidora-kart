@@ -59,6 +59,7 @@ interface UseAiChatReturn {
   setConversationId: (id: string | null) => void;
   sendMessage: (content: string) => Promise<void>;
   stop: () => void;
+  reset: () => void;
   regenerate: () => Promise<void>;
   clearError: () => void;
   clearToolCalls: () => void;
@@ -327,6 +328,14 @@ export function useAiChat(options: UseAiChatOptions = {}): UseAiChatReturn {
     setToolCalls([]);
   }, []);
 
+  const reset = useCallback(() => {
+    abortRef.current?.abort();
+    setStatus("ready");
+    setErrorState(null);
+    setToolCalls([]);
+    setContinuing(false);
+  }, []);
+
   const regenerate = useCallback(async () => {
     const current = messagesRef.current;
 
@@ -352,6 +361,7 @@ export function useAiChat(options: UseAiChatOptions = {}): UseAiChatReturn {
     setConversationId,
     sendMessage,
     stop,
+    reset,
     regenerate,
     clearError,
     clearToolCalls,

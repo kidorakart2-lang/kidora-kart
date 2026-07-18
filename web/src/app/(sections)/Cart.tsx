@@ -1,18 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import Image from "next/image";
-import {
-  ShoppingCart,
-  Plus,
-  Minus,
-  ChevronRight,
-  Loader2,
-  ShoppingBag,
-  ArrowRight,
-  Trash2,
-} from "lucide-react";
-import Link from "next/link";
 import { getAuthToken } from "@/lib/getAuthToken";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -27,23 +15,18 @@ import type { ProductData } from "@/types";
 import type { RootState } from "@/redux/store/store";
 import type { CartSliceItem } from "@/redux/features/cart";
 
-function serverItemToSlice(item: CartApiItem): CartSliceItem {
-  return {
-    productId: item.product._id as string ?? "",
-    slug: item.product.slug as string ?? null,
-    quantity: item.quantity ?? 1,
-    colorId: (item.color?._id as string) ?? null,
-    sizeId: (item.size?._id as string) ?? null,
-    isGuest: false,
-  };
-}
+import CartItemRow from "@/components/cart/CartItemRow";
+import CartEmptyState from "@/components/cart/CartEmptyState";
+import CartSkeleton from "@/components/cart/CartSkeleton";
+import OrderSummaryPanel from "@/components/cart/OrderSummaryPanel";
+import LoadingOverlay from "@/components/comman/LoadingOverlay";
 
-interface CartApiItem {
+/* ── Types ──────────────────────────────────────────────────────────── */
+export interface CartApiItem {
   _id: string;
   product: ProductData;
   quantity: number;
   color: { _id: string; code: string; name: string };
-  size?: { _id: string; name: string };
 }
 
 interface CartApiData {
@@ -54,6 +37,16 @@ interface CartApiData {
 
 interface CartApiResponse {
   _data?: CartApiData;
+}
+
+function serverItemToSlice(item: CartApiItem): CartSliceItem {
+  return {
+    productId: item.product._id as string ?? "",
+    slug: item.product.slug as string ?? null,
+    quantity: item.quantity ?? 1,
+    colorId: (item.color?._id as string) ?? null,
+    isGuest: false,
+  };
 }
 
 export default function Cart({ cart }: { cart: CartApiResponse | null }) {
@@ -135,14 +128,9 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
         name: string;
         code: string;
       }>;
-      const sizes = (fetched?.sizes ?? []) as Array<{
-        _id: string;
-        name: string;
-      }>;
-      const color = colors.find((c) => c._id === item.colorId);
-      const size = sizes.find((s) => s._id === item.sizeId);
+      const color = (fetched?.colors ?? []).find((c) => c._id === item.colorId);
       return {
-        _id: `${item.productId}_${item.colorId ?? ""}_${item.sizeId ?? ""}`,
+        _id: `${item.productId}_${item.colorId ?? ""}`,
         product: {
           _id: item.productId,
           name: product.name,
@@ -152,7 +140,6 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
           slug: product.slug,
           stock: product.stock ?? 0,
           colors: fetched?.colors ?? [],
-          sizes: fetched?.sizes ?? [],
         } as ProductData,
         quantity: item.quantity,
         color: {
@@ -160,7 +147,6 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
           code: color?.code ?? "#000",
           name: color?.name ?? "",
         },
-        size: size ? { _id: size._id, name: size.name } : undefined,
       } as CartApiItem;
     });
 
@@ -186,13 +172,12 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     if (newQuantity < 1) return;
 
     if (isGuestView) {
-      const [productId, colorId, sizeId] = id.split("_");
+      const [productId, colorId] = id.split("_");
       dispatch(
         updateCartQuantity({
           productId,
           quantity: newQuantity,
           colorId: colorId || null,
-          sizeId: sizeId || null,
         })
       );
       return;
@@ -228,12 +213,11 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
   const removeItem = async (id: string) => {
     if (isGuestView) {
-      const [productId, colorId, sizeId] = id.split("_");
+      const [productId, colorId] = id.split("_");
       dispatch(
         removeFromCart({
           productId,
           colorId: colorId || null,
-          sizeId: sizeId || null,
         })
       );
       return;
@@ -277,33 +261,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     if (isGuestHydrating) {
       return <CartSkeleton itemCount={reduxCartItems.length} />;
     }
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center py-16">
-        <div className="text-center space-y-6 max-w-sm px-4">
-          <div className="w-20 h-20 mx-auto rounded-full bg-muted flex items-center justify-center">
-            <ShoppingCart className="w-10 h-10 text-muted-foreground" strokeWidth={1.5} />
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-2xl fw-heading text-foreground tracking-tight">
-              Your Cart is Empty
-            </h2>
-            <p className="text-muted-foreground text-sm">
-              Discover our toy collection and add items to get started.
-            </p>
-          </div>
-
-          <Link
-            href="/category/new-arrival"
-            className="inline-flex items-center gap-2 btn-gradient fw-cta py-3 px-8
-                     rounded-xl transition-all duration-300 shadow-sm"
-          >
-            <ShoppingBag size={18} />
-            Start Shopping
-          </Link>
-        </div>
-      </div>
-    );
+    return <CartEmptyState />;
   }
 
   return (
@@ -327,328 +285,29 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
               {/* Cart Items */}
               <div className="lg:col-span-2 space-y-4">
                 {effectiveCart?._data?.items.map((item) => (
-                  <div
+                  <CartItemRow
                     key={item._id}
-                    className="group bg-background rounded-2xl p-5 sm:p-6 shadow-sm
-                             transition-all duration-300 border border-border
-                             relative overflow-hidden"
-                  >
-                    <div className="flex gap-4 sm:gap-6 relative z-10">
-                      {/* Product Image */}
-                      <Link
-                        href={`/product-details/${item.product.slug}`}
-                        className="flex-shrink-0"
-                      >
-                        <div
-                          className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden border border-border
-                                      transition-all duration-300 bg-muted"
-                        >
-                          <Image
-                            src={item.product.image ?? "/placeholder.svg"}
-                            alt={item.product.name}
-                            width={128}
-                            height={128}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                        </div>
-                      </Link>
-
-                      {/* Product Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex-1 min-w-0 pr-4">
-                            <Link
-                              href={`/product-details/${item.product.slug}`}
-                            >
-                              <h3
-                                className="text-base sm:text-lg font-semibold text-foreground mb-2
-                                           transition-colors line-clamp-2"
-                              >
-                                {item.product.name}
-                              </h3>
-                            </Link>
-
-                            {/* Color */}
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-sm text-muted-foreground">
-                                Color:
-                              </span>
-                              <div className="flex items-center gap-1.5">
-                                <span
-                                  style={{ backgroundColor: item.color.code }}
-                                  className="w-5 h-5 rounded-full border-2 border-border shadow-sm"
-                                />
-                                <span className="text-sm font-medium text-muted-foreground">
-                                  {item.color.name}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Size */}
-                            {item.size && (
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-sm text-muted-foreground">
-                                  Size:
-                                </span>
-                                <span className="text-sm font-medium text-muted-foreground">
-                                  {item.size.name}
-                                </span>
-                              </div>
-                            )}
-
-                            {/* Price */}
-                            <p className="text-xl sm:text-2xl font-bold text-foreground">
-                              ₹
-                              {(
-                                item.product.discount_price ||
-                                item.product.price
-                              ).toFixed(2)}
-                            </p>
-                          </div>
-
-                          {/* Remove Button */}
-                          <button
-                            onClick={() => removeItem(item._id)}
-                            className="flex-shrink-0 w-9 h-9 rounded-full bg-muted hover:bg-destructive/10
-                                     border border-border hover:border-destructive/30 flex items-center justify-center
-                                     transition-all duration-300 group/btn"
-                            aria-label="Remove item"
-                          >
-                            <Trash2
-                              size={16}
-                              className="text-muted-foreground group-hover/btn:text-destructive transition-colors"
-                            />
-                          </button>
-                        </div>
-
-                        {/* Quantity Controls */}
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2 bg-muted rounded-full p-1 border border-border">
-                            <button
-                              disabled={loading || item.quantity === 1}
-                              onClick={() =>
-                                updateQuantity(item._id, item.quantity - 1)
-                              }
-                              className="w-8 h-8 rounded-full hover:bg-background border border-transparent 
-                                       hover:border-border flex items-center justify-center transition-all 
-                                       disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
-                              <Minus size={14} className="text-muted-foreground" />
-                            </button>
-                            <span className="w-10 text-center font-semibold text-foreground">
-                              {item.quantity}
-                            </span>
-                            <button
-                              disabled={
-                                loading || item.quantity === item.product.stock
-                              }
-                              onClick={() =>
-                                updateQuantity(item._id, item.quantity + 1)
-                              }
-                              className="w-8 h-8 rounded-full hover:bg-background border border-transparent 
-                                       hover:border-border flex items-center justify-center transition-all 
-                                       disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
-                              <Plus size={14} className="text-muted-foreground" />
-                            </button>
-                          </div>
-                          <span className="text-sm text-muted-foreground">
-                            {item.product.stock} in stock
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    item={item}
+                    loading={loading}
+                    onUpdateQuantity={updateQuantity}
+                    onRemove={removeItem}
+                  />
                 ))}
               </div>
 
               {/* Order Summary */}
-              <div className="lg:col-span-1">
-                <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border sticky top-24">
-                  <div className="flex items-center gap-2 mb-6">
-                    <ShoppingBag className="w-5 h-5 text-muted-foreground" />
-                    <h2 className="text-lg font-semibold text-foreground">
-                      Order Summary
-                    </h2>
-                  </div>
-
-                  {/* Price Breakdown */}
-                  <div className="space-y-4 py-6 border-y border-border">
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Subtotal</span>
-                      <span className="font-semibold text-foreground">
-                        ₹{subtotal.toFixed(2)}
-                      </span>
-                    </div>
-
-                    {discountAmount > 0 && (
-                      <div className="flex justify-between text-emerald-600">
-                        <span>Discount</span>
-                        <span className="font-semibold">
-                          -₹{discountAmount.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Shipping</span>
-                      <span className="font-semibold text-foreground">
-                        ₹{shipping.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Total */}
-                  <div className="flex justify-between items-center py-6">
-                    <span className="text-lg font-semibold text-foreground">
-                      Estimated Total
-                    </span>
-                    <span className="text-2xl font-bold text-foreground">
-                      ₹{estimatedTotal.toFixed(2)}
-                    </span>
-                  </div>
-
-                  {/* Buttons */}
-                  <div className="space-y-3">
-                    <Link href="/checkout?type=cart">
-                      <button
-                        className="w-full btn-gradient fw-cta
-                                       py-4 rounded-xl transition-all duration-300 shadow-sm
-                                       flex items-center justify-center gap-2"
-                      >
-                        Proceed to Checkout
-                        <ArrowRight size={18} />
-                      </button>
-                    </Link>
-
-                    <Link href="/">
-                      <button
-                        className="w-full mt-4 bg-background border border-border hover:border-foreground/30
-                                       text-muted-foreground hover:text-foreground fw-cta py-4 rounded-xl
-                                       transition-all duration-300"
-                      >
-                        Continue Shopping
-                      </button>
-                    </Link>
-                  </div>
-
-                  {/* Trust Badges */}
-                  <div className="mt-6 pt-6 border-t border-border space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <svg
-                          className="w-3 h-3 text-emerald-600"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                      <span>Secure Checkout</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <svg
-                          className="w-3 h-3 text-emerald-600"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                      <span>100% Safe & Tested</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <OrderSummaryPanel
+                subtotal={subtotal}
+                discountAmount={discountAmount}
+                shipping={shipping}
+                estimatedTotal={estimatedTotal}
+              />
             </div>
           )}
         </div>
       </main>
 
-      <LoadingUi hidden={loading} />
+      <LoadingOverlay hidden={loading} />
     </>
   );
 }
-
-const CartSkeleton = ({ itemCount }: { itemCount: number }) => {
-  const cards = Array.from({ length: Math.max(itemCount, 1) });
-  return (
-    <main className="py-12 md:py-16 bg-gradient-to-b from-background via-background to-muted/30 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-3xl md:text-4xl fw-heading text-foreground tracking-tight">
-            Shopping Cart
-          </h1>
-          <p className="text-muted-foreground text-sm mt-2 font-light">Loading your cart…</p>
-          <div className="h-px bg-gradient-to-r from-border via-border to-transparent mt-4" />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Cart Items Skeleton */}
-          <div className="lg:col-span-2 space-y-4">
-            {cards.map((_, i) => (
-              <div
-                key={i}
-                className="bg-background rounded-2xl p-5 sm:p-6 shadow-md border border-border animate-shimmer"
-              >
-                <div className="flex gap-4 sm:gap-6 relative z-10">
-                  <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl bg-muted animate-pulse flex-shrink-0" />
-                  <div className="flex-1 min-w-0 space-y-3">
-                    <div className="h-5 bg-muted rounded animate-pulse w-3/4" />
-                    <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
-                    <div className="h-4 bg-muted rounded animate-pulse w-1/3" />
-                    <div className="flex items-center gap-4 mt-3">
-                      <div className="h-10 w-24 bg-muted rounded-full animate-pulse" />
-                      <div className="h-4 w-20 bg-muted rounded animate-pulse" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Order Summary Skeleton */}
-          <div className="lg:col-span-1">
-            <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-xl border border-border sticky top-24 space-y-4">
-              <div className="h-6 bg-muted rounded animate-pulse w-1/2" />
-              <div className="space-y-3 py-6 border-y border-border">
-                <div className="h-4 bg-muted rounded animate-pulse w-full" />
-                <div className="h-4 bg-muted rounded animate-pulse w-full" />
-                <div className="h-4 bg-muted rounded animate-pulse w-full" />
-              </div>
-              <div className="h-12 bg-muted rounded-full animate-pulse w-full" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  );
-};
-
-export const LoadingUi = ({ hidden }: { hidden: boolean }) => {
-  return (
-    <div
-      className={
-        !hidden
-          ? "hidden"
-          : "fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-[1800]"
-      }
-    >
-      <div className="text-center">
-        <Loader2 className="w-10 h-10 animate-spin text-foreground mx-auto mb-3" />
-        <p className="text-muted-foreground text-sm">Updating…</p>
-      </div>
-    </div>
-  );
-};
-

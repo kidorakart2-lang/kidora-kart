@@ -54,9 +54,7 @@ web/src/
 | `/login` | Login |
 | `/signup` | Registration |
 | `/faq` | FAQ |
-| `/story` | Brand story |
 | `/contact` | Contact form |
-| `/about` | About us |
 | `/reset-password` | Password reset flow |
 | `/verify-email` | Email verification |
 

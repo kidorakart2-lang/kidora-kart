@@ -20,13 +20,13 @@ body.brown {
   --primary: #b08968;
   --primary-foreground: #ffffff;
 
-  --secondary: #f8f4ef;
+  --secondary: #f5e6de;
   --secondary-foreground: #3d3229;
 
   --muted: #f8f4ef;
   --muted-foreground: #8a7e74;
 
-  --accent: #f8f4ef;
+  --accent: #edd0c5;
   --accent-foreground: #3d3229;
 
   --destructive: #dc2626;
@@ -46,7 +46,7 @@ body.brown {
   --sidebar-foreground: #3d3229;
   --sidebar-primary: #b08968;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f8f4ef;
+  --sidebar-accent: #edd0c5;
   --sidebar-accent-foreground: #3d3229;
   --sidebar-border: #ece6dd;
   --sidebar-ring: #b08968;
@@ -58,9 +58,9 @@ body.brown {
   --brand-primary-light: #c9a97c;
   --brand-primary-darker: #8a6b4a;
 
-  --brand-secondary: #d4c5b5;
-  --brand-secondary-foreground: #3d3229;
-  --brand-secondary-dark: #b08968;
+  --brand-secondary: #d4897a;
+  --brand-secondary-foreground: #ffffff;
+  --brand-secondary-dark: #c46e5a;
 
   --brand-section-bg: #ffffff;
   --brand-section-bg-subtle: #faf6f1cc;
@@ -73,9 +73,9 @@ body.brown {
   --brand-card-1-icon: #b08968;
   --brand-card-1-ring: #e8cba8;
 
-  --brand-card-2-bg: #faf6f1;
-  --brand-card-2-icon: #9c7a58;
-  --brand-card-2-ring: #ddb896;
+  --brand-card-2-bg: #fdf4f2;
+  --brand-card-2-icon: #c46e5a;
+  --brand-card-2-ring: #e6b09f;
 
   --brand-card-3-bg: #f8f4ef;
   --brand-card-3-icon: #c9a97c;
@@ -98,27 +98,27 @@ body.brown {
   --brand-900: #3d3229;
   --brand-950: #2a2118;
 
-  /* Brand accent — soft neutral */
-  --brand-accent-50: #faf9f7;
-  --brand-accent-100: #f5f3ef;
-  --brand-accent-200: #ece6dd;
-  --brand-accent-300: #d4c5b5;
-  --brand-accent-400: #b08968;
-  --brand-accent-500: #9c7a58;
-  --brand-accent-600: #8a6b4a;
-  --brand-accent-700: #6d5540;
-  --brand-accent-800: #3d3229;
-  --brand-accent-900: #2a2118;
-  --brand-accent-950: #1a150f;
+  /* Brand accent — warm coral */
+  --brand-accent-50: #fdf4f2;
+  --brand-accent-100: #fae6e0;
+  --brand-accent-200: #f0cdc0;
+  --brand-accent-300: #e6b09f;
+  --brand-accent-400: #d4897a;
+  --brand-accent-500: #c46e5a;
+  --brand-accent-600: #a85a48;
+  --brand-accent-700: #8a4636;
+  --brand-accent-800: #6a3428;
+  --brand-accent-900: #4a221a;
+  --brand-accent-950: #2a110a;
 
   /* Price gradients — soft caramel tones */
   --brand-price-1-from: #b08968;
   --brand-price-1-via: #c9a97c;
   --brand-price-1-to: #ddb896;
 
-  --brand-price-2-from: #9c7a58;
-  --brand-price-2-via: #b08968;
-  --brand-price-2-to: #c9a97c;
+  --brand-price-2-from: #d4897a;
+  --brand-price-2-via: #c46e5a;
+  --brand-price-2-to: #a85a48;
 
   --brand-price-3-from: #c9a97c;
   --brand-price-3-via: #ddb896;

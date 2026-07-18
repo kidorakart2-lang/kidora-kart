@@ -18,7 +18,6 @@ import {
 } from "@/components/dashboard-charts";
 import { ShoppingCart, Users, Package, IndianRupee } from "lucide-react";
 import { api, ApiClientError } from "@/lib/api";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
 

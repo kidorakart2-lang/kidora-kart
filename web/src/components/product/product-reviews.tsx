@@ -2,7 +2,6 @@
 import React, { useState, type FormEvent } from "react";
 import { Award, Check, Edit3, Star, ChevronUp, ChevronDown, Shield } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,35 +9,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
+
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getAuthToken } from "@/lib/getAuthToken";
+import type { Review } from "@/lib/useReviews";
 import { useProductReviews, useSubmitReview } from "@/lib/useReviews";
-import Image from "next/image";
 import { openLoginModal } from "@/redux/features/uiSlice";
 import { useDispatch } from "react-redux";
-import type { RootState } from "@/redux/store/store";
-
-interface ReviewUser {
-  _id?: string;
-  avatar?: string;
-  name: string;
-}
-
-interface Review {
-  _id: string;
-  verified: boolean;
-  userId: ReviewUser;
-  createdAt: string;
-  comment: string;
-  rating: number;
-}
-
-interface ReviewResponse {
-  _data: Review[];
-  _rating: number;
-}
 
 interface FormErrors {
   comment?: string;
@@ -206,14 +184,14 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
           <motion.h2
             variants={itemVariants}
-            className="text-4xl md:text-5xl font-extralight text-foreground tracking-tight mb-3"
+            className="text-4xl md:text-5xl fw-heading text-foreground tracking-tight mb-3"
           >
             Customer Reviews
           </motion.h2>
 
           <motion.p
             variants={itemVariants}
-            className="text-sm text-muted-foreground font-light uppercase tracking-[0.2em]"
+            className="text-sm text-muted-foreground fw-body uppercase tracking-[0.2em]"
           >
             What Our Clients Say
           </motion.p>
@@ -232,11 +210,11 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                 />
               </div>
               <div>
-                <div className="text-sm text-muted-foreground font-light">
+                <div className="text-sm text-muted-foreground fw-body">
                   Overall Rating
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-3xl font-light text-foreground">
+                  <span className="text-3xl fw-body text-foreground">
                     {averageRating.toFixed(1)}
                   </span>
                   <span className="text-muted-foreground text-sm">/ 5.0</span>
@@ -248,10 +226,10 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setIsModalOpen(true)}
-              className="px-6 py-3 btn-gradient rounded-full font-light text-sm uppercase tracking-wider shadow-sm transition-all flex items-center gap-2"
-            >
-              <Edit3 size={16} />
-              <span>Write Review</span>
+className="px-6 py-3 btn-gradient rounded-full fw-cta text-sm uppercase tracking-wider shadow-sm transition-all flex items-center gap-2"
+          >
+            <Edit3 size={16} />
+            <span>Write Review</span>
             </motion.button>
           </div>
 
@@ -262,7 +240,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
           >
             <div className="flex items-center gap-6 mb-4">
               <StarRating rating={Math.round(averageRating)} readOnly={true} />
-              <span className="text-muted-foreground font-light text-sm">
+              <span className="text-muted-foreground fw-body text-sm">
                 Based on {reviews.length}{" "}
                 {reviews.length === 1 ? "review" : "reviews"}
               </span>
@@ -300,7 +278,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                   {review.verified && (
                     <div className="absolute top-4 right-4 flex items-center gap-1 px-3 py-1 bg-green-50 rounded-full border border-green-200">
                       <Shield size={12} className="text-green-600" />
-                      <span className="text-xs text-green-700 font-light">
+                      <span className="text-xs text-green-700 fw-body">
                         Verified
                       </span>
                     </div>
@@ -309,7 +287,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                   <div className="flex items-start gap-4 mb-4">
                     {/* Avatar */}
                     <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center text-brand-700 font-light text-lg">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center text-brand-700 fw-body text-lg">
                         {review.userId?.avatar ? (
                           <img
                             src={review.userId.avatar}
@@ -325,10 +303,10 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                     {/* User Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-light text-foreground text-lg">
+                        <h4 className="fw-heading text-foreground text-lg">
                           {review.userId?.name || "Anonymous User"}
                         </h4>
-                        <span className="text-xs text-muted-foreground font-light">
+                        <span className="text-xs text-muted-foreground fw-body">
                           {new Date(review.createdAt).toLocaleDateString(
                             "en-US",
                             {
@@ -343,14 +321,14 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                       <div className="flex items-center gap-2 mb-4">
                         <StarRating rating={review.rating} readOnly={true} />
                         <span className="text-sm text-muted-foreground">|</span>
-                        <span className="text-sm text-muted-foreground font-light">
+                        <span className="text-sm text-muted-foreground fw-body">
                           {review.rating}.0
                         </span>
                       </div>
 
                       {/* Review Text */}
                       <p
-                        className={`text-muted-foreground font-light leading-relaxed ${
+                        className={`text-muted-foreground fw-body leading-relaxed ${
                           expandedReview === i ? "" : "line-clamp-2"
                         }`}
                       >
@@ -359,7 +337,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
                       {/* Expand Button */}
                       {review.comment.length > 150 && (
-                        <button className="mt-3 flex items-center gap-1 text-sm text-brand-600 hover:text-brand-700 font-light transition-colors">
+                        <button className="mt-3 flex items-center gap-1 text-sm text-brand-600 hover:text-brand-700 fw-cta transition-colors">
                           <span>
                             {expandedReview === i ? "Show less" : "Read more"}
                           </span>
@@ -417,27 +395,27 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                         strokeWidth={2}
                       />
                     </motion.div>
-                    <h3 className="text-2xl font-light text-foreground mb-2">
+                    <h3 className="text-2xl fw-heading text-foreground mb-2">
                       Thank You!
                     </h3>
-                    <p className="text-muted-foreground font-light">
+                    <p className="text-muted-foreground fw-body">
                       Your review has been submitted successfully
                     </p>
                   </motion.div>
                 ) : (
                   <>
                     <div className="text-center mb-8">
-                      <h3 className="text-3xl font-light text-foreground mb-2">
+                      <h3 className="text-3xl fw-heading text-foreground mb-2">
                         Write a Review
                       </h3>
-                      <p className="text-sm text-muted-foreground font-light">
+                      <p className="text-sm text-muted-foreground fw-body">
                         Share your experience with us
                       </p>
                     </div>
 
                     <div className="space-y-6">
                       <div>
-                        <label id="rating-label" className="block text-sm font-light text-muted-foreground mb-3 uppercase tracking-wider">
+                        <label id="rating-label" className="block text-sm fw-body text-muted-foreground mb-3 uppercase tracking-wider">
                           Your Rating
                         </label>
                         <div role="radiogroup" aria-labelledby="rating-label">
@@ -447,14 +425,14 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                           />
                         </div>
                         {formErrors.rating && (
-                          <p className="mt-2 text-sm text-destructive font-light">
+                          <p className="mt-2 text-sm text-destructive fw-body">
                             {formErrors.rating}
                           </p>
                         )}
                       </div>
 
                       <div>
-                        <label htmlFor="comment" className="block text-sm font-light text-muted-foreground mb-3 uppercase tracking-wider">
+                        <label htmlFor="comment" className="block text-sm fw-body text-muted-foreground mb-3 uppercase tracking-wider">
                           Your Review <span className="text-destructive">*</span>
                         </label>
                         <textarea
@@ -463,12 +441,12 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                           value={formData.comment}
                           onChange={handleInputChange}
                           rows={5}
-                          className="w-full px-4 py-3 border border-border rounded-2xl focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50 transition-all font-light text-muted-foreground resize-none"
+                          className="w-full px-4 py-3 border border-border rounded-2xl focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50 transition-all fw-body text-muted-foreground resize-none"
                           placeholder="Share your thoughts about this piece..."
                           aria-required={true}
                         />
                         {formErrors.comment && (
-                          <p className="mt-2 text-sm text-destructive font-light">
+                          <p className="mt-2 text-sm text-destructive fw-body">
                             {formErrors.comment}
                           </p>
                         )}
@@ -480,7 +458,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                           onClick={() => setIsModalOpen(false)}
                           whileHover={{ y: -2 }}
                           whileTap={{ scale: 0.98 }}
-                          className="flex-1 px-6 py-3 border border-border text-muted-foreground rounded-full font-light text-sm uppercase tracking-wider hover:bg-muted transition-all"
+                          className="flex-1 px-6 py-3 border border-border text-muted-foreground rounded-full fw-cta text-sm uppercase tracking-wider hover:bg-muted transition-all"
                         >
                           Cancel
                         </motion.button>
@@ -490,7 +468,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                           disabled={submitReviewMutation.isPending}
                           whileHover={{ y: -2 }}
                           whileTap={{ scale: 0.98 }}
-                          className="flex-1 px-6 py-3 btn-gradient rounded-full font-light text-sm uppercase tracking-wider shadow-sm transition-all disabled:opacity-50"
+                          className="flex-1 px-6 py-3 btn-gradient rounded-full fw-cta text-sm uppercase tracking-wider shadow-sm transition-all disabled:opacity-50"
                         >
                           {submitReviewMutation.isPending ? "Submitting..." : "Submit Review"}
                         </motion.button>

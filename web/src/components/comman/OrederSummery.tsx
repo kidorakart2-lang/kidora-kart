@@ -95,13 +95,13 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
                 </Link>
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-medium text-foreground truncate">
+                <h3 className="text-sm fw-heading text-foreground truncate">
                   {item?.product?.name}
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   Qty: {item?.quantity}{" "}
                   {type == "cart" && item?.color && (
-                    <span className="text-xs text-brand-500 font-medium inline-flex items-center gap-1">
+                    <span className="text-xs text-brand-500 fw-body inline-flex items-center gap-1">
                       <span
                         style={{ backgroundColor: item.color.code }}
                         className="w-3 h-3 rounded-full border border-border inline-block"
@@ -110,7 +110,7 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
                     </span>
                   )}
                   {type == "direct" && item?.colorCode && (
-                    <span className="text-xs text-brand-500 font-medium inline-flex items-center gap-1">
+                    <span className="text-xs text-brand-500 fw-body inline-flex items-center gap-1">
                       <span
                         style={{ backgroundColor: item.colorCode }}
                         className="w-3 h-3 rounded-full border border-border inline-block"
@@ -119,19 +119,7 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
                     </span>
                   )}
                 </p>
-                {/* Size display */}
-                {type == "cart" && item?.size?.name && (
-                  <p className="text-xs text-muted-foreground">
-                    Size: <span className="font-medium">{item.size.name}</span>
-                  </p>
-                )}
-                {type == "direct" && item?.sizeName && (
-                  <p className="text-xs text-muted-foreground">
-                    Size: <span className="font-medium">{item.sizeName}</span>
-                  </p>
-                )}
-
-                <p className="text-sm font-medium text-foreground mt-1">
+                <p className="text-sm fw-body text-foreground mt-1">
                   ₹{item?.product?.discount_price}
                   {item?.product?.discount_price && (
                     <span className="ml-2 text-xs text-muted-foreground line-through">
@@ -180,7 +168,7 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
               <Truck className="w-3.5 h-3.5" />
               Shipping
             </span>
-            <span className="text-foreground font-medium">
+            <span className="text-foreground fw-body">
               {shippingEstimate ? (
                 <span className="text-brand-600">₹{shippingCharge}</span>
               ) : (
@@ -192,7 +180,7 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
           {shippingEstimate?.courierName && (
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Courier</span>
-              <span className="font-medium text-foreground">
+              <span className="fw-body text-foreground">
                 {shippingEstimate.courierName}
               </span>
             </div>
@@ -201,7 +189,7 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
           {shippingEstimate?.etd && (
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Est. Delivery</span>
-              <span className="font-medium text-brand-600">{shippingEstimate.etd}</span>
+              <span className="fw-body text-brand-600">{shippingEstimate.etd}</span>
             </div>
           )}
 
@@ -213,13 +201,13 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
           )}
 
           {couponDiscount > 0 && (
-            <p className="mt-1 text-xs text-emerald-600">
+            <p className="mt-1 text-xs text-[var(--brand-accent-600)]">
               Coupon applied: -₹{Math.round(couponDiscount)}
             </p>
           )}
 
           <div className="border-t border-border pt-3 mt-2">
-            <div className="flex justify-between font-medium text-foreground">
+            <div className="flex justify-between fw-heading text-foreground">
               <span>Total</span>
               <span className="text-lg">₹{total}</span>
             </div>
@@ -228,9 +216,9 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
 
           {/* Payment Info Cards */}
           <div className="mt-4 space-y-2">
-            <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-              <span className="text-emerald-600 text-lg">✓</span>
-              <span className="text-sm font-medium text-emerald-700">
+            <div className="flex items-center gap-2 bg-[var(--brand-accent-50)] border border-[var(--brand-accent-200)] rounded-lg px-3 py-2">
+              <span className="text-[var(--brand-accent-600)] text-lg">✓</span>
+              <span className="text-sm fw-body text-[var(--brand-accent-700)]">
                 5% Discount on ONLINE Purchase
               </span>
             </div>

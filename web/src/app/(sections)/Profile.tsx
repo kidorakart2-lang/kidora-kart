@@ -31,7 +31,7 @@ import { toast } from "sonner";
 import Image from "next/image";
 import MyOrders from "./MyOrder";
 
-import { LoadingUi } from "./Cart";
+import LoadingOverlay from "@/components/comman/LoadingOverlay";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store/store";
@@ -246,7 +246,7 @@ export default function AccountPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <LoadingUi hidden={false} />
+        <LoadingOverlay hidden={false} />
       </div>
     );
   }

@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from "react";
 
-const THEMES = ["brown", "minimal", "monochrome"] as const;
+const THEMES = ["brown", "minimal", "monochrome" , "default"] as const;
 
 const THEME_LABELS: Record<(typeof THEMES)[number], string> = {
+  default: "Default",
   brown: "Brown",
   minimal: "Minimal",
   monochrome: "Mono",
 };
 
 const THEME_COLORS: Record<(typeof THEMES)[number], string> = {
+  default: "#facc15",
   brown: "#b08968",
   minimal: "#22c55e",
   monochrome: "#0a0a0a",

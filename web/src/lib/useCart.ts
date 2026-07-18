@@ -18,7 +18,6 @@ interface CartViewResponse {
     product: { _id: string };
     quantity: number;
     color?: { _id: string };
-    size?: { _id: string };
   }>;
   totalPrice?: number;
   totalItems?: number;

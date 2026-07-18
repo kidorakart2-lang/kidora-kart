@@ -6,9 +6,7 @@ import dynamic from "next/dynamic";
 import {
   ShoppingBag,
   ArrowRight,
-  MapPin,
   CreditCard,
-  Truck,
   Clock,
   Gift,
   Mail,
@@ -17,193 +15,22 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { getOrderById } from "@/lib/orderService";
 import type {
   OrderData,
-  OrderItem,
   OrderDetailApiResponse,
 } from "@/types/order";
+
+import FallbackCheckmark from "@/components/order/FallbackCheckmark";
+import OrderSuccessItemsList from "@/components/order/OrderSuccessItemsList";
+import OrderSuccessTimeline from "@/components/order/OrderSuccessTimeline";
+import ErrorBoundary from "@/components/order/ErrorBoundary";
+import LottieTimeout from "@/components/order/LottieTimeout";
 
 /* ── Client-only Lottie (SSR crashes WebGL) ────────────────────────── */
 const SuccessLottie = dynamic(() => import("@/components/SuccessLottie"), {
   ssr: false,
 });
-
-/* ── CSS-animated fallback checkmark when .lottie file fails ──────── */
-function FallbackCheckmark() {
-  return (
-    <div className="relative w-48 h-48 md:w-56 md:h-56 flex items-center justify-center">
-      <div className="absolute inset-0 rounded-full border-4 border-white/30 animate-ping" />
-      <div className="absolute inset-2 rounded-full border-4 border-white/20" />
-      <div className="absolute inset-4 rounded-full bg-emerald-400/20 flex items-center justify-center">
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
-        >
-          <Check className="w-20 h-20 text-emerald-300" strokeWidth={2.5} />
-        </motion.div>
-      </div>
-      {[...Array(8)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-2 h-2 bg-emerald-300/60 rounded-full"
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{
-            opacity: [0, 1, 0],
-            scale: [0, 1, 0.5],
-            x: [0, Math.cos((i * Math.PI * 2) / 8) * 120],
-            y: [0, Math.sin((i * Math.PI * 2) / 8) * 120],
-          }}
-          transition={{ delay: 0.3 + i * 0.06, duration: 0.8, ease: "easeOut" }}
-        />
-      ))}
-    </div>
-  );
-}
-
-/* ── Order Items List ──────────────────────────────────────────────── */
-function OrderItemsList({ items }: { items: OrderItem[] }) {
-  const [showAll, setShowAll] = useState(false);
-  const displayed = showAll ? items : items.slice(0, 3);
-
-  return (
-    <div className="space-y-3">
-      {displayed.map((item) => (
-        <div
-          key={item._id}
-          className="flex items-center gap-4 p-3 bg-muted rounded-xl"
-        >
-          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-background rounded-lg overflow-hidden shadow-sm flex-shrink-0 border border-border">
-            {item.images?.[0] && (
-              <img
-                src={item.images[0]}
-                alt={item.name}
-                className="w-full h-full object-cover"
-              />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm sm:text-base font-medium text-foreground truncate">
-              {item.name}
-            </p>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-              <span>Qty: {item.quantity}</span>
-              {item.sizeId?.name && (
-                <>
-                  <span className="w-1 h-1 rounded-full bg-border" />
-                  <span>Size: {item.sizeId.name}</span>
-                </>
-              )}
-              {item.colorId?.name && (
-                <>
-                  <span className="w-1 h-1 rounded-full bg-border" />
-                  <span className="flex items-center gap-1">
-                    <span
-                      className="w-3 h-3 rounded-full border border-border inline-block"
-                      style={{ backgroundColor: item.colorId.code }}
-                    />
-                    {item.colorId.name}
-                  </span>
-                </>
-              )}
-            </div>
-            {item.isPersonalized && item.personalizedName && (
-              <Badge
-                variant="outline"
-                className="mt-1.5 text-[10px] h-5 px-1.5 text-brand-700 border-brand-200 bg-brand-50"
-              >
-                <Gift className="w-2.5 h-2.5 mr-1" />
-                {item.personalizedName}
-              </Badge>
-            )}
-          </div>
-          <div className="text-right flex-shrink-0">
-            <p className="text-base font-semibold text-brand-600">
-              ₹{item.priceAtPurchase * item.quantity}
-            </p>
-            <p className="text-[11px] text-muted-foreground">
-              ₹{item.priceAtPurchase} ea
-            </p>
-          </div>
-        </div>
-      ))}
-      {items.length > 3 && (
-        <button
-          onClick={() => setShowAll(!showAll)}
-          className="w-full text-center text-xs text-brand-600 hover:text-brand-700 font-medium py-2 hover:bg-brand-50 rounded-lg transition-colors"
-        >
-          {showAll ? "Show less" : `+${items.length - 3} more items`}
-        </button>
-      )}
-    </div>
-  );
-}
-
-/* ── Order Timeline ────────────────────────────────────────────────── */
-function OrderTimeline({ status }: { status: string }) {
-  const steps = [
-    { key: "placed", label: "Placed" },
-    { key: "confirmed", label: "Confirmed" },
-    { key: "shipped", label: "Shipped" },
-    { key: "out_for_delivery", label: "Out for Delivery" },
-    { key: "delivered", label: "Delivered" },
-  ];
-  const statusOrder = [
-    "placed",
-    "confirmed",
-    "shipped",
-    "out_for_delivery",
-    "delivered",
-  ];
-  const activeIndex = Math.max(statusOrder.indexOf(status), 0);
-
-  return (
-    <div className="flex items-center justify-between px-1 py-2">
-      {steps.map((step, i) => {
-        const isCompleted = i <= activeIndex;
-        const isCurrent = i === activeIndex;
-        return (
-          <div
-            key={step.key}
-            className="flex items-center flex-1 last:flex-none"
-          >
-            <div className="flex flex-col items-center">
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-500 ${
-                  isCompleted
-                    ? "bg-brand-500 text-background shadow-md"
-                    : "bg-muted text-muted-foreground"
-                } ${isCurrent ? "ring-4 ring-brand-100" : ""}`}
-              >
-                {isCompleted ? (
-                  <Check className="w-4 h-4" strokeWidth={3} />
-                ) : (
-                  <div className="w-2.5 h-2.5 rounded-full bg-border" />
-                )}
-              </div>
-              <p
-                className={`text-[10px] mt-1.5 font-medium whitespace-nowrap ${
-                  isCompleted ? "text-brand-700" : "text-muted-foreground"
-                }`}
-              >
-                {step.label}
-              </p>
-            </div>
-            {i < steps.length - 1 && (
-              <div
-                className={`flex-1 h-0.5 mx-1.5 mt-[-1.5rem] transition-colors duration-500 ${
-                  i < activeIndex ? "bg-brand-500" : "bg-border"
-                }`}
-              />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 /* ── Helpers ───────────────────────────────────────────────────────── */
 function estimatedDelivery(createdAt: string) {
@@ -465,7 +292,7 @@ export default function OrderSuccess() {
                       {estimatedDelivery(order.createdAt)}
                     </span>
                   </div>
-                  <OrderTimeline status={order.status} />
+                  <OrderSuccessTimeline status={order.status} />
                 </motion.div>
 
                 {/* Items */}
@@ -490,7 +317,7 @@ export default function OrderSuccess() {
                       </p>
                     </div>
                   </div>
-                  <OrderItemsList items={order.items} />
+                  <OrderSuccessItemsList items={order.items} />
                 </motion.div>
 
                 {/* Shipping Address */}
@@ -678,49 +505,4 @@ export default function OrderSuccess() {
       </motion.div>
     </>
   );
-}
-
-/* ═══════════════════════════════════════════════════════════════════ */
-/*  Error Boundary — catches DotLottieReact crash (SSR / corrupt)     */
-/* ═══════════════════════════════════════════════════════════════════ */
-import React from "react";
-
-class ErrorBoundary extends React.Component<
-  { children: React.ReactNode; onError: () => void },
-  { hasError: boolean }
-> {
-  state = { hasError: false };
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-  componentDidCatch() {
-    this.props.onError();
-  }
-  render() {
-    if (this.state.hasError) return null;
-    return this.props.children;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════ */
-/*  LottieTimeout — if .lottie file is corrupt/empty, trigger fallback */
-/* ═══════════════════════════════════════════════════════════════════ */
-function LottieTimeout({
-  ms,
-  onTimeout,
-}: {
-  ms: number;
-  onTimeout: () => void;
-}) {
-  const fired = useRef(false);
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (!fired.current) {
-        fired.current = true;
-        onTimeout();
-      }
-    }, ms);
-    return () => clearTimeout(t);
-  }, [ms, onTimeout]);
-  return null;
 }

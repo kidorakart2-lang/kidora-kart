@@ -3,14 +3,12 @@ import Product from "../models/product.js";
 export interface CartItemInput {
   productId: string;
   colorId: string;
-  sizeId?: string | null;
   quantity: number;
 }
 
 export interface ValidatedItem {
   productId: string;
   colorId: string;
-  sizeId: string | null;
   name: string;
   description: string;
   image: string;
@@ -24,7 +22,7 @@ export interface ValidatedItem {
 
 export interface ItemError {
   productId: string;
-  type: "deleted" | "inactive" | "invalid_color" | "invalid_size" | "insufficient_stock";
+  type: "deleted" | "inactive" | "invalid_color" | "insufficient_stock";
   message: string;
   quantity: number;
   availableStock?: number;
@@ -65,7 +63,7 @@ export async function validateAndPriceCart(
     _id: { $in: productIds },
   })
     .select(
-      "name description image images code stock status isPersonalized price discount_price colors sizes deletedAt",
+      "name description image images code stock status isPersonalized price discount_price colors deletedAt",
     )
     .lean();
 
@@ -123,21 +121,6 @@ export async function validateAndPriceCart(
       continue;
     }
 
-    if (item.sizeId) {
-      const isValidSize = product.sizes.some(
-        (s) => String(s) === item.sizeId,
-      );
-      if (!isValidSize) {
-        errors.push({
-          productId: item.productId,
-          type: "invalid_size",
-          message: `Selected size is not available for "${product.name}"`,
-          quantity: item.quantity,
-        });
-        continue;
-      }
-    }
-
     if (product.stock < item.quantity) {
       errors.push({
         productId: item.productId,
@@ -155,7 +138,6 @@ export async function validateAndPriceCart(
     validItems.push({
       productId: String(product._id),
       colorId: item.colorId,
-      sizeId: item.sizeId || null,
       name: product.name,
       description: product.description ?? "",
       image: product.image,

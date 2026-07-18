@@ -262,7 +262,7 @@ export default function UsersPage() {
               <SelectItem value="deleted">Deleted Only</SelectItem>
             </SelectContent>
           </Select>
-          <ExportButtons data={users as unknown as Record<string, unknown>[]} filename="users" />
+          <ExportButtons data={users} filename="users" />
           <Button
             onClick={() => {
               setEditingUser(null);

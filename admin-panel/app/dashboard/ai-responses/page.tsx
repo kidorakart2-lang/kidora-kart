@@ -4,19 +4,12 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DataTable, type Column } from "@/components/data-table";
-import { AlertDialogUse } from "@/components/alert-dialog";
-import { Sparkles, Trash2, Copy, Check } from "lucide-react";
+import { Sparkles, Trash2, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
+import type { AiResponseItem } from "@/lib/types";
 
-interface AiResponse {
-  _id: string;
-  prompt: string;
-  response: string;
-  page: string;
-  adminId?: { name?: string; email?: string };
-  createdAt: string;
-}
+type AiResponse = AiResponseItem & { page: string; adminId?: { name?: string; email?: string } };
 
 interface ListResponse {
   _data: AiResponse[];
@@ -36,7 +29,7 @@ export default function AiResponsesPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery<ListResponse>({
+  const { data } = useQuery<ListResponse>({
     queryKey: ["ai-responses", page],
     queryFn: () =>
       api.post("/api/admin/ai-response/list", { page, limit: 50 }),

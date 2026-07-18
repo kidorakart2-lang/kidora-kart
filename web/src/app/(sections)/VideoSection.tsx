@@ -5,13 +5,7 @@ import { useEffect, useState, useRef } from "react"
 import { Sparkles, ArrowRight, Play, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-
-interface BannerLinkData {
-  type?: string
-  target?: string
-  externalUrl?: string
-  label?: string
-}
+import type { BannerLinkData } from "@/types"
 
 interface VideoSectionProps {
   heading?: string

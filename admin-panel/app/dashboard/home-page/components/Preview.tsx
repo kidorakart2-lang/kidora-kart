@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
 import type { Banner } from "@/lib/types"
 import { Button } from "@/components/ui/button"
-import { X, Monitor, Tablet, Smartphone, ImageIcon, LayoutGrid, ShoppingBag, Film, Code2, Sparkles } from "lucide-react"
+import { X, Monitor, Tablet, Smartphone, ImageIcon, LayoutGrid, ShoppingBag, Film, Code2 } from "lucide-react"
 import type { SectionConfig, HomeSection } from "../types"
 import { getTypeMeta, getSectionTitle, BENTO_LAYOUTS } from "../constants"
 

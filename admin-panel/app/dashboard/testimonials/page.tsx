@@ -221,7 +221,7 @@ export default function TestimonialsPage() {
               <SelectItem value="deleted">Deleted Only</SelectItem>
             </SelectContent>
           </Select>
-          <ExportButtons data={testimonials as unknown as Record<string, unknown>[]} filename="testimonials" />
+          <ExportButtons data={testimonials} filename="testimonials" />
           <Button
             onClick={() => {
               setEditingTestimonial(null);

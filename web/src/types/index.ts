@@ -21,6 +21,7 @@ export type {
 export type {
   ProductData,
   SubCategoryData,
+  SubSubCategoryData,
   CategoryData,
   WishlistProduct,
   CouponData,
@@ -29,6 +30,9 @@ export type {
   NavigationData,
   ColorItem,
   MaterialItem,
+  LogoData,
+  BannerItem,
+  BannerLinkData,
 } from "./product";
 
 export type {

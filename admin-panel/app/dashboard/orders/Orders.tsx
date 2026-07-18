@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DataTable, type Column } from "@/components/data-table";
+import { DataTable } from "@/components/data-table";
 import { ExportButtons } from "@/components/export-buttons";
 import { OrderReceipt } from "@/components/order-receipt";
 import {
@@ -36,46 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-interface OrderItem {
-  productId: string;
-  name: string;
-  images: string[];
-  quantity: number;
-  priceAtPurchase: number;
-  isPersonalized: boolean;
-  personalizedName?: string;
-}
-
-interface OrderData {
-  orderId: string;
-  status: string;
-  createdAt: string;
-  shippingAddress?: {
-    fullName?: string;
-    email?: string;
-    phone?: string;
-  };
-  items?: OrderItem[];
-  pricing?: {
-    total: number;
-    subtotal?: number;
-    shipping?: number;
-  };
-  shipping?: {
-    carrier?: string;
-    estimatedDelivery?: string;
-    trackingNumber?: string;
-    trackingUrl?: string;
-  };
-  payment?: {
-    status?: string;
-    method?: string;
-  };
-  isGift?: boolean;
-  giftMessage?: string;
-  giftWrap?: boolean;
-  statusHistory?: Array<{ id: string; status: string; timestamp: string }>;
-}
+import type { OrderData } from "@/lib/types";
 
 export default function OrdersPage() {
   const [cancelOrder, setCancelOrder] = useState<OrderData | null>(null);
@@ -393,7 +354,7 @@ export default function OrdersPage() {
 
         <TabsContent value="orders" className="space-y-6">
           <div className="flex items-center justify-between">
-            <ExportButtons data={orders as unknown as Record<string, unknown>[]} filename="orders" />
+            <ExportButtons data={orders} filename="orders" />
           </div>
 
           {isLoading ? (
@@ -431,7 +392,7 @@ export default function OrdersPage() {
               selectOption={statusOptions}
               data={orders}
               dateOption={true}
-              columns={columns as unknown as Column<OrderData>[]}
+              columns={columns}
               onEdit={handleEdit}
               onDelete={handleDelete}
               searchPlaceholder="Search orders..."

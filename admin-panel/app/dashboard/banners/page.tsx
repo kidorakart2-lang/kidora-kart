@@ -23,7 +23,6 @@ import {
   Trash2,
   Loader2,
   ExternalLink,
-  Link as LinkIcon,
   Eye,
   EyeOff,
 } from "lucide-react";
@@ -32,6 +31,7 @@ import { api, ApiClientError } from "@/lib/api";
 import type { Banner, LinkOption } from "@/lib/types";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import SingleImageUploader from "@/components/SingleImageUploader";
+import BannerLinkPicker from "@/components/banner/BannerLinkPicker";
 
 export default function BannersPage() {
   const [btnLoading, setBtnLoading] = useState(false);
@@ -303,10 +303,7 @@ export default function BannersPage() {
               <SelectItem value="deleted">Deleted Only</SelectItem>
             </SelectContent>
           </Select>
-          <ExportButtons
-            data={banners as unknown as Record<string, unknown>[]}
-            filename="banners"
-          />
+          <ExportButtons data={banners} filename="banners" />
           <Button
             onClick={() => {
               setEditingBanner(null);
@@ -467,294 +464,34 @@ export default function BannersPage() {
             disabled={btnLoading}
             className="animate-in slide-in-from-right duration-300 delay-100"
           />{" "}
-          {/* ── Link target section ── */}
-          <div className="space-y-3 animate-in slide-in-from-right duration-300 delay-50 border rounded-lg p-4 bg-muted/30">
-            <Label className="text-sm font-semibold">
-              Link Target (optional)
-            </Label>
-
-            <Select
-              value={formData.linkType}
-              onValueChange={(value) => {
-                setFormData({
-                  ...formData,
-                  linkType: value,
-                  linkTarget: "",
-                  linkExternalUrl: "",
-                });
-                setSelectedCategoryId("");
-                setSelectedSubCategoryId("");
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="No link" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="No Link">No link</SelectItem>
-                <SelectItem value="product">Product</SelectItem>
-                <SelectItem value="category">Category</SelectItem>
-                <SelectItem value="subCategory">Sub Category</SelectItem>
-                <SelectItem value="subSubCategory">Sub Sub Category</SelectItem>
-                <SelectItem value="external">External URL</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Product picker */}
-            {formData.linkType === "product" && (
-              <div className="space-y-2">
-                <Label>Select Product</Label>
-                <Input
-                  placeholder="Search products..."
-                  value={productSearch}
-                  onChange={(e) => setProductSearch(e.target.value)}
-                />
-                <div className="max-h-36 overflow-y-auto border rounded-md p-1 space-y-0.5">
-                  {linkOptions.products
-                    .filter((p) => {
-                      const q = productSearch.toLowerCase();
-                      return (
-                        !q ||
-                        p.name.toLowerCase().includes(q) ||
-                        p.slug.toLowerCase().includes(q)
-                      );
-                    })
-                    .slice(0, 30)
-                    .map((p) => (
-                      <label
-                        key={p._id}
-                        className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-sm transition-colors ${
-                          formData.linkTarget === p._id
-                            ? "bg-primary/10 text-primary"
-                            : "hover:bg-muted"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="linkTarget"
-                          checked={formData.linkTarget === p._id}
-                          onChange={() =>
-                            setFormData({ ...formData, linkTarget: p._id })
-                          }
-                          className="accent-primary"
-                        />
-                        <span className="truncate">{p.name}</span>
-                        <span className="text-xs text-muted-foreground ml-auto">
-                          /{p.slug}
-                        </span>
-                      </label>
-                    ))}
-                  {linkOptions.products.filter((p) => {
-                    const q = productSearch.toLowerCase();
-                    return (
-                      !q ||
-                      p.name.toLowerCase().includes(q) ||
-                      p.slug.toLowerCase().includes(q)
-                    );
-                  }).length === 0 && (
-                    <p className="text-sm text-muted-foreground p-2">
-                      No products found
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Category picker */}
-            {formData.linkType === "category" && (
-              <div className="space-y-2">
-                <Label>Select Category</Label>
-                <div className="max-h-36 overflow-y-auto border rounded-md p-1 space-y-0.5">
-                  {linkOptions.categories.map((c) => (
-                    <label
-                      key={c._id}
-                      className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-sm transition-colors ${
-                        formData.linkTarget === c._id
-                          ? "bg-primary/10 text-primary"
-                          : "hover:bg-muted"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="linkTarget"
-                        checked={formData.linkTarget === c._id}
-                        onChange={() =>
-                          setFormData({ ...formData, linkTarget: c._id })
-                        }
-                        className="accent-primary"
-                      />
-                      <span className="truncate">{c.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Sub Category picker (cascading: pick category first) */}
-            {formData.linkType === "subCategory" && (
-              <div className="space-y-2">
-                <Label>Select Category</Label>
-                <Select
-                  value={selectedCategoryId}
-                  onValueChange={(value) => {
-                    setSelectedCategoryId(value);
-                    setFormData({ ...formData, linkTarget: "" });
-                    setSelectedSubCategoryId("");
-                    loadSubCategories(value);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {linkOptions.categories.map((c) => (
-                      <SelectItem key={c._id} value={c._id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {selectedCategoryId && (
-                  <>
-                    <Label>Select Sub Category</Label>
-                    <div className="max-h-36 overflow-y-auto border rounded-md p-1 space-y-0.5">
-                      {linkOptions.subCategories.map((sc) => (
-                        <label
-                          key={sc._id}
-                          className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-sm transition-colors ${
-                            formData.linkTarget === sc._id
-                              ? "bg-primary/10 text-primary"
-                              : "hover:bg-muted"
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="linkTarget"
-                            checked={formData.linkTarget === sc._id}
-                            onChange={() =>
-                              setFormData({ ...formData, linkTarget: sc._id })
-                            }
-                            className="accent-primary"
-                          />
-                          <span className="truncate">{sc.name}</span>
-                        </label>
-                      ))}
-                      {linkOptions.subCategories.length === 0 && (
-                        <p className="text-sm text-muted-foreground p-2">
-                          No sub categories
-                        </p>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Sub Sub Category picker (cascading: category → sub → sub-sub) */}
-            {formData.linkType === "subSubCategory" && (
-              <div className="space-y-2">
-                <Label>Select Category</Label>
-                <Select
-                  value={selectedCategoryId}
-                  onValueChange={(value) => {
-                    setSelectedCategoryId(value);
-                    setFormData({ ...formData, linkTarget: "" });
-                    setSelectedSubCategoryId("");
-                    loadSubCategories(value);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {linkOptions.categories.map((c) => (
-                      <SelectItem key={c._id} value={c._id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {selectedCategoryId && (
-                  <>
-                    <Label>Select Sub Category</Label>
-                    <Select
-                      value={selectedSubCategoryId}
-                      onValueChange={(value) => {
-                        setSelectedSubCategoryId(value);
-                        setFormData({ ...formData, linkTarget: "" });
-                        loadSubSubCategories(value);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a sub category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {linkOptions.subCategories.map((sc) => (
-                          <SelectItem key={sc._id} value={sc._id}>
-                            {sc.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </>
-                )}
-
-                {selectedSubCategoryId && (
-                  <>
-                    <Label>Select Sub Sub Category</Label>
-                    <div className="max-h-36 overflow-y-auto border rounded-md p-1 space-y-0.5">
-                      {linkOptions.subSubCategories.map((ssc) => (
-                        <label
-                          key={ssc._id}
-                          className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-sm transition-colors ${
-                            formData.linkTarget === ssc._id
-                              ? "bg-primary/10 text-primary"
-                              : "hover:bg-muted"
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="linkTarget"
-                            checked={formData.linkTarget === ssc._id}
-                            onChange={() =>
-                              setFormData({ ...formData, linkTarget: ssc._id })
-                            }
-                            className="accent-primary"
-                          />
-                          <span className="truncate">{ssc.name}</span>
-                        </label>
-                      ))}
-                      {linkOptions.subSubCategories.length === 0 && (
-                        <p className="text-sm text-muted-foreground p-2">
-                          No sub sub categories
-                        </p>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* External URL */}
-            {formData.linkType === "external" && (
-              <div className="space-y-2">
-                <Label htmlFor="externalUrl">External URL</Label>
-                <Input
-                  id="externalUrl"
-                  type="url"
-                  placeholder="https://example.com"
-                  value={formData.linkExternalUrl}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      linkExternalUrl: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            )}
-          </div>
+          <BannerLinkPicker
+            linkType={formData.linkType}
+            linkTarget={formData.linkTarget}
+            linkExternalUrl={formData.linkExternalUrl}
+            productSearch={productSearch}
+            selectedCategoryId={selectedCategoryId}
+            selectedSubCategoryId={selectedSubCategoryId}
+            linkOptions={linkOptions}
+            onLinkTypeChange={(value) => {
+              setFormData({ ...formData, linkType: value, linkTarget: "", linkExternalUrl: "" });
+              setSelectedCategoryId("");
+              setSelectedSubCategoryId("");
+            }}
+            onLinkTargetChange={(value) => setFormData({ ...formData, linkTarget: value })}
+            onExternalUrlChange={(value) => setFormData({ ...formData, linkExternalUrl: value })}
+            onProductSearchChange={setProductSearch}
+            onCategoryIdChange={(value) => {
+              setSelectedCategoryId(value);
+              setFormData({ ...formData, linkTarget: "" });
+              setSelectedSubCategoryId("");
+              loadSubCategories(value);
+            }}
+            onSubCategoryIdChange={(value) => {
+              setSelectedSubCategoryId(value);
+              setFormData({ ...formData, linkTarget: "" });
+              loadSubSubCategories(value);
+            }}
+          />
           <Button
             type="submit"
             disabled={btnLoading}

@@ -12,7 +12,6 @@ export const getCart = asyncHandler(async (req: Request, res: Response) => {
   const cart = await Cart.findOne({ user: userId })
     .populate("items.product")
     .populate("items.color")
-    .populate("items.size")
     .lean();
 
   if (!cart || cart.items.length === 0) {
@@ -29,7 +28,7 @@ export const getCart = asyncHandler(async (req: Request, res: Response) => {
   const items = await Promise.all(
     cart.items.map(async (item) => {
       const product = await Product.findById(item.product)
-        .select("name price discount_price images slug stock")
+        .select("name price discount_price image images slug stock")
         .lean();
       if (!product) return null;
       const itemTotal =
@@ -47,12 +46,11 @@ export const getCart = asyncHandler(async (req: Request, res: Response) => {
           name: product.name,
           price: product.price,
           discount_price: product.discount_price,
-          image: (product.images?.[0] as string) ?? null,
+          image: product.image ?? null,
           slug: product.slug,
           stock: product.stock,
         },
         color: item.color,
-        size: item.size,
         quantity: item.quantity,
         itemTotal,
       } as Record<string, unknown>;
@@ -76,11 +74,10 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
   session.startTransaction();
 
   try {
-    const { productId, quantity = 1, colorId, sizeId } = req.body as {
+    const { productId, quantity = 1, colorId } = req.body as {
       productId?: string;
       quantity?: number;
       colorId?: string;
-      sizeId?: string;
     };
     const userId = req.user?._id;
 
@@ -114,12 +111,10 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
     }
 
     const existingItemIndex = cart.items.findIndex((item) => {
-      const productMatch =
+      return (
         String(item.product) === productId &&
-        String(item.color) === colorId;
-      const sizeA = item.size ? String(item.size) : null;
-      const sizeB = sizeId ?? null;
-      return productMatch && sizeA === sizeB;
+        String(item.color) === colorId
+      );
     });
 
     const newQty = existingItemIndex > -1
@@ -141,7 +136,6 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
         product: new mongoose.Types.ObjectId(productId!),
         quantity: quantity!,
         color: new mongoose.Types.ObjectId(colorId!),
-        size: sizeId ? new mongoose.Types.ObjectId(sizeId) : null!,
       } as never);
     }
 

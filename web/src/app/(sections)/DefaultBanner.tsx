@@ -2,12 +2,7 @@ import { cacheLife, cacheTag } from "next/cache"
 import BannerSingle from "./BannerSingle"
 import BannerSlider from "./BannerSlider"
 import { TAG_HOMEPAGE } from "@/lib/revalidation-tags"
-
-interface BannerItem {
-  _id?: string
-  image: string
-  link?: { url?: string | null; type?: string }
-}
+import type { BannerItem } from "@/types"
 
 async function GetBanners() {
   "use cache";

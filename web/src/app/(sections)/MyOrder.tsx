@@ -43,7 +43,6 @@ interface LocalOrderItem {
   quantity: number;
   priceAtPurchase: number;
   color?: { code: string; name: string };
-  sizeId?: { name: string };
   isPersonalized: boolean;
   personalizedName?: string;
 }
@@ -78,7 +77,7 @@ export default function MyOrders() {
     limit: 10,
     ...(filter !== "all" && { status: filter }),
   });
-  const orders = (orderData?.orders ?? []) as unknown as LocalOrderData[];
+  const orders = (orderData?.orders ?? []) as LocalOrderData[];
 
   const cancelMutation = useCancelOrder();
 
@@ -102,10 +101,7 @@ export default function MyOrders() {
         toast.error(response.message || "Failed to cancel order");
       }
     } catch (error: unknown) {
-      const err = error as {
-        response?: { data?: { message?: string } };
-        message?: string;
-      };
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
       toast.error(
         err?.response?.data?.message || err?.message || "Failed to cancel order"
       );
@@ -289,12 +285,6 @@ export default function MyOrders() {
                                       className="w-3 h-3 rounded-full border border-border inline-block"
                                     />
                                     <span>{item.color.name}</span>
-                                  </p>
-                                )}
-                                {/* Size display */}
-                                {item.sizeId && (
-                                  <p className="text-sm text-muted-foreground">
-                                    Size: {item.sizeId.name}
                                   </p>
                                 )}
                                 {item.isPersonalized && (

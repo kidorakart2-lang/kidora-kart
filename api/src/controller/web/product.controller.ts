@@ -9,7 +9,7 @@ import { success, fail } from "../../utils/responses.js";
 import { logger } from "../../lib/logger.js";
 
 const PRODUCT_SELECT =
-  "name slug images price image stock discount_price weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl colors material sizes category subCategory subSubCategory";
+  "name slug images price image stock discount_price weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl colors material category subCategory subSubCategory description shortDescription";
 
 const POPULATE_CATEGORY = {
   path: "category",
@@ -43,13 +43,6 @@ const POPULATE_MATERIAL = {
   options: { sort: { order: -1 } },
 } as const;
 
-const POPULATE_SIZES = {
-  path: "sizes",
-  select: "name",
-  match: { deletedAt: null, status: true },
-  options: { sort: { order: -1 } },
-} as const;
-
 const POPULATE_CATEGORY_GIFT = {
   path: "category",
   match: {
@@ -76,7 +69,6 @@ const PRODUCT_POPULATE = [
   POPULATE_SUBSUBCATEGORY,
   POPULATE_COLORS,
   POPULATE_MATERIAL,
-  POPULATE_SIZES,
 ];
 
 export const getOne = async (req: Request, res: Response): Promise<Response> => {
@@ -613,7 +605,6 @@ export const tabProducts = async (
         .populate(POPULATE_SUBCATEGORY)
         .populate(POPULATE_SUBSUBCATEGORY)
         .populate(POPULATE_COLORS)
-        .populate(POPULATE_SIZES)
         .select(PRODUCT_SELECT)
         .sort({ order: -1, createdAt: -1 })
         .limit(4)
@@ -625,7 +616,6 @@ export const tabProducts = async (
         .populate(POPULATE_SUBCATEGORY)
         .populate(POPULATE_SUBSUBCATEGORY)
         .populate(POPULATE_COLORS)
-        .populate(POPULATE_SIZES)
         .sort({ order: -1, createdAt: -1 })
         .limit(4)
         .lean(),
@@ -636,7 +626,6 @@ export const tabProducts = async (
         .populate(POPULATE_SUBSUBCATEGORY)
         .populate(POPULATE_COLORS)
         .populate(POPULATE_MATERIAL)
-        .populate(POPULATE_SIZES)
         .sort({ order: -1, createdAt: -1 })
         .limit(4)
         .lean(),

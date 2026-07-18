@@ -1,11 +1,9 @@
 "use client";
 
-import React from "react";
-
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "motion/react";
-import { X, ZoomIn } from "lucide-react";
+import { motion } from "motion/react";
+import { X } from "lucide-react";
 
 export default function ImageZoom({ src, alt, isMobile }: { src: string; alt: string; isMobile: boolean }) {
   const [isZoomed, setIsZoomed] = useState(false);

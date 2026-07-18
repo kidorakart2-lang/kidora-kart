@@ -10,7 +10,7 @@ export const getWishlist = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user?._id;
     const wishlist = await Wishlist.findOne({ user: userId })
-      .populate("products", "name price discount_price images slug stock")
+      .populate("products", "name price discount_price image images slug stock")
       .lean();
 
     if (!wishlist || wishlist.products.length === 0) {
@@ -23,6 +23,7 @@ export const getWishlist = asyncHandler(
         name: string;
         price: number;
         discount_price: number;
+        image?: string;
         images: string[];
         slug: string;
       }>
@@ -31,7 +32,7 @@ export const getWishlist = asyncHandler(
       name: product.name,
       price: product.price,
       discount_price: product.discount_price,
-      image: product.images?.[0] ?? null,
+      image: product.image ?? null,
       slug: product.slug,
     }));
 

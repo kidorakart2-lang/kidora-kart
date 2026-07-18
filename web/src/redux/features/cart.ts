@@ -7,7 +7,6 @@ export interface CartSliceItem {
   slug: string | null;
   quantity: number;
   colorId: string | null;
-  sizeId: string | null;
   isGuest?: boolean;
 }
 
@@ -20,7 +19,6 @@ export interface CartState {
     slug: string | null;
     quantity: number;
     colorId: string | null;
-    sizeId: string | null;
   };
 }
 
@@ -33,7 +31,6 @@ const initialState: CartState = {
     slug: null,
     quantity: 1,
     colorId: null,
-    sizeId: null,
   },
 };
 
@@ -47,14 +44,12 @@ export const cartSlice = createSlice({
         slug,
         quantity = 1,
         colorId,
-        sizeId,
         isGuest = false,
       } = action.payload;
       const existingItem = state.cartItems.find(
         (item) =>
           item.productId === productId &&
-          item.colorId === colorId &&
-          item.sizeId === sizeId
+          item.colorId === colorId
       );
 
       if (existingItem) {
@@ -71,7 +66,6 @@ export const cartSlice = createSlice({
           slug,
           quantity,
           colorId,
-          sizeId,
           isGuest,
         });
       }
@@ -81,13 +75,12 @@ export const cartSlice = createSlice({
       );
     },
     removeFromCart: (state, action) => {
-      const { productId, colorId, sizeId } = action.payload;
+      const { productId, colorId } = action.payload;
       state.cartItems = state.cartItems.filter(
         (item) =>
           !(
             item.productId === productId &&
-            item.colorId === colorId &&
-            item.sizeId === sizeId
+            item.colorId === colorId
           )
       );
       state.totalQuantity = state.cartItems.reduce(
@@ -96,12 +89,11 @@ export const cartSlice = createSlice({
       );
     },
     updateQuantity: (state, action) => {
-      const { productId, quantity, colorId, sizeId } = action.payload;
+      const { productId, quantity, colorId } = action.payload;
       const item = state.cartItems.find(
         (item) =>
           item.productId === productId &&
-          item.colorId === colorId &&
-          item.sizeId === sizeId
+          item.colorId === colorId
       );
 
       if (item) {
@@ -114,8 +106,7 @@ export const cartSlice = createSlice({
             (i) =>
               !(
                 i.productId === productId &&
-                i.colorId === colorId &&
-                i.sizeId === sizeId
+                i.colorId === colorId
               )
           );
           // toast.success("Item removed from cart");
@@ -136,8 +127,8 @@ export const cartSlice = createSlice({
     setBuyNowItem: (state, action) => {
       // Strip any extra payload fields (e.g. "product", "colorCode", "colorName") —
       // persist only the lean shape so redux-persist doesn't bloat sessionStorage.
-      const { productId, slug, quantity, colorId, sizeId } = action.payload;
-      state.buyNowItem = { productId, slug, quantity, colorId, sizeId };
+      const { productId, slug, quantity, colorId } = action.payload;
+      state.buyNowItem = { productId, slug, quantity, colorId };
     },
     // Clear guest cart state (call after syncing to server)
     clearGuestCart: (state) => {
@@ -149,7 +140,6 @@ export const cartSlice = createSlice({
         slug: null,
         quantity: 1,
         colorId: null,
-        sizeId: null,
       };
     },
   },
@@ -163,7 +153,6 @@ export const cartSlice = createSlice({
         slug: null,
         quantity: 1,
         colorId: null,
-        sizeId: null,
       };
     });
   },

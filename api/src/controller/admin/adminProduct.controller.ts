@@ -4,7 +4,6 @@ import Category from "../../models/category.js";
 import SubCategory from "../../models/subCategory.js";
 import { logger } from "../../lib/logger.js";
 import SubSubCategory from "../../models/subSubCategory.js";
-import Size from "../../models/size.js";
 import Color from "../../models/color.js";
 import { uploadToR2, deleteFromR2, getPublicUrlBase } from "../../lib/cloudflare.js";
 import { generateUniqueSlug } from "../../lib/slugFunc.js";
@@ -16,7 +15,6 @@ const POPULATE_PRODUCT = [
   { path: "category", select: "name slug" },
   { path: "subCategory", select: "name slug" },
   { path: "subSubCategory", select: "name slug" },
-  { path: "sizes", select: "name" },
 ];
 
 const invalidateProductCaches = (): void => {
@@ -130,10 +128,6 @@ export const create = async (
       throw new Error("At least one color is required");
     }
 
-    if (!updateData.sizes || (Array.isArray(updateData.sizes) && updateData.sizes.length === 0)) {
-      throw new Error("At least one size is required");
-    }
-
     if (updateData.category) {
       const categoryIds = Array.isArray(updateData.category)
         ? updateData.category
@@ -176,16 +170,6 @@ export const create = async (
         const colorExists = await Color.findById(colorId as string).select("_id").lean();
         if (!colorExists) {
           throw new Error(`Color with ID ${colorId} not found`);
-        }
-      }
-    }
-
-    if (updateData.sizes) {
-      const sizeIds = Array.isArray(updateData.sizes) ? updateData.sizes : [updateData.sizes];
-      for (const sizeId of sizeIds) {
-        const sizeExists = await Size.findById(sizeId as string).select("_id").lean();
-        if (!sizeExists) {
-          throw new Error(`Size with ID ${sizeId} not found`);
         }
       }
     }
@@ -285,7 +269,7 @@ export const view = async (
     const [total, products] = await Promise.all([
       Product.countDocuments(query),
       Product.find(query)
-        .select("name slug image images price discount_price stock status description shortDescription weight code length height breadth minimumAge idealAge maximumAge type sku tags videoUrl estimated_delivery_time isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material sizes createdAt order")
+        .select("name slug image images price discount_price stock status description shortDescription weight code length height breadth minimumAge idealAge maximumAge type sku tags videoUrl estimated_delivery_time isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material createdAt order")
         .sort(sort as string)
         .skip(skip)
         .limit(limit)
@@ -358,7 +342,7 @@ export const update = async (
     const removeImagesUrl: string[] = (updateData.removeImagesUrl as string[]) ?? [];
 
     const existingProduct = await Product.findOne({ _id: id, deletedAt: null })
-      .select("name images category subCategory subSubCategory sizes slug")
+      .select("name images category subCategory subSubCategory slug")
       .lean();
     if (!existingProduct) {
       throw new Error("Product not found");
@@ -561,35 +545,6 @@ export const update = async (
       }
     }
 
-    if (updateData.sizes) {
-      const sizeIds = Array.isArray(updateData.sizes)
-        ? updateData.sizes
-        : [updateData.sizes];
-      if (sizeIds.length === 0) {
-        throw new Error("At least one size is required");
-      }
-      const existingSizeIds: string[] = existingProduct.sizes
-        ? Array.isArray(existingProduct.sizes)
-          ? (existingProduct.sizes as Array<{ toString(): string }>).map((s) =>
-              s.toString(),
-            )
-          : [(existingProduct.sizes as { toString(): string }).toString()]
-        : [];
-
-      const sizesChanged =
-        JSON.stringify(sizeIds.sort()) !==
-        JSON.stringify(existingSizeIds.sort());
-
-      if (sizesChanged) {
-        for (const sizeId of sizeIds) {
-          const sizeExists = await Size.findById(sizeId);
-          if (!sizeExists) {
-            throw new Error(`Size with ID ${sizeId} not found`);
-          }
-        }
-      }
-    }
-
     const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
@@ -733,7 +688,7 @@ export const getByCategory = async (
       ],
     })
       .populate(POPULATE_PRODUCT)
-      .select("name slug image images price discount_price stock status weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material sizes order createdAt")
+      .select("name slug image images price discount_price stock status weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material order createdAt")
       .sort(sort)
       .limit(cappedLimit)
       .skip(skip)
@@ -806,7 +761,7 @@ export const getProductByFilter = async (
 
     const products = await Product.find(query)
       .populate(POPULATE_PRODUCT)
-      .select("name slug image images price discount_price stock weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material sizes")
+      .select("name slug image images price discount_price stock weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material")
       .limit(Math.min(Number(limit), 100))
       .sort("-createdAt")
       .lean();

@@ -253,7 +253,7 @@ export default function WhyChooseUsPage() {
               <SelectItem value="deleted">Deleted Only</SelectItem>
             </SelectContent>
           </Select>
-          <ExportButtons data={whyChooseUsArray as unknown as Record<string, unknown>[]} filename="whyChooseUs" />
+          <ExportButtons data={whyChooseUsArray} filename="whyChooseUs" />
           <Button
             onClick={() => {
               setEditingWhyChooseUs(null);

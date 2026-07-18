@@ -10,7 +10,7 @@ export interface FetchedProduct {
   stock: number;
   isPersonalized?: boolean;
   colors?: { _id: string; name: string; code?: string }[];
-  sizes?: { _id: string; name: string }[];
+
 }
 
 /**

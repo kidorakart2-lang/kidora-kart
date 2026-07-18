@@ -5,12 +5,12 @@ import { FileJson, FileSpreadsheet } from "lucide-react";
 import { exportToJSON, exportToCSV } from "@/lib/export-utils";
 import { useState } from "react";
 
-interface ExportButtonsProps {
-  data: Record<string, unknown>[];
+interface ExportButtonsProps<T extends object> {
+  data: T[];
   filename?: string;
 }
 
-export function ExportButtons({ data, filename = "export" }: ExportButtonsProps) {
+export function ExportButtons<T extends object>({ data, filename = "export" }: ExportButtonsProps<T>) {
   const [exporting, setExporting] = useState(false);
 
   const handleExportJSON = () => {

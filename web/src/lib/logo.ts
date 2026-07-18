@@ -3,9 +3,7 @@ import { cacheLife } from "next/cache";
 
 const FALLBACK_LOGO = "/images/logo.webp";
 
-export type LogoData = {
-  logo: string;
-};
+import type { LogoData } from "@/types";
 
 export async function getLogo(): Promise<LogoData> {
   cacheLife("navigation");

@@ -36,12 +36,6 @@ const productSchema = new Schema(
         required: [true, "Please Enter A Material"],
       },
     ],
-    sizes: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "sizes",
-      },
-    ],
     category: [
       {
         type: Schema.Types.ObjectId,

@@ -6,7 +6,7 @@ import type { Banner } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, ImageIcon, Search, X } from "lucide-react"
+import { Loader2, Search, X } from "lucide-react"
 import type { SectionConfig } from "../types"
 
 interface Props {

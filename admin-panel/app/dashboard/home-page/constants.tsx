@@ -1,4 +1,4 @@
-import React from "react"
+
 import {
   Grid3X3,
   ImageIcon,

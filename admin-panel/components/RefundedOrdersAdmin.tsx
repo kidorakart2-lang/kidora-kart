@@ -1,115 +1,19 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   AlertCircle,
   CheckCircle,
-  Clock,
-  XCircle,
   RefreshCw,
 } from "lucide-react";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { RefundOrderCard } from "@/components/refund/RefundOrderCard";
+import type { RefundOrder, CategorizedOrders, OrdersSummary } from "@/lib/types";
 
-interface OrderUser {
-  name?: string;
-  email?: string;
-}
-
-interface OrderCancellation {
-  refundStatus?: string;
-  refundAmount?: number;
-  refundId?: string;
-  refundError?: string;
-  cancelledAt?: string;
-  refundedAt?: string;
-}
-
-interface OrderPricing {
-  total?: number;
-}
-
-interface OrderPayment {
-  status?: string;
-}
-
-interface RefundOrder {
-  _id: string;
-  orderId: string;
-  userId?: OrderUser;
-  status: string;
-  payment?: OrderPayment;
-  pricing?: OrderPricing;
-  issue?: string;
-  suggestedStatus?: string;
-  cancellation?: OrderCancellation;
-}
-
-interface CategorizedOrders {
-  pending: RefundOrder[];
-  initiated: RefundOrder[];
-  completed: RefundOrder[];
-  failed: RefundOrder[];
-  mismatched: RefundOrder[];
-}
-
-interface OrdersSummary {
-  pending?: number;
-  initiated?: number;
-  completed?: number;
-  failed?: number;
-  mismatched?: number;
-}
-
-interface ApiResponse {
-  success?: boolean;
-  message?: string;
-  error?: string;
-  data?: Record<string, unknown>;
-  verified?: boolean;
-}
-
-interface VerifyResponse {
-  success?: boolean;
-  message?: string;
-  error?: string;
-  data?: {
-    razorpayStatus?: {
-      status?: string;
-      mappedStatus?: string;
-      amount?: number;
-      refundId?: string;
-    };
-  };
-}
-
-interface UpdateResponse {
-  success?: boolean;
-  message?: string;
-  data?: {
-    suggestion?: string;
-  };
-  verified?: boolean;
-}
-
-const STATUS_CONFIG: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ComponentType<{ className?: string }> }> = {
-  pending: { variant: "secondary", icon: Clock },
-  initiated: { variant: "default", icon: RefreshCw },
-  completed: { variant: "default", icon: CheckCircle },
-  failed: { variant: "destructive", icon: XCircle },
-  mismatched: { variant: "outline", icon: AlertCircle },
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  pending: "border-yellow-300 text-yellow-700 bg-yellow-50",
-  initiated: "border-blue-300 text-blue-700 bg-blue-50",
-  completed: "border-green-300 text-green-700 bg-green-50",
-  failed: "border-red-300 text-red-700 bg-red-50",
-  mismatched: "border-orange-300 text-orange-700 bg-orange-50",
-};
+const BASE_URL = "/api/admin/orders";
 
 const RefundedOrdersAdmin = () => {
   const [orders, setOrders] = useState<CategorizedOrders>({
@@ -143,8 +47,6 @@ const RefundedOrdersAdmin = () => {
     [],
   );
 
-  const BASE_URL = "/api/admin/orders";
-
   const syncAllFromRazorpay = async () => {
     const confirmed = await confirm(
       "Sync Refund Statuses",
@@ -159,7 +61,6 @@ const RefundedOrdersAdmin = () => {
         method: "POST",
         credentials: "include",
       });
-
       const text = await response.text();
       const responseData: { success?: boolean; message?: string; data?: { total?: number; updated?: number; alreadyUpToDate?: number; failed?: unknown[] } } = JSON.parse(text);
 
@@ -204,15 +105,12 @@ const RefundedOrdersAdmin = () => {
         method: "GET",
         credentials: "include",
       });
-
       const text = await response.text();
       let responseData: { success?: boolean; message?: string; data?: { categorized?: CategorizedOrders; summary?: OrdersSummary } };
       try {
         responseData = JSON.parse(text);
       } catch {
-        setError(
-          `Server returned ${response.status}: ${text.slice(0, 200)}`,
-        );
+        setError(`Server returned ${response.status}: ${text.slice(0, 200)}`);
         return;
       }
 
@@ -224,10 +122,7 @@ const RefundedOrdersAdmin = () => {
         setError(responseData.message || "Failed to fetch orders");
       }
     } catch (err: unknown) {
-      setError(
-        "Network error: " +
-          (err instanceof Error ? err.message : "Unknown error"),
-      );
+      setError("Network error: " + (err instanceof Error ? err.message : "Unknown error"));
       console.error("Error fetching refunded orders:", err);
     } finally {
       setLoading(false);
@@ -244,26 +139,17 @@ const RefundedOrdersAdmin = () => {
       const statusToUse = suggestedStatus || _newStatus || "completed";
       setUpdating((prev) => ({ ...prev, [orderId]: true }));
 
-      const verifyResponse = await fetch(
-        `${BASE_URL}/admin/refund/verify/${orderId}`,
-        {
-          method: "GET",
-          credentials: "include",
-        },
-      );
-
+      const verifyResponse = await fetch(`${BASE_URL}/admin/refund/verify/${orderId}`, {
+        method: "GET",
+        credentials: "include",
+      });
       const verifyText = await verifyResponse.text();
       let verifyResult: {
         success?: boolean;
         error?: string;
         message?: string;
         data?: {
-          razorpayStatus?: {
-            status?: string;
-            mappedStatus?: string;
-            amount?: number;
-            refundId?: string;
-          };
+          razorpayStatus?: { status?: string; mappedStatus?: string; amount?: number; refundId?: string };
         };
       };
       try {
@@ -281,25 +167,22 @@ const RefundedOrdersAdmin = () => {
       if (!verifyResult.success) {
         const skipVerification = await confirm(
           "Razorpay Verification Failed",
-          `Unable to verify with Razorpay:\n${verifyResult.error || verifyResult.message}\n\n` +
-            `Do you want to proceed WITHOUT Razorpay verification?`,
+          `Unable to verify with Razorpay:\n${verifyResult.error || verifyResult.message}\n\nDo you want to proceed WITHOUT Razorpay verification?`,
           "Skip Verification",
         );
-
         if (!skipVerification) {
           setUpdating((prev) => ({ ...prev, [orderId]: false }));
           return;
         }
-
         return await updateRefundStatusDirectly(orderId, statusToUse, order, true);
       }
 
       const razorpayStatus = verifyResult.data?.razorpayStatus ?? {};
-
-      let confirmDescription = `Current DB Status: ${order?.cancellation?.refundStatus || "Unknown"}\n`;
-      confirmDescription += `Razorpay Status: ${razorpayStatus.status} (${razorpayStatus.mappedStatus})\n`;
-      confirmDescription += `Refund Amount: ₹${razorpayStatus.amount}\n`;
-      confirmDescription += `Refund ID: ${razorpayStatus.refundId}\n\n`;
+      let confirmDescription =
+        `Current DB Status: ${order?.cancellation?.refundStatus || "Unknown"}\n` +
+        `Razorpay Status: ${razorpayStatus.status} (${razorpayStatus.mappedStatus})\n` +
+        `Refund Amount: ₹${razorpayStatus.amount}\n` +
+        `Refund ID: ${razorpayStatus.refundId}\n\n`;
 
       let confirmTitle = "Razorpay Verification Results";
       let confirmText = `Update to ${statusToUse}`;
@@ -307,20 +190,19 @@ const RefundedOrdersAdmin = () => {
       if (razorpayStatus.mappedStatus !== statusToUse) {
         confirmTitle += " — Status Mismatch!";
         confirmText = `Proceed anyway to ${statusToUse}`;
-        confirmDescription += `WARNING: You're trying to update to "${statusToUse}" but Razorpay shows "${razorpayStatus.mappedStatus}"!\n\n`;
-        confirmDescription += `Recommended: Update to "${razorpayStatus.mappedStatus}" instead.\n\n`;
-        confirmDescription += `Do you want to proceed with "${statusToUse}" anyway?`;
+        confirmDescription +=
+          `WARNING: You're trying to update to "${statusToUse}" but Razorpay shows "${razorpayStatus.mappedStatus}"!\n\n` +
+          `Recommended: Update to "${razorpayStatus.mappedStatus}" instead.\n\n` +
+          `Do you want to proceed with "${statusToUse}" anyway?`;
       } else {
         confirmDescription += `Status matches Razorpay records. Proceed with updating?`;
       }
 
       const isConfirmed = await confirm(confirmTitle, confirmDescription, confirmText);
-
       if (!isConfirmed) {
         setUpdating((prev) => ({ ...prev, [orderId]: false }));
         return;
       }
-
       await updateRefundStatusDirectly(orderId, statusToUse, order, false);
     } catch (err: unknown) {
       toast({
@@ -343,23 +225,15 @@ const RefundedOrdersAdmin = () => {
       const response = await fetch(`${BASE_URL}/admin/refund/${orderId}`, {
         method: "PATCH",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           refundStatus: statusToUse,
-          skipVerification: skipVerification,
+          skipVerification,
           notes: `Status updated from admin panel to ${statusToUse}${skipVerification ? " (without Razorpay verification)" : ""}`,
         }),
       });
-
       const patchText = await response.text();
-      let updateResult: {
-        success?: boolean;
-        verified?: boolean;
-        message?: string;
-        data?: { suggestion?: string };
-      };
+      let updateResult: { success?: boolean; verified?: boolean; message?: string; data?: { suggestion?: string } };
       try {
         updateResult = JSON.parse(patchText);
       } catch {
@@ -397,150 +271,8 @@ const RefundedOrdersAdmin = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
-    const colors = STATUS_COLORS[status] || STATUS_COLORS.pending;
-    const Icon = config.icon;
-
-    return (
-      <Badge variant={config.variant} className={colors}>
-        <Icon className="w-3.5 h-3.5" />
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </Badge>
-    );
-  };
-
-  const OrderCard = ({
-    order,
-    showUpdateButton = false,
-  }: {
-    order: RefundOrder;
-    showUpdateButton?: boolean;
-  }) => {
-    const isUpdating = updating[order._id] || updating[order.orderId];
-
-    return (
-      <Card className="shadow-sm hover:shadow-md transition-shadow">
-        <CardContent className="p-4">
-          <div className="flex justify-between items-start mb-3">
-            <div>
-              <h3 className="font-semibold text-lg text-foreground">
-                {order.orderId}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Customer: {order.userId?.name || "N/A"} ({order.userId?.email})
-              </p>
-            </div>
-            {getStatusBadge(order.cancellation?.refundStatus ?? "pending")}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 text-sm mb-3">
-            <div>
-              <span className="text-muted-foreground">Order Status:</span>
-              <span className="ml-2 font-medium">{order.status}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Payment Status:</span>
-              <span className="ml-2 font-medium">
-                {order.payment?.status}
-              </span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Refund Amount:</span>
-              <span className="ml-2 font-medium">
-                ₹
-                {order.cancellation?.refundAmount ||
-                  order.pricing?.total ||
-                  0}
-              </span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Refund ID:</span>
-              <span className="ml-2 font-medium text-xs">
-                {order.cancellation?.refundId || "N/A"}
-              </span>
-            </div>
-          </div>
-
-          {order.issue && (
-            <div className="bg-orange-50 border border-orange-200 rounded p-3 mb-3">
-              <p className="text-sm text-orange-800">
-                <AlertCircle className="w-4 h-4 inline mr-1" />
-                <strong>Issue:</strong> {order.issue}
-              </p>
-              {order.suggestedStatus && (
-                <p className="text-sm text-orange-700 mt-1">
-                  <strong>Suggested:</strong> Update to &quot;
-                  {order.suggestedStatus}&quot;
-                </p>
-              )}
-            </div>
-          )}
-
-          {order.cancellation?.refundError && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded p-2 mb-3">
-              <p className="text-xs text-destructive">
-                <strong>Error:</strong> {order.cancellation.refundError}
-              </p>
-            </div>
-          )}
-
-          <div className="text-xs text-muted-foreground mb-3">
-            {order.cancellation?.cancelledAt && (
-              <div>
-                Cancelled:{" "}
-                {new Date(order.cancellation.cancelledAt).toLocaleString()}
-              </div>
-            )}
-            {order.cancellation?.refundedAt && (
-              <div>
-                Refunded:{" "}
-                {new Date(order.cancellation.refundedAt).toLocaleString()}
-              </div>
-            )}
-          </div>
-
-          {showUpdateButton && (
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-2">
-                {order.suggestedStatus ? (
-                  <Button
-                    onClick={() =>
-                      verifyAndUpdateRefundStatus(
-                        order._id,
-                        null,
-                        order.suggestedStatus,
-                        order,
-                      )
-                    }
-                    disabled={isUpdating}
-                    className="flex-1"
-                    variant="outline"
-                  >
-                    {isUpdating
-                      ? "Updating..."
-                      : `Update to ${order.suggestedStatus}`}
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() =>
-                      verifyAndUpdateRefundStatus(order._id, "completed", null, order)
-                    }
-                    disabled={isUpdating}
-                    className="flex-1"
-                  >
-                    {isUpdating ? "..." : "Mark Completed"}
-                  </Button>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground text-center">
-                Verified with Razorpay
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
+  const handleUpdateStatus = (order: RefundOrder, suggested?: string | null) => {
+    verifyAndUpdateRefundStatus(order._id, null, suggested ?? null, order);
   };
 
   if (loading) {
@@ -557,13 +289,7 @@ const RefundedOrdersAdmin = () => {
       <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 m-4">
         <AlertCircle className="w-6 h-6 text-destructive inline mr-2" />
         <span className="text-destructive">{error}</span>
-        <Button
-          variant="link"
-          onClick={fetchRefundedOrders}
-          className="ml-4"
-        >
-          Retry
-        </Button>
+        <Button variant="link" onClick={fetchRefundedOrders} className="ml-4">Retry</Button>
       </div>
     );
   }
@@ -574,23 +300,14 @@ const RefundedOrdersAdmin = () => {
     <div className="p-6 bg-muted/50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-foreground">
-            Refunded Orders Management
-          </h1>
+          <h1 className="text-3xl font-bold text-foreground">Refunded Orders Management</h1>
           <div className="flex gap-2">
-            <Button
-              onClick={syncAllFromRazorpay}
-              disabled={syncing}
-              variant="secondary"
-            >
-              <RefreshCw
-                className={`w-4 h-4 mr-2 ${syncing ? "animate-spin" : ""}`}
-              />
+            <Button onClick={syncAllFromRazorpay} disabled={syncing} variant="secondary">
+              <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
               {syncing ? "Syncing..." : "Sync from Razorpay"}
             </Button>
             <Button onClick={fetchRefundedOrders}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
+              <RefreshCw className="w-4 h-4 mr-2" />Refresh
             </Button>
           </div>
         </div>
@@ -607,9 +324,7 @@ const RefundedOrdersAdmin = () => {
               <TabsTrigger key={tab.key} value={tab.key} className="gap-1.5">
                 {tab.label}
                 {(tab.count ?? 0) > 0 && (
-                  <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
-                    {tab.count}
-                  </Badge>
+                  <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">{tab.count}</Badge>
                 )}
               </TabsTrigger>
             ))}
@@ -620,22 +335,18 @@ const RefundedOrdersAdmin = () => {
           <Card className="shadow-sm">
             <CardContent className="p-12 text-center">
               <CheckCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground text-lg">
-                No {activeTab} orders found
-              </p>
+              <p className="text-muted-foreground text-lg">No {activeTab} orders found</p>
             </CardContent>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {currentOrders.map((order: RefundOrder) => (
-              <OrderCard
+              <RefundOrderCard
                 key={order._id}
                 order={order}
-                showUpdateButton={
-                  activeTab === "mismatched" ||
-                  activeTab === "pending" ||
-                  activeTab === "initiated"
-                }
+                showUpdateButton={activeTab === "mismatched" || activeTab === "pending" || activeTab === "initiated"}
+                isUpdating={updating[order._id] || updating[order.orderId]}
+                onUpdateStatus={handleUpdateStatus}
               />
             ))}
           </div>

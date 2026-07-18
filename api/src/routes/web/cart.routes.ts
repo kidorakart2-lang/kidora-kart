@@ -13,7 +13,6 @@
  *         productId: { type: string }
  *         quantity: { type: integer, minimum: 1, default: 1 }
  *         colorId: { type: string }
- *         sizeId: { type: string }
  *     UpdateCartItemInput:
  *       type: object
  *       required: [quantity]

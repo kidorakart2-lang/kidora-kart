@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Loader2, ImageIcon, Search } from "lucide-react"
+import { Loader2, Search } from "lucide-react"
 import type { SectionConfig, BentoCell } from "../types"
 import { BENTO_LAYOUTS, BENTO_SOURCE_TYPES, EMPTY_CELL } from "../constants"
 

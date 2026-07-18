@@ -2,7 +2,6 @@ export interface CartSyncItem {
   productId: string;
   quantity: number;
   colorId: string | null;
-  sizeId: string | null;
 }
 
 export interface WishlistSyncItem {
@@ -20,7 +19,6 @@ export interface CartItem {
   slug: string | null;
   quantity: number;
   colorId: string | null;
-  sizeId: string | null;
   isGuest?: boolean;
 }
 

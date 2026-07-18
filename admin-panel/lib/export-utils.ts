@@ -28,7 +28,7 @@ export function exportToJSON(data: unknown, filename = "export.json"): void {
  * @param data - Array of row objects
  * @param filename - The output filename (default: "export.csv")
  */
-export function exportToCSV(data: ExportRow[], filename = "export.csv"): void {
+export function exportToCSV<T extends object>(data: T[], filename = "export.csv"): void {
   if (!data || data.length === 0) return;
 
   const headers = Object.keys(data[0] ?? {});
@@ -38,7 +38,7 @@ export function exportToCSV(data: ExportRow[], filename = "export.csv"): void {
 
   for (const row of data) {
     const values = headers.map((header) => {
-      const value = row[header];
+      const value = (row as ExportRow)[header];
       const escaped = ("" + value).replace(/"/g, '\\"');
       return `"${escaped}"`;
     });

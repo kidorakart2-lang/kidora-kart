@@ -58,9 +58,7 @@ export function ThemeSwitcher() {
     );
   }
 
-  const current = themes.find((t) => t.name === theme) ?? themes[0];
-
-  return (
+    return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button

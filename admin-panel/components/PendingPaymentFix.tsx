@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,20 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle, RefreshCcw, AlertTriangle } from "lucide-react";
 import { api, ApiClientError } from "@/lib/api";
-
-interface MismatchedOrder {
-  orderId: string;
-  razorpay: {
-    paymentId: string;
-    amount: string;
-    status: string;
-    createdAt: string;
-  };
-  user?: {
-    name?: string;
-    email?: string;
-  };
-}
+import type { MismatchedOrder } from "@/lib/types";
 
 export default function PendingPaymentFix() {
   const [loading, setLoading] = useState(false);

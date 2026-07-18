@@ -10,12 +10,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/lib/toast";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { api, ApiClientError } from "@/lib/api";
+import { api } from "@/lib/api";
 
 interface StarRatingProps {
   rating: number;

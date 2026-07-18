@@ -17,7 +17,6 @@ import RequirementModal from "@/components/comman/RequirementModal";
 import LoginModal from "@/components/comman/LoginModal";
 import PhoneNumberModal from "@/components/comman/PhoneNumberModal";
 import CookieConsent from "@/components/comman/CookieConsent";
-import AxeAccessibility from "@/components/comman/AxeAccessibility";
 import ThemeColorMeta from "@/components/comman/ThemeColorMeta";
 import dynamic from "next/dynamic";
 
@@ -228,7 +227,7 @@ export default async function RootLayout({
         <meta name="msapplication-TileColor" content={siteConfig.themeColor} />
       </head>
       <body
-        className={`pt-0 !mr-0 bg-background brown   antialiased flex flex-col ${lato.variable} pb-12 md:pb-0`}
+        className={`pt-0 !mr-0 bg-background    antialiased flex flex-col ${lato.variable} pb-12 md:pb-0`}
       >
         <ThemeColorMeta />
         <Suspense>
@@ -243,7 +242,6 @@ export default async function RootLayout({
           <RequirementModal />
           <PhoneNumberModal />
           <CookieConsent />
-          <AxeAccessibility />
           <DevThemeToggle />
           </MotionProvider>
         </Client>

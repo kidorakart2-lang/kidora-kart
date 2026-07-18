@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
@@ -15,7 +14,6 @@ import {
   TableRow,
   TableFooter,
 } from "@/components/ui/table";
-import { Separator } from "@/components/ui/separator";
 import { ShoppingCart, Package, Star, Heart, ShoppingCartIcon } from "lucide-react";
 
 export default function page() {
@@ -164,7 +162,7 @@ export default function page() {
                             <TableCell>
                               <div className="flex items-center">
                                 <Image
-                                  src={item.product?.images[0] || ""}
+                                  src={item.product?.image || ""}
                                   alt={item.product?.name || ""}
                                   width={50}
                                   height={50}
@@ -403,7 +401,7 @@ export default function page() {
                       >
                         <div className="w-20 h-20 flex-shrink-0">
                           <img
-                            src={product.images[0] || "/placeholder-product.jpg"}
+                            src={product.image || "/placeholder-product.jpg"}
                             alt={product.name}
                             className="w-full h-full object-cover rounded"
                           />

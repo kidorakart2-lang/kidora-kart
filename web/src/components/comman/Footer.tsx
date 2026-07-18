@@ -4,7 +4,6 @@ import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import {
-  Mail,
   MapPin,
   Phone,
   Award,
@@ -12,12 +11,15 @@ import {
   Truck,
   Heart,
   IndianRupee,
+  Mail,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
 import { useEffect, useState } from "react";
 import { InstagramIcon, FacebookIcon, WhatsAppIcon } from "../icons";
 import { siteConfig, getFullAddress } from "@/lib/utils";
+
+/* ── Types ──────────────────────────────────────────────────────────────── */
 
 interface FeaturedProduct {
   _id: string;
@@ -34,16 +36,45 @@ interface NavSubCategory {
 
 interface NavCategory {
   slug: string;
+  name?: string;
   subCategories?: NavSubCategory[];
 }
 
-export default function Footer({ featuredProducts: _featuredProducts }: { featuredProducts?: any[] }) {
-  // Use server-fetched featured products (from layout.tsx).
-  // The server caches this with next: { tags: ["featured-products"] }.
-  // Admin can invalidate via invalidateCache(["featured-products"]).
-  const [featuredProducts, setFeaturedProducts] = useState<FeaturedProduct[]>(_featuredProducts ?? []);
+/* ── Data ───────────────────────────────────────────────────────────────── */
 
-  // Fallback: fetch client-side once if no server data
+const FEATURES = [
+  { Icon: Truck, title: "Free Shipping", desc: "On orders over ₹1000" },
+  { Icon: Shield, title: "Secure Payment", desc: "100% Protected" },
+  { Icon: Award, title: "Certified Quality", desc: "Safe & Tested" },
+  { Icon: Heart, title: "Lifetime Support", desc: "24/7 Customer Care" },
+];
+
+const HELP_LINKS = [
+  { label: "Track Order", href: "/order-track" },
+  { label: "FAQ", href: "/faq" },
+  { label: "Contact Us", href: "/contact-us" },
+  { label: "Size Guide", href: "/our-policy?query=size-guide" },
+];
+
+const POLICY_LINKS = [
+  { label: "Privacy Policy", href: "/our-policy" },
+  { label: "Terms of Service", href: "/our-policy?query=terms" },
+  { label: "Refund Policy", href: "/our-policy?query=refund" },
+  { label: "Shipping Policy", href: "/our-policy?query=shipping" },
+  { label: "Warranty", href: "/our-policy?query=warranty" },
+];
+
+/* ── Component ──────────────────────────────────────────────────────────── */
+
+export default function Footer({
+  featuredProducts: _featuredProducts,
+}: {
+  featuredProducts?: any[];
+}) {
+  const [featuredProducts, setFeaturedProducts] = useState<FeaturedProduct[]>(
+    _featuredProducts ?? [],
+  );
+
   const fetchFeaturedProducts = async () => {
     try {
       const res = await fetch(
@@ -53,7 +84,7 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
       const data = await res.json();
       setFeaturedProducts(data._data);
     } catch {
-      // ignore
+      /* ignore */
     }
   };
 
@@ -62,46 +93,35 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
       fetchFeaturedProducts();
     }
   }, [_featuredProducts]);
-  const categories = useSelector((state: RootState) => state?.ui?.navigation?._data as NavCategory[] | undefined);
+
+  const categories = useSelector(
+    (state: RootState) =>
+      state?.ui?.navigation?._data as NavCategory[] | undefined,
+  );
 
   const logo = useSelector((state: RootState) => state.logo.logo);
 
   return (
     <footer className="bg-section text-muted-foreground border-t border-border">
-      {/* Features Section */}
-      <div className="border-b border-border bg-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {[
-              {
-                Icon: Truck,
-                title: "Free Shipping",
-                desc: "On orders over  ₹1000",
-              },
-              { Icon: Shield, title: "Secure Payment", desc: "100% Protected" },
-              {
-                Icon: Award,
-                title: "Certified Quality",
-                desc: "Safe & Tested",
-              },
-              {
-                Icon: Heart,
-                title: "Lifetime Support",
-                desc: "24/7 Customer Care",
-              },
-            ].map(({ Icon, title, desc }, index) => (
+      {/* ── Features Bar ──────────────────────────────────────────────── */}
+      <div className="border-b border-border bg-[color-mix(in_srgb,var(--brand-primary)_6%,transparent)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {FEATURES.map(({ Icon, title, desc }) => (
               <div
                 key={title}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-background transition-colors duration-200"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-background/60 transition-colors duration-200"
               >
                 <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-[var(--brand-primary-light)] to-[var(--brand-gradient-from)] flex items-center justify-center">
                   <Icon className="w-5 h-5 text-[var(--brand-primary-foreground)]" />
                 </div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-sm text-foreground truncate">
+                  <p className="fw-heading text-sm text-foreground truncate">
                     {title}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">{desc}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {desc}
+                  </p>
                 </div>
               </div>
             ))}
@@ -109,27 +129,29 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
         </div>
       </div>
 
-      {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-6">
-          {/* Brand & Newsletter - Takes 2 columns on large screens */}
-          <div className="sm:col-span-2 lg:col-span-2">
-            <div className="relative group inline-block mb-4">
+      {/* ── Main Footer ───────────────────────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
+        {/* ── Top row: Brand + Categories ──────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 mb-10">
+          {/* Brand column */}
+          <div className="lg:col-span-4">
+            <Link href="/" className="inline-block mb-4">
               <Image
                 src={logo || "/images/logo.webp"}
-                alt="Logo"
-                width={100}
-                height={100}
+                alt={siteConfig.name}
+                width={120}
+                height={40}
+                className="h-10 w-auto"
               />
-            </div>
-            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+            </Link>
+            <p className="text-sm text-muted-foreground mb-5 max-w-sm leading-relaxed">
               Discover endless fun with our exciting collection of toys and
-              games. Subscribe to get exclusive offers and new
-              arrivals.
+              games. Shop with confidence — every order is backed by our
+              quality promise.
             </p>
 
-            {/* Social Media */}
-            <div className="flex gap-2">
+            {/* Social */}
+            <div className="flex gap-2 mb-6">
               {[
                 {
                   Icon: InstagramIcon,
@@ -143,7 +165,7 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
                 },
                 {
                   Icon: WhatsAppIcon,
-                  label: "Whatsapp",
+                  label: "WhatsApp",
                   href: `https://wa.me/${siteConfig.contact.whatsapp}`,
                 },
               ].map(({ Icon, label, href }) => (
@@ -165,46 +187,104 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
                 </Button>
               ))}
             </div>
-          </div>
 
-          {/* Shop Categories */}
-          <div className="sm:col-span-1 lg:col-span-1">
-            <h3 className="font-bold text-base mb-4 text-foreground uppercase tracking-wide border-b-2 border-[var(--brand-primary)] pb-2 inline-block">
-              Shop
-            </h3>
-            <ul className="space-y-2.5 text-sm">
-              {categories?.map((item: NavCategory) =>
-                item.subCategories?.slice(0, 10)?.map((subCategory: NavSubCategory) => (
-                  <li key={subCategory.name}>
+            {/* Featured Products */}
+            {featuredProducts.length > 0 && (
+              <div>
+                <h4 className="fw-heading text-sm text-foreground mb-3 uppercase tracking-wider">
+                  Featured Products
+                </h4>
+                <div className="space-y-2.5">
+                  {featuredProducts.map((product: FeaturedProduct) => (
                     <Link
-                      href={`/category/${item.slug}/${subCategory.slug}`}
-                      className="text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:translate-x-1 inline-block transition-all duration-200"
+                      key={product._id}
+                      href={`/product-details/${product.slug}`}
+                      className="flex items-center gap-3 p-2 rounded-lg border border-border hover:border-[var(--brand-primary)] transition-all duration-200 group bg-background/40"
                     >
-                      {subCategory.name}
+                      <div className="relative w-14 h-14 flex-shrink-0 rounded-md overflow-hidden bg-muted">
+                        <Image
+                          src={product.image}
+                          alt={product.name}
+                          fill
+                          sizes="56px"
+                          className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h5 className="fw-body text-sm text-foreground truncate group-hover:text-[var(--brand-primary-dark)] transition-colors">
+                          {product.name}
+                        </h5>
+                        <p className="text-sm fw-body text-[var(--brand-primary-dark)] flex items-center">
+                          <IndianRupee size={12} /> {product.discount_price}
+                        </p>
+                      </div>
                     </Link>
-                  </li>
-                ))
-              )}
-            </ul>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Customer Service */}
-          <div className="sm:col-span-1 lg:col-span-1">
-            <h3 className="font-bold text-base mb-4 text-foreground uppercase tracking-wide border-b-2 border-[var(--brand-primary)] pb-2 inline-block">
+          {/* ── Categories column ──────────────────────────────────────── */}
+          <div className="lg:col-span-8">
+            <h3 className="fw-heading text-sm text-foreground uppercase tracking-widest mb-6 border-b-2 border-[var(--brand-primary)] pb-2 inline-block">
+              Shop by Category
+            </h3>
+
+            {categories && categories.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-7">
+                {categories.map((cat: NavCategory) => (
+                  <div key={cat.slug}>
+                    {/* Category heading */}
+                    <Link
+                      href={`/category/${cat.slug}`}
+                      className="fw-heading text-sm text-foreground hover:text-[var(--brand-primary-dark)] transition-colors inline-flex items-center gap-1 mb-2"
+                    >
+                      {cat.name || cat.slug}
+                    </Link>
+
+                    {/* Subcategory list */}
+                    {cat.subCategories && cat.subCategories.length > 0 && (
+                      <ul className="space-y-1.5 mt-1">
+                        {cat.subCategories.map((sub: NavSubCategory) => (
+                          <li key={sub.slug}>
+                            <Link
+                              href={`/category/${cat.slug}/${sub.slug}`}
+                              className="text-sm text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:pl-1 inline-block transition-all duration-200"
+                            >
+                              {sub.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Categories loading...
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* ── Divider ─────────────────────────────────────────────────── */}
+        <div className="border-t border-border" />
+
+        {/* ── Bottom row: Help + Policies + Contact ────────────────────── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 pt-8">
+          {/* Help */}
+          <div className="sm:col-span-1 lg:col-span-3">
+            <h4 className="fw-heading text-sm text-foreground uppercase tracking-widest mb-4">
               Help
-            </h3>
+            </h4>
             <ul className="space-y-2.5 text-sm">
-              {[
-                { label: "Track Order", href: "/order-track" },
-                { label: "Our Story", href: "/story" },
-                { label: "FAQ", href: "/faq" },
-                { label: "Contact Us", href: "/contact-us" },
-                { label: "About Us", href: "/about" },
-              ].map((link) => (
+              {HELP_LINKS.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:translate-x-1 inline-block transition-all duration-200"
+                    className="text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:pl-1 inline-block transition-all duration-200"
                   >
                     {link.label}
                   </Link>
@@ -213,33 +293,17 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
             </ul>
           </div>
 
-          {/* Policies & Info */}
-          <div className="sm:col-span-1 lg:col-span-1">
-            <h3 className="font-bold text-base mb-4 text-foreground uppercase tracking-wide border-b-2 border-[var(--brand-primary)] pb-2 inline-block">
+          {/* Policies */}
+          <div className="sm:col-span-1 lg:col-span-3">
+            <h4 className="fw-heading text-sm text-foreground uppercase tracking-widest mb-4">
               Policies
-            </h3>
+            </h4>
             <ul className="space-y-2.5 text-sm">
-              {[
-                { label: "Privacy Policy", href: "/our-policy" },
-                { label: "Terms of Service", href: "/our-policy?query=terms" },
-                { label: "Refund Policy", href: "/our-policy?query=refund" },
-                {
-                  label: "Shipping Policy",
-                  href: "/our-policy?query=shipping",
-                },
-                {
-                  label: "Size Guide",
-                  href: "/our-policy?query=size-guide",
-                },
-                {
-                  label: "Warranty",
-                  href: "/our-policy?query=warranty",
-                },
-              ].map((link) => (
+              {POLICY_LINKS.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:translate-x-1 inline-block transition-all duration-200"
+                    className="text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:pl-1 inline-block transition-all duration-200"
                   >
                     {link.label}
                   </Link>
@@ -248,13 +312,13 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
             </ul>
           </div>
 
-          {/* Contact & Featured Products */}
-          <div className="sm:col-span-2 lg:col-span-1">
-            <h3 className="font-bold text-base mb-4 text-foreground uppercase tracking-wide border-b-2 border-[var(--brand-primary)] pb-2 inline-block">
-              Contact
-            </h3>
-            <ul className="space-y-3 text-sm text-muted-foreground mb-6">
-              <li className="flex items-start gap-2">
+          {/* Contact */}
+          <div className="sm:col-span-2 lg:col-span-6">
+            <h4 className="fw-heading text-sm text-foreground uppercase tracking-widest mb-4">
+              Get in Touch
+            </h4>
+            <ul className="space-y-3 text-sm text-muted-foreground">
+              <li className="flex items-start gap-3">
                 <Phone className="w-4 h-4 mt-0.5 flex-shrink-0 text-[var(--brand-primary-dark)]" />
                 <a
                   href={`tel:${siteConfig.contact.phone}`}
@@ -263,8 +327,8 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
                   {siteConfig.contact.mobile}
                 </a>
               </li>
-              <li className="flex items-start gap-2">
-                <WhatsAppIcon className="w-4 h-4 mt-0.5 flex-shrink-0 text-[var(--brand-primary-dark)]" />
+              <li className="flex items-start gap-3">
+                <Mail className="w-4 h-4 mt-0.5 flex-shrink-0 text-[var(--brand-primary-dark)]" />
                 <a
                   href={`mailto:${siteConfig.contact.email}`}
                   className="hover:text-[var(--brand-primary-dark)] transition-colors break-all"
@@ -272,79 +336,42 @@ export default function Footer({ featuredProducts: _featuredProducts }: { featur
                   {siteConfig.contact.email}
                 </a>
               </li>
-              <li className="flex items-start gap-2">
+              <li className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-[var(--brand-primary-dark)]" />
                 <a
                   href={siteConfig.address.googleMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="leading-relaxed"
+                  className="leading-relaxed hover:text-[var(--brand-primary-dark)] transition-colors"
                 >
                   {getFullAddress()}
                 </a>
               </li>
             </ul>
-
-            {/* Featured Products */}
-            {featuredProducts.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-semibold text-sm text-foreground mb-3">
-                  Featured Products
-                </h4>
-                {featuredProducts.map((product: FeaturedProduct) => (
-                  <Link
-                    key={product._id}
-                    href={`/product-details/${product.slug}`}
-                    className="flex items-center gap-3 p-2 rounded-lg border border-border hover:border-[var(--brand-primary)] transition-all duration-200 group bg-background"
-                  >
-                    <div className="relative w-16 h-16 flex-shrink-0 rounded-md overflow-hidden bg-muted">
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h5 className="font-medium text-sm text-foreground truncate group-hover:text-[var(--brand-primary-dark)] transition-colors">
-                        {product.name}
-                      </h5>
-                      <p className="text-sm font-bold text-[var(--brand-primary-dark)] flex items-center">
-                        <IndianRupee size={12} /> {product.discount_price}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Payment Methods Section */}
+      {/* ── Copyright Bar ─────────────────────────────────────────────── */}
       <div className="border-t border-border bg-section-subtle">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className="text-xs text-muted-foreground text-center ">
-            © {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
-          </p>
-        </div>
-      </div>
-
-      {/* Designed by */}
-      <div className="border-t border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 text-center">
-          <p className="text-xs text-muted-foreground">
-            Designed by{" "}
-            <a
-              href="https://my-portfolio-nine-eta-bo1n0vx4mt.vercel.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline underline-offset-2 hover:text-foreground transition-colors"
-            >
-              Gaurav Dadhich
-            </a>
-          </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+            <p>
+              © {new Date().getFullYear()} {siteConfig.name}. All rights
+              reserved.
+            </p>
+            <p>
+              Made by{" "}
+              <a
+                href="https://my-portfolio-nine-eta-bo1n0vx4mt.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-foreground transition-colors"
+              >
+                Gaurav Dadhich
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </footer>

@@ -13,25 +13,25 @@ const PopularToys = () => {
       id: 1,
       title: "Action Heroes",
       subtitle: "Adventure",
-      img: "/images/bridal-chokar.jpg",
+      img: "/images/action-heroes.jpg",
     },
     {
       id: 2,
       title: "Building Blocks",
       subtitle: "Creative",
-      img: "/images/bangles.jpg",
+      img: "/images/building-blocks.jpg",
     },
     {
       id: 3,
       title: "Board Games",
       subtitle: "Fun",
-      img: "/images/earring.jpg",
+      img: "/images/board-games.jpg",
     },
     {
       id: 4,
       title: "Soft Toys",
       subtitle: "Cuddly",
-      img: "/images/ring.jpg",
+      img: "/images/soft-toys.jpg",
     },
   ];
 

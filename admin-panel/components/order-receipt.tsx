@@ -3,38 +3,9 @@ import { Button } from "@/components/ui/button";
 import { X, Printer, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import type { OrderAddress, OrderItem, OrderPricing } from "@/lib/types";
 
-interface OrderAddress {
-  fullName?: string;
-  street?: string;
-  area?: string;
-  city?: string;
-  state?: string;
-  pincode?: string;
-  country?: string;
-  phone?: string;
-  email?: string;
-}
-
-interface OrderItem {
-  name: string;
-  images?: string[];
-  quantity: number;
-  priceAtPurchase: number;
-  colorId?: { name?: string; _id?: string };
-  sizeId?: { name?: string; _id?: string };
-  isPersonalized?: boolean;
-  personalizedName?: string;
-}
-
-interface OrderPricing {
-  subtotal?: number;
-  discount?: { amount?: number };
-  shipping?: number;
-  total?: number;
-}
-
-interface Order {
+interface OrderReceiptOrder {
   orderId: string;
   packageId?: string;
   createdAt: string;
@@ -61,18 +32,8 @@ interface Order {
 interface OrderReceiptProps {
   isOpen: boolean;
   onClose: () => void;
-  order: Order | null;
+  order: OrderReceiptOrder | null;
 }
-
-const formatDate = (dateString: string) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-};
 
 const formatDateTime = (dateString: string) => {
   if (!dateString) return "";
@@ -261,11 +222,6 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
                                   Color: {item.colorId.name}
                                 </p>
                               )}
-                            {item.sizeId && (
-                              <p className="text-xs text-muted-foreground">
-                                Size: {item.sizeId.name}
-                              </p>
-                            )}
                             {item.isPersonalized && item.personalizedName && (
                               <p className="text-xs text-muted-foreground">
                                 Personalized: {item.personalizedName}

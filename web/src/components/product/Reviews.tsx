@@ -1,4 +1,3 @@
-import React from "react";
 import Image from "next/image";
 import { Star } from "lucide-react";
 const reviews = [
@@ -8,7 +7,7 @@ const reviews = [
     rating: 5,
     date: "1 month ago",
     comment:
-      "Absolutely stunning pendant! The craftsmanship is impeccable, and it looks even more beautiful in person.",
+      "Absolutely love this toy! The quality is fantastic, and it looks even more fun in person.",
     avatar: "/images/image1.jpg",
   },
   {
@@ -17,7 +16,7 @@ const reviews = [
     rating: 4,
     date: "2 months ago",
     comment:
-      "Lovely pendant, perfect for everyday wear. The diamond sparkles beautifully, though I wish it came with a longer chain.",
+      "Great toy, perfect for hours of play. The colors are vibrant and my kids absolutely love it!",
     avatar: "/images/image2.jpg",
   },
 ];

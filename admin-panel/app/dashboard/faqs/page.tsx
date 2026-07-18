@@ -164,7 +164,7 @@ export default function FAQsPage() {
               <SelectItem value="deleted">Deleted Only</SelectItem>
             </SelectContent>
           </Select>
-          <ExportButtons data={faqs as unknown as Record<string, unknown>[]} filename="faqs" />
+          <ExportButtons data={faqs} filename="faqs" />
           <Button
             onClick={() => {
               setEditingFaq(null)

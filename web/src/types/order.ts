@@ -11,7 +11,7 @@ export interface OrderItem {
   quantity: number;
   priceAtPurchase: number;
   colorId: { code: string; name: string };
-  sizeId?: { name: string };
+
   isPersonalized: boolean;
   personalizedName?: string;
 }
@@ -58,6 +58,7 @@ export interface OrderNotes {
 }
 
 export interface OrderData {
+  _id?: string;
   status: string;
   orderId: string;
   createdAt: string;

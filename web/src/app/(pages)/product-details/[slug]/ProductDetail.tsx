@@ -1,17 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import {
-  Star,
-  Heart,
-  ShoppingCart,
-  Truck,
-  ShoppingBag,
-  AlertCircle,
-  Package,
-  Check,
-  Gem,
-  Award,
-} from "lucide-react";
+import { Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 
@@ -22,140 +11,25 @@ import { useDispatch } from "react-redux";
 import { addToCart, setBuyNowItem } from "@/redux/features/cart";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
-import { openLoginModal } from "@/redux/features/uiSlice";
 import { useIsMobile } from "@/hooks/use-mobile";
 import RelatedProducts from "@/components/product/RelatedProducts";
-import { useProductFaqs } from "@/lib/useProductFaqs";
 import Breadcrumb from "./Breadcrumb";
 import Personalized from "@/components/product/Personalized";
 import { addToWishlist, removeFromWishlist } from "@/redux/features/wishlist";
 import type { RootState } from "@/redux/store/store";
 import type { ColorItem } from "@/types";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
-interface FaqSet {
-  _id: string;
-  entries: { question: string; answer: string; order: number }[];
-}
+import ProductFaqSection from "@/components/product/ProductFaqSection";
+import ProductSpecifications from "@/components/product/ProductSpecifications";
+import ColorPicker from "@/components/product/ColorPicker";
+import QuantitySelector from "@/components/product/QuantitySelector";
+import ActionButtons from "@/components/product/ActionButtons";
+import ProductNotFound from "@/components/product/ProductNotFound";
 
-function ProductFaqSection({ productId }: { productId: string }) {
-  const { data: faqSetsData = [] } = useProductFaqs(productId);
-  const faqSets = faqSetsData as FaqSet[];
-
-  // Flatten all entries from all sets, deduplicate by question text
-  const seen = new Set<string>();
-  const allEntries = faqSets
-    .flatMap((set) => set.entries)
-    .sort((a, b) => a.order - b.order)
-    .filter((entry) => {
-      if (seen.has(entry.question)) return false;
-      seen.add(entry.question);
-      return true;
-    });
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: allEntries.map((e) => ({
-      "@type": "Question",
-      name: e.question,
-      acceptedAnswer: { "@type": "Answer", text: e.answer },
-    })),
-  };
-
-  if (allEntries.length === 0) return null;
-
-  return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
-      className="mb-12"
-    >
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <div className="bg-background/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-12 border border-white/80">
-        <h2 className="text-3xl font-light text-foreground tracking-tight mb-8">
-          Frequently Asked Questions
-        </h2>
-        <Accordion type="single" collapsible className="space-y-3">
-          {allEntries.map((entry, i) => (
-            <AccordionItem
-              key={i}
-              value={`faq-${i}`}
-              className="border border-border rounded-lg overflow-hidden"
-            >
-              <AccordionTrigger className="px-5 py-4 text-foreground font-[450] text-base hover:bg-brand-50 hover:no-underline transition-colors data-[state=open]:bg-brand-50">
-                {entry.question}
-              </AccordionTrigger>
-              <AccordionContent className="px-5 text-muted-foreground text-base font-[350] leading-relaxed">
-                {entry.answer}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </div>
-    </motion.section>
-  );
-}
-
-interface SizeItem {
-  _id: string;
-  name: string;
-}
-
-interface CategoryItem {
-  _id: string;
-  name: string;
-  slug?: string;
-}
-
-interface ProductDetailData {
-  _id: string;
-  name: string;
-  price: number;
-  discount_price?: number;
-  image?: string;
-  images?: string[];
-  stock: number;
-  slug: string;
-  description?: string;
-  shortDescription?: string;
-  short_description?: string;
-  rating?: number;
-  reviewCount?: number;
-  material?: { name: string }[];
-  colors?: ColorItem[];
-  sizes?: SizeItem[];
-  category?: CategoryItem[];
-  subCategory?: CategoryItem[];
-  subSubCategory?: CategoryItem[];
-  isNewArrival?: boolean;
-  isPersonalized?: boolean;
-  estimated_delivery_time?: string;
-  weight?: string;
-  length?: number;
-  height?: number;
-  breadth?: number;
-  minimumAge?: number;
-  idealAge?: number;
-  maximumAge?: number;
-  type?: string;
-  sku?: string;
-  tags?: string[];
-  videoUrl?: string;
-}
+import type { ProductData } from "@/types";
 
 interface ProductDetailsPageProps {
-  details: ProductDetailData;
+  details: ProductData;
 }
 
 export default function ProductDetailsPage({ details }: ProductDetailsPageProps) {
@@ -168,9 +42,6 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
   const [selectedColor, setSelectedColor] = useState(
     details?.colors?.[0]?._id || ""
   );
-  const [selectedSize, setSelectedSize] = useState(
-    details?.sizes?.[0]?._id || null
-  );
   const [showVideo, setShowVideo] = useState(false);
   const isMobile = useIsMobile();
 
@@ -181,53 +52,9 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
   }, [details]);
 
   if (!product || Object.keys(product).length === 0 || !product.name) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="min-h-screen flex items-center justify-center py-12 px-4 gradient-golden"
-      >
-        <div className="max-w-md w-full text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-brand-100 to-brand-200 rounded-full mb-6 shadow-lg"
-          >
-            <AlertCircle className="w-10 h-10 text-brand-600" />
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-2xl font-bold text-foreground mb-3"
-          >
-            Product Not Found
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="text-muted-foreground mb-8"
-          >
-            We couldn't find the product you're looking for. It might have been
-            removed or is temporarily unavailable.
-          </motion.p>
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => router.push("/")}
-            className="btn-gradient px-8 py-3 rounded-xl fw-cta shadow-sm transition-shadow"
-          >
-            Back to Home
-          </motion.button>
-        </div>
-      </motion.div>
-    );
+    return <ProductNotFound />;
   }
+
   const isWishlisted = useSelector((state: RootState) =>
     state?.wishlist?.wishlistItems?.find((item) => item._id === product?._id)
   );
@@ -340,7 +167,6 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
       slug: product.slug,
       quantity: quantity,
       colorId: selectedColor,
-      sizeId: selectedSize,
     };
     dispatch(setBuyNowItem(buyNowItem));
     router.push("/checkout?type=direct");
@@ -394,7 +220,6 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
     slug: product.slug,
     quantity: quantity,
     colorId: selectedColor,
-    sizeId: selectedSize,
   };
 
   const handleAddToCart = async (e: React.FormEvent) => {
@@ -541,278 +366,30 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
 
             <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mb-5" />
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="mb-7"
-            >
-              <h3 className="text-base uppercase tracking-widest text-foreground mb-3 font-[450]">
-                Specifications
-              </h3>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-6">
-                {(product.material?.length ?? 0) > 0 && (
-                  <div>
-                    <div className="text-base text-foreground mb-1 font-[350]">
-                      Material -
-                    </div>
-                    <div className="text-base text-foreground font-[350]">
-                      {product.material?.map((m) => m.name).join(", ")}
-                    </div>
-                  </div>
-                )}
-                {product.weight && (
-                  <div>
-                    <div className="text-base text-foreground mb-1 font-[350]">
-                      Weight -
-                    </div>
-                    <div className="text-base text-foreground font-[350]">
-                      {product.weight}g
-                    </div>
-                  </div>
-                )}
-                {product.sku && (
-                  <div>
-                    <div className="text-base text-foreground mb-1 font-[350]">
-                      SKU -
-                    </div>
-                    <div className="text-base text-foreground font-[350]">
-                      {product.sku}
-                    </div>
-                  </div>
-                )}
-                {product.type && (
-                  <div>
-                    <div className="text-base text-foreground mb-1 font-[350]">
-                      Type -
-                    </div>
-                    <div className="text-base text-foreground font-[350]">
-                      {product.type}
-                    </div>
-                  </div>
-                )}
-                {(product.length || product.height || product.breadth) && (
-                  <div>
-                    <div className="text-base text-foreground mb-1 font-[350]">
-                      Dimensions -
-                    </div>
-                    <div className="text-base text-foreground font-[350]">
-                      {[product.length, product.breadth, product.height].filter(Boolean).join(" × ")} cm
-                    </div>
-                  </div>
-                )}
-                {(product.minimumAge != null || product.maximumAge != null) && (
-                  <div>
-                    <div className="text-base text-foreground mb-1 font-[350]">
-                      Age Range -
-                    </div>
-                    <div className="text-base text-foreground font-[350]">
-                      {product.minimumAge != null ? product.minimumAge : "0"} - {product.maximumAge != null ? product.maximumAge : "18"} Years
-                    </div>
-                  </div>
-                )}
-                {product.idealAge != null && (
-                  <div>
-                    <div className="text-base text-foreground mb-1 font-[350]">
-                      Ideal Age -
-                    </div>
-                    <div className="text-base text-foreground font-[350]">
-                      {product.idealAge} Years
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
+            <ProductSpecifications product={product} />
 
-            {(product.colors?.length ?? 0) > 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.7 }}
-                className="mb-10"
-              >
-                <h3 className="text-base uppercase tracking-widest text-foreground mb-3 font-[450]">
-                  Color
-                </h3>
-                <div className="flex gap-3">
-                  {product.colors?.map((color) => (
-                    <motion.button
-                      key={color._id}
-                      type="button"
-                      onClick={() => setSelectedColor(color._id)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className={`relative w-12 h-12 rounded-full transition-all ${
-                        selectedColor === color._id
-                          ? "ring-2 ring-brand-600 ring-offset-2"
-                          : "ring-1 ring-gray-200"
-                      }`}
-                      aria-label={`Select color ${color.code}`}
-                    >
-                      <div
-                        className="w-full h-full rounded-full"
-                        style={{ backgroundColor: color.code }}
-                      />
-                      {selectedColor === color._id && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="absolute inset-0 flex items-center justify-center"
-                        >
-                          <div className="w-4 h-4 bg-background rounded-full flex items-center justify-center">
-                            <Check size={12} className="text-brand-600" />
-                          </div>
-                        </motion.div>
-                      )}
-                    </motion.button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+            <ColorPicker
+              colors={(product.colors ?? []) as ColorItem[]}
+              selectedColor={selectedColor}
+              onSelect={setSelectedColor}
+            />
 
-            {(product.sizes?.length ?? 0) > 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.75 }}
-                className="mb-10"
-              >
-                <h3 className="text-base uppercase tracking-widest text-foreground mb-3 font-[450]">
-                  Size
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  {product.sizes?.map((size) => (
-                    <motion.button
-                      key={size._id}
-                      type="button"
-                      onClick={() => setSelectedSize(size._id)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className={`px-4 py-2 rounded-full border fw-cta text-sm transition-all ${
-                        selectedSize === size._id
-                          ? "border-brand-600 bg-brand-50 text-brand-700"
-                          : "border-border text-muted-foreground hover:border-border"
-                      }`}
-                    >
-                      {size.name}
-                      {selectedSize === size._id && (
-                        <motion.span
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="ml-2 inline-flex"
-                        >
-                          <Check size={14} className="text-brand-600" />
-                        </motion.span>
-                      )}
-                    </motion.button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+            <QuantitySelector
+              quantity={quantity}
+              stock={product.stock || 10}
+              onIncrement={handleIncrement}
+              onDecrement={handleDecrement}
+            />
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="mb-7"
-            >
-              <h3 className="text-base uppercase tracking-widest text-foreground mb-5 font-[350]">
-                Quantity
-              </h3>
-              <div className="inline-flex items-center border border-border rounded-full overflow-hidden">
-                <motion.button
-                  type="button"
-                  onClick={handleDecrement}
-                  disabled={quantity <= 1}
-                  whileHover={{ backgroundColor: "color-mix(in srgb, var(--brand-500) 5%, transparent)" }}
-                  whileTap={{ scale: 0.95 }}
-                  className="w-10 h-10 flex items-center justify-center text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  aria-label="Decrease quantity"
-                >
-                  −
-                </motion.button>
-                <div className="w-12 h-10 flex items-center justify-center text-foreground font-light border-x border-border">
-                  {quantity}
-                </div>
-                <motion.button
-                  type="button"
-                  onClick={handleIncrement}
-                  disabled={quantity >= (product.stock || 10)}
-                  whileHover={{ backgroundColor: "color-mix(in srgb, var(--brand-500) 5%, transparent)" }}
-                  whileTap={{ scale: 0.95 }}
-                  className="w-10 h-10 flex items-center justify-center text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  aria-label="Increase quantity"
-                >
-                  +
-                </motion.button>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 }}
-              className="space-y-3 mt-auto"
-            >
-              <div className="flex gap-3">
-                <motion.button
-                  type="button"
-                  onClick={handleAddToCart}
-                  disabled={!product.stock || loading}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex-1 bg-background border border-border text-foreground py-4 px-6 rounded-full fw-cta flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:border-border transition-all text-sm uppercase tracking-wider"
-                >
-                  {loading ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                        ease: "linear",
-                      }}
-                    >
-                      <ShoppingCart size={18} />
-                    </motion.div>
-                  ) : (
-                    <>
-                      <ShoppingBag size={18} />
-                      <span>Add to Cart</span>
-                    </>
-                  )}
-                </motion.button>
-
-                <motion.button
-                  type="button"
-                  disabled={wishlistLoading}
-                  onClick={handleWishlist}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`w-14 h-14 flex items-center justify-center rounded-full border transition-all ${
-                    isWishlisted
-                      ? "text-red-500 border-red-300 bg-red-50"
-                      : "border-border hover:border-border text-muted-foreground"
-                  }`}
-                >
-                  <Heart
-                    size={20}
-                    fill={isWishlisted ? "currentColor" : "none"}
-                  />
-                </motion.button>
-              </div>
-
-              <motion.button
-                type="button"
-                onClick={handleBuyNow}
-                disabled={!product.stock}
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full btn-gradient py-4 px-6 rounded-full fw-cta flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm text-sm uppercase tracking-wider"
-              >
-                <span>Buy Now</span>
-                <ShoppingCart size={18} />
-              </motion.button>
-            </motion.div>
+            <ActionButtons
+              loading={loading}
+              wishlistLoading={wishlistLoading}
+              isWishlisted={!!isWishlisted}
+              stock={product.stock ?? 0}
+              onAddToCart={handleAddToCart}
+              onWishlist={handleWishlist}
+              onBuyNow={handleBuyNow}
+            />
 
             {product.estimated_delivery_time && (
               <motion.div
@@ -821,7 +398,9 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                 transition={{ delay: 1 }}
                 className="mt-8 flex items-center gap-3 text-base text-muted-foreground font-light"
               >
-                <Truck size={16} className="text-brand-600" />
+                <svg className="w-4 h-4 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+                </svg>
                 <span>
                   Expected delivery in {product.estimated_delivery_time}
                 </span>
@@ -838,7 +417,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
           transition={{ delay: 0.2 }}
           className="mb-12"
         >
-          <div className="bg-background/60 backdrop-blur-xl  shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-12 border border-white/80 relative overflow-hidden">
+          <div className="bg-background/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-12 border border-white/80 relative overflow-hidden">
             <motion.div
               animate={{
                 rotate: [0, 360],
@@ -861,7 +440,9 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                     ease: "easeInOut",
                   }}
                 >
-                  <Gem size={24} className="text-brand-600" strokeWidth={1.5} />
+                  <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                  </svg>
                 </motion.div>
                 <h2 className="text-3xl font-light text-foreground tracking-tight">
                   Description For The Product

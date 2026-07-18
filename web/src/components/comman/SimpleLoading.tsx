@@ -1,5 +1,3 @@
-import React from "react";
-import { Loader } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 
 export default function SimpleLoading({ type }: { type: string }) {

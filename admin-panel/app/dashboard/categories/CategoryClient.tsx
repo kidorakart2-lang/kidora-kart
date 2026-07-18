@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select";
 
 import { useToast } from "@/hooks/use-toast";
-import { api, ApiClientError } from "@/lib/api";
+import { api } from "@/lib/api";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import SingleImageUploader from "@/components/SingleImageUploader";
 import BannersSelect from "@/components/BannersSelect";
@@ -257,7 +257,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
               <SelectItem value="deleted">Deleted Only</SelectItem>
             </SelectContent>
           </Select>
-          <ExportButtons data={categories as unknown as Record<string, unknown>[]} filename="categories" />
+          <ExportButtons data={categories} filename="categories" />
           <Button
             onClick={() => {
               setEditingCategory(null);

@@ -5,13 +5,7 @@ import { motion } from "motion/react"
 import { ArrowRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-
-interface BannerLinkData {
-  type?: string
-  target?: string
-  externalUrl?: string
-  label?: string
-}
+import type { BannerLinkData } from "@/types"
 
 interface PromoBannerSectionProps {
   heading?: string
