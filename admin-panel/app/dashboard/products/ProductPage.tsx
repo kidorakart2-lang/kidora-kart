@@ -19,7 +19,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import ProductForm from "@/components/product/ProductForm";
-import { fetchColors, fetchMaterials, fetchCategories, fetchSubCategories, fetchSubSubCategories, fetchProducts, deleteProduct, changeProductStatus, saveProduct, buildProductFormData, INITIAL_FORM_STATE, isValidVideoUrl } from "@/lib/products-api";
+import { fetchColors, fetchMaterials, fetchCategories, fetchSubCategories, fetchSubSubCategories, fetchProducts, deleteProduct, changeProductStatus, saveProduct, buildProductFormData, buildUpdateFormData, INITIAL_FORM_STATE, isValidVideoUrl } from "@/lib/products-api";
 import type { Product, ProductFormData } from "@/lib/types";
 import { Plus, IndianRupee, Video } from "lucide-react";
 
@@ -31,6 +31,13 @@ export default function ProductsPage() {
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [removeImagesUrl, setRemoveImagesUrl] = useState<string[]>([]);
+  const [removeGiftImagesUrl, setRemoveGiftImagesUrl] = useState<string[]>([]);
+  // Snapshots for partial-update tracking
+  const [initialFormData, setInitialFormData] = useState<ProductFormData | null>(null);
+  const [initialSelections, setInitialSelections] = useState<{
+    category: string[]; subCategory: string[]; subSubCategory: string[];
+    colors: string[]; materials: string[];
+  } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -98,7 +105,8 @@ export default function ProductsPage() {
       setDrawerOpen(false); setEditingProduct(null);
       setSelectedCategory([]); setSelectedSubCategory([]); setSelectedSubSubCategory([]);
       setSelectedColors([]); setSelectedMaterials([]);
-      setFormData(INITIAL_FORM_STATE); setRemoveImagesUrl([]);
+      setFormData(INITIAL_FORM_STATE); setRemoveImagesUrl([]); setRemoveGiftImagesUrl([]);
+      setInitialFormData(null); setInitialSelections(null);
     },
     onError: (error: Error) => toast({ title: "Error saving product", description: error.message, variant: "destructive" }),
   });
@@ -126,14 +134,44 @@ export default function ProductsPage() {
       mainImagePreview: dp.image || "",
       additionalImagePreviews: Array.isArray(dp.images) ? [...dp.images, ...Array(5 - dp.images.length).fill("")] : ["", "", "", "", ""],
       additionalImages: Array(5).fill(null),
+      giftImagePreviews: Array.isArray(dp.giftImages) ? [...dp.giftImages, ...Array(5 - dp.giftImages.length).fill("")] : ["", "", "", "", ""],
+      giftImages: Array(5).fill(null),
     });
     const mapIds = (items: Array<{ _id: string } | string> | undefined) =>
       Array.isArray(items) ? items.map((i) => typeof i === "string" ? i : i._id).filter(Boolean) : [];
-    setSelectedCategory(mapIds(dp.category));
-    setSelectedSubCategory(mapIds(dp.subCategory));
-    setSelectedSubSubCategory(mapIds(dp.subSubCategory));
-    setSelectedColors(mapIds(dp.colors));
-    setSelectedMaterials(mapIds(dp.material));
+    const cats = mapIds(dp.category);
+    const subs = mapIds(dp.subCategory);
+    const subsubs = mapIds(dp.subSubCategory);
+    const cols = mapIds(dp.colors);
+    const mats = mapIds(dp.material);
+    setSelectedCategory(cats);
+    setSelectedSubCategory(subs);
+    setSelectedSubSubCategory(subsubs);
+    setSelectedColors(cols);
+    setSelectedMaterials(mats);
+    // Snapshot for partial-update tracking (built inline, not from stale formData state)
+    setInitialFormData({
+      name: dp.name, price: String(dp.price), stock: String(dp.stock), weight: dp.weight,
+      length: dp.length != null ? String(dp.length) : "", height: dp.height != null ? String(dp.height) : "",
+      breadth: dp.breadth != null ? String(dp.breadth) : "",
+      minimumAge: dp.minimumAge != null ? String(dp.minimumAge) : "",
+      idealAge: dp.idealAge != null ? String(dp.idealAge) : "",
+      maximumAge: dp.maximumAge != null ? String(dp.maximumAge) : "",
+      type: dp.type || "", sku: dp.sku || "", tags: [...(dp.tags || [])], videoUrl: dp.videoUrl || "",
+      code: dp.code, discount_price: String(dp.discount_price), description: dp.description,
+      shortDescription: dp.shortDescription || "",
+      estimated_delivery_time: dp.estimated_delivery_time,
+      status: typeof dp.status === "boolean" ? (dp.status ? "active" : "inactive") : (dp.status || "draft"),
+      isFeatured: dp.isFeatured ?? false, isNewArrival: dp.isNewArrival ?? false,
+      isBestSeller: dp.isBestSeller ?? false, isTopRated: dp.isTopRated ?? false,
+      isUpsell: dp.isUpsell ?? false, isOnSale: dp.isOnSale ?? false,
+      isPersonalized: dp.isPersonalized ?? false, isGift: dp.isGift ?? false,
+      order: dp.order,
+      mainImage: null, mainImagePreview: "",
+      additionalImages: Array(5).fill(null), additionalImagePreviews: ["", "", "", "", ""],
+      giftImages: Array(5).fill(null), giftImagePreviews: ["", "", "", "", ""],
+    });
+    setInitialSelections({ category: [...cats], subCategory: [...subs], subSubCategory: [...subsubs], colors: [...cols], materials: [...mats] });
     setDrawerOpen(true);
   };
 
@@ -169,7 +207,16 @@ export default function ProductsPage() {
     if (selectedColors.length === 0) { toast({ title: "Validation Error", description: "Please select at least one color", variant: "destructive" }); return; }
     if (!editingProduct && !formData.mainImage) { toast({ title: "Validation Error", description: "Please select a main image", variant: "destructive" }); return; }
 
-    const fd = buildProductFormData(formData, selectedCategory, selectedSubCategory, selectedSubSubCategory, selectedColors, selectedMaterials, removeImagesUrl);
+    const fd = editingProduct && initialFormData && initialSelections
+      ? buildUpdateFormData(
+          formData,
+          initialFormData,
+          { category: selectedCategory, subCategory: selectedSubCategory, subSubCategory: selectedSubSubCategory, colors: selectedColors, materials: selectedMaterials },
+          initialSelections,
+          removeImagesUrl,
+          removeGiftImagesUrl,
+        )
+      : buildProductFormData(formData, selectedCategory, selectedSubCategory, selectedSubSubCategory, selectedColors, selectedMaterials, removeImagesUrl, removeGiftImagesUrl);
     saveMutation.mutate({ formData: fd, editingProduct });
   };
 
@@ -177,7 +224,8 @@ export default function ProductsPage() {
     setDrawerOpen(false); setEditingProduct(null);
     setSelectedCategory([]); setSelectedSubCategory([]); setSelectedSubSubCategory([]);
     setSelectedColors([]); setSelectedMaterials([]);
-    setFormData(INITIAL_FORM_STATE); setRemoveImagesUrl([]);
+    setFormData(INITIAL_FORM_STATE); setRemoveImagesUrl([]); setRemoveGiftImagesUrl([]);
+    setInitialFormData(null); setInitialSelections(null);
   }, []);
 
   const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -192,6 +240,13 @@ export default function ProductsPage() {
     setFormData({ ...formData, additionalImages: newImages, additionalImagePreviews: newPreviews });
   };
 
+  const handleGiftImageChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    const newImages = [...formData.giftImages]; const newPreviews = [...formData.giftImagePreviews];
+    newImages[index] = file; newPreviews[index] = URL.createObjectURL(file);
+    setFormData({ ...formData, giftImages: newImages, giftImagePreviews: newPreviews });
+  };
+
   const removeMainImage = () => {
     if (formData.mainImagePreview?.startsWith("blob:")) URL.revokeObjectURL(formData.mainImagePreview);
     setFormData({ ...formData, mainImage: null, mainImagePreview: "" });
@@ -202,6 +257,13 @@ export default function ProductsPage() {
     if (newPreviews[index].startsWith("blob:")) URL.revokeObjectURL(newPreviews[index]);
     newImages[index] = null; newPreviews[index] = "";
     setFormData({ ...formData, additionalImages: newImages, additionalImagePreviews: newPreviews });
+  };
+
+  const removeGiftImage = (index: number) => {
+    const newImages = [...formData.giftImages]; const newPreviews = [...formData.giftImagePreviews];
+    if (newPreviews[index].startsWith("blob:")) URL.revokeObjectURL(newPreviews[index]);
+    newImages[index] = null; newPreviews[index] = "";
+    setFormData({ ...formData, giftImages: newImages, giftImagePreviews: newPreviews });
   };
 
   const showDetails = (item: Product) => router.push(`/dashboard/products/${item._id}`);
@@ -228,6 +290,10 @@ export default function ProductsPage() {
 
   const toggleRemoveImagesUrl = (url: string) => {
     setRemoveImagesUrl((prev) => prev.includes(url) ? prev.filter((u) => u !== url) : [...prev, url]);
+  };
+
+  const toggleRemoveGiftImagesUrl = (url: string) => {
+    setRemoveGiftImagesUrl((prev) => prev.includes(url) ? prev.filter((u) => u !== url) : [...prev, url]);
   };
 
   const columns: Column<Product>[] = [
@@ -309,11 +375,14 @@ export default function ProductsPage() {
           selectedColors={selectedColors} setSelectedColors={setSelectedColors}
           selectedMaterials={selectedMaterials} setSelectedMaterials={setSelectedMaterials}
           removeImagesUrl={removeImagesUrl} toggleRemoveImagesUrl={toggleRemoveImagesUrl}
+          removeGiftImagesUrl={removeGiftImagesUrl} toggleRemoveGiftImagesUrl={toggleRemoveGiftImagesUrl}
           categories={categories} subCategories={subCategories} subSubCategories={subSubCategories}
           colors={colors} materials={materials}
           tagLoading={tagLoading} handleAutoTag={handleAutoTag}
           handleMainImageChange={handleMainImageChange} handleAdditionalImageChange={handleAdditionalImageChange}
+          handleGiftImageChange={handleGiftImageChange}
           removeMainImage={removeMainImage} removeAdditionalImage={removeAdditionalImage}
+          removeGiftImage={removeGiftImage}
           isMobile={isMobile} isSaving={saveMutation.isPending} editingProduct={!!editingProduct}
           closeDrawer={closeDrawer} handleSubmit={handleSubmit}
         />

@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import type { Request, Response } from "express";
 import Product from "../../models/product.js";
 import Category from "../../models/category.js";
@@ -72,10 +73,36 @@ export const create = async (
         }
         updateData.images = imageUrls;
       }
+
+      if (filesObj.giftImages && filesObj.giftImages.length > 0) {
+        const giftImageUrls: string[] = [];
+        for (const file of filesObj.giftImages) {
+          const uploadResult = await uploadToR2(file, "products", 80, productName);
+          if (uploadResult.success) {
+            giftImageUrls.push(uploadResult.url);
+          }
+        }
+        updateData.giftImages = giftImageUrls;
+      }
     }
 
     const slug = await generateUniqueSlug(Product, updateData.name as string);
     updateData.slug = slug;
+
+    // ── Auto-generate code if not provided ──
+    if (!updateData.code) {
+      updateData.code = crypto.randomUUID().replace(/-/g, "").substring(0, 6).toUpperCase();
+    }
+
+    // ── Auto-generate SKU if not provided ──
+    if (!updateData.sku) {
+      const now = new Date();
+      const yymmdd = now.getFullYear().toString().slice(2) +
+        String(now.getMonth() + 1).padStart(2, "0") +
+        String(now.getDate()).padStart(2, "0");
+      const random = crypto.randomUUID().replace(/-/g, "").substring(0, 8).toUpperCase();
+      updateData.sku = `TOY-${yymmdd}-${random}`;
+    }
 
     // ── Price & discount price mutual validation ──
     if ((!updateData.price) !== (!updateData.discount_price)) {
@@ -269,7 +296,7 @@ export const view = async (
     const [total, products] = await Promise.all([
       Product.countDocuments(query),
       Product.find(query)
-        .select("name slug image images price discount_price stock status description shortDescription weight code length height breadth minimumAge idealAge maximumAge type sku tags videoUrl estimated_delivery_time isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material createdAt order")
+        .select("name slug image images giftImages price discount_price stock status description shortDescription weight code length height breadth minimumAge idealAge maximumAge type sku tags videoUrl estimated_delivery_time isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material createdAt order")
         .sort(sort as string)
         .skip(skip)
         .limit(limit)
@@ -340,18 +367,25 @@ export const update = async (
     const { id } = request.params;
     const updateData: Record<string, unknown> = { ...request.body };
     const removeImagesUrl: string[] = (updateData.removeImagesUrl as string[]) ?? [];
+    const removeGiftImagesUrl: string[] = (updateData.removeGiftImagesUrl as string[]) ?? [];
 
     const existingProduct = await Product.findOne({ _id: id, deletedAt: null })
-      .select("name images category subCategory subSubCategory slug")
+      .select("name images giftImages videoUrl category subCategory subSubCategory slug")
       .lean();
     if (!existingProduct) {
       throw new Error("Product not found");
     }
 
+    // ── Video URL is immutable once set ──
+    if (existingProduct.videoUrl && updateData.videoUrl !== undefined) {
+      delete updateData.videoUrl;
+    }
+
     const r2PublicBase = getPublicUrlBase();
 
-    if (removeImagesUrl.length > 0) {
-      for (const imageUrl of removeImagesUrl) {
+    const allRemoveUrls = [...removeImagesUrl, ...removeGiftImagesUrl];
+    if (allRemoveUrls.length > 0) {
+      for (const imageUrl of allRemoveUrls) {
         if (typeof imageUrl === "string" && imageUrl.startsWith(r2PublicBase)) {
           const fileName = imageUrl.slice(r2PublicBase.length);
           deleteFromR2(fileName).catch((err) =>
@@ -390,6 +424,35 @@ export const update = async (
             (updateData.images as string[]).push(uploadResult.url);
           }
         }
+      }
+
+      if (filesObj.giftImages && filesObj.giftImages.length > 0) {
+        const giftImages: string[] = Array.isArray(existingProduct.giftImages)
+          ? [...existingProduct.giftImages]
+          : [];
+
+        if (removeGiftImagesUrl.length > 0) {
+          updateData.giftImages = giftImages.filter(
+            (url: string) => !removeGiftImagesUrl.includes(url),
+          );
+        } else {
+          updateData.giftImages = giftImages;
+        }
+
+        for (const file of filesObj.giftImages) {
+          const uploadResult = await uploadToR2(file, "products", 80, productName);
+          if (uploadResult?.success && uploadResult?.url) {
+            (updateData.giftImages as string[]).push(uploadResult.url);
+          }
+        }
+      } else if (removeGiftImagesUrl.length > 0) {
+        // No new gift images uploaded, but some existing ones are marked for removal
+        const existingGiftImages: string[] = Array.isArray(existingProduct.giftImages)
+          ? [...existingProduct.giftImages]
+          : [];
+        updateData.giftImages = existingGiftImages.filter(
+          (url: string) => !removeGiftImagesUrl.includes(url),
+        );
       }
     }
 
@@ -688,7 +751,7 @@ export const getByCategory = async (
       ],
     })
       .populate(POPULATE_PRODUCT)
-      .select("name slug image images price discount_price stock status weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material order createdAt")
+      .select("name slug image images giftImages price discount_price stock status weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material order createdAt")
       .sort(sort)
       .limit(cappedLimit)
       .skip(skip)
@@ -761,7 +824,7 @@ export const getProductByFilter = async (
 
     const products = await Product.find(query)
       .populate(POPULATE_PRODUCT)
-      .select("name slug image images price discount_price stock weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material")
+      .select("name slug image images giftImages price discount_price stock weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material")
       .limit(Math.min(Number(limit), 100))
       .sort("-createdAt")
       .lean();

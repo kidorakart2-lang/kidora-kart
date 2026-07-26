@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,61 +63,45 @@ export default function BannersPage() {
     linkExternalUrl: "",
   });
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    // loadLinkOptions only; loadBanners is handled by the deletedFilter effect
-    loadLinkOptions();
-  }, []);
+  const [deletedFilter, setDeletedFilter] = useState<string>("active");
 
-  const loadLinkOptions = async () => {
-    try {
+  // ── Link options query ──
+  const { data: linkOptionsData } = useQuery({
+    queryKey: ["banner-link-options"],
+    queryFn: async () => {
       const [categories, products] = await Promise.all([
         api.get<LinkOption[]>("/api/admin/banner/link-options/categories"),
-        api.get<LinkOption[]>(
-          "/api/admin/banner/link-options/products?limit=100",
-        ),
+        api.get<LinkOption[]>("/api/admin/banner/link-options/products?limit=100"),
       ]);
-      setLinkOptions((prev) => ({
-        ...prev,
-        categories: categories ?? [],
-        products: products ?? [],
-      }));
-    } catch {
-      // silently fail
+      return { categories: categories ?? [], products: products ?? [], subCategories: [] as LinkOption[], subSubCategories: [] as LinkOption[] };
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // Keep linkOptions in sync with query data + dynamic sub categories
+  useEffect(() => {
+    if (linkOptionsData) {
+      setLinkOptions((prev) => ({ ...prev, ...linkOptionsData, subCategories: prev.subCategories, subSubCategories: prev.subSubCategories }));
     }
-  };
+  }, [linkOptionsData]);
 
   const loadSubCategories = async (categoryId: string) => {
     try {
-      const res = await api.get<LinkOption[]>(
-        `/api/admin/banner/link-options/sub-categories?categoryId=${categoryId}`,
-      );
-      setLinkOptions((prev) => ({
-        ...prev,
-        subCategories: res ?? [],
-      }));
-    } catch {
-      // silently fail
-    }
+      const res = await api.get<LinkOption[]>(`/api/admin/banner/link-options/sub-categories?categoryId=${categoryId}`);
+      setLinkOptions((prev) => ({ ...prev, subCategories: res ?? [] }));
+    } catch { /* silently fail */ }
   };
 
   const loadSubSubCategories = async (subCategoryId: string) => {
     try {
-      const res = await api.get<LinkOption[]>(
-        `/api/admin/banner/link-options/sub-sub-categories?subCategoryId=${subCategoryId}`,
-      );
-      setLinkOptions((prev) => ({
-        ...prev,
-        subSubCategories: res ?? [],
-      }));
-    } catch {
-      // silently fail
-    }
+      const res = await api.get<LinkOption[]>(`/api/admin/banner/link-options/sub-sub-categories?subCategoryId=${subCategoryId}`);
+      setLinkOptions((prev) => ({ ...prev, subSubCategories: res ?? [] }));
+    } catch { /* silently fail */ }
   };
 
-  const [deletedFilter, setDeletedFilter] = useState<string>("active");
-
-  const { data: banners = [], isLoading: loading, refetch } = useQuery<Banner[]>({
+  const { data: banners = [], isLoading: loading } = useQuery<Banner[]>({
     queryKey: ["banners", deletedFilter],
     queryFn: async () => {
       const data = await api.post<Banner[]>("/api/admin/banner/view", {
@@ -140,43 +124,81 @@ export default function BannersPage() {
     setDrawerOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  // ── Mutations ──
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.put(`/api/admin/banner/delete/${id}`, { id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      invalidateCache(["homepage"]);
+      toast({ title: "Banner deleted successfully" });
+      setDeleteDialogOpen(false);
+      setBannerToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({ title: error instanceof ApiClientError ? error.message : "Failed to delete banner", variant: "destructive" });
+      setDeleteDialogOpen(false);
+      setBannerToDelete(null);
+    },
+  });
+
+  const createBannerMutation = useMutation({
+    mutationFn: (formDataToSend: FormData) => api.post("/api/admin/banner/create", formDataToSend),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      queryClient.invalidateQueries({ queryKey: ["banner-link-options"] });
+      invalidateCache(["homepage"]);
+      toast({ title: "Banner created successfully" });
+      resetForm();
+    },
+    onError: (error: Error) => toast({ title: error instanceof ApiClientError ? error.message : "Failed to create banner", variant: "destructive" }),
+  });
+
+  const updateBannerMutation = useMutation({
+    mutationFn: (payload: { id: string; formData: FormData }) => api.put(`/api/admin/banner/update/${payload.id}`, payload.formData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      queryClient.invalidateQueries({ queryKey: ["banner-link-options"] });
+      invalidateCache(["homepage"]);
+      toast({ title: "Banner updated successfully" });
+      resetForm();
+    },
+    onError: (error: Error) => toast({ title: error instanceof ApiClientError ? error.message : "Failed to update banner", variant: "destructive" }),
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: (id: string) => api.post("/api/admin/banner/change-status", { id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      invalidateCache(["homepage"]);
+    },
+    onError: (error: Error) => toast({ title: error instanceof ApiClientError ? error.message : "Failed to change status", variant: "destructive" }),
+  });
+
+  const isPending = deleteMutation.isPending || createBannerMutation.isPending || updateBannerMutation.isPending || statusMutation.isPending;
+
+  const resetForm = () => {
+    setDrawerOpen(false);
+    setEditingBanner(null);
+    setProductSearch("");
+    setSelectedCategoryId("");
+    setSelectedSubCategoryId("");
+    setImagePreview(null);
+    setFormData({ description: "", image: "", linkType: "", linkTarget: "", linkExternalUrl: "" });
+  };
+
+  const handleDelete = (id: string) => {
     setBannerToDelete(id);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = async () => {
-    if (!bannerToDelete) return;
-
-    try {
-      await api.put(`/api/admin/banner/delete/${bannerToDelete}`, {
-        id: bannerToDelete,
-      });
-      refetch();
-      invalidateCache(["homepage"]);
-      toast({ title: "Banner deleted successfully" });
-    } catch (error) {
-      toast({
-        title: "Error deleting banner",
-        description:
-          error instanceof ApiClientError
-            ? error.message
-            : "Failed to delete banner",
-        variant: "destructive",
-      });
-    } finally {
-      setDeleteDialogOpen(false);
-      setBannerToDelete(null);
-    }
+  const confirmDelete = () => {
+    if (bannerToDelete) deleteMutation.mutate(bannerToDelete);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const formDataToSend = new FormData();
-    formDataToSend.append("description", formData.description);
-    formDataToSend.append("image", formData.image);
-
-    // Append link data as JSON string, or null to clear the link
+  const buildFormDataToSend = () => {
+    const fd = new FormData();
+    fd.append("description", formData.description);
+    fd.append("image", formData.image);
     if (formData.linkType) {
       const linkData: Record<string, unknown> = { type: formData.linkType };
       if (formData.linkType === "external") {
@@ -184,85 +206,25 @@ export default function BannersPage() {
       } else if (formData.linkTarget) {
         linkData.target = formData.linkTarget;
       }
-      formDataToSend.append("link", JSON.stringify(linkData));
+      fd.append("link", JSON.stringify(linkData));
     } else {
-      // Explicitly clear link when "No link" is selected
-      formDataToSend.append("link", "null");
+      fd.append("link", "null");
     }
-
-    if (editingBanner) {
-      setBtnLoading(true);
-      try {
-        await api.put(
-          `/api/admin/banner/update/${editingBanner._id}`,
-          formDataToSend,
-        );
-        refetch();
-        invalidateCache(["homepage"]);
-        toast({ title: "Banner updated successfully" });
-      } catch (error) {
-        toast({
-          title: "Error updating banner",
-          description:
-            error instanceof ApiClientError
-              ? error.message
-              : "Failed to update banner",
-          variant: "destructive",
-        });
-      } finally {
-        setBtnLoading(false);
-      }
-    } else {
-      setBtnLoading(true);
-      try {
-        await api.post("/api/admin/banner/create", formDataToSend);
-        refetch();
-        invalidateCache(["homepage"]);
-        toast({ title: "Banner created successfully" });
-      } catch (error) {
-        toast({
-          title: "Error creating banner",
-          description:
-            error instanceof ApiClientError
-              ? error.message
-              : "Failed to create banner",
-          variant: "destructive",
-        });
-      } finally {
-        setBtnLoading(false);
-      }
-    }
-
-    setDrawerOpen(false);
-    setEditingBanner(null);
-    setProductSearch("");
-    setSelectedCategoryId("");
-    setSelectedSubCategoryId("");
-    setImagePreview(null);
-    setFormData({
-      description: "",
-      image: "",
-      linkType: "",
-      linkTarget: "",
-      linkExternalUrl: "",
-    });
+    return fd;
   };
 
-  const handleStatusChange = async (id: string) => {
-    try {
-      await api.post("/api/admin/banner/change-status", { id });
-      refetch();
-      invalidateCache(["homepage"]);
-    } catch (error) {
-      toast({
-        title: "Error changing status",
-        description:
-          error instanceof ApiClientError
-            ? error.message
-            : "Failed to change status",
-        variant: "destructive",
-      });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const fd = buildFormDataToSend();
+    if (editingBanner) {
+      updateBannerMutation.mutate({ id: editingBanner._id, formData: fd });
+    } else {
+      createBannerMutation.mutate(fd);
     }
+  };
+
+  const handleStatusChange = (id: string) => {
+    statusMutation.mutate(id);
   };
 
   if (loading) {
@@ -494,10 +456,10 @@ export default function BannersPage() {
           />
           <Button
             type="submit"
-            disabled={btnLoading}
+            disabled={createBannerMutation.isPending || updateBannerMutation.isPending}
             className="w-full animate-in slide-in-from-bottom duration-300 delay-200"
           >
-            {btnLoading ? (
+            {createBannerMutation.isPending || updateBannerMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...
               </>

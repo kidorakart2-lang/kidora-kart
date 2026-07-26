@@ -208,6 +208,8 @@ import {
   getPickupLocationsHandler,
   getShippingEstimate,
   shiprocketWebhook,
+  requestRtoForOrder,
+  cancelOrRto,
 } from "../../controller/web/shiprocket.controller.js";
 import protect, { adminOnly } from "../../middleware/authMiddleware.js";
 
@@ -217,6 +219,10 @@ const router = Router();
 router.post("/create", protect, adminOnly, createShippingOrder);
 router.get("/track/:orderId", protect, trackShippingOrder);
 router.post("/cancel", protect, adminOnly, cancelShippingOrder);
+// Unified cancel + RTO endpoint — tries cancel, falls back to RTO if autoRto=true
+router.post("/cancel-or-rto", protect, adminOnly, cancelOrRto);
+// RTO (Return to Origin) — for shipments already picked up that can't be cancelled
+router.post("/rto", protect, adminOnly, requestRtoForOrder);
 router.get("/pickup-locations", protect, adminOnly, getPickupLocationsHandler);
 // Shipping estimate — available without auth (just a shipping rate estimate)
 router.post("/estimate", getShippingEstimate);

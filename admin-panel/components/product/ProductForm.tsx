@@ -32,6 +32,8 @@ interface ProductFormProps {
   setSelectedMaterials: (v: string[]) => void;
   removeImagesUrl: string[];
   toggleRemoveImagesUrl: (url: string) => void;
+  removeGiftImagesUrl: string[];
+  toggleRemoveGiftImagesUrl: (url: string) => void;
   categories: { _id: string; name: string }[];
   subCategories: { _id: string; name: string }[];
   subSubCategories: { _id: string; name: string }[];
@@ -41,8 +43,10 @@ interface ProductFormProps {
   handleAutoTag: () => void;
   handleMainImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleAdditionalImageChange: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
+  handleGiftImageChange: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
   removeMainImage: () => void;
   removeAdditionalImage: (index: number) => void;
+  removeGiftImage: (index: number) => void;
   isMobile: boolean;
   isSaving: boolean;
   editingProduct: boolean;
@@ -84,10 +88,13 @@ export default function ProductForm({
   selectedColors, setSelectedColors,
   selectedMaterials, setSelectedMaterials,
   removeImagesUrl, toggleRemoveImagesUrl,
+  removeGiftImagesUrl, toggleRemoveGiftImagesUrl,
   categories, subCategories, subSubCategories, colors, materials,
   tagLoading, handleAutoTag,
   handleMainImageChange, handleAdditionalImageChange,
+  handleGiftImageChange,
   removeMainImage, removeAdditionalImage,
+  removeGiftImage,
   isMobile, isSaving, editingProduct, closeDrawer, handleSubmit,
 }: ProductFormProps) {
   const u = (val: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -204,7 +211,17 @@ export default function ProductForm({
           </div>
           <div className="space-y-2">
             <Label htmlFor="sku">SKU</Label>
-            <Input id="sku" value={formData.sku} onChange={u("sku")} placeholder="e.g. TOY-001" />
+            <Input
+              id="sku"
+              value={formData.sku}
+              onChange={u("sku")}
+              placeholder={editingProduct ? "Edit SKU" : "Auto-generated on save"}
+              readOnly={!editingProduct}
+              className={!editingProduct ? "bg-muted/50 cursor-not-allowed" : ""}
+            />
+            {!editingProduct && (
+              <p className="text-xs text-muted-foreground">SKU is auto-generated server-side (format: <span className="font-mono">TOY-YYMMDD-XXXX</span>). You can edit it after creating the product.</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="type">Type</Label>
@@ -212,8 +229,19 @@ export default function ProductForm({
           </div>
           <div className="space-y-2">
             <Label htmlFor="videoUrl">Video URL</Label>
-            <Input id="videoUrl" value={formData.videoUrl} onChange={u("videoUrl")} placeholder="e.g. https://youtube.com/watch?v=..." />
-            <p className="text-xs text-muted-foreground">YouTube, Vimeo, or direct .mp4 / .webm link</p>
+            <Input
+              id="videoUrl"
+              value={formData.videoUrl}
+              onChange={u("videoUrl")}
+              placeholder="e.g. https://youtube.com/watch?v=..."
+              readOnly={editingProduct && !!formData.videoUrl}
+              className={editingProduct && formData.videoUrl ? "bg-muted/50 cursor-not-allowed" : ""}
+            />
+            {editingProduct && formData.videoUrl ? (
+              <p className="text-xs text-amber-600">Video URL cannot be changed once set.</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">YouTube, Vimeo, or direct .mp4 / .webm link</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="stock">Stock *</Label>
@@ -324,6 +352,46 @@ export default function ProductForm({
                       <input type="text" value={url} readOnly className="flex-1 border border-input rounded px-2 py-1 bg-background text-sm" />
                       <button type="button" onClick={() => toggleRemoveImagesUrl(url)} className="bg-destructive text-white rounded px-2 py-1 text-sm hover:bg-destructive/90">
                         {removeImagesUrl.includes(url) ? "Undo" : "Remove"}
+                      </button>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </FormSection>
+
+      {/* Section 8: Gift Images */}
+      <FormSection title="Gift Images" defaultOpen={!isMobile}>
+        <div className="space-y-4 pb-4">
+          <p className="text-sm text-muted-foreground">Upload images related to gift packaging / presentation. Displayed below the product description.</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {formData.giftImages?.map((_, index) => (
+              <div key={index} className="flex flex-col items-center gap-2">
+                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-accent transition border-amber-200">
+                  <div className="flex flex-col items-center justify-center"><Cloud /><p className="text-xs text-muted-foreground mt-1">Gift Image {index + 1}</p></div>
+                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleGiftImageChange(e, index)} />
+                </label>
+                {formData.giftImagePreviews[index] && (
+                  <div className="relative w-16 h-16">
+                    <img src={formData.giftImagePreviews[index]} alt={`Gift ${index + 1}`} className="w-full h-full object-cover rounded" />
+                    <button type="button" onClick={() => removeGiftImage(index)} className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 hover:bg-destructive/90"><X className="w-3 h-3" /></button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          {formData.giftImagePreviews?.some((url) => url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com"}/`)) && (
+            <div className="space-y-2">
+              <Label>Gift Images to Remove</Label>
+              <div className="flex flex-col space-y-2">
+                {formData.giftImagePreviews?.map((url, index) =>
+                  url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com"}/`) && (
+                    <div key={index} className="flex items-center space-x-2">
+                      <input type="text" value={url} readOnly className="flex-1 border border-input rounded px-2 py-1 bg-background text-sm" />
+                      <button type="button" onClick={() => toggleRemoveGiftImagesUrl(url)} className="bg-destructive text-white rounded px-2 py-1 text-sm hover:bg-destructive/90">
+                        {removeGiftImagesUrl.includes(url) ? "Undo" : "Remove"}
                       </button>
                     </div>
                   )

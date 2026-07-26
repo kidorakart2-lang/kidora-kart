@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { BaseItem, Column } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -62,9 +62,10 @@ export default function UsersPage() {
     role: "user",
   });
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [deletedFilter, setDeletedFilter] = useState<string>("active");
 
-  const { data: users = [], isLoading: loading, refetch } = useQuery<AdminUser[]>({
+  const { data: users = [], isLoading: loading } = useQuery<AdminUser[]>({
     queryKey: ["users", deletedFilter],
     queryFn: async () => {
       const data = await api.post<AdminUser[]>("/api/admin/user/findAllUser", {
@@ -85,85 +86,89 @@ export default function UsersPage() {
     setDrawerOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    setUserToDelete(String(id));
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!userToDelete) return;
-    try {
-      await api.post(`/api/admin/user/delete/${userToDelete}`, {});
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.post(`/api/admin/user/delete/${id}`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast({ title: "User deleted successfully" });
-      refetch();
-    } catch (error) {
-      toast({
-        title: error instanceof ApiClientError ? error.message : "Operation failed",
-        description: error instanceof ApiClientError ? error.message : "Operation failed",
-        variant: "destructive",
-      });
-    }
-    setDeleteDialogOpen(false);
-    setUserToDelete(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBtnLoading(true);
-
-    try {
-      if (editingUser) {
-        setVerifyDialogOpen(true);
-        setBtnLoading(false);
-        return;
-      } else {
-        if (!formData.name || !formData.email || !formData.password) {
-          toast({ title: "Name, email, and password are required", variant: "destructive" });
-          setBtnLoading(false);
-          return;
-        }
-        await api.post("/api/admin/user/create", {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role: formData.role,
-        });
-        toast({ title: "User created successfully" });
-        refetch();
-        setDrawerOpen(false);
-        setEditingUser(null);
-        setFormData({ name: "", email: "", password: "", role: "user" });
-      }
-    } catch (error) {
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    },
+    onError: (error: Error) => {
       toast({ title: error instanceof ApiClientError ? error.message : "Operation failed", variant: "destructive" });
-    } finally {
-      setBtnLoading(false);
-    }
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    },
+  });
 
-    if (!editingUser) return;
-  };
+  const createUserMutation = useMutation({
+    mutationFn: (data: { name: string; email: string; password: string; role: string }) =>
+      api.post("/api/admin/user/create", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast({ title: "User created successfully" });
+      setDrawerOpen(false);
+      setEditingUser(null);
+      setFormData({ name: "", email: "", password: "", role: "user" });
+    },
+    onError: (error: Error) => toast({ title: error instanceof ApiClientError ? error.message : "Operation failed", variant: "destructive" }),
+  });
 
-  const handleVerifyAndChangeRole = async () => {
-    if (!editingUser) return;
-    setVerifyLoading(true);
-    try {
-      await api.post("/api/admin/user/verify-password", { password: verifyPassword });
-      await api.post(`/api/admin/user/${editingUser._id}/change-role`, { role: formData.role });
+  const changeRoleMutation = useMutation({
+    mutationFn: ({ id, role }: { id: string; role: string }) =>
+      api.post(`/api/admin/user/${id}/change-role`, { role }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast({ title: "User role changed" });
       setVerifyDialogOpen(false);
       setVerifyPassword("");
       setDrawerOpen(false);
       setEditingUser(null);
       setFormData({ name: "", email: "", password: "", role: "user" });
-      refetch();
-    } catch (error) {
-      toast({
-        title: error instanceof ApiClientError ? error.message : "Verification failed",
-        variant: "destructive",
-      });
-    } finally {
+    },
+    onError: (error: Error) => toast({ title: error instanceof ApiClientError ? error.message : "Verification failed", variant: "destructive" }),
+    onSettled: () => setVerifyLoading(false),
+  });
+
+  const verifyPasswordMutation = useMutation({
+    mutationFn: (password: string) => api.post("/api/admin/user/verify-password", { password }),
+    onSuccess: (_data, password) => {
+      if (editingUser) {
+        if (editingUser._id) changeRoleMutation.mutate({ id: editingUser._id, role: formData.role });
+      }
+    },
+    onError: (error: Error) => {
+      toast({ title: error instanceof ApiClientError ? error.message : "Verification failed", variant: "destructive" });
       setVerifyLoading(false);
+    },
+  });
+
+  const handleDelete = (id: number) => {
+    setUserToDelete(String(id));
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (userToDelete) deleteMutation.mutate(userToDelete);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingUser) {
+      setVerifyDialogOpen(true);
+      return;
     }
+    if (!formData.name || !formData.email || !formData.password) {
+      toast({ title: "Name, email, and password are required", variant: "destructive" });
+      return;
+    }
+    createUserMutation.mutate({ name: formData.name, email: formData.email, password: formData.password, role: formData.role });
+  };
+
+  const handleVerifyAndChangeRole = async () => {
+    if (!editingUser) return;
+    setVerifyLoading(true);
+    verifyPasswordMutation.mutate(verifyPassword);
   };
   const router = useRouter();
   const columns: Column<AdminUser>[] = [
@@ -377,10 +382,10 @@ export default function UsersPage() {
 
           <Button
             type="submit"
-            disabled={btnLoading}
+            disabled={createUserMutation.isPending}
             className="w-full animate-in slide-in-from-bottom duration-300 delay-150"
           >
-            {btnLoading ? (
+            {createUserMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
               </>

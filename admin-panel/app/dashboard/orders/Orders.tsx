@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
@@ -45,8 +45,9 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data: orders = [], isLoading, refetch } = useQuery<OrderData[]>({
+  const { data: orders = [], isLoading } = useQuery<OrderData[]>({
     queryKey: ["orders"],
     queryFn: async () => {
       const res = await api.post<{ success: boolean; data: OrderData[] }>("/api/admin/orders/all", {});
@@ -66,82 +67,60 @@ export default function OrdersPage() {
     });
   };
 
-  const handleShipWithShiprocket = async (order: OrderData) => {
-    try {
-      const response = await api.post<{ success: boolean; message?: string; data?: unknown }>(
-        "/api/website/shipping/create",
-        { orderId: order.orderId },
-      );
-      if (response.success) {
-        toast({
-          title: "Success",
-          description: "Shipment created via Shiprocket successfully",
-        });
-        refetch();
-        invalidateCache(["products"]);
-        setDrawerOpen(false);
-      } else {
-        throw new ApiClientError(response.message || "Failed to create shipment via Shiprocket", 400);
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof ApiClientError ? error.message : "Failed to create shipment via Shiprocket",
-        variant: "destructive",
-      });
-    }
+  // ── Mutations ──
+  const invalidateOrders = () => {
+    queryClient.invalidateQueries({ queryKey: ["orders"] });
+    invalidateCache(["products"]);
   };
 
-  const handleMarkToShipped = async (order: OrderData) => {
-    try {
-      const response = await api.post<{ success: boolean; message?: string }>(
-        "/api/admin/orders/mark-to-shipped",
-        { orderId: order.orderId },
-      );
-      if (response.success) {
-        toast({
-          title: "Success",
-          description: "Order marked to shipped successfully",
-        });
-        refetch();
-        invalidateCache(["products"]);
-      } else {
-        throw new ApiClientError(response.message || "Failed to mark order to shipped", 400);
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof ApiClientError ? error.message : "Failed to mark order to shipped",
-        variant: "destructive",
-      });
-    }
-  };
+  const shipMutation = useMutation({
+    mutationFn: (orderId: string) => api.post<{ success: boolean; message?: string; data?: unknown }>("/api/website/shipping/create", { orderId }),
+    onSuccess: (response) => {
+      if (!response.success) throw new ApiClientError((response as any).message || "Failed to create shipment", 400);
+      toast({ title: "Success", description: "Shipment created via Shiprocket successfully" });
+      invalidateOrders();
+      setDrawerOpen(false);
+    },
+    onError: (error: Error) => toast({ title: "Error", description: error instanceof ApiClientError ? error.message : "Failed to create shipment", variant: "destructive" }),
+  });
 
-  const handleMarkToDelivered = async (order: OrderData) => {
-    try {
-      const response = await api.post<{ success: boolean; message?: string }>(
-        "/api/admin/orders/deliever/order",
-        { orderId: order.orderId },
-      );
+  const markShippedMutation = useMutation({
+    mutationFn: (orderId: string) => api.post<{ success: boolean; message?: string }>("/api/admin/orders/mark-to-shipped", { orderId }),
+    onSuccess: (response) => {
+      if (!response.success) throw new ApiClientError((response as any).message || "Failed to mark shipped", 400);
+      toast({ title: "Success", description: "Order marked to shipped successfully" });
+      invalidateOrders();
+    },
+    onError: (error: Error) => toast({ title: "Error", description: error instanceof ApiClientError ? error.message : "Failed to mark shipped", variant: "destructive" }),
+  });
 
-      if (response.success) {
-        toast({
-          title: "Success",
-          description: response.message || "Order marked to delivered successfully",
-        });
-        refetch();
-        invalidateCache(["products"]);
-        setDrawerOpen(false);
-      }
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Error",
-        description: error instanceof ApiClientError ? error.message : "Failed to mark order to delivered",
-        variant: "destructive",
-      });
-    }
-  };
+  const markDeliveredMutation = useMutation({
+    mutationFn: (orderId: string) => api.post<{ success: boolean; message?: string }>("/api/admin/orders/deliever/order", { orderId }),
+    onSuccess: (response) => {
+      if (!response.success) throw new ApiClientError((response as any).message || "Failed to mark delivered", 400);
+      toast({ title: "Success", description: response.message || "Order marked to delivered successfully" });
+      invalidateOrders();
+      setDrawerOpen(false);
+    },
+    onError: (error: Error) => toast({ title: "Error", description: error instanceof ApiClientError ? error.message : "Failed to mark delivered", variant: "destructive" }),
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
+      api.post<{ success: boolean; message?: string }>("/api/admin/orders/cancel-by-admin", { orderId, reason }),
+    onSuccess: (response) => {
+      if (!response.success) throw new ApiClientError((response as any).message || "Failed to cancel order", 400);
+      toast({ title: "Success", description: response.message || "Order cancelled successfully" });
+      invalidateOrders();
+      setCancelOrderOpen(false);
+      setCancelOrder(null);
+    },
+    onError: (error: Error) => toast({ title: "Error", description: error instanceof ApiClientError ? error.message : "Failed to cancel order", variant: "destructive" }),
+  });
+
+  const handleShipWithShiprocket = (order: OrderData) => shipMutation.mutate(order.orderId);
+  const handleMarkToShipped = (order: OrderData) => markShippedMutation.mutate(order.orderId);
+  const handleMarkToDelivered = (order: OrderData) => markDeliveredMutation.mutate(order.orderId);
   const handlePrint = (order: OrderData) => {
     setSelectedOrder(order);
     setReceiptOpen(true);
@@ -185,55 +164,13 @@ export default function OrdersPage() {
     setCancelOrderOpen(true);
   };
 
-  const confirmCancelOrder = async (e: React.FormEvent<HTMLFormElement>) => {
+  const confirmCancelOrder = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!cancelOrder) {
-      toast({
-        title: "Error",
-        description: "Order not found",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!cancelOrder) { toast({ title: "Error", description: "Order not found", variant: "destructive" }); return; }
     const form = e.currentTarget;
     const reason = (form.elements.namedItem("reason") as HTMLTextAreaElement)?.value;
-    if (reason === "") {
-      toast({
-        title: "Error",
-        description: "Reason is required",
-        variant: "destructive",
-      });
-      return;
-    }
-    try {
-      const responseData = await api.post<{ success: boolean; message?: string }>(
-        "/api/admin/orders/cancel-by-admin",
-        {
-          orderId: cancelOrder.orderId,
-          reason,
-        },
-      );
-      if (responseData.success) {
-        toast({
-          title: "Success",
-          description: responseData.message || "Order cancelled successfully",
-        });
-        refetch();
-        invalidateCache(["products"]);
-      } else {
-        toast({
-          title: "Error",
-          description: responseData.message || "Failed to cancel order",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof ApiClientError ? error.message : "Failed to cancel order",
-        variant: "destructive",
-      });
-    }
+    if (!reason) { toast({ title: "Error", description: "Reason is required", variant: "destructive" }); return; }
+    cancelMutation.mutate({ orderId: cancelOrder.orderId, reason });
   };
 
   const columns = [

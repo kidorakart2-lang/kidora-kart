@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api, ApiClientError } from "@/lib/api"
 import { invalidateCache } from "@/lib/invalidate-cache"
 import { Button } from "@/components/ui/button"
@@ -38,8 +38,9 @@ export default function FAQsPage() {
     order: 1,
   })
   const { toast } = useToast()
+  const queryClient = useQueryClient()
 
-  const { data: faqs = [], isLoading: loading, refetch } = useQuery<FAQ[]>({
+  const { data: faqs = [], isLoading: loading } = useQuery<FAQ[]>({
     queryKey: ["faqs", deletedFilter],
     queryFn: async () => {
       const filter = deletedFilter === "active" ? undefined : deletedFilter
@@ -58,73 +59,79 @@ export default function FAQsPage() {
     setDrawerOpen(true)
   }
 
-  const handleDelete = async (id: string) => {
-    setFaqToDelete(id)
-    setDeleteDialogOpen(true)
-  }
+  const deleteMutation = useMutation({
+    mutationFn: () => api.put("/api/admin/faq/destroy", { id: faqToDelete }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["faqs"] });
+      invalidateCache(["faq"]);
+      toast({ title: "FAQ deleted successfully" });
+      setDeleteDialogOpen(false);
+      setFaqToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({ title: error instanceof ApiClientError ? error.message : "Failed to delete FAQ", variant: "destructive" });
+      setDeleteDialogOpen(false);
+      setFaqToDelete(null);
+    },
+  });
 
-  const confirmDelete = async () => {
-    if (!faqToDelete) return
+  const statusMutation = useMutation({
+    mutationFn: (id: string) => api.post("/api/admin/faq/change-status", { id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["faqs"] });
+      invalidateCache(["faq"]);
+      toast({ title: "FAQ status updated successfully" });
+    },
+    onError: (error: Error) => toast({ title: error instanceof ApiClientError ? error.message : "Operation failed", variant: "destructive" }),
+  });
 
-    try {
-      await api.put("/api/admin/faq/destroy", { id: faqToDelete })
-      refetch()
-      invalidateCache(["faq"])
-      toast({ title: "FAQ deleted successfully" })
-    } catch (error) {
-      toast({
-        title: "Error deleting FAQ",
-        description: error instanceof ApiClientError ? error.message : "Failed to delete FAQ",
-        variant: "destructive",
-      })
-    } finally {
-      setDeleteDialogOpen(false)
-      setFaqToDelete(null)
+  const createMutation = useMutation({
+    mutationFn: () => api.post("/api/admin/faq/create", formData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["faqs"] });
+      invalidateCache(["faq"]);
+      toast({ title: "FAQ created successfully" });
+      setDrawerOpen(false);
+      setEditingFaq(null);
+      setFormData({ question: "", answer: "", order: 1 });
+    },
+    onError: (error: Error) => toast({ title: error instanceof ApiClientError ? error.message : "Operation failed", variant: "destructive" }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: () => api.put(`/api/admin/faq/update/${editingFaq!._id}`, formData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["faqs"] });
+      invalidateCache(["faq"]);
+      toast({ title: "FAQ updated successfully" });
+      setDrawerOpen(false);
+      setEditingFaq(null);
+      setFormData({ question: "", answer: "", order: 1 });
+    },
+    onError: (error: Error) => toast({ title: error instanceof ApiClientError ? error.message : "Operation failed", variant: "destructive" }),
+  });
+
+  const handleDelete = (id: string) => {
+    setFaqToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (faqToDelete) deleteMutation.mutate();
+  };
+
+  const handleChangeStatus = (faq: FAQ) => {
+    statusMutation.mutate(faq._id);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingFaq) {
+      updateMutation.mutate();
+    } else {
+      createMutation.mutate();
     }
-  }
-
-  const handleChangeStatus = async (faq: FAQ) => {
-    try {
-      await api.post("/api/admin/faq/change-status", { id: faq._id })
-      refetch()
-      invalidateCache(["faq"])
-      toast({ title: "FAQ status updated successfully" })
-    } catch (error) {
-      toast({
-        title: "Error updating FAQ status",
-        description: error instanceof ApiClientError ? error.message : "Operation failed",
-        variant: "destructive",
-      })
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    try {
-      if (editingFaq) {
-        await api.put(`/api/admin/faq/update/${editingFaq._id}`, formData)
-        refetch()
-        invalidateCache(["faq"])
-        toast({ title: "FAQ updated successfully" })
-      } else {
-        await api.post("/api/admin/faq/create", formData)
-        refetch()
-        invalidateCache(["faq"])
-        toast({ title: "FAQ created successfully" })
-      }
-
-      setDrawerOpen(false)
-      setEditingFaq(null)
-      setFormData({ question: "", answer: "", order: 1 })
-    } catch (error) {
-      toast({
-        title: `Error ${editingFaq ? "updating" : "creating"} FAQ`,
-        description: error instanceof ApiClientError ? error.message : "Operation failed",
-        variant: "destructive",
-      })
-    }
-  }
+  };
 
   const sortedFaqs = [...faqs].sort((a: FAQ, b: FAQ) => a.order - b.order)
 
@@ -287,10 +294,12 @@ export default function FAQsPage() {
               required
               min="1"
             />
-          </div>
-
-          <Button type="submit" className="w-full animate-in slide-in-from-bottom duration-300 delay-175">
-            {editingFaq ? "Update FAQ" : "Create FAQ"}
+          </div>          <Button
+            type="submit"
+            className="w-full animate-in slide-in-from-bottom duration-300 delay-175"
+            disabled={createMutation.isPending || updateMutation.isPending}
+          >
+            {createMutation.isPending || updateMutation.isPending ? "Saving..." : editingFaq ? "Update FAQ" : "Create FAQ"}
           </Button>
         </form>
       </Drawer>

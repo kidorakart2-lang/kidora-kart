@@ -12,6 +12,9 @@ import {
   getPickupLocations,
   buildShiprocketOrderPayload,
   isShiprocketSuccess,
+  cancelOrderOrRto,
+  requestReturnOrder,
+  getShipmentStatus,
   type ShiprocketOrderInput,
 } from "../../lib/shiprocket.js";
 
@@ -172,10 +175,9 @@ export const createShippingOrder = async (
     }
 
     // Store Shiprocket-calculated shipping charge back on the order
-    // Shiprocket may return the calculated shipping cost — store it so the website can display it
     const shiprocketShipping = (shipmentResult as { shipping_charge?: number })?.shipping_charge;
 
-    // Update order with shipping info
+    // Update order with shipping info and Shiprocket IDs
     const trackingUrl = awbCode
       ? `https://shiprocket.co/tracking/${awbCode}`
       : undefined;
@@ -184,6 +186,8 @@ export const createShippingOrder = async (
       "shipping.carrier": courierName || "Shiprocket",
       "shipping.trackingNumber": awbCode || null,
       "shipping.trackingUrl": trackingUrl || null,
+      "shipping.shiprocketOrderId": shiprocketOrderId,
+      "shipping.shiprocketShipmentId": shipmentId || null,
       "invoice.invoiceUrl": invoiceUrl || null,
       status: "shipped",
     };
@@ -321,6 +325,8 @@ export const trackShippingOrder = async (
 };
 
 // ── Cancel Shiprocket shipment ─────────────────────────────────────────
+// Called when cancelling a shipped order. Attempts to cancel via Shiprocket.
+// If the shipment has already been picked up / is in transit, suggests RTO.
 
 export const cancelShippingOrder = async (
   req: Request,
@@ -334,16 +340,297 @@ export const cancelShippingOrder = async (
       return;
     }
 
-    res.status(200).json({
-      success: true,
-      message:
-        "Use the standard order cancellation endpoint. Shiprocket cancellation is handled automatically.",
+    const order = await Order.findOne({ orderId })
+      .select("shipping.shiprocketOrderId shipping.shiprocketShipmentId shipping.trackingNumber status")
+      .lean();
+
+    if (!order) {
+      res.status(404).json({ success: false, message: "Order not found" });
+      return;
+    }
+
+    // If no Shiprocket order ID exists, nothing to cancel
+    if (!order.shipping?.shiprocketOrderId) {
+      res.status(200).json({
+        success: true,
+        message: "No Shiprocket shipment found for this order — nothing to cancel on Shiprocket.",
+      });
+      return;
+    }
+
+    const shiprocketOrderId = order.shipping.shiprocketOrderId;
+
+    // Step 1: Check current shipment status on Shiprocket
+    let statusCheck;
+    try {
+      statusCheck = await getShipmentStatus(shiprocketOrderId);
+    } catch {
+      // If status check fails, proceed with cancellation attempt anyway
+      logger.warn({ orderId, shiprocketOrderId }, "Failed to check Shiprocket shipment status, proceeding with cancel");
+    }
+
+    // If the shipment is already delivered, can't cancel or RTO
+    const currentStatus = statusCheck?.current_status?.toLowerCase() || "";
+    if (currentStatus === "delivered") {
+      res.status(400).json({
+        success: false,
+        message: "Cannot cancel shipment — it has already been delivered.",
+      });
+      return;
+    }
+
+    // Step 2: Attempt to cancel via Shiprocket
+    const cancelResult = await cancelOrderOrRto([shiprocketOrderId]);
+
+    if (cancelResult.cancelled) {
+      logger.info({ orderId, shiprocketOrderId }, "Shiprocket order cancelled successfully");
+
+      await Order.updateOne(
+        { orderId },
+        { $set: { status: "cancelled" } },
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Shipment cancelled successfully on Shiprocket",
+        data: { cancelled: true },
+      });
+      return;
+    }
+
+    // Step 3: If cancellation failed because shipment is already in transit, suggest RTO
+    if (cancelResult.needsRto) {
+      res.status(409).json({
+        success: false,
+        message: "Shipment has already been picked up and cannot be cancelled directly. Use RTO (Return to Origin) instead.",
+        data: {
+          needsRto: true,
+          shiprocketOrderId,
+          shiprocketMessage: cancelResult.message,
+        },
+      });
+      return;
+    }
+
+    // Step 4: Generic failure
+    res.status(502).json({
+      success: false,
+      message: cancelResult.message || "Failed to cancel shipment on Shiprocket",
     });
   } catch (error) {
     logger.error({ error }, "Shiprocket cancel error");
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : "Failed to cancel shipment",
+    });
+  }
+};
+
+// ── Request RTO (Return to Origin) for a Shiprocket order ──────────────
+// Used when a shipment has already been picked up and cannot be cancelled.
+// Shiprocket creates a return order to bring the package back.
+
+export const requestRtoForOrder = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { orderId } = req.body as { orderId: string };
+
+    if (!orderId) {
+      res.status(400).json({ success: false, message: "orderId is required" });
+      return;
+    }
+
+    const order = await Order.findOne({ orderId })
+      .select("shipping.shiprocketOrderId shipping.shiprocketShipmentId status")
+      .lean();
+
+    if (!order) {
+      res.status(404).json({ success: false, message: "Order not found" });
+      return;
+    }
+
+    if (!order.shipping?.shiprocketOrderId) {
+      res.status(400).json({
+        success: false,
+        message: "No Shiprocket order found for this order. Create a shipment first.",
+      });
+      return;
+    }
+
+    const shiprocketOrderId = order.shipping.shiprocketOrderId;
+
+    // Check current status to ensure it's not already delivered
+    let statusCheck;
+    try {
+      statusCheck = await getShipmentStatus(shiprocketOrderId);
+    } catch {
+      // proceed anyway
+    }
+
+    const currentStatus = statusCheck?.current_status?.toLowerCase() || "";
+    if (currentStatus === "delivered") {
+      res.status(400).json({
+        success: false,
+        message: "Cannot request RTO — shipment has already been delivered.",
+      });
+      return;
+    }
+
+    // Request RTO from Shiprocket
+    const rtoResult = await requestReturnOrder(shiprocketOrderId);
+
+    if (isShiprocketSuccess(rtoResult)) {
+      logger.info({ orderId, shiprocketOrderId }, "RTO requested successfully");
+
+      await Order.updateOne(
+        { orderId },
+        {
+          $set: {
+            status: "cancelled",
+            "shipping.rtoRequested": true,
+            "shipping.rtoOrderId": rtoResult.rto_order_id,
+            "shipping.rtoStatus": rtoResult.rto_status || "initiated",
+          },
+        },
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "RTO (Return to Origin) initiated successfully. Package will be returned.",
+        data: {
+          rtoOrderId: rtoResult.rto_order_id,
+          rtoStatus: rtoResult.rto_status,
+        },
+      });
+      return;
+    }
+
+    res.status(502).json({
+      success: false,
+      message: rtoResult?.message || "Failed to initiate RTO on Shiprocket",
+    });
+  } catch (error) {
+    logger.error({ error }, "RTO request error");
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to request RTO",
+    });
+  }
+};
+
+// ── Unified cancel + RTO handler ───────────────────────────────────────
+// This endpoint tries to cancel first; if cancellation fails because the
+// shipment is already in transit, it automatically requests RTO instead.
+
+export const cancelOrRto = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { orderId, autoRto } = req.body as { orderId: string; autoRto?: boolean };
+
+    if (!orderId) {
+      res.status(400).json({ success: false, message: "orderId is required" });
+      return;
+    }
+
+    const order = await Order.findOne({ orderId })
+      .select("shipping.shiprocketOrderId shipping.shiprocketShipmentId status")
+      .lean();
+
+    if (!order) {
+      res.status(404).json({ success: false, message: "Order not found" });
+      return;
+    }
+
+    if (!order.shipping?.shiprocketOrderId) {
+      res.status(200).json({
+        success: true,
+        message: "No Shiprocket shipment — nothing to cancel on Shiprocket.",
+        data: { action: "none" },
+      });
+      return;
+    }
+
+    const shiprocketOrderId = order.shipping.shiprocketOrderId;
+
+    // Check current shipment status
+    let statusCheck;
+    try {
+      statusCheck = await getShipmentStatus(shiprocketOrderId);
+    } catch {
+      // proceed
+    }
+
+    const currentStatus = statusCheck?.current_status?.toLowerCase() || "";
+    if (currentStatus === "delivered") {
+      res.status(400).json({
+        success: false,
+        message: "Cannot cancel — shipment has already been delivered.",
+      });
+      return;
+    }
+
+    // Try cancellation first
+    const cancelResult = await cancelOrderOrRto([shiprocketOrderId]);
+
+    if (cancelResult.cancelled) {
+      logger.info({ orderId, shiprocketOrderId }, "Shiprocket order cancelled via cancelOrRto");
+      await Order.updateOne(
+        { orderId },
+        { $set: { status: "cancelled" } },
+      );
+      res.status(200).json({
+        success: true,
+        message: "Shipment cancelled successfully on Shiprocket",
+        data: { action: "cancelled" },
+      });
+      return;
+    }
+
+    // If cancellation needs RTO and autoRto is enabled, attempt RTO
+    if (cancelResult.needsRto && autoRto) {
+      logger.info({ orderId, shiprocketOrderId }, "Cancellation failed — attempting RTO");
+
+      const rtoResult = await requestReturnOrder(shiprocketOrderId);
+
+      if (isShiprocketSuccess(rtoResult)) {
+        await Order.updateOne(
+          { orderId },
+          {
+            $set: {
+              status: "cancelled",
+              "shipping.rtoRequested": true,
+              "shipping.rtoOrderId": rtoResult.rto_order_id,
+              "shipping.rtoStatus": rtoResult.rto_status || "initiated",
+            },
+          },
+        );
+        res.status(200).json({
+          success: true,
+          message: "Shipment could not be cancelled directly. RTO (Return to Origin) has been initiated — package will be returned.",
+          data: { action: "rto", rtoOrderId: rtoResult.rto_order_id },
+        });
+        return;
+      }
+    }
+
+    // Return the cancellation failure details
+    res.status(409).json({
+      success: false,
+      message: cancelResult.message || "Failed to cancel shipment on Shiprocket",
+      data: {
+        needsRto: cancelResult.needsRto,
+        shiprocketOrderId,
+      },
+    });
+  } catch (error) {
+    logger.error({ error }, "cancelOrRto error");
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to process cancellation",
     });
   }
 };
@@ -370,8 +657,6 @@ export const getPickupLocationsHandler = async (
 };
 
 // ── Get shipping estimate at checkout ────────────────────────────────
-// Uses Shiprocket's serviceability API to return estimated shipping charges
-// based on delivery pincode and total cart weight.
 
 export const getShippingEstimate = async (
   req: Request,
@@ -402,16 +687,13 @@ export const getShippingEstimate = async (
       .select("weight")
       .lean();
 
-    // Build weight map
     const weightMap = new Map<string, number>();
     for (const doc of productDocs) {
       const id = String(doc._id);
-      // Weight is stored in grams (e.g. "500" = 500g), convert to kg for Shiprocket
       const parsed = parseFloat(doc.weight || "0.5") / 1000;
       weightMap.set(id, isNaN(parsed) ? 0.5 : parsed);
     }
 
-    // Calculate total weight accounting for quantities
     let totalWeightKg = 0;
     for (const item of items) {
       const itemWeight = weightMap.get(item.productId) || 0.5;
@@ -419,8 +701,6 @@ export const getShippingEstimate = async (
     }
     totalWeightKg = Math.max(totalWeightKg, 0.5);
 
-    // Use first pickup location's pincode as origin
-    // Shiprocket GET endpoints nest data inside a `data` key
     const pickupResult = await getPickupLocations();
     const pickupData = (pickupResult as Record<string, unknown>)?.data as
       | { pickup_locations?: Array<{ pickup_location: string; pincode: string }> }
@@ -429,7 +709,7 @@ export const getShippingEstimate = async (
     const pickupPincode: string =
       pickupLocations && pickupLocations.length > 0
         ? pickupLocations[0]!.pincode || "342005"
-        : "342005"; // Fallback to Jodhpur pincode
+        : "342005";
 
     const serviceabilityResult = await checkServiceability(
       pickupPincode || "342005",
@@ -438,8 +718,6 @@ export const getShippingEstimate = async (
       isCod === true,
     );
 
-    // Shiprocket GET endpoints nest data inside a `data` key (unlike POST endpoints).
-    // The response shape is: { status, data: { available_courier_companies: [...] } }
     const serviceabilityData = (serviceabilityResult as Record<string, unknown>)?.data as
       | Record<string, unknown>
       | undefined;
@@ -459,7 +737,6 @@ export const getShippingEstimate = async (
       return;
     }
 
-    // Find cheapest courier
     const cheapest = couriers.reduce((min, c) =>
       c.rate < min.rate ? c : min,
     );
@@ -486,7 +763,6 @@ export const getShippingEstimate = async (
     });
   } catch (error) {
     logger.error({ error }, "Shipping estimate error");
-    // Return fallback on error so checkout still works
     res.status(200).json({
       success: true,
       data: {
@@ -499,8 +775,6 @@ export const getShippingEstimate = async (
 };
 
 // ── Shiprocket webhook handler ────────────────────────────────────────
-// Configure this URL in Shiprocket Dashboard → Settings → API → Webhooks
-// Shiprocket sends a POST with tracking status updates when shipment status changes.
 
 export const shiprocketWebhook = async (
   req: Request,
@@ -510,10 +784,6 @@ export const shiprocketWebhook = async (
     const payload = req.body as Record<string, unknown>;
     logger.info({ payload }, "Shiprocket webhook received");
 
-    // Shiprocket webhook payload (actual format from docs):
-    // { awb, order_id, current_status, current_timestamp, etd, current_status_id,
-    //   shipment_status, shipment_status_id, channel_order_id, channel,
-    //   courier_name, scans: [{ date, activity, location }] }
     const awbRaw = payload.awb;
     const awb = awbRaw !== undefined && awbRaw !== null ? String(awbRaw) : "";
     const status = (payload.current_status || payload.shipment_status || "") as string;
@@ -526,7 +796,6 @@ export const shiprocketWebhook = async (
       return;
     }
 
-    // Find order by tracking number (awb)
     const order = await Order.findOne({ "shipping.trackingNumber": awb });
     if (!order) {
       logger.warn({ awb, orderIdFromPayload }, "Shiprocket webhook: order not found by AWB");
@@ -534,7 +803,6 @@ export const shiprocketWebhook = async (
       return;
     }
 
-    // Update courier name if not already set
     if (courierName && !order.shipping?.carrier) {
       order.shipping = { ...order.shipping, carrier: courierName };
     }
@@ -549,7 +817,7 @@ export const shiprocketWebhook = async (
       order.shipping.deliveredAt = new Date();
       updated = true;
     } else if (
-      (normalizedStatus === "cancelled" || normalizedStatus === "canceled" || normalizedStatus === "returned") &&
+      (normalizedStatus === "cancelled" || normalizedStatus === "canceled" || normalizedStatus === "returned" || normalizedStatus === "rto") &&
       order.status !== "cancelled"
     ) {
       logger.info({ orderId: order.orderId, awb }, "Shiprocket webhook: marking as cancelled");
@@ -574,9 +842,6 @@ export const shiprocketWebhook = async (
     res.status(200).json({ status: "ok" });
   } catch (error) {
     logger.error({ error }, "Shiprocket webhook error");
-    // Always return 200 to acknowledge receipt
     res.status(200).json({ status: "ok" });
   }
 };
-
-

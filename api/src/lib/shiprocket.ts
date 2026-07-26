@@ -326,6 +326,73 @@ export async function printLabel(
   });
 }
 
+/**
+ * 15. Cancel a Shiprocket order with fallback logic.
+ * First tries to cancel via /orders/cancel with the order IDs.
+ * If that fails (e.g. shipment already picked up), returns the error
+ * so the caller can decide whether to attempt RTO instead.
+ *
+ * Returns { cancelled: true } on success, or the Shiprocket error payload.
+ */
+export async function cancelOrderOrRto(
+  orderIds: number[],
+): Promise<ShiprocketResponse<{ cancelled: boolean; message: string; needsRto?: boolean }>> {
+  const result = await cancelOrder(orderIds);
+
+  // If cancellation succeeded, return success
+  if (isShiprocketSuccess(result)) {
+    return { ...result, cancelled: true };
+  }
+
+  // Shiprocket returns specific error messages when shipment is already in transit/picked up
+  // In that case, the caller should attempt RTO instead
+  const msg = (result?.message || "").toLowerCase();
+  const needsRto =
+    msg.includes("already shipped") ||
+    msg.includes("already picked up") ||
+    msg.includes("in transit") ||
+    msg.includes("cannot be cancelled") ||
+    msg.includes("dispatched") ||
+    msg.includes("picked up");
+
+  return {
+    cancelled: false,
+    message: result?.message || "Cancellation failed",
+    needsRto,
+  };
+}
+
+/**
+ * 16. Request RTO (Return to Origin) for a shipment.
+ * Shiprocket creates a return order for shipments that cannot be cancelled
+ * because they have already been picked up or are in transit.
+ */
+export async function requestReturnOrder(
+  orderId: number,
+): Promise<ShiprocketResponse<{ rto_order_id: number; rto_status: string; message: string }>> {
+  return shiprocketFetch("/orders/create/rto", {
+    method: "POST",
+    body: JSON.stringify({ order_id: orderId }),
+  });
+}
+
+/**
+ * 17. Get shipment status by Shiprocket order ID.
+ * Used to check whether a shipment can be cancelled before attempting.
+ */
+export async function getShipmentStatus(
+  orderId: number,
+): Promise<ShiprocketResponse<{
+  status: string;
+  shipment_status: string;
+  current_status: string;
+  pickup_status: string;
+  awb_code: string;
+  courier_name: string;
+}>> {
+  return shiprocketFetch(`/orders/show/${orderId}`, { method: "GET" });
+}
+
 // ── Helper: Build the create-order payload from our order data ───────
 
 export interface ShiprocketOrderInput {

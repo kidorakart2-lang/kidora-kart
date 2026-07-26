@@ -23,6 +23,7 @@ export const INITIAL_FORM_STATE: ProductFormData = {
   isUpsell: false, isOnSale: false, isPersonalized: false, isGift: false,
   order: 0, mainImage: null, additionalImages: [null, null, null, null, null],
   mainImagePreview: "", additionalImagePreviews: ["", "", "", "", ""],
+  giftImages: [null, null, null, null, null], giftImagePreviews: ["", "", "", "", ""],
 };
 
 export async function fetchColors(): Promise<{ _id: string; name: string; code: string }[]> {
@@ -67,13 +68,6 @@ export async function saveProduct({ formData, editingProduct }: { formData: Form
   return editingProduct ? api.put(url, formData) : api.post(url, formData);
 }
 
-export function generateCode(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let code = "";
-  for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
-  return code;
-}
-
 export function buildProductFormData(
   formData: ProductFormData,
   selectedCategory: string[],
@@ -82,6 +76,7 @@ export function buildProductFormData(
   selectedColors: string[],
   selectedMaterials: string[],
   removeImagesUrl: string[],
+  removeGiftImagesUrl: string[] = [],
 ): FormData {
   const fd = new FormData();
   fd.append("name", formData.name);
@@ -98,7 +93,7 @@ export function buildProductFormData(
   if (formData.sku) fd.append("sku", formData.sku);
   if (formData.tags.length > 0) formData.tags.forEach((tag) => fd.append("tags[]", tag));
   if (formData.videoUrl) fd.append("videoUrl", formData.videoUrl);
-  fd.append("code", formData.code || generateCode());
+  fd.append("code", formData.code);
   fd.append("price", formData.price);
   fd.append("discount_price", formData.discount_price);
   fd.append("stock", formData.stock);
@@ -120,6 +115,95 @@ export function buildProductFormData(
   selectedMaterials.forEach((m) => fd.append("material[]", m));
   if (formData.mainImage) fd.append("image", formData.mainImage);
   formData.additionalImages?.forEach((file) => { if (file) fd.append("images", file); });
+  formData.giftImages?.forEach((file) => { if (file) fd.append("giftImages", file); });
   removeImagesUrl.forEach((url) => fd.append("removeImagesUrl[]", url));
+  removeGiftImagesUrl.forEach((url) => fd.append("removeGiftImagesUrl[]", url));
+  return fd;
+}
+
+/**
+ * Fields that should always be included in the update FormData,
+ * regardless of whether they changed (files, removal requests).
+ */
+const ALWAYS_INCLUDE_FIELDS = new Set([
+  "mainImage",
+  "additionalImages",
+  "giftImages",
+]);
+
+/**
+ * Build a FormData containing ONLY the fields that differ from the initial
+ * snapshot. Used for updates so we don't send 20+ fields when only 1 changed.
+ *
+ * @param formData       Current form values
+ * @param initialData    Snapshot of form values when the drawer opened
+ * @param selections     Current multi-select arrays
+ * @param initialSelections Initial multi-select snapshots
+ * @param removeUrls     Current removal URL arrays
+ */
+export function buildUpdateFormData(
+  formData: ProductFormData,
+  initialData: ProductFormData,
+  selections: {
+    category: string[];
+    subCategory: string[];
+    subSubCategory: string[];
+    colors: string[];
+    materials: string[];
+  },
+  initialSelections: {
+    category: string[];
+    subCategory: string[];
+    subSubCategory: string[];
+    colors: string[];
+    materials: string[];
+  },
+  removeImagesUrl: string[],
+  removeGiftImagesUrl: string[] = [],
+): FormData {
+  const fd = new FormData();
+
+  // Compare scalar fields (string, number, boolean) and include if changed
+  const scalarFields: (keyof ProductFormData)[] = [
+    "name", "description", "shortDescription", "weight", "length", "height",
+    "breadth", "minimumAge", "idealAge", "maximumAge", "type", "sku",
+    "videoUrl", "code", "price", "discount_price", "stock",
+    "estimated_delivery_time", "status", "order",
+    "isFeatured", "isNewArrival", "isBestSeller", "isTopRated",
+    "isUpsell", "isOnSale", "isPersonalized", "isGift",
+  ];
+
+  for (const field of scalarFields) {
+    const curr = formData[field];
+    const init = initialData[field];
+    if (String(curr) !== String(init)) {
+      fd.append(field, String(curr));
+    }
+  }
+
+  // Tags array
+  if (JSON.stringify(formData.tags) !== JSON.stringify(initialData.tags)) {
+    formData.tags.forEach((tag) => fd.append("tags[]", tag));
+  }
+
+  // Multi-select arrays
+  const selectionKeys: (keyof typeof selections)[] = ["category", "subCategory", "subSubCategory", "colors", "materials"];
+  for (const key of selectionKeys) {
+    const curr = selections[key];
+    const init = initialSelections[key];
+    if (JSON.stringify([...curr].sort()) !== JSON.stringify([...init].sort())) {
+      curr.forEach((id) => fd.append(`${key}[]`, id));
+    }
+  }
+
+  // Files — always include if present
+  if (formData.mainImage) fd.append("image", formData.mainImage);
+  formData.additionalImages?.forEach((file) => { if (file) fd.append("images", file); });
+  formData.giftImages?.forEach((file) => { if (file) fd.append("giftImages", file); });
+
+  // Removal URLs — always include if non-empty
+  removeImagesUrl.forEach((url) => fd.append("removeImagesUrl[]", url));
+  removeGiftImagesUrl.forEach((url) => fd.append("removeGiftImagesUrl[]", url));
+
   return fd;
 }

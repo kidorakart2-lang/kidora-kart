@@ -45,6 +45,7 @@ export const uploadAvatar = upload.single("avatar");
 export const uploadProduct = upload.fields([
   { name: "image", maxCount: 1 },
   { name: "images", maxCount: 9 }, // reduced from 10 to respect total files limit
+  { name: "giftImages", maxCount: 5 },
 ]);
 export const uploadSingle = upload.single("image");
 export const uploadLogo = upload.single("logo");

@@ -158,6 +158,11 @@ const orderSchema = new Schema(
       estimatedDelivery: { type: Date },
       shippedAt: { type: Date },
       deliveredAt: { type: Date },
+      shiprocketOrderId: { type: Number, default: null },
+      shiprocketShipmentId: { type: Number, default: null },
+      rtoRequested: { type: Boolean, default: false, required: false },
+      rtoOrderId: { type: Number, default: null },
+      rtoStatus: { type: String },
     },
     invoice: {
       invoiceNumber: { type: String },

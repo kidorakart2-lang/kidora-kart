@@ -17,6 +17,8 @@ import {
 import {
   checkServiceability,
   getPickupLocations,
+  cancelOrderOrRto as shiprocketCancelOrRto,
+  requestReturnOrder as shiprocketRequestRto,
 } from "../../lib/shiprocket.js";
 import { generateOTP, generatePackageId, type RefundResponse, type OrderItemInput } from "./order.helpers.js";
 import {
@@ -1639,7 +1641,12 @@ export const cancelOrderByAdmin = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const { orderId, reason } = req.body as { orderId: string; reason?: string };
+  const { orderId, reason, autoRto } = req.body as {
+    orderId: string;
+    reason?: string;
+    /** If true, automatically attempt RTO if Shiprocket cancellation fails */
+    autoRto?: boolean;
+  };
   try {
     const order = await Order.findOne({ orderId });
     if (!order) {
@@ -1647,53 +1654,115 @@ export const cancelOrderByAdmin = async (
       return;
     }
 
-    if (order.payment?.status !== "pending") {
-      const refundAmount = order.pricing?.total ?? 0;
+    // ── Step 1: Handle Shiprocket cancellation if order has been shipped ──
+    let shiprocketAction: "cancelled" | "rto" | "none" | "failed" = "none";
+    const shiprocketOrderId = order.shipping?.shiprocketOrderId;
 
-      // O12: Validate refundAmount > 0 before calling Razorpay
-      if (refundAmount <= 0) {
-        logger.warn({ orderId: order.orderId }, "Admin cancel: refund skipped — amount is 0");
-      } else {
+    if (shiprocketOrderId) {
       try {
-        // O9: Check payment state on Razorpay before issuing refund
-        const paymentId = order.payment?.razorpay?.paymentId;
-        if (paymentId) {
-          try {
-            const rzpPayment = await razorpay.payments.fetch(paymentId) as { status?: string };
-            if (rzpPayment.status !== "captured") {
-              logger.warn({ orderId: order.orderId }, "Admin cancel: refund skipped — payment not captured");
-            } else {
-        const refundResponse = await razorpay.payments.refund(
-          paymentId,
-          {
-            amount: refundAmount * 100,
-            notes: { orderId: order.orderId, reason: reason ?? null },
-          },
-        );
-        const refundResult = refundResponse as RefundResponse;
+        const cancelResult = await shiprocketCancelOrRto([shiprocketOrderId]);
 
-        order.cancellation = {
-          ...(order.cancellation ?? {}),
-          refundStatus: "initiated",
-          refundId: refundResult.id,
-          refundAmount,
-        };
-            }
-          } catch (rzpError) {
-            logger.error(rzpError, "Razorpay payment fetch failed");
+        if (cancelResult.cancelled) {
+          logger.info({ orderId, shiprocketOrderId }, "Admin cancel: Shiprocket order cancelled successfully");
+          shiprocketAction = "cancelled";
+        } else if (cancelResult.needsRto && autoRto) {
+          // Cancellation failed because shipment is in transit — attempt RTO
+          logger.info({ orderId, shiprocketOrderId }, "Admin cancel: Shiprocket cancel failed, attempting RTO");
+          const rtoResult = await shiprocketRequestRto(shiprocketOrderId);
+
+          if (rtoResult.status_code === 1) {
+            shiprocketAction = "rto";
+            order.shipping = {
+              ...order.shipping,
+              rtoRequested: true,
+              rtoOrderId: rtoResult.rto_order_id,
+              rtoStatus: rtoResult.rto_status || "initiated",
+            } as typeof order.shipping;
+            logger.info({ orderId, rtoOrderId: rtoResult.rto_order_id }, "Admin cancel: RTO initiated");
+          } else {
+            logger.warn({ orderId, rtoResult }, "Admin cancel: RTO failed");
+            shiprocketAction = "failed";
           }
+        } else if (cancelResult.needsRto) {
+          // Cancellation failed, RTO available but not auto — tell the admin
+          res.status(409).json({
+            success: false,
+            message: "Shipment has already been picked up by the courier. Cannot cancel directly. Use the RTO endpoint to have the package returned.",
+            data: {
+              needsRto: true,
+              shiprocketOrderId,
+              shiprocketMessage: cancelResult.message,
+            },
+          });
+          return;
+        } else {
+          logger.warn({ orderId, shiprocketOrderId, cancelResult }, "Admin cancel: Shiprocket cancellation failed");
+          shiprocketAction = "failed";
         }
-      } catch (error) {
-        logger.error(error, "Refund initiation failed");
-        order.cancellation = {
-          ...(order.cancellation ?? {}),
-          refundStatus: "failed",
-          refundError: error instanceof Error ? error.message : "Unknown error",
-        };
-      }
+      } catch (srErr) {
+        logger.error({ err: srErr, orderId }, "Admin cancel: Shiprocket error during cancellation");
+        // Continue with local cancellation even if Shiprocket fails
       }
     }
 
+    // ── Step 2: Handle refund if payment was made ──
+    if (order.payment?.status !== "pending") {
+      const refundAmount = order.pricing?.total ?? 0;
+
+      if (refundAmount <= 0) {
+        logger.warn({ orderId: order.orderId }, "Admin cancel: refund skipped — amount is 0");
+      } else {
+        try {
+          const paymentId = order.payment?.razorpay?.paymentId;
+          if (paymentId) {
+            try {
+              const rzpPayment = await razorpay.payments.fetch(paymentId) as { status?: string };
+              if (rzpPayment.status !== "captured") {
+                logger.warn({ orderId: order.orderId }, "Admin cancel: refund skipped — payment not captured");
+              } else {
+                const refundResponse = await razorpay.payments.refund(
+                  paymentId,
+                  {
+                    amount: refundAmount * 100,
+                    notes: { orderId: order.orderId, reason: reason ?? null },
+                  },
+                );
+                const refundResult = refundResponse as RefundResponse;
+
+                order.cancellation = {
+                  ...(order.cancellation ?? {}),
+                  refundStatus: "initiated",
+                  refundId: refundResult.id,
+                  refundAmount,
+                };
+              }
+            } catch (rzpError) {
+              logger.error(rzpError, "Razorpay payment fetch failed");
+            }
+          }
+        } catch (error) {
+          logger.error(error, "Refund initiation failed");
+          order.cancellation = {
+            ...(order.cancellation ?? {}),
+            refundStatus: "failed",
+            refundError: error instanceof Error ? error.message : "Unknown error",
+          };
+        }
+      }
+    }
+
+    // ── Step 3: Restore stock ──
+    try {
+      for (const item of order.items) {
+        await Product.findByIdAndUpdate(item.productId, {
+          $inc: { stock: item.quantity },
+        });
+      }
+    } catch (stockError) {
+      logger.error(stockError, "Failed to restore stock during admin cancel");
+    }
+
+    // ── Step 4: Update local order status ──
     order.status = "cancelled";
     order.cancellation = {
       ...(order.cancellation ?? {}),
@@ -1703,9 +1772,20 @@ export const cancelOrderByAdmin = async (
     };
     await order.save();
 
+    const shiprocketMsg =
+      shiprocketAction === "cancelled"
+        ? " Shipment also cancelled on Shiprocket."
+        : shiprocketAction === "rto"
+          ? " RTO (Return to Origin) has been initiated on Shiprocket."
+          : "";
+
     res.status(200).json({
       success: true,
-      message: "Order cancelled successfully",
+      message: `Order cancelled successfully.${shiprocketMsg}`,
+      data: {
+        shiprocketAction,
+        shiprocketOrderId: shiprocketAction !== "none" ? shiprocketOrderId : undefined,
+      },
     });
 
     sendEmail(order.shippingAddress?.email ?? "", "orderCancelled", {
@@ -1730,7 +1810,7 @@ export const cancelOrderByAdmin = async (
     logger.error(error, "Cancel Order Error");
     res.status(500).json({
       success: false,
-      message: "Failed to cancel order",           error: "Internal Server Error",
+      message: "Failed to cancel order", error: "Internal Server Error",
     });
   }
 };

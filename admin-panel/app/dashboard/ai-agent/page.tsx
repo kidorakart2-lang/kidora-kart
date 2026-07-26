@@ -11,7 +11,6 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { HistorySidebar } from "@/components/chat/HistorySidebar";
 import { AiAgentSuggestions } from "@/components/ai-agent/AiAgentSuggestions";
 import { ToolCallIndicators } from "@/components/ai-agent/ToolCallIndicators";
-import LightfallBackground from "@/components/LightfallBackground";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { Sparkles, PanelLeftOpen, Bot, RefreshCw } from "lucide-react";
 import type { AiHistoryItem } from "@/lib/types";
@@ -265,16 +264,8 @@ export default function AiAgentPage() {
   const showLoadingDots = isStreaming && (messages.length === 0 || messages[messages.length - 1]?.role !== "assistant" || !messages[messages.length - 1]?.content);
 
   return (
-    <LightfallBackground
-      speed={0.3}
-      density={0.35}
-      glow={1.5}
-      opacity={0.4}
-      colors={["#6366F1", "#A78BFA", "#F472B6", "#06B6D4"]}
-      backgroundColor="#0F172A"
-      className="h-dvh w-screen overflow-hidden"
-    >
-      <div className="h-full w-full flex relative z-10">
+    <div className="h-dvh w-screen overflow-hidden bg-[#0F172A]">
+      <div className="h-full w-full flex">
         <HistorySidebar
           show={showHistory}
           onClose={() => setShowHistory(false)}
@@ -475,6 +466,6 @@ export default function AiAgentPage() {
         description="This action cannot be undone. The conversation will be permanently removed."
         confirmText="Delete"
       />
-    </LightfallBackground>
+    </div>
   );
 }

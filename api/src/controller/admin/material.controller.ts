@@ -50,6 +50,10 @@ export const view = async (
   response: Response,
 ): Promise<void> => {
   try {
+    const cacheKey = "admin_material_view";
+    const cached = cache.get<{ _status: boolean; _message: string; _data: unknown[] }>(cacheKey);
+    if (cached) { response.status(200).json(cached); return; }
+
     const andCondition: Record<string, unknown>[] = [];
     const orCondition: Record<string, unknown>[] = [];
 
@@ -78,11 +82,9 @@ export const view = async (
       .sort({ order: "asc", _id: "desc" })
       .lean();
 
-    response.status(200).json({
-      _status: true,
-      _message: "Materials found",
-      _data: ress,
-    });
+    const responseData = { _status: true, _message: "Materials found", _data: ress };
+    cache.set(cacheKey, responseData, 300);
+    response.status(200).json(responseData);
   } catch (err) {
     response.status(500).json({
       _status: false,

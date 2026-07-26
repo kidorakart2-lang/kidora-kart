@@ -55,6 +55,7 @@ export interface ProductData {
   videoUrl?: string;
   isNewArrival?: boolean;
   estimated_delivery_time?: string;
+  giftImages?: string[];
 }
 
 export interface SubSubCategoryData {

@@ -144,6 +144,12 @@ const productSchema = new Schema(
       default: "draft",
       required: [true, "Please enter a status"],
     },
+    giftImages: [
+      {
+        type: String,
+        default: "",
+      },
+    ],
     isPersonalized: { type: Boolean, default: false },
     isGift: { type: Boolean, default: false },
     isFeatured: { type: Boolean, default: false },

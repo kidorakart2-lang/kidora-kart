@@ -100,6 +100,7 @@ export interface Product {
   isOnSale: boolean;
   isPersonalized: boolean;
   isGift: boolean;
+  giftImages: string[];
   order: number;
   image: string;
   images: string[];
@@ -296,6 +297,8 @@ export interface ProductFormData {
   additionalImages: (File | null)[];
   mainImagePreview: string;
   additionalImagePreviews: string[];
+  giftImages: (File | null)[];
+  giftImagePreviews: string[];
 }
 
 export interface OrderUser {
