@@ -2,6 +2,28 @@ import type { Request, Response } from "express";
 import Order from "../../models/order.js";
 import Product from "../../models/product.js";
 import { logger } from "../../lib/logger.js";
+
+/**
+ * Parse a product weight string into grams.
+ * Handles formats like "500", "500g", "0.5 kg", "500 grams", "500 gm".
+ * Returns the numeric weight in grams, or null if unparseable.
+ */
+function parseWeightGrams(raw: string | undefined | null): number | null {
+  if (!raw) return null;
+  const cleaned = raw.trim().toLowerCase();
+  // Try to extract the numeric portion while stripping units
+  const match = cleaned.match(/^([\d.]+)\s*(?:g|kg|grams?|gms?)?$/);
+  if (!match) return null;
+  const value = parseFloat(match[1]!);
+  if (isNaN(value)) return null;
+  // If the input included "kg" explicitly, convert to grams
+  if (/kg\s*$/.test(cleaned) || cleaned.includes("kg")) {
+    return value * 1000;
+  }
+  // Otherwise assume grams (handles bare numbers, "g", "gm", "grams")
+  return value;
+}
+
 import {
   createOrder as shiprocketCreateOrder,
   createShipment,
@@ -81,8 +103,9 @@ export const createShippingOrder = async (
     for (const doc of productDocs) {
       const id = String(doc._id);
       // Weight is stored in grams (e.g. "500" = 500g), convert to kg for Shiprocket
-      const parsed = parseFloat(doc.weight || "0.5") / 1000;
-      weightMap.set(id, isNaN(parsed) ? 0.5 : parsed);
+      const weightGrams = parseWeightGrams(doc.weight);
+      const weightKg = weightGrams !== null ? weightGrams / 1000 : 0.5;
+      weightMap.set(id, weightKg);
     }
 
     // Calculate total weight in kg
@@ -691,8 +714,9 @@ export const getShippingEstimate = async (
     const weightMap = new Map<string, number>();
     for (const doc of productDocs) {
       const id = String(doc._id);
-      const parsed = parseFloat(doc.weight || "0.5") / 1000;
-      weightMap.set(id, isNaN(parsed) ? 0.5 : parsed);
+      const weightGrams = parseWeightGrams(doc.weight);
+      const weightKg = weightGrams !== null ? weightGrams / 1000 : 0.5;
+      weightMap.set(id, weightKg);
     }
 
     let totalWeightKg = 0;

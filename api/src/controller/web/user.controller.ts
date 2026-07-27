@@ -475,7 +475,7 @@ export const verifyUser = async (
       otp,
       subject: "Verify Your Email",
       name: user.name || "User",
-      verificationLink: `${env.FRONTEND_URL}/verify-email?token=${verificationToken}&otp=${otp}`,
+      verificationLink: `${env.FRONTEND_URL}/verify-email?token=${verificationToken}`,
     }).catch((emailError) => {
       logger.error({ err: emailError }, "Failed to send verification email");
     });
@@ -509,13 +509,17 @@ export const completeVerify = async (
       return fail(res, "Invalid OTP", 400);
     }
 
+    if (!decoded.userId) {
+      return fail(res, "Invalid verification token: missing user ID", 400);
+    }
+
     const result = await User.findByIdAndUpdate(
       decoded.userId,
       { isEmailVerified: true },
       { new: true },
     );
     if (!result) return fail(res, "User not found", 404);
-    invalidateUserCache(decoded.userId!);
+    invalidateUserCache(decoded.userId);
     return success(res, null, "Email verified successfully");
   } catch (error) {
     logger.error({ err: error }, "Complete verify error");

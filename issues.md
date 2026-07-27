@@ -510,3 +510,279 @@ Order operations span multiple systems (our DB → Razorpay → Shiprocket), but
 3. **Home Page: Section config completely unvalidated** (3.1) — TypeScript `Mixed` type allows any invalid config to be saved, potentially breaking the homepage.
 4. **SEO: No JSON-LD structured data** (4.3) — Missing Organization, Website, and LocalBusiness schemas for rich search results.
 5. **Cross-system: Order status transition integrity** (5.4) — Race conditions between webhook status updates and admin actions can leave orders in inconsistent states.
+
+---
+
+## 6. Next.js API Rewrite Audit
+
+> **Added:** July 27, 2026
+> **Scope:** Web rewrite config, admin-panel rewrite config, all API call sites cross-referenced against Express routes
+
+### Critical Issues
+
+#### 6.1 🔴 Web Rewrite Missing `/` Between Port and Path
+**File:** `web/next.config.ts`
+
+```typescript
+async rewrites() {
+  return [
+    {
+      source: "/api/:path*",
+      destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}api/:path*`,
+    },
+  ];
+},
+```
+
+The default `NEXT_PUBLIC_API_URL` is `"http://localhost:5000"` (no trailing slash). The concatenation produces:
+
+```
+http://localhost:5000api/website/user/login
+```
+
+instead of the correct:
+
+```
+http://localhost:5000/api/website/user/login
+```
+
+**Effect:** Every single proxied API request on the website (web/) will fail with a DNS/connection error or a completely broken URL. The Express server mounts routes at `/api/website/...`, so the missing `/` makes every URL unresolvable.
+
+**Compare with admin-panel (correct):**
+```typescript
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/";
+//                                                                          ^ trailing slash
+destination: `${backendUrl}api/:path*`,
+// Result: http://localhost:5000/api/website/user/login  ✅
+```
+
+**All 33+ website API call sites affected:** Including login, signup, cart, wishlist, profile, products, banners, nav, FAQ, testimonials, sitemap, etc.
+
+**Fix:** Add a trailing slash to the default URL or add a `/` in the template:
+```typescript
+destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/"}api/:path*`,
+//                                                          ^ trailing slash
+```
+
+---
+
+### High Priority
+
+#### 6.2 🔴 Admin Panel `resolveUrl` Lowercases All Paths — Fragile Against Case-Sensitive Routing
+**File:** `admin-panel/lib/api.ts`
+
+```typescript
+const normalised = path.toLowerCase() + qs;
+```
+
+The `resolveUrl()` function lowercases the entire URL path before making the request. Express routes are **case-insensitive by default**, so this works currently. However:
+
+- If anyone enables `app.set('case sensitive routing', true)` on the Express server, **every single admin panel API call would break** (all ~78+ calls).
+- The backend route `router.post("/findAllUser", ...)` is technically mixed-case — it works because Express is case-insensitive by default, but this is fragile.
+- **Real risk:** It prevents ever enabling case-sensitive routing, which is a security hardening practice.
+
+**Affected routes (mixed-case in Express):**
+| Route | Client URL (after lowercasing) | Server Route | Works? |
+|-------|-------------------------------|--------------|--------|
+| `/api/admin/user/findAllUser` | `/api/admin/user/findalluser` | `/findAllUser` | ✅ (case-insensitive)
+
+**Fix:** Remove the `.toLowerCase()` call from `resolveUrl`. Or at minimum, ensure Express routes consistently use lowercase only.
+
+---
+
+### Medium Priority
+
+#### 6.3 🟠 Duplicate `/admin/` Prefix in Order Refund Routes
+**File:** `api/src/routes/admin/adminOrder.routes.ts`
+
+The mount point is:
+```typescript
+app.use("/api/admin/orders", adminOrderRoutes);
+```
+
+Routes inside have an **additional `/admin/` prefix**:
+
+```typescript
+router.get("/admin/refunded", ...);         // Full: /api/admin/orders/admin/refunded
+router.get("/admin/refund/verify/:id", ...); // Full: /api/admin/orders/admin/refund/verify/:id
+router.patch("/admin/refund/:id", ...);      // Full: /api/admin/orders/admin/refund/:id
+router.post("/admin/refund/sync", ...);      // Full: /api/admin/orders/admin/refund/sync
+router.post("/admin/refund/bulk", ...);      // Full: /api/admin/orders/admin/refund/bulk
+```
+
+The client (`RefundedOrdersAdmin.tsx`) calls matching paths like `\`/api/admin/orders/admin/refunded\` — so it's **consistent** and doesn't cause 404s. But:
+
+- The URL structure is confusing: `/api/admin/orders/admin/...` has redundant `/admin/`
+- If the mount point were to change (e.g., to `app.use("/api/admin/order", ...)`), the routes would become `/api/admin/order/admin/refunded` — still double `/admin/`
+- **Recommendation:** Remove the `/admin/` prefix from these routes since they're already under `/api/admin/`
+
+#### 6.4 🟠 Admin Panel Refund Component Uses Raw `fetch()` — Bypasses API Client
+**File:** `admin-panel/components/RefundedOrdersAdmin.tsx`
+
+This component makes multiple API calls using direct `fetch()` instead of the `api` helper:
+
+```typescript
+const BASE_URL = "/api/admin/orders";
+
+// Uses raw fetch() instead of api.get() / api.post()
+const response = await fetch(\`\${BASE_URL}/admin/refunded\`, { method: "GET", credentials: "include" });
+await fetch(\`\${BASE_URL}/admin/refund/sync\`, { method: "POST", credentials: "include" });
+await fetch(\`\${BASE_URL}/admin/refund/verify/\${orderId}\`, { method: "GET", credentials: "include" });
+await fetch(\`\${BASE_URL}/admin/refund/\${orderId}\`, { method: "PATCH", credentials: "include", ... });
+```
+
+This bypasses:
+- `resolveUrl()` — path lowercasing and normalization
+- CSRF token injection (`x-csrf-token` header)
+- Automatic `Authorization: Bearer` header from `adminToken` cookie
+- `_data` extraction from response
+
+**Why it still works:**
+- `credentials: "include"` sends cookies, so the `protect` middleware can authenticate via `req.cookies?.adminToken`
+- The refund routes don't use `csrfProtection` middleware, so missing CSRF headers don't cause 403s
+- Response parsing manually handles the full JSON
+
+**Risk:** If `csrfProtection` is ever added to these refund routes, all refund operations would silently fail with 403. The `PATCH` method also doesn't match the admin panel's typical `post`/`put` pattern for mutations.
+
+**Recommendation:** Migrate `RefundedOrdersAdmin.tsx` to use the `api` helper (or `api.postRaw()` for the sync endpoint that needs the full response).
+
+#### 6.5 🟠 Admin Panel Raw fetch() for Refresh/Logout — Bypasses API Client
+**File:** `admin-panel/components/header.tsx`
+
+```typescript
+await fetch("/api/admin/user/refresh", { method: "POST", credentials: "include" });
+await fetch("/api/admin/user/logout", { method: "POST", credentials: "include" });
+```
+
+These bypass `resolveUrl()` and CSRF injection too. The refresh endpoint doesn't use `csrfProtection` (it's unprotected by design), so this works. But inconsistent with the rest of the admin panel.
+
+#### 6.6 🟠 Admin Panel Profile Uses `api.get()` with Token Override — Fragile Pattern
+**File:** `admin-panel/app/dashboard/profile/page.tsx`
+
+```typescript
+return await api.get("/api/website/user/profile", token.value);
+```
+
+This calls a **website** endpoint from the **admin panel** by passing a token override. This:
+1. Goes through the admin panel's rewrite → backend → website user controller
+2. Requires the admin to have a user session AND an admin session simultaneously
+3. If the userToken cookie is missing, this fails
+
+**Recommendation:** Add a dedicated admin profile endpoint instead of relying on the website user profile endpoint.
+
+#### 6.7 🟠 `logo.ts` Uses Lowercase HTTP Method — Works but Inconsistent
+**File:** `web/src/lib/logo.ts`
+
+```typescript
+const response = await fetch("/api/website/logo", { method: "post" });
+```
+
+Uses `"post"` (lowercase) instead of `"POST"`. Works because HTTP method matching is case-insensitive, but inconsistent with the rest of the codebase which uses uppercase methods.
+
+---
+
+### Low Priority
+
+#### 6.8 🟢 No `basePath` Config — Admin Panel Runs at Root
+**File:** `admin-panel/next.config.ts`
+
+The admin panel has no `basePath` configuration, so it runs at the root (`/`). If it were ever deployed on a subpath (e.g., `/admin`), all hardcoded API paths like `/api/admin/user/login` would need updating.
+
+#### 6.9 🟢 CSP `connect-src` Doesn't Include Backend URL
+**File:** `web/next.config.ts`
+
+```typescript
+connect-src 'self' https://challenges.cloudflare.com;
+```
+
+With rewrites, all API calls appear as `'self'` (same-origin), so this works. If rewrites are ever removed, the CSP would block all API calls. Not urgent but worth documenting.
+
+#### 6.10 🟢 Sitemap Uses Relative API URLs — Works with ISR Only
+**File:** `web/src/app/sitemap.ts`
+
+```typescript
+const productsRes = await fetch("/api/website/product/all", { next: { revalidate: 86400 } });
+```
+
+- Works at runtime because Next.js ISR runs after the server is started
+- Would fail during `next build` or `next export` when Express isn't running
+- Not a rewrite-specific issue but related to the API URL architecture
+
+---
+
+### 6.11 Complete Cross-Reference: All API Call Sites vs Backend Routes
+
+**Website (web/) — All 33+ calls verified:**
+
+| Frontend File | URL Called | Backend Route | Matches? |
+|--------------|------------|---------------|:--------:|
+| `Login.tsx` | `POST /api/website/user/login` | `router.post("/login")` at `/api/website/user` | ✅ |
+| `SignUp.tsx` | `POST /api/website/user/register` | `router.post("/register")` at `/api/website/user` | ✅ |
+| `callback/page.tsx` | `POST /api/website/user/google-callback` | `router.post("/google-callback")` at `/api/website/user` | ✅ |
+| `Profile.tsx` | `PUT /api/website/user/update-profile` | `router.put("/update-profile")` at `/api/website/user` | ✅ |
+| `Cart.tsx` | `GET /api/website/cart/view` | `router.get("/view")` at `/api/website/cart` | ✅ |
+| `cart/page.tsx` | `GET /api/website/cart/view` | `router.get("/view")` at `/api/website/cart` | ✅ |
+| `ProductDetail.tsx` | `POST /api/website/cart/add` | `router.post("/add")` at `/api/website/cart` | ✅ |
+| `ProductDetail.tsx` | `POST /api/website/wishlist/add` | `router.post("/add")` at `/api/website/wishlist` | ✅ |
+| `syncGuestData.ts` | `POST /api/website/cart/add` | `router.post("/add")` at `/api/website/cart` | ✅ |
+| `syncGuestData.ts` | `POST /api/website/wishlist/add` | `router.post("/add")` at `/api/website/wishlist` | ✅ |
+| `page.tsx` (home) | `GET /api/website/testimonial` | `router.get("/")` at `/api/website/testimonial` | ✅ |
+| `page.tsx` (home) | `GET /api/website/product/tab-products` | `router.get("/tab-products")` at `/api/website/product` | ✅ |
+| `page.tsx` (home) | `GET /api/website/product/new-arrivals` | `router.get("/new-arrivals")` at `/api/website/product` | ✅ |
+| `page.tsx` (home) | `GET /api/website/product/best-sellers` | `router.get("/best-sellers")` at `/api/website/product` | ✅ |
+| `page.tsx` (home) | `GET /api/website/product/trending-products` | `router.get("/trending-products")` at `/api/website/product` | ✅ |
+| `layout.tsx` | `GET /api/website/nav` | `router.get("/")` at `/api/website/nav` | ✅ |
+| `layout.tsx` | `GET /api/website/product/featured-for-footer` | `router.get("/featured-for-footer")` at `/api/website/product` | ✅ |
+| `logo.ts` | `POST /api/website/logo` | `router.post("/")` at `/api/website/logo` | ✅ |
+| `useCacheInvalidation.ts` | `GET /api/revalidate` | Next.js API Route (not Express) | ✅ |
+| `useProductFaqs.ts` | `GET /api/website/product-faq?...` | `router.get("/")` at `/api/website/product-faq` | ✅ |
+| `useRelatedProducts.ts` | `GET /api/website/product/get-related-products?...` | `router.get("/get-related-products")` at `/api/website/product` | ✅ |
+| `SettingsSection.tsx` | `POST /api/website/user/verify-user` | `router.post("/verify-user")` at `/api/website/user` | ✅ |
+| `SettingsSection.tsx` | `POST /api/website/user/logout` | `router.post("/logout")` at `/api/website/user` | ✅ |
+| `DefaultBanner.tsx` | `GET /api/website/banner` | `router.get("/")` at `/api/website/banner` | ✅ |
+| `PromoBannerSection.tsx` | `GET /api/website/banner` | `router.get("/")` at `/api/website/banner` | ✅ |
+| `video.tsx` | `GET /api/website/banner` | `router.get("/")` at `/api/website/banner` | ✅ |
+| `VideoSection.tsx` | `GET /api/website/banner` | `router.get("/")` at `/api/website/banner` | ✅ |
+| `ProductsTab.tsx` | `GET /api/website/nav` | `router.get("/")` at `/api/website/nav` | ✅ |
+| `sitemap.ts` | `GET /api/website/product/all` | `router.get("/all")` at `/api/website/product` | ✅ |
+| `faq/page.tsx` | `GET /api/website/faq` | `router.get("/")` at `/api/website/faq` | ✅ |
+| `category/page.tsx` | `GET /api/website/nav` | `router.get("/")` at `/api/website/nav` | ✅ |
+| `change-password/page.tsx` | `POST /api/website/user/change-password` | `router.post("/change-password")` at `/api/website/user` | ✅ |
+| `product-details/[slug]/page.tsx` | `GET /api/website/product/all` | `router.get("/all")` at `/api/website/product` | ✅ |
+
+**Admin Panel (admin-panel/) — All 78+ calls via `api` helper + 5 raw `fetch()` calls:**
+
+All `api.get/post/put/del` calls use paths that match Express routes exactly (after the path is lowercased by `resolveUrl`, which matches Express's default case-insensitive routing).
+
+**Problematic patterns:**
+
+| Component | HTTP Method | URL | Backend Route | Issue |
+|-----------|:-----------:|-----|---------------|-------|
+| `RefundedOrdersAdmin.tsx` | `PATCH` | `/api/admin/orders/admin/refund/:id` | `router.patch("/admin/refund/:orderId")` at `/api/admin/orders` | Uses raw `fetch()` — no CSRF, no auth header auto-injection, no `_data` extraction |
+| `RefundedOrdersAdmin.tsx` | `GET` | `/api/admin/orders/admin/refunded` | `router.get("/admin/refunded")` at `/api/admin/orders` | Same — raw `fetch()` |
+| `RefundedOrdersAdmin.tsx` | `POST` | `/api/admin/orders/admin/refund/sync` | `router.post("/admin/refund/sync")` at `/api/admin/orders` | Same — raw `fetch()` |
+| `RefundedOrdersAdmin.tsx` | `GET` | `/api/admin/orders/admin/refund/verify/:id` | `router.get("/admin/refund/verify/:orderId")` at `/api/admin/orders` | Same — raw `fetch()` |
+| `header.tsx` | `POST` | `/api/admin/user/refresh` | `router.post("/refresh")` at `/api/admin/user` | Raw `fetch()` — refresh endpoint doesn't need CSRF, but inconsistent pattern |
+| `header.tsx` | `POST` | `/api/admin/user/logout` | `router.post("/logout")` at `/api/admin/user` | Raw `fetch()` — same |
+| `Profile.tsx` (admin) | `POST` | `/api/website/user/verify-user` | `router.post("/verify-user")` at `/api/website/user` | Calls **website** endpoint from admin panel via token override — fragile |
+| `Profile.tsx` (admin) | `POST` | `/api/website/user/change-password` | `router.post("/change-password")` at `/api/website/user` | Same — calls website endpoint from admin |
+| `ForgotPassword.tsx` (admin) | `POST` | `/api/website/user/forgot-password` | `router.post("/forgot-password")` at `/api/website/user` | Same — calls website endpoint from admin |
+
+---
+
+### 6.12 Summary: Rewrite Audit
+
+| # | Severity | Issue | File |
+|---|----------|-------|------|
+| 6.1 | 🔴 CRITICAL | Missing `/` in web rewrite destination — all API calls produce broken URLs | `web/next.config.ts` |
+| 6.2 | 🔴 HIGH | `resolveUrl` lowercases paths — fragile if Express case-sensitive routing is enabled | `admin-panel/lib/api.ts` |
+| 6.3 | 🟠 MEDIUM | Duplicate `/admin/` prefix in order refund routes | `api/src/routes/admin/adminOrder.routes.ts` |
+| 6.4 | 🟠 MEDIUM | `RefundedOrdersAdmin.tsx` uses raw `fetch()` — bypasses api client | `admin-panel/components/RefundedOrdersAdmin.tsx` |
+| 6.5 | 🟠 MEDIUM | admin header uses raw `fetch()` for refresh/logout — inconsistent | `admin-panel/components/header.tsx` |
+| 6.6 | 🟠 MEDIUM | Admin profile calls website endpoints via token override — fragile | `admin-panel/app/dashboard/profile/page.tsx` |
+| 6.7 | 🟠 MEDIUM | `ForgotPassword.tsx` calls website endpoint from admin — mixed responsibility | `admin-panel/components/ForgotPassword.tsx` |
+| 6.8 | 🟢 LOW | No `basePath` config — hardcoded paths would break on subpath deployment | `admin-panel/next.config.ts` |
+| 6.9 | 🟢 LOW | CSP `connect-src` doesn't include backend URL — fragile if rewrites removed | `web/next.config.ts` |
+| 6.10 | 🟢 LOW | Sitemap uses relative API URLs — fails on cold build/export | `web/src/app/sitemap.ts` |
+
+**Top Fix Priority:** Fix the missing `/` in `web/next.config.ts` rewrite destination (6.1) — this affects all 33+ API call sites on the website.

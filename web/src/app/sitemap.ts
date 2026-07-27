@@ -50,6 +50,7 @@ export default async function sitemap() {
         })) || [];
     }
   } catch (error) {
+    console.error("[sitemap] Failed to fetch products:", error);
   }
 
   const staticRouteConfigs: { path: string; priority: number; changeFreq?: string }[] = [
@@ -154,6 +155,7 @@ export default async function sitemap() {
     });
     categoryUrls = urls;
   } catch (error) {
+    console.error("[sitemap] Failed to fetch categories:", error);
   }
 
   return [...staticRoutes, ...products, ...categoryUrls];

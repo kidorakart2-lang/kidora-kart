@@ -91,7 +91,7 @@
  *             schema:
  *               $ref: '#/components/schemas/InternalError'
  *
- * /api/admin/orders/admin/refunded:
+ * /api/admin/orders/refunded:
  *   get:
  *     tags: [Admin - Orders]
  *     summary: Get all refunded orders
@@ -120,7 +120,7 @@
  *             schema:
  *               $ref: '#/components/schemas/InternalError'
  *
- * /api/admin/orders/admin/refund/verify/{orderId}:
+ * /api/admin/orders/refund/verify/{orderId}:
  *   get:
  *     tags: [Admin - Orders]
  *     summary: Verify refund status from Razorpay
@@ -154,7 +154,7 @@
  *             schema:
  *               $ref: '#/components/schemas/InternalError'
  *
- * /api/admin/orders/admin/refund/{orderId}:
+ * /api/admin/orders/refund/{orderId}:
  *   patch:
  *     tags: [Admin - Orders]
  *     summary: Update single order refund status with Razorpay verification
@@ -188,7 +188,7 @@
  *             schema:
  *               $ref: '#/components/schemas/InternalError'
  *
- * /api/admin/orders/admin/refund/sync:
+ * /api/admin/orders/refund/sync:
  *   post:
  *     tags: [Admin - Orders]
  *     summary: Sync all refund statuses from Razorpay
@@ -217,7 +217,7 @@
  *             schema:
  *               $ref: '#/components/schemas/InternalError'
  *
- * /api/admin/orders/admin/refund/bulk:
+ * /api/admin/orders/refund/bulk:
  *   post:
  *     tags: [Admin - Orders]
  *     summary: Bulk update refund statuses
@@ -370,19 +370,19 @@ router.post("/mark-to-shipped", protect, adminOnly, uploadNone, markToShipped);
 router.post("/cancel-by-admin", protect, adminOnly, uploadNone, cancelOrderByAdmin);
 
 // Get all refunded orders (admin only)
-router.get("/admin/refunded", protect, adminOnly, getRefundedOrdersForAdmin);
+router.get("/refunded", protect, adminOnly, getRefundedOrdersForAdmin);
 
 // Verify refund status from Razorpay
-router.get("/admin/refund/verify/:orderId", protect, adminOnly, verifyRefundStatus);
+router.get("/refund/verify/:orderId", protect, adminOnly, verifyRefundStatus);
 
 // Update single order refund status (with Razorpay verification)
-router.patch("/admin/refund/:orderId", protect, adminOnly, updateRefundStatus);
+router.patch("/refund/:orderId", protect, adminOnly, updateRefundStatus);
 
 // Sync all refund statuses from Razorpay
-router.post("/admin/refund/sync", protect, adminOnly, syncRefundStatusesFromRazorpay);
+router.post("/refund/sync", protect, adminOnly, syncRefundStatusesFromRazorpay);
 
 // Bulk update refund status
-router.post("/admin/refund/bulk", protect, adminOnly, bulkUpdateRefundStatus);
+router.post("/refund/bulk", protect, adminOnly, bulkUpdateRefundStatus);
 
 router.post("/deliever/order", protect, adminOnly, delieverOrder);
 

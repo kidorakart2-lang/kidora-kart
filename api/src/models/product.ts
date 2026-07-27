@@ -10,6 +10,7 @@ const productSchema = new Schema(
     slug: {
       type: String,
       required: [true, "Please Enter A Slug"],
+      unique: true,
     },
     image: {
       type: String,
@@ -105,6 +106,8 @@ const productSchema = new Schema(
     },
     sku: {
       type: String,
+      unique: true,
+      sparse: true,
     },
     tags: {
       type: [String],
@@ -144,12 +147,14 @@ const productSchema = new Schema(
       default: "draft",
       required: [true, "Please enter a status"],
     },
-    giftImages: [
-      {
-        type: String,
-        default: "",
+    giftImages: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: (v: string[]) => v.length <= 10,
+        message: "Gift images cannot exceed 10 images",
       },
-    ],
+    },
     isPersonalized: { type: Boolean, default: false },
     isGift: { type: Boolean, default: false },
     isFeatured: { type: Boolean, default: false },
@@ -165,7 +170,6 @@ const productSchema = new Schema(
       default: 0,
       min: 0,
       max: 100000,
-      match: /^[0-9]+$/,
     },
     deletedAt: { type: Date, default: null },
   },
@@ -173,6 +177,10 @@ const productSchema = new Schema(
     timestamps: true,
   },
 );
+
+// Unique indexes
+productSchema.index({ slug: 1 }, { unique: true });
+productSchema.index({ sku: 1 }, { unique: true, sparse: true });
 
 // Primary query indexes
 productSchema.index({ slug: 1, status: 1, deletedAt: 1 });

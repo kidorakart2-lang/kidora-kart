@@ -376,10 +376,6 @@ export const update = async (
       throw new Error("Product not found");
     }
 
-    // ── Video URL is immutable once set ──
-    if (existingProduct.videoUrl && updateData.videoUrl !== undefined) {
-      delete updateData.videoUrl;
-    }
 
     const r2PublicBase = getPublicUrlBase();
 
@@ -456,46 +452,57 @@ export const update = async (
       }
     }
 
-    // ── Price & discount price mutual validation ──
-    if ((!updateData.price) !== (!updateData.discount_price)) {
+    // ── Price & discount price mutual validation (only if both fields were sent) ──
+    const priceIncluded = updateData.price !== undefined;
+    const discountIncluded = updateData.discount_price !== undefined;
+    if (priceIncluded !== discountIncluded) {
       throw new Error("Both price and discount price must be provided together");
     }
-
-    // ── Price validation ──
-    const priceVal = Number(updateData.price);
-    if (!isNaN(priceVal) && priceVal <= 0) {
-      throw new Error("Price must be greater than 0");
-    }
-    const discountVal = Number(updateData.discount_price);
-    if (!isNaN(priceVal) && !isNaN(discountVal) && discountVal > priceVal) {
-      throw new Error("Discount price must be less than or equal to the original price");
-    }
-
-    // ── Age validation ──
-    const minAge = Number(updateData.minimumAge);
-    const maxAge = Number(updateData.maximumAge);
-    if (!isNaN(minAge) && !isNaN(maxAge) && minAge >= maxAge) {
-      throw new Error("Minimum age must be less than maximum age");
+    if (priceIncluded) {
+      const priceVal = Number(updateData.price);
+      if (!isNaN(priceVal) && priceVal <= 0) {
+        throw new Error("Price must be greater than 0");
+      }
+      const discountVal = Number(updateData.discount_price);
+      if (!isNaN(priceVal) && !isNaN(discountVal) && discountVal > priceVal) {
+        throw new Error("Discount price must be less than or equal to the original price");
+      }
     }
 
-    const idealAge = Number(updateData.idealAge);
-    if (!isNaN(idealAge) && !isNaN(minAge) && !isNaN(maxAge) && (idealAge < minAge || idealAge > maxAge)) {
-      throw new Error("Ideal age must be between minimum age and maximum age");
+    // ── Age validation (only if fields were actually sent) ──
+    if (updateData.minimumAge !== undefined || updateData.maximumAge !== undefined || updateData.idealAge !== undefined) {
+      const minAge = Number(updateData.minimumAge);
+      const maxAge = Number(updateData.maximumAge);
+      if (!isNaN(minAge) && !isNaN(maxAge) && minAge >= maxAge) {
+        throw new Error("Minimum age must be less than maximum age");
+      }
+
+      const idealAge = Number(updateData.idealAge);
+      if (!isNaN(idealAge) && !isNaN(minAge) && !isNaN(maxAge) && (idealAge < minAge || idealAge > maxAge)) {
+        throw new Error("Ideal age must be between minimum age and maximum age");
+      }
     }
 
-    // ── Stock validation ──
-    const stockVal = Number(updateData.stock);
-    if (isNaN(stockVal) || stockVal < 0) {
-      throw new Error("Stock cannot be negative");
+    // ── Stock validation (only if field was actually sent) ──
+    if (updateData.stock !== undefined) {
+      const stockVal = Number(updateData.stock);
+      if (isNaN(stockVal) || stockVal < 0) {
+        throw new Error("Stock cannot be negative");
+      }
     }
 
-    // ── Dimensions mutual validation ──
-    const hasLen = updateData.length !== '' && updateData.length != null;
-    const hasHgt = updateData.height !== '' && updateData.height != null;
-    const hasBrd = updateData.breadth !== '' && updateData.breadth != null;
-    const dimCount = [hasLen, hasHgt, hasBrd].filter(Boolean).length;
-    if (dimCount > 0 && dimCount < 3) {
-      throw new Error("Length, height, and breadth must all be provided together");
+    // ── Dimensions mutual validation (only if at least one dimension was sent) ──
+    const lengthSent = updateData.length !== undefined;
+    const heightSent = updateData.height !== undefined;
+    const breadthSent = updateData.breadth !== undefined;
+    if (lengthSent || heightSent || breadthSent) {
+      const hasLen = updateData.length !== '' && updateData.length != null;
+      const hasHgt = updateData.height !== '' && updateData.height != null;
+      const hasBrd = updateData.breadth !== '' && updateData.breadth != null;
+      const dimCount = [hasLen, hasHgt, hasBrd].filter(Boolean).length;
+      if (dimCount > 0 && dimCount < 3) {
+        throw new Error("Length, height, and breadth must all be provided together");
+      }
     }
 
     if (updateData.name && updateData.name !== existingProduct.name) {

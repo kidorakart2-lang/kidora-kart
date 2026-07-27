@@ -352,7 +352,7 @@ export interface AiHistoryItem {
   _id: string;
   prompt: string;
   response: string;
-  messages?: Array<{ role: string; content: string }>;
+  messages?: unknown[];
   createdAt: string;
 }
 

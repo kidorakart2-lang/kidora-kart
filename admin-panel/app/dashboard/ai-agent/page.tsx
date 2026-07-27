@@ -179,13 +179,18 @@ export default function AiAgentPage() {
     setConversationId(item._id);
 
     if (item.messages && item.messages.length > 0) {
-      const restoredMessages: UIMessage[] = item.messages.map((m, i) => ({
-        id: `hist-${item._id}-${i}`,
-        role: m.role as "user" | "assistant",
-        content: m.content,
-        parts: [{ type: "text" as const, text: m.content }],
-      }));
-      setMessages(restoredMessages);
+      const first = item.messages[0] as Record<string, unknown>;
+      if (first.role && typeof first.content === "string" && !first.parts) {
+        const restoredMessages: UIMessage[] = item.messages.map((m, i) => ({
+          id: `hist-${item._id}-${i}`,
+          role: (m as Record<string, unknown>).role as "user" | "assistant",
+          content: (m as Record<string, unknown>).content as string,
+          parts: [{ type: "text" as const, text: (m as Record<string, unknown>).content as string }],
+        }));
+        setMessages(restoredMessages);
+      } else {
+        setMessages(item.messages as UIMessage[]);
+      }
     }
   };
 

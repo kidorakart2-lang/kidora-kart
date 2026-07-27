@@ -18,6 +18,7 @@ import {
   refreshTokenCookieOptions,
   clearAccessTokenCookie,
   clearRefreshTokenCookie,
+  hashToken,
 } from "../../lib/tokens.js";
 
 /** Helper: set admin session cookies */
@@ -179,9 +180,20 @@ export const getFullDetails = async (
 };
 
 export const logout = async (
-  _req: Request,
+  req: Request,
   res: Response,
 ): Promise<void> => {
+  // Revoke refresh token if present
+  const refreshValue = req.cookies?.adminRefreshToken;
+  if (refreshValue) {
+    try {
+      const tokenHash = hashToken(refreshValue);
+      await revokeRefreshToken(tokenHash);
+    } catch {
+      // Ignore revocation errors — clear cookies anyway
+    }
+  }
+
   clearSessionCookiesAdmin(res);
   res.status(200).json({
     _status: true,

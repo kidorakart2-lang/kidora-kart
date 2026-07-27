@@ -17,7 +17,7 @@ interface HistoryItem {
   _id: string;
   prompt: string;
   response: string;
-  messages?: Array<{ role: string; content: string }>;
+  messages?: unknown[];
   createdAt: string;
 }
 
@@ -32,13 +32,33 @@ function formatTime(dateStr: string): string {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
+function messageText(m: unknown): string | undefined {
+  const msg = m as Record<string, unknown>;
+  if (msg.role === "user" && typeof msg.content === "string") return msg.content as string;
+  if (msg.role === "user" && Array.isArray(msg.parts)) {
+    const textPart = (msg.parts as Array<Record<string, unknown>>).find((p) => p.type === "text");
+    if (textPart && typeof textPart.text === "string") return textPart.text as string;
+  }
+  return undefined;
+}
+
+function assistantMessageText(m: unknown): string | undefined {
+  const msg = m as Record<string, unknown>;
+  if (msg.role === "assistant" && typeof msg.content === "string") return msg.content as string;
+  if (msg.role === "assistant" && Array.isArray(msg.parts)) {
+    const textParts = (msg.parts as Array<Record<string, unknown>>).filter((p) => p.type === "text").map((p) => p.text as string).join("");
+    if (textParts) return textParts;
+  }
+  return undefined;
+}
+
 function getTitle(item: HistoryItem): string {
   if (item.messages && item.messages.length > 0) {
-    const firstUser = item.messages.find((m) => m.role === "user");
-    if (firstUser) {
-      return firstUser.content.length > 60
-        ? firstUser.content.slice(0, 60) + "..."
-        : firstUser.content;
+    for (const m of item.messages) {
+      const text = messageText(m);
+      if (text) {
+        return text.length > 60 ? text.slice(0, 60) + "..." : text;
+      }
     }
   }
   return item.prompt.length > 60 ? item.prompt.slice(0, 60) + "..." : item.prompt;
@@ -46,11 +66,15 @@ function getTitle(item: HistoryItem): string {
 
 function getSubtitle(item: HistoryItem): string {
   if (item.messages && item.messages.length > 0) {
-    const lastAssistant = [...item.messages].reverse().find((m) => m.role === "assistant");
-    const preview = lastAssistant
-      ? lastAssistant.content.replace(/[*#`>\[\]]/g, "").slice(0, 50)
-      : "";
-    return preview ? `${preview}...` : `${item.messages.length} message(s)`;
+    const reversed = [...item.messages].reverse();
+    for (const m of reversed) {
+      const text = assistantMessageText(m);
+      if (text) {
+        const cleaned = text.replace(/[*#`>\[\]]/g, "").slice(0, 50);
+        return `${cleaned}...`;
+      }
+    }
+    return `${item.messages.length} message(s)`;
   }
   return item.response.replace(/[*#`>\[\]]/g, "").slice(0, 50) + "...";
 }

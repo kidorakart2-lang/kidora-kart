@@ -22,17 +22,12 @@ function resolveUrl(url: string): string {
   // If it's already an absolute URL, strip the host to use the Next.js rewrite
   // so cookies are set from the same origin.
   if (!url.startsWith("http")) {
-    // Lowercase the path (not query params) to match Express routes (case-sensitive)
-    const qIndex = url.indexOf("?");
-    const path = qIndex < 0 ? url : url.slice(0, qIndex);
-    const qs = qIndex < 0 ? "" : url.slice(qIndex);
-    const normalised = path.toLowerCase() + qs;
     // Server-side (Next.js server components): Node.js fetch needs an absolute URL
     if (typeof window === "undefined") {
       const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-      return `${baseUrl.replace(/\/+$/, "")}${normalised}`;
+      return `${baseUrl.replace(/\/+$/, "")}${url}`;
     }
-    return normalised;
+    return url;
   }
   const u = new URL(url);
   return u.pathname + u.search;
@@ -232,5 +227,14 @@ export const api = {
   /** Like post() but returns the full response JSON without extracting `_data`. */
   postRaw<T = unknown>(url: string, body?: unknown, tokenOverride?: string): Promise<T> {
     return requestRaw<T>("POST", url, body, tokenOverride);
+  },
+
+  patch<T = unknown>(url: string, body?: unknown, tokenOverride?: string): Promise<T> {
+    return request<T>("PATCH", url, body, tokenOverride);
+  },
+
+  /** Like patch() but returns the full response JSON without extracting `_data`. */
+  patchRaw<T = unknown>(url: string, body?: unknown, tokenOverride?: string): Promise<T> {
+    return requestRaw<T>("PATCH", url, body, tokenOverride);
   },
 };

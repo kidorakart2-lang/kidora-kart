@@ -12,8 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefundOrderCard } from "@/components/refund/RefundOrderCard";
 import type { RefundOrder, CategorizedOrders, OrdersSummary } from "@/lib/types";
-
-const BASE_URL = "/api/admin/orders";
+import { api, ApiClientError } from "@/lib/api";
 
 const RefundedOrdersAdmin = () => {
   const [orders, setOrders] = useState<CategorizedOrders>({
@@ -57,12 +56,11 @@ const RefundedOrdersAdmin = () => {
 
     try {
       setSyncing(true);
-      const response = await fetch(`${BASE_URL}/admin/refund/sync`, {
-        method: "POST",
-        credentials: "include",
-      });
-      const text = await response.text();
-      const responseData: { success?: boolean; message?: string; data?: { total?: number; updated?: number; alreadyUpToDate?: number; failed?: unknown[] } } = JSON.parse(text);
+      const responseData = await api.postRaw<{
+        success?: boolean;
+        message?: string;
+        data?: { total?: number; updated?: number; alreadyUpToDate?: number; failed?: unknown[] };
+      }>("/api/admin/orders/refund/sync", {});
 
       if (responseData.success) {
         const syncData = responseData.data;
@@ -85,7 +83,7 @@ const RefundedOrdersAdmin = () => {
     } catch (err: unknown) {
       toast({
         title: "Error during sync",
-        description: err instanceof Error ? err.message : "Unknown error",
+        description: err instanceof ApiClientError ? err.message : (err instanceof Error ? err.message : "Unknown error"),
         variant: "destructive",
       });
     } finally {
@@ -101,18 +99,11 @@ const RefundedOrdersAdmin = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${BASE_URL}/admin/refunded`, {
-        method: "GET",
-        credentials: "include",
-      });
-      const text = await response.text();
-      let responseData: { success?: boolean; message?: string; data?: { categorized?: CategorizedOrders; summary?: OrdersSummary } };
-      try {
-        responseData = JSON.parse(text);
-      } catch {
-        setError(`Server returned ${response.status}: ${text.slice(0, 200)}`);
-        return;
-      }
+      const responseData = await api.get<{
+        success?: boolean;
+        message?: string;
+        data?: { categorized?: CategorizedOrders; summary?: OrdersSummary };
+      }>("/api/admin/orders/refunded");
 
       if (responseData.success) {
         const data = responseData.data;
@@ -122,7 +113,7 @@ const RefundedOrdersAdmin = () => {
         setError(responseData.message || "Failed to fetch orders");
       }
     } catch (err: unknown) {
-      setError("Network error: " + (err instanceof Error ? err.message : "Unknown error"));
+      setError(err instanceof ApiClientError ? err.message : (err instanceof Error ? err.message : "Network error: Unknown error"));
       console.error("Error fetching refunded orders:", err);
     } finally {
       setLoading(false);
@@ -139,30 +130,14 @@ const RefundedOrdersAdmin = () => {
       const statusToUse = suggestedStatus || _newStatus || "completed";
       setUpdating((prev) => ({ ...prev, [orderId]: true }));
 
-      const verifyResponse = await fetch(`${BASE_URL}/admin/refund/verify/${orderId}`, {
-        method: "GET",
-        credentials: "include",
-      });
-      const verifyText = await verifyResponse.text();
-      let verifyResult: {
+      const verifyResult = await api.get<{
         success?: boolean;
         error?: string;
         message?: string;
         data?: {
           razorpayStatus?: { status?: string; mappedStatus?: string; amount?: number; refundId?: string };
         };
-      };
-      try {
-        verifyResult = JSON.parse(verifyText);
-      } catch {
-        toast({
-          title: "Server error",
-          description: `Server returned ${verifyResponse.status}: ${verifyText.slice(0, 200)}`,
-          variant: "destructive",
-        });
-        setUpdating((prev) => ({ ...prev, [orderId]: false }));
-        return;
-      }
+      }>(`/api/admin/orders/refund/verify/${orderId}`);
 
       if (!verifyResult.success) {
         const skipVerification = await confirm(
@@ -218,32 +193,20 @@ const RefundedOrdersAdmin = () => {
   const updateRefundStatusDirectly = async (
     orderId: string,
     statusToUse: string,
-    order: RefundOrder | null,
+    _order: RefundOrder | null,
     skipVerification = false,
   ) => {
     try {
-      const response = await fetch(`${BASE_URL}/admin/refund/${orderId}`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          refundStatus: statusToUse,
-          skipVerification,
-          notes: `Status updated from admin panel to ${statusToUse}${skipVerification ? " (without Razorpay verification)" : ""}`,
-        }),
+      const updateResult = await api.patchRaw<{
+        success?: boolean;
+        verified?: boolean;
+        message?: string;
+        data?: { suggestion?: string };
+      }>("/api/admin/orders/refund/" + orderId, {
+        refundStatus: statusToUse,
+        skipVerification,
+        notes: `Status updated from admin panel to ${statusToUse}${skipVerification ? " (without Razorpay verification)" : ""}`,
       });
-      const patchText = await response.text();
-      let updateResult: { success?: boolean; verified?: boolean; message?: string; data?: { suggestion?: string } };
-      try {
-        updateResult = JSON.parse(patchText);
-      } catch {
-        toast({
-          title: "Server error",
-          description: `Server returned ${response.status}: ${patchText.slice(0, 200)}`,
-          variant: "destructive",
-        });
-        return;
-      }
 
       if (updateResult.success) {
         await fetchRefundedOrders();
@@ -262,7 +225,7 @@ const RefundedOrdersAdmin = () => {
     } catch (err: unknown) {
       toast({
         title: "Error updating status",
-        description: err instanceof Error ? err.message : "Unknown error",
+        description: err instanceof ApiClientError ? err.message : (err instanceof Error ? err.message : "Unknown error"),
         variant: "destructive",
       });
       console.error("Error updating refund status:", err);

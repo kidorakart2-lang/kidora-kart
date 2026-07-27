@@ -1,22 +1,18 @@
 import type { Request, Response } from "express";
-import { streamText, tool as sdkTool, isStepCount } from "ai";
+import {
+  streamText,
+  isStepCount,
+  convertToModelMessages,
+  toUIMessageStream,
+  pipeUIMessageStreamToResponse,
+} from "ai";
+import type { UIMessage } from "ai";
 import { resolveModel, listConfiguredProviders, type AiProviderName } from "../../lib/ai-providers.js";
 import { logger } from "../../lib/logger.js";
 import AiResponse from "../../models/aiResponse.js";
 import { agentTools } from "./ai-agent/tools.js";
-import type { ToolDefinition } from "./ai-agent/tools.js";
 import { SYSTEM_PROMPT } from "./ai-agent/system-prompt.js";
 /// <reference path="../../types/express.d.ts" />
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const sdkToolEntries: Record<string, any> = {};
-for (const [name, def] of Object.entries<ToolDefinition>(agentTools)) {
-  sdkToolEntries[name] = sdkTool({
-    description: def.description,
-    inputSchema: def.inputSchema,
-    execute: def.execute,
-  });
-}
 
 export const listProviders = async (_req: Request, res: Response): Promise<Response> => {
   return res.status(200).json({ _status: true, _data: listConfiguredProviders() });
@@ -78,7 +74,7 @@ export const chat = async (req: Request, res: Response): Promise<void> => {
 
   try {
     const { messages, provider, conversationId } = req.body as {
-      messages?: Array<{ role: string; content: string }>;
+      messages?: UIMessage[];
       provider?: AiProviderName;
       conversationId?: string;
     };
@@ -86,17 +82,6 @@ export const chat = async (req: Request, res: Response): Promise<void> => {
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       res.status(400).json({ _status: false, _message: "Messages array is required" });
       return;
-    }
-
-    for (const [i, m] of messages.entries()) {
-      if (!m.role || (m.role !== "user" && m.role !== "assistant")) {
-        res.status(400).json({ _status: false, _message: `Invalid message role at index ${i}` });
-        return;
-      }
-      if (typeof m.content !== "string" || m.content.length > 10000) {
-        res.status(400).json({ _status: false, _message: `Invalid content at index ${i}` });
-        return;
-      }
     }
 
     const configured = listConfiguredProviders();
@@ -116,27 +101,32 @@ export const chat = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const sdkMessages = messages.map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
-
     const result = streamText({
       model,
       system: SYSTEM_PROMPT,
-      messages: sdkMessages,
-      tools: sdkToolEntries,
+      messages: await convertToModelMessages(messages),
+      tools: agentTools,
       stopWhen: isStepCount(20),
       temperature: 0.2,
       maxOutputTokens: 8192,
       abortSignal: abortController.signal,
-      onFinish: async ({ text, responseMessages }) => {
-        const adminId = req.user?._id;
-        const content = text || "";
-        const dbMessages = [...sdkMessages, ...responseMessages] as Array<{ role: string; content: string }>;
+    });
+
+    const adminId = req.user?._id;
+
+    const uiStream = toUIMessageStream({
+      stream: result.stream,
+      originalMessages: messages,
+      onEnd: async ({ messages: finalMessages }) => {
+        const text = finalMessages
+          .flatMap((m) => m.parts?.filter((p) => p.type === "text").map((p) => (p as { text: string }).text))
+          .join("") || "";
         const historyData = {
           page: "ai-agent" as const,
           adminId,
-          prompt: messages[0]?.content?.slice(0, 500) || "",
-          response: content.slice(0, 10000) || "...",
-          messages: dbMessages,
+          prompt: messages[0]?.parts?.filter((p) => p.type === "text").map((p) => (p as { text: string }).text).join("").slice(0, 500) || "",
+          response: text.slice(0, 10000) || "...",
+          messages: finalMessages,
         };
 
         const saveConversation = () =>
@@ -162,7 +152,8 @@ export const chat = async (req: Request, res: Response): Promise<void> => {
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
 
-    result.pipeUIMessageStreamToResponse(res);
+    pipeUIMessageStreamToResponse({ response: res, stream: uiStream });
+    Promise.resolve(result.consumeStream()).catch(() => {});
   } catch (err) {
     logger.error({ err }, "AI agent chat error");
     if (!res.headersSent) {

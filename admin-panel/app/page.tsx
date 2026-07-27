@@ -24,6 +24,14 @@ export default function LoginPage() {
     try {
       await api.post("/api/admin/user/login", { email, password });
 
+      // Re-fetch CSRF token after successful login so subsequent
+      // mutation requests have a fresh CSRF cookie.
+      try {
+        await fetch("/api/admin/csrf-token", { credentials: "include" });
+      } catch {
+        // CSRF refresh is best-effort — the existing token may still be valid
+      }
+
       toast({
         title: "Login successful",
         description: "Welcome to the admin panel.",

@@ -1,7 +1,11 @@
 "use client";
 
 import { useChat as useVercelChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+import {
+  DefaultChatTransport,
+  generateId,
+  lastAssistantMessageIsCompleteWithToolCalls,
+} from "ai";
 import type { UIMessage } from "ai";
 import { useState, useCallback, useRef } from "react";
 
@@ -14,13 +18,6 @@ export interface ToolInvocationDisplay {
   args?: unknown;
   result?: unknown;
   error?: string;
-}
-
-function generateId(): string {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  return `conv_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
 export function useAiChat(options: {
@@ -59,6 +56,7 @@ export function useAiChat(options: {
       credentials,
       body: () => ({ ...extraBodyRef.current, conversationId: idRef.current }),
     }),
+    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     onError: (err) => onError?.(err),
     onFinish,
   });

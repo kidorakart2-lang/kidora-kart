@@ -18,6 +18,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { toast } from "@/lib/toast";
 import { NAV_ITEMS, type NavItem } from "@/lib/nav-items";
+import { api } from "@/lib/api";
 
 export function Header() {
   const router = useRouter();
@@ -86,10 +87,7 @@ export function Header() {
 
   const doTokenRefresh = useCallback(async () => {
     try {
-      await fetch("/api/admin/user/refresh", {
-        method: "POST",
-        credentials: "include",
-      });
+      await api.post("/api/admin/user/refresh");
     } catch {
       // Silently ignore — auto-refresh in middleware handles edge cases
     }
@@ -115,10 +113,7 @@ export function Header() {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/admin/user/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await api.post("/api/admin/user/logout");
     } catch {
       // Even if the request fails, navigate to login page
     }

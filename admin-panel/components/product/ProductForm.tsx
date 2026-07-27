@@ -229,19 +229,27 @@ export default function ProductForm({
           </div>
           <div className="space-y-2">
             <Label htmlFor="videoUrl">Video URL</Label>
-            <Input
-              id="videoUrl"
-              value={formData.videoUrl}
-              onChange={u("videoUrl")}
-              placeholder="e.g. https://youtube.com/watch?v=..."
-              readOnly={editingProduct && !!formData.videoUrl}
-              className={editingProduct && formData.videoUrl ? "bg-muted/50 cursor-not-allowed" : ""}
-            />
-            {editingProduct && formData.videoUrl ? (
-              <p className="text-xs text-amber-600">Video URL cannot be changed once set.</p>
-            ) : (
-              <p className="text-xs text-muted-foreground">YouTube, Vimeo, or direct .mp4 / .webm link</p>
-            )}
+            <div className="flex gap-2">
+              <Input
+                id="videoUrl"
+                value={formData.videoUrl}
+                onChange={u("videoUrl")}
+                placeholder="e.g. https://youtube.com/watch?v=..."
+                className="flex-1"
+              />
+              {formData.videoUrl && editingProduct && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setFormData({ ...formData, videoUrl: "" })}
+                  title="Clear video URL"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">YouTube, Vimeo, or direct .mp4 / .webm link</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="stock">Stock *</Label>
