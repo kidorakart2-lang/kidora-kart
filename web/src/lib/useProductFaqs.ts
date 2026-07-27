@@ -28,9 +28,7 @@ export function useProductFaqs(productId: string | null | undefined) {
     queryKey: faqKeys.byProduct(productId ?? ""),
     queryFn: async () => {
       const params = new URLSearchParams({ product: productId! });
-      const res = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "api/website/product-faq?" + params.toString(),
-      );
+      const res = await fetch("/api/website/product-faq?" + params.toString());
       const data = await res.json();
       return (data._data ?? []) as FaqSet[];
     },

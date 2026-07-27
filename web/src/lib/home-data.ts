@@ -34,7 +34,7 @@ export async function getHomeSections(): Promise<HomeSection[]> {
 
   try {
     const res = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/home-page",
+      "/api/website/home-page",
     );
     const data = await res.json();
     return (data._data?.sections ?? []) as HomeSection[];
@@ -52,7 +52,7 @@ export async function getWebsiteBanners(): Promise<BannerItem[]> {
 
   try {
     const res = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/banner",
+      "/api/website/banner",
     );
     const data = await res.json();
     return (data._data as BannerItem[]) ?? [];
@@ -72,10 +72,7 @@ export async function fetchProducts(
   cacheTag(TAG_PRODUCTS);
 
   try {
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_API_URL +
-        `api/website/product/${source}?limit=${limit}`,
-    );
+    const res = await fetch(`/api/website/product/${source}?limit=${limit}`);
     if (!res.ok) return [];
     const data = await res.json();
     return data._data ?? [];
@@ -92,10 +89,7 @@ export async function fetchProductsBySearch(
   cacheTag(TAG_PRODUCTS);
 
   try {
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_API_URL +
-        `api/website/product/get-by-search?search=${encodeURIComponent(term)}&limit=8`,
-    );
+    const res = await fetch(`/api/website/product/get-by-search?search=${encodeURIComponent(term)}&limit=8`);
     if (!res.ok) return [];
     const data = await res.json();
     return data._data ?? [];
@@ -113,7 +107,7 @@ export async function fetchTestimonials(): Promise<any> {
 
   try {
     const res = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/testimonial",
+      "/api/website/testimonial",
     );
     const data = await res.json();
     return data._data;

@@ -18,9 +18,7 @@ async function getCart() {
 
   if (!token) return null;
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}api/website/cart/view`,
-    {
+  const response = await fetch("/api/website/cart/view", {
       headers: {
         Authorization: `Bearer ${token.value}`,
       },

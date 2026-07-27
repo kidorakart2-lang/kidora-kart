@@ -76,9 +76,7 @@ export function useProductListing(filter: FilterParams) {
     queryKey: productListingKeys.filtered(filter),
     queryFn: async ({ pageParam = 1 }) => {
       const qs = buildFilterParams(filter, pageParam as number);
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}api/website/product/get-by-filter?${qs}`,
-      );
+      const res = await fetch(`/api/website/product/get-by-filter?${qs}`);
       if (!res.ok) throw new Error("Failed to fetch products");
       const data = (await res.json()) as ProductListingResponse;
       return {

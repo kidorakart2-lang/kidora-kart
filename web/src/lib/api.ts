@@ -1,5 +1,3 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 export interface FetchedProduct {
   _id: string;
   name: string;
@@ -18,7 +16,7 @@ export interface FetchedProduct {
  * Fetch full product details by slug.
  */
 export async function fetchProductBySlug(slug: string): Promise<FetchedProduct | null> {
-  const res = await fetch(`${API_URL}api/website/product/details/${slug}`);
+  const res = await fetch(`/api/website/product/details/${slug}`);
   if (!res.ok) return null;
   const json = await res.json();
   return json._status && json._data ? (json._data as FetchedProduct) : null;
@@ -29,7 +27,7 @@ export async function fetchProductBySlug(slug: string): Promise<FetchedProduct |
  */
 export async function fetchProductsByIds(ids: string[]): Promise<FetchedProduct[]> {
   if (ids.length === 0) return [];
-  const res = await fetch(`${API_URL}api/website/product/batch`, {
+  const res = await fetch(`/api/website/product/batch`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ids }),
@@ -43,8 +41,7 @@ export async function fetchProductsByIds(ids: string[]): Promise<FetchedProduct[
  * Fetch the server-side cart view. Returns full items with embedded product data.
  */
 export async function fetchServerCart(token: string) {
-  const res = await fetch(`${API_URL}api/website/cart/view`, {
-    credentials: "include",
+  const res = await fetch(`/api/website/cart/view`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) return null;

@@ -6,14 +6,26 @@ import { env } from "../../config/env.js";
 import { sendEmail } from "../../lib/nodemailer.js";
 import { logger } from "../../lib/logger.js";
 
+interface RazorpayClient {
+  orders: {
+    create: (opts: Record<string, unknown>) => Promise<Record<string, unknown>>;
+    fetch: (id: string) => Promise<Record<string, unknown>>;
+    fetchPayments: (id: string) => Promise<Record<string, unknown>>;
+  };
+  payments: {
+    fetch: (id: string) => Promise<{ status?: string }>;
+    refund: (id: string, opts: Record<string, unknown>) => Promise<Record<string, unknown>>;
+  };
+  refunds: {
+    fetch: (id: string) => Promise<{ status?: string; amount?: number; id?: string; created_at?: number }>;
+    all: (opts: Record<string, unknown>) => Promise<Record<string, unknown>>;
+  };
+}
+
 const razorpay = new Razorpay({
   key_id: env.RAZORPAY_KEY_ID ?? "",
   key_secret: env.RAZORPAY_KEY_SECRET ?? "",
-}) as unknown as {
-  orders: { create: (opts: Record<string, unknown>) => Promise<Record<string, unknown>>; fetch: (id: string) => Promise<Record<string, unknown>>; fetchPayments: (id: string) => Promise<Record<string, unknown>> };
-  payments: { fetch: (id: string) => Promise<{ status?: string }>; refund: (id: string, opts: Record<string, unknown>) => Promise<Record<string, unknown>> };
-  refunds: { fetch: (id: string) => Promise<{ status?: string; amount?: number; id?: string; created_at?: number }>; all: (opts: Record<string, unknown>) => Promise<Record<string, unknown>> };
-};
+}) as unknown as RazorpayClient;
 
 interface RazorpayRefundStatus {
   status?: string;
@@ -44,9 +56,9 @@ const fetchRazorpayRefundStatus = async (
       };
     }
 
-    const refunds = await razorpay.refunds.all({ payment_id: paymentId } as Record<string, string>);
+    const refunds = await razorpay.refunds.all({ payment_id: paymentId });
 
-    const refundsItems = (refunds as unknown as { items?: Array<{ status: string; amount: number; id: string; created_at: number }> }).items;
+    const refundsItems = (refunds as { items?: Array<{ status: string; amount: number; id: string; created_at: number }> }).items;
     if (refundsItems && refundsItems.length > 0) {
       const latestRefund = refundsItems[0]!;
       return {
@@ -397,7 +409,7 @@ export const syncRefundStatusesFromRazorpay = async (
       updated: 0,
       alreadyUpToDate: 0,
       failed: [] as { orderId: string; error: string }[],
-      details: [] as Record<string, unknown>[],
+      details: [] as Array<{ orderId: string; oldStatus: string | null | undefined; newStatus: string; razorpayRefundId: string | undefined }>,
     };
 
     for (const order of orders) {
@@ -527,8 +539,8 @@ export const bulkUpdateRefundStatus = async (
       const verifiedOrders: typeof orders = [];
 
       for (const order of orders) {
-        const o = order as unknown as {
-          _id: string;
+        const o = order as {
+          _id: { toString(): string };
           payment?: { razorpay?: { paymentId?: string } };
           cancellation?: { refundId?: string };
         };
@@ -543,7 +555,7 @@ export const bulkUpdateRefundStatus = async (
         } else {
           logger.warn(
             {
-              orderId: (order as Record<string, unknown>).orderId,
+              orderId: (order as { orderId: string }).orderId,
               paymentId,
               refundId,
               razorpayError: rzpStatus.error,

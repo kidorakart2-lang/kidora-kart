@@ -302,7 +302,7 @@ import { uploadNone } from "../../middleware/uploadMiddleware.js";
 
 const router = Router();
 
-router.post("/login", uploadNone, login);
+router.post("/login", rateLimit.adminLogin, uploadNone, login);
 router.post("/refresh", rateLimit.refreshToken, uploadNone, refreshAdminToken);
 router.post("/findAllUser", protect, adminOnly, csrfProtection, uploadNone, findAllUser);
 router.post("/get-full-details/:id", protect, adminOnly, csrfProtection, uploadNone, getFullDetails);

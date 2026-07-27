@@ -38,7 +38,7 @@ async function fetchCategoryBanner(
 
   // Fetch nav data to find the bannerId for the matching category level
   const navRes = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}api/website/nav`,
+    `/api/website/nav`,
   );
   if (!navRes.ok) return null;
   const navData = await navRes.json();
@@ -84,7 +84,7 @@ async function fetchCategoryBanner(
   if (!bannerId) return null;
 
   const bannerRes = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}api/website/banner/${bannerId}`,
+    `/api/website/banner/${bannerId}`,
   );
   const bannerData = await bannerRes.json();
   if (bannerData._status && bannerData._data) {

@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { login, setProfile } from "@/redux/features/auth";
 import { updateFullCart } from "@/redux/features/cart";
 import { setWishlist } from "@/redux/features/wishlist";
-import { getAuthToken } from "@/lib/getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 import { useUserProfile } from "@/lib/useProfile";
 import { useCartView } from "@/lib/useCart";
 import { useWishlistView } from "@/lib/useWishlist";

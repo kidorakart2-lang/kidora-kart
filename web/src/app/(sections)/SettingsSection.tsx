@@ -16,7 +16,7 @@ import {
 import { logout } from "@/redux/features/auth";
 import { useDispatch } from "react-redux";
 import Cookies from "js-cookie";
-import { getAuthToken } from "@/lib/getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -36,11 +36,8 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
       setLoading(true)
       try {
         const token = getAuthToken();
-        const response = await fetch(
-          process.env.NEXT_PUBLIC_API_URL + "api/website/user/verify-user",
-          {
+        const response = await fetch("/api/website/user/verify-user", {
             method: "POST",
-            credentials: "include",
             headers: {
               "Content-Type": "application/json",
               authorization: `Bearer ${token}`,
@@ -62,6 +59,7 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
         if (resData._status) {
           Cookies.set("verify", resData._token, {
             expires: new Date(Date.now() + 10 * 60 * 1000),
+            secure: window.location.protocol === "https:",
           });
           router.push(`/verify-email?email=${data.email}`);
           setLoading(false)
@@ -80,9 +78,8 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
   // Handle logout
   const handleLogout = async () => {
     try {
-      await fetch(process.env.NEXT_PUBLIC_API_URL + "api/website/user/logout", {
+      await fetch("/api/website/user/logout", {
         method: "POST",
-        credentials: "include",
       });
     } catch {
       // Silently handle - cookie will be stale but harmless

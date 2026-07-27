@@ -8,7 +8,7 @@ export async function getWhyChooseUs() {
 
   try {
     const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/whyChooseUs"
+      "/api/website/whyChooseUs"
     );
     const data = await response.json();
     if (response.ok) {

@@ -49,9 +49,7 @@ export function PromoBannerSection({
       setLoading(true)
       fetchedRef.current = true
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}api/website/banner`,
-        )
+        const res = await fetch("/api/website/banner")
         const data = await res.json()
         const allBanners = data._data ?? []
         const found = allBanners.find((b: any) => b._id === selectedBannerId)

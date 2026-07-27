@@ -32,7 +32,7 @@ export default function ContactPage() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}api/website/contact`,
+        "/api/website/contact",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

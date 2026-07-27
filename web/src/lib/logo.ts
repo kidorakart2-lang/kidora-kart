@@ -9,10 +9,7 @@ export async function getLogo(): Promise<LogoData> {
   cacheLife("navigation");
 
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}api/website/logo`,
-      { method: "post" }
-    );
+    const response = await fetch("/api/website/logo", { method: "post" });
 
     if (!response.ok) {
       return { logo: FALLBACK_LOGO };

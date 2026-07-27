@@ -58,9 +58,7 @@ export function useSearchSuggestions(term: string) {
   return useQuery({
     queryKey: suggestionKeys.search(debouncedTerm),
     queryFn: async () => {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}api/website/result/suggestion?search=${encodeURIComponent(debouncedTerm)}`,
-      );
+      const res = await fetch(`/api/website/result/suggestion?search=${encodeURIComponent(debouncedTerm)}`);
       if (!res.ok) return { suggestions: [], products: [] };
       const data = await res.json();
       return (data._data ?? { suggestions: [], products: [] }) as SuggestionData;

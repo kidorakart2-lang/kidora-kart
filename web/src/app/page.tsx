@@ -147,9 +147,7 @@ async function GetTestimonials() {
   cacheTag(TAG_TESTIMONIALS, TAG_HOMEPAGE);
 
   try {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/testimonial",
-    );
+    const response = await fetch("/api/website/testimonial");
     const data = await response.json();
     return data._data;
   } catch {
@@ -163,9 +161,7 @@ async function getTabsData() {
   cacheTag(TAG_TABS, TAG_PRODUCTS);
 
   try {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/product/tab-products",
-    );
+    const response = await fetch("/api/website/product/tab-products");
     if (!response.ok) return [];
     const data = await response.json();
     return data._data;
@@ -180,9 +176,7 @@ async function getNewArrivals() {
   cacheTag(TAG_PRODUCTS, TAG_HOMEPAGE);
 
   try {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/product/new-arrivals",
-    );
+    const response = await fetch("/api/website/product/new-arrivals");
     const data = await response.json();
     return data._data;
   } catch {
@@ -196,9 +190,7 @@ async function getBestSellers() {
   cacheTag(TAG_BEST_SELLERS, TAG_PRODUCTS);
 
   try {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/product/best-sellers",
-    );
+    const response = await fetch("/api/website/product/best-sellers");
     const data = await response.json();
     return data._data;
   } catch {
@@ -212,9 +204,7 @@ async function getTrendingProducts() {
   cacheTag(TAG_PRODUCTS, TAG_HOMEPAGE);
 
   try {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/product/trending-products",
-    );
+    const response = await fetch("/api/website/product/trending-products");
     const data = await response.json();
     return data._data;
   } catch {

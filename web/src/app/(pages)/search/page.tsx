@@ -10,9 +10,7 @@ async function getProducts(q: string) {
   cacheTag(TAG_SEARCH);
 
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}api/website/product/get-by-search?search=${q}`,
-    );
+    const response = await fetch(`/api/website/product/get-by-search?search=${q}`);
     const data = await response.json();
     if (!response.ok || !data._status) return null;
     return data._data;

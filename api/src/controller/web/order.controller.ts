@@ -176,7 +176,7 @@ export const createOrder = async (
             .select("weight")
             .lean();
           const weightMap = new Map<string, number>(
-            products.map((p) => [String(p._id), Number((p as Record<string, unknown>).weight ?? 0)]),
+            products.map((p) => [String(p._id), Number((p as { weight?: string }).weight ?? 0)]),
           );
           let totalWeightKg = 0;
           for (const vi of validatedItems) {
@@ -189,9 +189,7 @@ export const createOrder = async (
           // Get store pickup pincode from Shiprocket settings
           // Shiprocket GET endpoints nest data inside a `data` key
           const locations = await getPickupLocations();
-          const pickupData = (locations as Record<string, unknown>)?.data as
-            | { pickup_locations?: Array<{ pincode: string }> }
-            | undefined;
+          const pickupData = (locations as { data?: { pickup_locations?: Array<{ pincode: string }> } })?.data;
           const pickupLocations = pickupData?.pickup_locations;
           let pickupPincode = "342005"; // fallback to Jodhpur
           if (pickupLocations && pickupLocations.length > 0) {
@@ -206,9 +204,7 @@ export const createOrder = async (
           );
 
           // Shiprocket GET endpoints nest data inside a `data` key
-          const serviceabilityData = (serviceability as Record<string, unknown>)?.data as
-            | { available_courier_companies?: Array<{ courier_name: string; rate: number; etd: string }> }
-            | undefined;
+          const serviceabilityData = (serviceability as { data?: { available_courier_companies?: Array<{ courier_name: string; rate: number; etd: string }> } })?.data;
           const couriers = serviceabilityData?.available_courier_companies;
 
           if (couriers && couriers.length > 0) {
@@ -690,7 +686,7 @@ export const verifyPayment = async (
     const razorpayOrderDetails = await razorpay.orders.fetch(razorpay_order_id);
 
     // P6: Verify the Razorpay order's notes.orderId matches our order
-    const rzpNotes = (razorpayOrderDetails as unknown as Record<string, unknown>).notes as Record<string, unknown> | undefined;
+    const rzpNotes = (razorpayOrderDetails as { notes?: Record<string, string> }).notes;
     if (rzpNotes?.["orderId"] !== order.orderId) {
       res.status(400).json({ success: false, message: "Amount mismatch" });
       return;

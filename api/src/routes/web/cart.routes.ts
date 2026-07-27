@@ -167,17 +167,18 @@ import {
 } from "../../controller/web/cart.controller.js";
 import { uploadNone } from "../../middleware/uploadMiddleware.js";
 import protect from "../../middleware/authMiddleware.js";
+import rateLimit from "../../middleware/rateLimit.js";
 
 const router = Router();
 
-router.get("/view", protect, getCart);
+router.get("/view", rateLimit.cartActions, protect, getCart);
 
-router.post("/add", protect, uploadNone, addToCart);
+router.post("/add", rateLimit.cartActions, protect, uploadNone, addToCart);
 
-router.put("/items/update/:itemId", protect, uploadNone, updateCartItem);
+router.put("/items/update/:itemId", rateLimit.cartActions, protect, uploadNone, updateCartItem);
 
-router.put("/items/remove/:itemId", protect, removeFromCart);
+router.put("/items/remove/:itemId", rateLimit.cartActions, protect, removeFromCart);
 
-router.put("/destroy", protect, clearCart);
+router.put("/destroy", rateLimit.cartActions, protect, clearCart);
 
 export default router;

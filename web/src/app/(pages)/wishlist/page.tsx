@@ -19,7 +19,7 @@ async function getWishlist(token: RequestCookie) {
   if (!token) return null;
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}api/website/wishlist/view`,
+    `/api/website/wishlist/view`,
     {
       headers: {
         Authorization: `Bearer ${token.value}`,

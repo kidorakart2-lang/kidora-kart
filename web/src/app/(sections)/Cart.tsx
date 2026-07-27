@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { getAuthToken } from "@/lib/getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
@@ -85,8 +85,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     const token = getAuthToken();
     if (!token) return;
 
-    fetch(process.env.NEXT_PUBLIC_API_URL + "api/website/cart/view", {
-      credentials: "include",
+    fetch("/api/website/cart/view", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -186,9 +185,8 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     setLoading(true);
     try {
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + `api/website/cart/items/update/${id}`,
+        `/api/website/cart/items/update/${id}`,
         {
-          credentials: "include",
           body: JSON.stringify({
             quantity: newQuantity,
           }),
@@ -226,9 +224,8 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     setLoading(true);
     try {
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + `api/website/cart/items/remove/${id}`,
+        `/api/website/cart/items/remove/${id}`,
         {
-          credentials: "include",
           body: JSON.stringify({ itemId: id }),
           headers: {
             Authorization: `Bearer ${getAuthToken()}`,

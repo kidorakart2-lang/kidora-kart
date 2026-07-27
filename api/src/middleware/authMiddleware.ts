@@ -133,7 +133,7 @@ async function attemptAutoRefresh(
   }
 
   // Use spread to convert user to a plain object (handles both plain objects and Mongoose documents)
-  const userPlain = { ...(user as Record<string, unknown>) } as Record<string, unknown> & { _id: string | import("mongoose").Types.ObjectId };
+  const userPlain = { ...user } as Record<string, unknown> & { _id: string | import("mongoose").Types.ObjectId };
   const newAccessToken = generateToken(userPlain, tokenType);
   const newRefresh = await createRefreshToken(String(user._id), tokenType);
 

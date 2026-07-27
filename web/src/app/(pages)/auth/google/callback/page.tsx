@@ -18,6 +18,7 @@ import { wishlistKeys } from "@/lib/useWishlist";
 import { userKeys } from "@/lib/useProfile";
 import type { RootState } from "@/redux/store/store";
 
+
 export default function Page() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -56,11 +57,8 @@ export default function Page() {
 
       try {
         // Send code to backend
-        const res = await fetch(
-          process.env.NEXT_PUBLIC_API_URL + "api/website/user/google-callback",
-          {
+        const res = await fetch("/api/website/user/google-callback", {
             method: "POST",
-            credentials: "include",
             headers: {
               "Content-Type": "application/json",
             },
@@ -82,8 +80,8 @@ export default function Page() {
           // Sync guest cart and wishlist to server (read from Redux state persisted in localStorage)
           if ((guestCartItems?.length ?? 0) > 0 || (guestWishlistItems?.length ?? 0) > 0) {
             await Promise.all([
-              syncGuestCartToServer(data._data.token, guestCartItems),
-              syncGuestWishlistToServer(data._data.token, guestWishlistItems),
+              syncGuestCartToServer(data._token, guestCartItems),
+              syncGuestWishlistToServer(data._token, guestWishlistItems),
             ]);
             dispatch(clearGuestCart());
             dispatch(clearGuestWishlist());

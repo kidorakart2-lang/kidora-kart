@@ -218,7 +218,7 @@ export const getProfile = async (
 ): Promise<Response> => {
   if (!req.user) return fail(res, "Unauthorized", 401);
   try {
-    const profileData = { ...(req.user as Record<string, unknown>) };
+    const profileData = { ...(req.user as Record<string, unknown> | undefined) };
     const { createdAt, updatedAt, deletedAt, ...rest } = profileData;
     return success(res, rest, "User profile Found");
   } catch (error) {

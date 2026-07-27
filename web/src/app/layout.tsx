@@ -148,9 +148,7 @@ async function getNavigation() {
   cacheTag(TAG_NAVIGATION);
 
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}api/website/nav`,
-    );
+    const response = await fetch("/api/website/nav");
 
     if (!response.ok) {
       return null;
@@ -174,9 +172,7 @@ async function getFeaturedProducts() {
   cacheTag(TAG_FEATURED_PRODUCTS);
 
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}api/website/product/featured-for-footer`,
-    );
+    const response = await fetch("/api/website/product/featured-for-footer");
 
     if (!response.ok) {
       return null;
@@ -210,8 +206,7 @@ export default async function RootLayout({
       <head>
         <OrganizationSchema />
         <WebsiteSchema />
-        <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL} />
-        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL} />
+        {/* Preconnect/dns-prefetch to API URL no longer needed — rewrites keep API calls same-origin */}
         <link rel="canonical" href={siteConfig.url} />
         <meta
           name="google-site-verification"

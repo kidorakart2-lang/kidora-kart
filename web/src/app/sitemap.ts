@@ -33,8 +33,7 @@ export default async function sitemap() {
 
   let products: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
   try {
-    const productsRes = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}api/website/product/all`,
+    const productsRes = await fetch("/api/website/product/all",
       {
         next: { revalidate: 86400 },
       }
@@ -72,7 +71,7 @@ export default async function sitemap() {
   }));
 
   let categoryUrls: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
-  const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}api/website/nav`;
+  const apiUrl = "/api/website/nav";
 
   try {
     const response = await fetch(apiUrl, {

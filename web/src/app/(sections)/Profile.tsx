@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { getAuthToken } from "@/lib/getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 import { toast } from "sonner";
 import Image from "next/image";
 import MyOrders from "./MyOrder";
@@ -199,12 +199,9 @@ export default function AccountPage() {
     }
 
     try {
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "api/website/user/update-profile",
-        {
+      const response = await fetch("/api/website/user/update-profile", {
           method: "PUT",
           body: formDataToSend,
-          credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
           },

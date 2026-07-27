@@ -110,11 +110,11 @@ type Sanitizable = string | number | boolean | null | undefined | Record<string,
 function sanitize(obj: Sanitizable): Sanitizable {
   if (typeof obj !== "object" || obj === null) return obj;
   if (Array.isArray(obj)) return obj.map((item) => sanitize(item as Sanitizable));
-  return Object.keys(obj as Record<string, unknown>).reduce((acc, key) => {
+  return Object.keys(obj as Record<string, unknown>).reduce<Record<string, unknown>>((acc, key) => {
     const k = key.replace(/^\$/, "").replace(/\./g, "");
-    (acc as Record<string, unknown>)[k] = sanitize((obj as Record<string, unknown>)[key] as Sanitizable);
+    acc[k] = sanitize((obj as Record<string, unknown>)[key] as Sanitizable);
     return acc;
-  }, {} as Record<string, unknown>);
+  }, {});
 }
 
 app.use((req, res, next) => {

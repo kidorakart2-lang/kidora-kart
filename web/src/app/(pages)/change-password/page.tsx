@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { getAuthToken } from "@/lib/getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 import { Button } from "@/components/ui/button";
 import { InputPassword } from "@/components/ui/input-password";
 import StrongPasswordInput from "@/components/comman/StrongPasswordInput";
@@ -38,11 +38,8 @@ export default function ChangePasswordPage() {
         return;
       }
 
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "api/website/user/change-password",
-        {
+      const response = await fetch("/api/website/user/change-password", {
           method: "POST",
-          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             authorization: `Bearer ${token}`,

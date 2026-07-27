@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { register, setProfile } from "@/redux/features/auth";
 import { clearGuestCart } from "@/redux/features/cart";
-import Cookies from "js-cookie";
+
 import { clearGuestWishlist } from "@/redux/features/wishlist";
 import {
   syncGuestCartToServer,
@@ -68,12 +68,9 @@ const SignUpPage = () => {
         return setError("Please complete the security check.");
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}api/website/user/register`,
-        {
+      const response = await fetch("/api/website/user/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify({ ...formData, turnstileToken }),
         }
       );
@@ -95,8 +92,6 @@ const SignUpPage = () => {
 
       dispatch(register());
       dispatch(setProfile(data._data));
-      Cookies.set("userToken", data._token, { expires: 5, path: "/", sameSite: "lax" });
-
       // Sync guest cart and wishlist to server (read from Redux state persisted in localStorage)
       if ((guestCartItems?.length ?? 0) > 0 || (guestWishlistItems?.length ?? 0) > 0) {
         await Promise.all([

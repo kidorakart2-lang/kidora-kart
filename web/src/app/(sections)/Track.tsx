@@ -13,7 +13,7 @@ import {
   Loader2, RefreshCw, Phone, Mail, Search, Printer,
 } from "lucide-react";
 import { toast } from "sonner";
-import { getAuthToken } from "@/lib/getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 import OrderTimeline from "@/components/track/OrderTimeline";
 import OrderItemsList from "@/components/track/OrderItemsList";
 import OrderSummaryCard from "@/components/track/OrderSummaryCard";
@@ -46,7 +46,7 @@ export default function OrderTracking() {
 
   const loadRazorpayScript = async (): Promise<boolean> => {
     for (let i = 0; i < 2; i++) {
-      if ((window as unknown as { Razorpay?: unknown }).Razorpay) return true;
+      if (window.Razorpay) return true;
       const script = document.createElement("script");
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
       document.body.appendChild(script);
@@ -54,7 +54,7 @@ export default function OrderTracking() {
         script.onload = () => resolve(true);
         script.onerror = () => resolve(false);
       });
-      if (loaded || (window as unknown as { Razorpay?: unknown }).Razorpay) return true;
+      if (loaded || window.Razorpay) return true;
       await new Promise((r) => setTimeout(r, 1000));
     }
     return false;
@@ -131,7 +131,7 @@ export default function OrderTracking() {
         },
       };
 
-      const RazorpayConstructor = (window as unknown as { Razorpay: new (options: unknown) => { open: () => void } }).Razorpay;
+      const RazorpayConstructor = window.Razorpay!;
       const paymentObject = new RazorpayConstructor(options);
       paymentObject.open();
     } catch (error) {
@@ -152,11 +152,9 @@ export default function OrderTracking() {
   const fetchShiprocketTracking = async (orderId: string) => {
     setTrackingLoading(true);
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL + "api/website";
       const token = getAuthToken();
-      const res = await fetch(`${API_URL}/shipping/track/${orderId}`, {
+      const res = await fetch(`/api/website/shipping/track/${orderId}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
-        credentials: "include",
       });
       if (res.ok) {
         const json = await res.json() as { success: boolean; data?: { shiprocketTracking?: ShiprocketTrackingData; currentStatus?: string } };

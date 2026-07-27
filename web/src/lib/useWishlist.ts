@@ -1,8 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getAuthToken } from "./getAuthToken";
-import { clearAuthCookies } from "./clearAuthCookies";
+import { getAuthToken, clearAuthCookies } from "@/lib/cookies";
 
 /**
  * Query key factory for wishlist queries.
@@ -29,8 +28,8 @@ export function useWishlistView() {
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}api/website/wishlist/view`,
-        { headers, credentials: "include" },
+        `/api/website/wishlist/view`,
+        { headers },
       );
       if (res.status === 401) {
         clearAuthCookies();

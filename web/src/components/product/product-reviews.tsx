@@ -12,7 +12,7 @@ import {
 
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { getAuthToken } from "@/lib/getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 import type { Review } from "@/lib/useReviews";
 import { useProductReviews, useSubmitReview } from "@/lib/useReviews";
 import { openLoginModal } from "@/redux/features/uiSlice";

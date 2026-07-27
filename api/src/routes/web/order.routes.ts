@@ -449,13 +449,13 @@ router.post("/retry-payment/:orderId", protect, rateLimit.orderCreate, retryPaym
 router.post("/verify-payment", protect, rateLimit.orderVerify, verifyPayment);
 
 // Get all user orders (with pagination and filters)
-router.get("/my-orders", protect, uploadNone, getUserOrders);
+router.get("/my-orders", rateLimit.orderRead, protect, uploadNone, getUserOrders);
 
 // Get single order details
-router.get("/:orderId", protect, uploadNone, getOrderById);
+router.get("/:orderId", rateLimit.orderRead, protect, uploadNone, getOrderById);
 
 // Get single order details
-router.post("/delivery/:orderId", protect, uploadNone, getOrder);
+router.post("/delivery/:orderId", rateLimit.orderRead, protect, uploadNone, getOrder);
 
 // Cancel order
 router.put("/:orderId/cancel", protect, uploadNone, rateLimit.cancelOrder, cancelOrder);

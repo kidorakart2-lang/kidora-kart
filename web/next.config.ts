@@ -7,7 +7,7 @@ const csp = `
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: blob: https://*.r2.dev https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com"} https://lh3.googleusercontent.com https://cdn.jsdelivr.net;
   font-src 'self' data:;
-  connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"} https://challenges.cloudflare.com;
+  connect-src 'self' https://challenges.cloudflare.com;
   frame-src https://*.razorpay.com https://challenges.cloudflare.com https://www.youtube.com;
   frame-ancestors 'none';
 `
@@ -122,6 +122,16 @@ const nextConfig: NextConfig = {
             value: "Content-Type, Authorization",
           },
         ],
+      },
+    ];
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+        }api/:path*`,
       },
     ];
   },

@@ -16,7 +16,7 @@ interface ChatInputProps {
   onInputChange: (value: string) => void;
   onSend: () => void;
   onStop: () => void;
-  onRegenerate: () => void;
+  onRegenerate?: () => void;
   isStreaming: boolean;
   providers: string[];
   selectedProvider: string;
@@ -111,7 +111,7 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
   ) : null;
 
   // Regenerate button (only in bottom mode)
-  const regenerateBtn = !centered && showRegenerate ? (
+  const regenerateBtn = !centered && onRegenerate && showRegenerate ? (
     <div className="flex items-center justify-center mt-2">
       <button
         onClick={onRegenerate}

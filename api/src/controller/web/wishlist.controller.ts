@@ -6,28 +6,34 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import { success, fail } from "../../utils/responses.js";
 import { logger } from "../../lib/logger.js";
 
+interface PopulatedWishlistProduct {
+  _id: string;
+  name: string;
+  price: number;
+  discount_price: number;
+  image?: string;
+  images: string[];
+  slug: string;
+}
+
+interface PopulatedWishlist {
+  _id: import("mongoose").Types.ObjectId;
+  user: import("mongoose").Types.ObjectId;
+  products: PopulatedWishlistProduct[];
+}
+
 export const getWishlist = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user?._id;
     const wishlist = await Wishlist.findOne({ user: userId })
       .populate("products", "name price discount_price image images slug stock")
-      .lean();
+      .lean<PopulatedWishlist | null>();
 
     if (!wishlist || wishlist.products.length === 0) {
       return success(res, [], "Your wishlist is empty");
     }
 
-    const items = (
-      (wishlist as Record<string, unknown>).products as Array<{
-        _id: string;
-        name: string;
-        price: number;
-        discount_price: number;
-        image?: string;
-        images: string[];
-        slug: string;
-      }>
-    ).map((product) => ({
+    const items = wishlist.products.map((product) => ({
       _id: product._id,
       name: product.name,
       price: product.price,

@@ -25,9 +25,7 @@ async function GetFaq() {
   cacheTag(TAG_FAQ);
 
   try {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/faq",
-    );
+    const response = await fetch("/api/website/faq");
     const data = await response.json();
     return data._data;
   } catch {

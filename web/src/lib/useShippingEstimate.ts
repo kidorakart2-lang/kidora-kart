@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getAuthToken } from "./getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 
 /**
  * Query key factory for shipping estimate queries.
@@ -54,7 +54,7 @@ export function useShippingEstimate(
       }
 
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "api/website/shipping/estimate",
+        "/api/website/shipping/estimate",
         {
           method: "POST",
           headers,

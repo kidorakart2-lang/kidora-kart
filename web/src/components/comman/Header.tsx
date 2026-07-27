@@ -98,7 +98,7 @@ export default function Header({ navigationData }: HeaderProps) {
     if (isLoggedIn || Cookies.get("loginModal")) return;
     loginTimerRef.current = setTimeout(() => {
       dispatch(openLoginModal());
-      Cookies.set("loginModal", "true", { expires: 1 });
+      Cookies.set("loginModal", "true", { expires: 1, secure: window.location.protocol === "https:" });
     }, 10000);
     return () => {
       if (loginTimerRef.current) {

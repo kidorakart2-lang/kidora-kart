@@ -422,7 +422,7 @@ router.post(
   forgotPassword,
 );
 
-router.post("/verify-otp", uploadNone, verifyOtp);
+router.post("/verify-otp", rateLimit.verifyOtp, uploadNone, verifyOtp);
 
 router.post(
   "/reset-password",
@@ -435,11 +435,11 @@ router.post("/verify-user", protect, rateLimit.sendEmailOTP, uploadNone, verifyU
 
 router.post("/complete-verify", protect, rateLimit.verifyEmail, uploadNone, completeVerify);
 
-router.post("/google-auth-init", uploadNone, googleAuthInit);
+router.post("/google-auth-init", rateLimit.googleAuth, uploadNone, googleAuthInit);
 
-router.post("/google-login", uploadNone, googleLogin);
+router.post("/google-login", rateLimit.googleAuth, uploadNone, googleLogin);
 
-router.post("/google-callback", uploadNone, googleAuthCallback);
+router.post("/google-callback", rateLimit.googleAuth, uploadNone, googleAuthCallback);
 
 router.post("/re-login", protect, uploadNone, reLogin);
 

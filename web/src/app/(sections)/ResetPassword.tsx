@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
-import { getAuthToken } from "@/lib/getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 import {
   Card,
   CardContent,
@@ -48,7 +48,7 @@ export default function ResetPassword() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "api/website/user/forgot-password",
+        "/api/website/user/forgot-password",
         {
           method: "POST",
           headers: {
@@ -65,7 +65,7 @@ export default function ResetPassword() {
 
       const data = await response.json();
       if (data._status === true) {
-        Cookies.set("otpToken", data._token, { expires: 1 });
+        Cookies.set("otpToken", data._token, { expires: 1, secure: window.location.protocol === "https:" });
         setStep("otp");
         toast.success("Verification code sent to your email");
       }
@@ -83,7 +83,7 @@ export default function ResetPassword() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "api/website/user/verify-otp",
+        "/api/website/user/verify-otp",
         {
           method: "POST",
           headers: {
@@ -108,7 +108,7 @@ export default function ResetPassword() {
       if (data._status === true) {
         setStep("reset");
         Cookies.remove("otpToken");
-        Cookies.set("resetToken", data._token, { expires: 1 });
+        Cookies.set("resetToken", data._token, { expires: 1, secure: window.location.protocol === "https:" });
         toast.success("OTP verified successfully");
       }
     } catch (error: unknown) {
@@ -134,7 +134,7 @@ export default function ResetPassword() {
       }
 
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "api/website/user/reset-password",
+        "/api/website/user/reset-password",
         {
           method: "POST",
           headers: {

@@ -10,9 +10,7 @@ async function GetBanners() {
   cacheTag(TAG_HOMEPAGE);
 
   try {
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "api/website/banner",
-    )
+    const res = await fetch("/api/website/banner")
     const data = await res.json()
     return (data._data as BannerItem[]) ?? []
   } catch {

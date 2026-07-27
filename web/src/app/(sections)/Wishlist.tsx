@@ -2,7 +2,7 @@
 import { motion, AnimatePresence } from "motion/react";
 import { X, Heart, ShoppingBag } from "lucide-react";
 import Image from "next/image";
-import { getAuthToken } from "@/lib/getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 import { toast } from "sonner";
 import { useEffect, useState, useMemo } from "react";
 import LoadingOverlay from "@/components/comman/LoadingOverlay";
@@ -73,7 +73,7 @@ export default function Wishlist({
     setWishlistLoading(true);
     try {
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "api/website/wishlist/remove/" + id,
+        "/api/website/wishlist/remove/" + id,
         {
           method: "PUT",
           credentials: "include",

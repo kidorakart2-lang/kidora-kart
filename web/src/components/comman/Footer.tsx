@@ -77,9 +77,7 @@ export default function Footer({
 
   const fetchFeaturedProducts = async () => {
     try {
-      const res = await fetch(
-        process.env.NEXT_PUBLIC_API_URL +
-          "api/website/product/featured-for-footer",
+      const res = await fetch(        "/api/website/product/featured-for-footer",
       );
       const data = await res.json();
       setFeaturedProducts(data._data);

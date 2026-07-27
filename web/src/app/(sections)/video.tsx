@@ -11,9 +11,7 @@ const FullVideoSection = () => {
   useEffect(() => {
     const fetchBanner = async () => {
       try {
-        const res = await fetch(
-          process.env.NEXT_PUBLIC_API_URL + "api/website/banner"
-        );
+        const res = await fetch("/api/website/banner");
         const data = await res.json();
         setImage(data?.[4]?.image);
       } catch (error) {

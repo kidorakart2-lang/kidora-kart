@@ -22,7 +22,7 @@ export default function GoogleLoginBtn() {
 
       // Get full Google OAuth URL from backend (constructed server-side)
       const stateRes = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "api/website/user/google-auth-init",
+        "/api/website/user/google-auth-init",
         { method: "POST" }
       );
       const stateData = await stateRes.json();

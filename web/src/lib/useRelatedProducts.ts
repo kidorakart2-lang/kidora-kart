@@ -21,9 +21,7 @@ export function useRelatedProducts(subCategory: string[], subSubCategory: string
   return useQuery({
     queryKey: relatedProductKeys.byCategories(sc, ssc),
     queryFn: async () => {
-      const res = await fetch(
-        process.env.NEXT_PUBLIC_API_URL +
-          "api/website/product/get-related-products?" +
+      const res = await fetch("/api/website/product/get-related-products?" +
           new URLSearchParams({
             subCategoryIds: sc.join(","),
             subSubCategoryIds: ssc.join(","),

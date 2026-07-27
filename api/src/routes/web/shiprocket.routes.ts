@@ -117,9 +117,6 @@
  *     tags: [Shipping (Shiprocket)]
  *     summary: Track a shipment by order ID
  *     description: Fetches live tracking data from Shiprocket. Also auto-updates the order status to delivered/cancelled when Shiprocket reports it.
- *     security:
- *       - BearerAuth: []
- *       - CookieAuth: []
  *     parameters:
  *       - in: path
  *         name: orderId
@@ -128,8 +125,6 @@
  *     responses:
  *       200:
  *         description: Tracking information
- *       401:
- *         description: Unauthorized
  *       404:
  *         description: Order not found
  *       500:
@@ -210,25 +205,43 @@ import {
   shiprocketWebhook,
   requestRtoForOrder,
   cancelOrRto,
+  verifyWebhook,
+  schedulePickup,
+  regenerateLabel,
+  regenerateInvoice,
 } from "../../controller/web/shiprocket.controller.js";
 import protect, { adminOnly } from "../../middleware/authMiddleware.js";
+import rateLimiters from "../../middleware/rateLimit.js";
 
 const router = Router();
 
 // All shipping endpoints require authentication and admin role
 router.post("/create", protect, adminOnly, createShippingOrder);
-router.get("/track/:orderId", protect, trackShippingOrder);
+// No auth required — guests can track by providing their order ID
+// Rate limited to prevent abuse of the public endpoint
+router.get("/track/:orderId", rateLimiters.trackShipment, trackShippingOrder);
 router.post("/cancel", protect, adminOnly, cancelShippingOrder);
 // Unified cancel + RTO endpoint — tries cancel, falls back to RTO if autoRto=true
 router.post("/cancel-or-rto", protect, adminOnly, cancelOrRto);
 // RTO (Return to Origin) — for shipments already picked up that can't be cancelled
 router.post("/rto", protect, adminOnly, requestRtoForOrder);
 router.get("/pickup-locations", protect, adminOnly, getPickupLocationsHandler);
-// Shipping estimate — available without auth (just a shipping rate estimate)
-router.post("/estimate", getShippingEstimate);
+// Shipping estimate — also public, rate limited
+router.post("/estimate", rateLimiters.shippingEstimate, getShippingEstimate);
+
+// Regenerate shipment label — for orders where label wasn't generated initially
+router.post("/label", protect, adminOnly, regenerateLabel);
+// Regenerate shipment invoice — for orders where invoice wasn't generated initially
+router.post("/invoice", protect, adminOnly, regenerateInvoice);
+
+// Schedule a pickup for a shipped order — generates a courier pickup request
+router.post("/pickup", protect, adminOnly, schedulePickup);
 
 // Shiprocket webhook — receives tracking status updates
 // Configure this URL in Shiprocket Dashboard → Settings → API → Webhooks
 router.post("/webhook", shiprocketWebhook);
+
+// Webhook test/verify endpoint — admin-only, returns webhook URL and integration status
+router.get("/webhook/verify", protect, adminOnly, verifyWebhook);
 
 export default router;

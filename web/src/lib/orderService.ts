@@ -1,8 +1,6 @@
-import Cookies from "js-cookie";
-import { getAuthToken } from "@/lib/getAuthToken";
-import { clearAuthCookies } from "@/lib/clearAuthCookies";
+import { getAuthToken, clearAuthCookies } from "@/lib/cookies";
 import type { OrderTrackingResponse, OrderData } from "@/types";
-const API_URL = process.env.NEXT_PUBLIC_API_URL + "api/website";
+const API_URL = "/api/website";
 
 async function authFetch(
   url: string,
@@ -20,19 +18,16 @@ async function authFetch(
   let response = await fetch(`${API_URL}${url}`, {
     ...options,
     headers,
-    credentials: "include",
   });
 
   if (response.status === 401) {
     try {
       const refreshRes = await fetch(`${API_URL}/user/refresh`, {
         method: "POST",
-        credentials: "include",
       });
       if (refreshRes.ok) {
         const body = await refreshRes.json() as { _token?: string };
         if (body._token) {
-          Cookies.set("userToken", body._token, { expires: 7, path: "/", sameSite: "lax" });
           headers["Authorization"] = `Bearer ${body._token}`;
         }
       } else {
@@ -42,7 +37,6 @@ async function authFetch(
       response = await fetch(`${API_URL}${url}`, {
         ...options,
         headers,
-        credentials: "include",
       });
     } catch {
       // Refresh request failed (network error) — clear cookies so stale token isn't reused

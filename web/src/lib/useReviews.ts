@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAuthToken } from "./getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 
 export interface Review {
   _id: string;
@@ -31,9 +31,7 @@ export function useProductReviews(productId: string | null | undefined) {
   return useQuery({
     queryKey: reviewKeys.byProduct(productId ?? ""),
     queryFn: async () => {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}api/website/review/get/${productId}`,
-      );
+      const res = await fetch(`/api/website/review/get/${productId}`);
       const data = (await res.json()) as ReviewResponse;
       return {
         reviews: data._data ?? [],
@@ -61,11 +59,8 @@ export function useSubmitReview() {
       comment: string;
       rating: number;
     }) => {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}api/website/review/create`,
-        {
+      const res = await fetch(`/api/website/review/create`, {
           method: "POST",
-          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${getAuthToken()}`,

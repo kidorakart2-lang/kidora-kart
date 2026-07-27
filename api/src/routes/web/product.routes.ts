@@ -273,30 +273,32 @@ import {
   getByIds,
 } from "../../controller/web/product.controller.js";
 import { uploadNone } from "../../middleware/uploadMiddleware.js";
+import rateLimit from "../../middleware/rateLimit.js";
 
 const router = Router();
 
 // Category routes
-router.get("/details/:slug", getOne);
+router.get("/details/:slug", rateLimit.publicProducts, getOne);
 router.post(
   "/get-by-category/:categorySlug/:subCategorySlug/:subSubCategorySlug",
+  rateLimit.publicProducts,
   uploadNone,
   getByCategory,
 );
-router.get("/get-by-filter", getProductByFilter);
-router.get("/get-by-search", getBySearch);
-router.get("/get-related-products", relatedProducts);
+router.get("/get-by-filter", rateLimit.publicProducts, getProductByFilter);
+router.get("/get-by-search", rateLimit.publicProducts, getBySearch);
+router.get("/get-related-products", rateLimit.publicProducts, relatedProducts);
 // tab products
-router.get("/tab-products", tabProducts);
-router.get("/new-arrivals", newArrivals);
-router.get("/trending-products", trendingProducts);
-router.get("/best-sellers", bestSellers);
-router.get("/featured-for-footer", featuredForFooter);
+router.get("/tab-products", rateLimit.publicProducts, tabProducts);
+router.get("/new-arrivals", rateLimit.publicProducts, newArrivals);
+router.get("/trending-products", rateLimit.publicProducts, trendingProducts);
+router.get("/best-sellers", rateLimit.publicProducts, bestSellers);
+router.get("/featured-for-footer", rateLimit.publicProducts, featuredForFooter);
 
 // sitemap products
-router.get("/all", getAll);
+router.get("/all", rateLimit.publicProducts, getAll);
 
 // batch fetch by IDs (POST to allow body)
-router.post("/batch", uploadNone, getByIds);
+router.post("/batch", rateLimit.publicProducts, uploadNone, getByIds);
 
 export default router;

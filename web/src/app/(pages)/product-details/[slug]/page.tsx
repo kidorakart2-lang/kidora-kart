@@ -18,9 +18,7 @@ interface ProductDetailsPageProps {
 
 export async function generateStaticParams() {
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}api/website/product/all`,
-    );
+    const res = await fetch("/api/website/product/all");
     if (!res.ok) return [{ slug: "placeholder" }];
     const data = await res.json();
     const products = data._data as { slug: string }[];
@@ -252,9 +250,7 @@ async function getProducts(slug: string) {
   cacheLife("products");
   cacheTag(productTag(slug), TAG_PRODUCTS);
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}api/website/product/details/${slug}`,
-  );
+  const response = await fetch(`/api/website/product/details/${slug}`);
 
   if (!response.ok) {
     return null;

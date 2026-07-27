@@ -7,7 +7,7 @@ import { setProfile } from "@/redux/features/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Phone, Loader2 } from "lucide-react";
-import { getAuthToken } from "@/lib/getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 import { siteConfig } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -75,7 +75,7 @@ export default function PhoneNumberModal() {
       formData.append("mobile", phone);
 
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "api/website/user/update-profile",
+        "/api/website/user/update-profile",
         {
           method: "PUT",
           body: formData,

@@ -17,6 +17,9 @@ import {
   ArrowLeftRight,
   ShoppingCart,
   Copy,
+  RotateCcw,
+  AlertTriangle,
+  FileText,
 } from "lucide-react";
 import { Drawer } from "@/components/drawer";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +47,9 @@ export default function OrdersPage() {
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [rtoDialogOpen, setRtoDialogOpen] = useState(false);
+  const [cancelNeedsRto, setCancelNeedsRto] = useState(false);
+  const [cancelShiprocketOrderId, setCancelShiprocketOrderId] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -107,15 +113,131 @@ export default function OrdersPage() {
 
   const cancelMutation = useMutation({
     mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
-      api.post<{ success: boolean; message?: string }>("/api/admin/orders/cancel-by-admin", { orderId, reason }),
+      api.post<{ success: boolean; message?: string; data?: { needsRto?: boolean; shiprocketOrderId?: number; shiprocketAction?: string } }>(
+        "/api/admin/orders/cancel-by-admin",
+        { orderId, reason, autoRto: true },
+      ),
     onSuccess: (response) => {
-      if (!response.success) throw new ApiClientError((response as any).message || "Failed to cancel order", 400);
-      toast({ title: "Success", description: response.message || "Order cancelled successfully" });
+      const data = (response as any)?.data;
+
+      // Handle 409 needsRto response (server returns !success with data.needsRto)
+      if (!response.success) {
+        if (data?.needsRto) {
+          setCancelNeedsRto(true);
+          setCancelShiprocketOrderId(data.shiprocketOrderId);
+          return; // Keep drawer open to show RTO option
+        }
+        throw new ApiClientError(response.message || "Failed to cancel order", 400);
+      }
+
+      const shiprocketAction = data?.shiprocketAction;
+      const shipMsgs: Record<string, string> = {
+        cancelled: " Shipment also cancelled on Shiprocket.",
+        rto: " RTO (Return to Origin) initiated — package will be returned.",
+      };
+      toast({
+        title: "Success",
+        description: (response.message || "Order cancelled successfully") + (shipMsgs[shiprocketAction ?? ""] || ""),
+      });
       invalidateOrders();
       setCancelOrderOpen(false);
       setCancelOrder(null);
+      setCancelNeedsRto(false);
+      setCancelShiprocketOrderId(null);
     },
-    onError: (error: Error) => toast({ title: "Error", description: error instanceof ApiClientError ? error.message : "Failed to cancel order", variant: "destructive" }),
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error instanceof ApiClientError ? error.message : "Failed to cancel order", variant: "destructive" });
+    },
+  });
+
+  const rtoMutation = useMutation({
+    mutationFn: (orderId: string) =>
+      api.post<{ success: boolean; message?: string; data?: { rtoOrderId?: number; rtoStatus?: string } }>("/api/website/shipping/rto", { orderId }),
+    onSuccess: (response) => {
+      if (!response.success) throw new ApiClientError((response as any).message || "Failed to initiate RTO", 400);
+      toast({ title: "RTO Initiated", description: response.message || "Package will be returned to origin." });
+      invalidateOrders();
+      setRtoDialogOpen(false);
+      setCancelNeedsRto(false);
+      setCancelShiprocketOrderId(null);
+    },
+    onError: (error: Error) => toast({ title: "RTO Failed", description: error instanceof ApiClientError ? error.message : "Failed to initiate RTO", variant: "destructive" }),
+  });
+
+  const cancelOrRtoMutation = useMutation({
+    mutationFn: (orderId: string) =>
+      api.post<{ success: boolean; message?: string; data?: { action?: string; rtoOrderId?: number } }>(
+        "/api/website/shipping/cancel-or-rto",
+        { orderId, autoRto: true },
+      ),
+    onSuccess: (response) => {
+      if (!response.success) throw new ApiClientError((response as any).message || "Failed to cancel shipment", 400);
+      const action = (response as any)?.data?.action;
+      const msgs: Record<string, string> = {
+        cancelled: "Shipment cancelled on Shiprocket.",
+        rto: "RTO initiated — package will be returned.",
+        none: "No shipment to cancel.",
+      };
+      toast({ title: "Shipment Action", description: msgs[action ?? ""] || response.message });
+      invalidateOrders();
+    },
+    onError: (error: Error) => toast({ title: "Error", description: error instanceof ApiClientError ? error.message : "Failed to process shipment", variant: "destructive" }),
+  });
+
+  const pickupMutation = useMutation({
+    mutationFn: (orderId: string) =>
+      api.post<{ success: boolean; message?: string; data?: { pickupStatus?: string; pickupScheduledDate?: string; pickupTokenNumber?: string } }>(
+        "/api/website/shipping/pickup",
+        { orderId },
+      ),
+    onSuccess: (response) => {
+      if (!response.success) throw new ApiClientError((response as any).message || "Failed to schedule pickup", 400);
+      const data = (response as any)?.data;
+      toast({
+        title: "Pickup Scheduled",
+        description: data?.pickupStatus
+          ? `Pickup ${data.pickupStatus}${data.pickupScheduledDate ? ` — scheduled for ${data.pickupScheduledDate}` : ""}`
+          : (response.message || "Pickup scheduled successfully"),
+      });
+      invalidateOrders();
+    },
+    onError: (error: Error) => toast({ title: "Pickup Failed", description: error instanceof ApiClientError ? error.message : "Failed to schedule pickup", variant: "destructive" }),
+  });
+
+  const labelMutation = useMutation({
+    mutationFn: (orderId: string) =>
+      api.post<{ success: boolean; message?: string; data?: { labelUrl?: string } }>(
+        "/api/website/shipping/label",
+        { orderId },
+      ),
+    onSuccess: (response) => {
+      if (!response.success) throw new ApiClientError((response as any).message || "Failed to generate label", 400);
+      const data = (response as any)?.data;
+      toast({
+        title: "Label Generated",
+        description: data?.labelUrl ? "Label regenerated — URL updated" : (response.message || "Label generated successfully"),
+      });
+      invalidateOrders();
+    },
+    onError: (error: Error) => toast({ title: "Label Failed", description: error instanceof ApiClientError ? error.message : "Failed to generate label", variant: "destructive" }),
+  });
+
+  const invoiceMutation = useMutation({
+    mutationFn: (orderId: string) =>
+      api.post<{ success: boolean; message?: string; data?: { invoiceUrl?: string } }>(
+        "/api/website/shipping/invoice",
+        { orderId },
+      ),
+    onSuccess: (response) => {
+      if (!response.success) throw new ApiClientError((response as any).message || "Failed to generate invoice", 400);
+      const data = (response as any)?.data;
+      toast({
+        title: "Invoice Generated",
+        description: data?.invoiceUrl ? "Invoice regenerated — URL updated" : (response.message || "Invoice generated successfully"),
+      });
+      invalidateOrders();
+    },
+    onError: (error: Error) => toast({ title: "Invoice Failed", description: error instanceof ApiClientError ? error.message : "Failed to generate invoice", variant: "destructive" }),
   });
 
   const handleShipWithShiprocket = (order: OrderData) => shipMutation.mutate(order.orderId);
@@ -342,11 +464,44 @@ export default function OrdersPage() {
         onClose={() => {
           setCancelOrderOpen(false);
           setCancelOrder(null);
+          setCancelNeedsRto(false);
+          setCancelShiprocketOrderId(null);
         }}
         title="Cancel Order"
-        className=" md:!w-[60vw] md:!max-w-[1800px] !w-full !max-w-full"
+        className="md:!w-[60vw] md:!max-w-[1800px] !w-full !max-w-full"
       >
         <form onSubmit={confirmCancelOrder} className="space-y-4 p-4">
+          {/* RTO fallback warning when cancel was rejected */}
+          {cancelNeedsRto && (
+            <div className="p-3 bg-amber-500/15 border border-amber-400/30 rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-medium text-amber-300 mb-1">Shipment Already In Transit</p>
+                  <p className="text-amber-400/70 mb-2">
+                    This order has already been picked up by the courier and cannot be cancelled directly.
+                    You can initiate an RTO (Return to Origin) to bring the package back.
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      if (cancelOrder) {
+                        rtoMutation.mutate(cancelOrder.orderId);
+                      }
+                    }}
+                    disabled={rtoMutation.isPending}
+                    className="border-amber-500/40 text-amber-300 hover:bg-amber-500/20 text-xs"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                    {rtoMutation.isPending ? "Initiating RTO..." : "Initiate RTO Instead"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <label
               htmlFor="reason"
@@ -374,16 +529,87 @@ export default function OrdersPage() {
               onClick={() => {
                 setCancelOrderOpen(false);
                 setCancelOrder(null);
+                setCancelNeedsRto(false);
+                setCancelShiprocketOrderId(null);
               }}
               className="px-4 py-2"
             >
               Cancel
             </Button>
             <Button type="submit" variant="destructive" className="px-6 py-2">
-              Confirm Cancellation
+              {cancelMutation.isPending ? "Cancelling..." : "Confirm Cancellation"}
             </Button>
           </div>
         </form>
+      </Drawer>
+
+      {/* RTO Confirmation Dialog */}
+      <Drawer
+        isOpen={rtoDialogOpen}
+        onClose={() => {
+          setRtoDialogOpen(false);
+        }}
+        title="Initiate RTO (Return to Origin)"
+        className="md:!w-[50vw] md:!max-w-[600px] !w-full !max-w-full"
+      >
+        <div className="p-4 space-y-4">
+          <div className="p-3 bg-amber-500/15 border border-amber-400/30 rounded-lg">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-6 w-6 text-amber-400 shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-amber-300 mb-1">Return to Origin</p>
+                <p className="text-amber-400/70 text-xs leading-relaxed">
+                  This will tell Shiprocket to initiate a return for this shipment.
+                  The package will be brought back to your warehouse.
+                  This is typically used when the shipment cannot be cancelled
+                  because it has already been picked up by the courier.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-xs text-muted-foreground space-y-1 bg-muted/50 p-3 rounded-lg">
+            <p><strong>Order:</strong> #{selectedOrder?.orderId}</p>
+            {selectedOrder?.shipping?.trackingNumber && (
+              <p><strong>AWB:</strong> {selectedOrder.shipping.trackingNumber}</p>
+            )}
+            {selectedOrder?.shipping?.carrier && (
+              <p><strong>Courier:</strong> {selectedOrder.shipping.carrier}</p>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRtoDialogOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (selectedOrder) {
+                  rtoMutation.mutate(selectedOrder.orderId);
+                }
+              }}
+              disabled={rtoMutation.isPending}
+            >
+              {rtoMutation.isPending ? (
+                <>
+                  <span className="animate-spin h-4 w-4 mr-1.5 border-2 border-current border-t-transparent rounded-full" />
+                  Initiating RTO...
+                </>
+              ) : (
+                <>
+                  <RotateCcw className="h-4 w-4 mr-1.5" />
+                  Confirm RTO
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
       </Drawer>
 
       <Drawer
@@ -442,6 +668,70 @@ export default function OrdersPage() {
                   Mark Delivered
                 </Button>
               )}
+              {/* RTO / Cancel-or-RTO — shown when order has been shipped with Shiprocket but not delivered */}
+              {selectedOrder.shipping?.trackingNumber && selectedOrder.status !== "delivered" && selectedOrder.status !== "cancelled" && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => cancelOrRtoMutation.mutate(selectedOrder.orderId)}
+                    disabled={cancelOrRtoMutation.isPending}
+                    className="flex-1 min-w-[140px] border-amber-500/40 text-amber-300 hover:bg-amber-500/20"
+                  >
+                    <RotateCcw className="h-4 w-4 mr-1.5" />
+                    Cancel / RTO
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => { setRtoDialogOpen(true); }}
+                    disabled={rtoMutation.isPending}
+                    className="flex-1 min-w-[120px] border-orange-500/40 text-orange-300 hover:bg-orange-500/20"
+                  >
+                    <AlertTriangle className="h-4 w-4 mr-1.5" />
+                    RTO Only
+                  </Button>
+                </>
+              )}
+              {/* Schedule Pickup — for shipped orders with a Shiprocket shipment ID that haven't been picked up yet */}
+              {selectedOrder.shipping?.shiprocketShipmentId && selectedOrder.status === "shipped" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => pickupMutation.mutate(selectedOrder.orderId)}
+                  disabled={pickupMutation.isPending}
+                  className="flex-1 min-w-[140px] border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/20"
+                >
+                  <Truck className="h-4 w-4 mr-1.5" />
+                  {pickupMutation.isPending ? "Scheduling..." : "Schedule Pickup"}
+                </Button>
+              )}
+              {/* Regenerate Label — for orders with a Shiprocket shipment */}
+              {selectedOrder.shipping?.shiprocketShipmentId && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => labelMutation.mutate(selectedOrder.orderId)}
+                  disabled={labelMutation.isPending}
+                  className="flex-1 min-w-[120px] border-violet-500/40 text-violet-300 hover:bg-violet-500/20"
+                >
+                  <Printer className="h-4 w-4 mr-1.5" />
+                  {labelMutation.isPending ? "Generating..." : "Regen Label"}
+                </Button>
+              )}
+              {/* Regenerate Invoice — for orders with a Shiprocket order ID */}
+              {selectedOrder.shipping?.shiprocketOrderId && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => invoiceMutation.mutate(selectedOrder.orderId)}
+                  disabled={invoiceMutation.isPending}
+                  className="flex-1 min-w-[120px] border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/20"
+                >
+                  <FileText className="h-4 w-4 mr-1.5" />
+                  {invoiceMutation.isPending ? "Generating..." : "Regen Invoice"}
+                </Button>
+              )}
               {selectedOrder.status !== "delivered" && (
                 <Button
                   variant="destructive"
@@ -453,6 +743,19 @@ export default function OrdersPage() {
                 </Button>
               )}
             </div>
+
+            {/* RTO status badge if already initiated */}
+            {(selectedOrder as any).shipping?.rtoRequested && (
+              <div className="p-3 bg-orange-500/10 border border-orange-400/20 rounded-lg flex items-center gap-2">
+                <RotateCcw className="h-4 w-4 text-orange-400" />
+                <div className="text-xs">
+                  <p className="font-medium text-orange-300">RTO Initiated</p>
+                  {(selectedOrder as any).shipping?.rtoStatus && (
+                    <p className="text-orange-400/70">Status: {(selectedOrder as any).shipping.rtoStatus}</p>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Customer Info */}
             <div className="rounded-lg border border-border p-4 space-y-2">

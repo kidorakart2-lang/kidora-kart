@@ -10,9 +10,7 @@ import { getCategoryHref } from "@/lib/category-nav";
 
 async function getNavCategories(): Promise<import("@/types").CategoryData[]> {
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}api/website/nav`,
-    );
+    const res = await fetch("/api/website/nav");
     if (!res.ok) return [];
     const data = await res.json();
     return data._data ?? [];

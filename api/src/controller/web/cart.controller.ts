@@ -53,7 +53,7 @@ export const getCart = asyncHandler(async (req: Request, res: Response) => {
         color: item.color,
         quantity: item.quantity,
         itemTotal,
-      } as Record<string, unknown>;
+      } as { color: unknown; quantity: number; itemTotal: number };
     }),
   );
 

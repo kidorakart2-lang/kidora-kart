@@ -56,6 +56,11 @@ export interface OrderData {
     estimatedDelivery?: string;
     trackingNumber?: string;
     trackingUrl?: string;
+    shiprocketOrderId?: number;
+    shiprocketShipmentId?: number;
+    rtoRequested?: boolean;
+    rtoOrderId?: number;
+    rtoStatus?: string;
   };
   payment?: {
     status?: string;

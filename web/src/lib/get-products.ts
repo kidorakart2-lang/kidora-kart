@@ -8,7 +8,7 @@ export async function getProducts(q: string) {
 
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}api/website/product/get-by-search?search=${q}&limit=8`
+      `/api/website/product/get-by-search?search=${q}&limit=8`
     );
     if (!response.ok) return [];
     const data = await response.json();

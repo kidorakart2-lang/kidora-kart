@@ -55,7 +55,7 @@ export const verifyPasswordResetToken = (
       typeof decoded === "object" &&
       decoded !== null &&
       "type" in decoded &&
-      (decoded as Record<string, unknown>).type === "password_reset"
+      (decoded as { type: string }).type === "password_reset"
     ) {
       return decoded as PasswordResetJwtPayload;
     }

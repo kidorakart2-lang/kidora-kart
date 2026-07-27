@@ -3,7 +3,7 @@ import GoogleLoginBtn from "@/components/comman/GoogleLoginBtn";
 import InputPassword from "@/components/ui/input-password";
 import { login, setProfile } from "@/redux/features/auth";
 import { clearGuestCart } from "@/redux/features/cart";
-import Cookies from "js-cookie";
+
 import { clearGuestWishlist } from "@/redux/features/wishlist";
 import {
   syncGuestCartToServer,
@@ -92,12 +92,9 @@ const LoginPage = () => {
     setApiError(""); // reset error
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}api/website/user/login`,
-        {
+      const response = await fetch("/api/website/user/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify(formData),
         }
       );
@@ -114,8 +111,6 @@ const LoginPage = () => {
 
       dispatch(login());
       dispatch(setProfile(data._data));
-      Cookies.set("userToken", data._token, { expires: 7, path: "/", sameSite: "lax" });
-
       // Sync guest cart and wishlist to server (read from Redux state persisted in localStorage)
       if ((guestCartItems?.length ?? 0) > 0 || (guestWishlistItems?.length ?? 0) > 0) {
         await Promise.all([

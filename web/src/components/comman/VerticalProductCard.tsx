@@ -5,7 +5,7 @@ import { Button } from "../ui/button";
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { getAuthToken } from "@/lib/getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../../redux/features/cart";
 import { useSelector } from "react-redux";
@@ -55,12 +55,10 @@ export default function VerticalProductCard({ data }: VerticalProductCardProps) 
       if (isLoggedIn) {
         try {
           const response = await fetch(
-            process.env.NEXT_PUBLIC_API_URL +
-              "api/website/wishlist/remove/" +
+            "/api/website/wishlist/remove/" +
               data?._id,
             {
               method: "PUT",
-              credentials: "include",
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${getAuthToken()}`,
@@ -89,10 +87,9 @@ export default function VerticalProductCard({ data }: VerticalProductCardProps) 
       if (isLoggedIn) {
         try {
           const response = await fetch(
-            process.env.NEXT_PUBLIC_API_URL + "api/website/wishlist/add",
+            "/api/website/wishlist/add",
             {
               method: "POST",
-              credentials: "include",
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${getAuthToken()}`,
@@ -127,10 +124,9 @@ export default function VerticalProductCard({ data }: VerticalProductCardProps) 
     if (isLoggedIn) {
       try {
         const response = await fetch(
-          process.env.NEXT_PUBLIC_API_URL + "api/website/cart/add",
+          "/api/website/cart/add",
           {
             method: "POST",
-            credentials: "include",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${getAuthToken()}`,

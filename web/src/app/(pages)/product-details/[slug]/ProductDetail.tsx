@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 
 import ProductReviews from "@/components/product/product-reviews";
 import ImageSlider from "@/components/product/image-slider";
-import { getAuthToken } from "@/lib/getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 import { useDispatch } from "react-redux";
 import { addToCart, setBuyNowItem } from "@/redux/features/cart";
 import { toast } from "sonner";
@@ -68,8 +68,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
       if (isLoggedIn) {
         try {
           const response = await fetch(
-            process.env.NEXT_PUBLIC_API_URL +
-              "api/website/wishlist/remove/" +
+            "/api/website/wishlist/remove/" +
               product?._id,
             {
               method: "PUT",
@@ -112,8 +111,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
     } else {
       if (isLoggedIn) {
         try {
-          const response = await fetch(
-            process.env.NEXT_PUBLIC_API_URL + "api/website/wishlist/add",
+          const response = await fetch("/api/website/wishlist/add",
             {
               method: "POST",
               headers: {
@@ -230,8 +228,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
 
     if (isLoggedIn) {
       try {
-        const response = await fetch(
-          process.env.NEXT_PUBLIC_API_URL + "api/website/cart/add",
+        const response = await fetch("/api/website/cart/add",
           {
             method: "POST",
             headers: {

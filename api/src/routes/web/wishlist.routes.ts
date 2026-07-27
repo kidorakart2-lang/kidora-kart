@@ -125,15 +125,16 @@ import {
 } from "../../controller/web/wishlist.controller.js";
 import { uploadNone } from "../../middleware/uploadMiddleware.js";
 import protect from "../../middleware/authMiddleware.js";
+import rateLimit from "../../middleware/rateLimit.js";
 
 const router = Router();
 
-router.get("/view", protect, getWishlist);
+router.get("/view", rateLimit.wishlistActions, protect, getWishlist);
 
-router.post("/add", protect, uploadNone, addToWishlist);
+router.post("/add", rateLimit.wishlistActions, protect, uploadNone, addToWishlist);
 
-router.put("/remove/:productId", protect, removeFromWishlist);
+router.put("/remove/:productId", rateLimit.wishlistActions, protect, removeFromWishlist);
 
-router.post("/check/:productId", protect, checkInWishlist);
+router.post("/check/:productId", rateLimit.wishlistActions, protect, checkInWishlist);
 
 export default router;

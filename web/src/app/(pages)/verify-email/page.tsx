@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
-import { getAuthToken } from "@/lib/getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -58,7 +58,7 @@ export default function VerifyEmailPage() {
     try {
       const token = getAuthToken();
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "api/website/user/complete-verify",
+        "/api/website/user/complete-verify",
         {
           method: "POST",
           headers: {
@@ -99,7 +99,7 @@ export default function VerifyEmailPage() {
     try {
       const token = getAuthToken();
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "api/website/user/verify-user",
+        "/api/website/user/verify-user",
         {
           method: "POST",
           headers: {
@@ -118,6 +118,7 @@ export default function VerifyEmailPage() {
       if (data._status === true) {
         Cookies.set("verify", data._token, {
           expires: new Date(Date.now() + 10 * 60 * 1000),
+          secure: window.location.protocol === "https:",
         });
         setCountdown(30);
         toast.success("Verification code resent successfully!");

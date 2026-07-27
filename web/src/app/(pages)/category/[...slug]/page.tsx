@@ -37,9 +37,7 @@ export const metadata = {
 
 export async function generateStaticParams() {
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}api/website/nav`,
-    );
+    const res = await fetch("/api/website/nav");
     if (!res.ok) return [{ slug: ["placeholder"] }];
     const data = await res.json();
     const categories = data._data as {
@@ -108,7 +106,7 @@ async function getColor(): Promise<ColorItem[]> {
   cacheTag(TAG_FILTERS);
 
   const color = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}api/website/color`,
+    "/api/website/color",
   );
 
   const data = await color.json();
@@ -124,7 +122,7 @@ async function getMaterial(): Promise<MaterialItem[]> {
   cacheTag(TAG_FILTERS);
 
   const material = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}api/website/material`,
+    "/api/website/material",
   );
   const data = await material.json();
   if (!material.ok || !data._status) {

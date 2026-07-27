@@ -52,7 +52,7 @@
 
 | File | Purpose |
 |------|---------|
-| `api/src/lib/shiprocket.ts` | Core Shiprocket API client — all HTTP calls to Shiprocket |
+| `api/src/lib/shiprocket.ts` | Core Shiprocket API client — all HTTP calls to Shiprocket (17 methods) |
 | `api/src/controller/web/shiprocket.controller.ts` | Express handlers for shipping operations |
 | `api/src/routes/web/shiprocket.routes.ts` | Route definitions |
 | `api/src/controller/web/order.controller.ts` | Order creation, payment, cancellation |
@@ -80,7 +80,7 @@ SHIPROCKET_TOKEN=eyJ...
 
 ## 3. Order-to-Shipment Flow
 
-The full flow from checkout to shipped order involves **6 sequential stages**:
+The full flow from checkout to shipped order involves **6 sequential stages** (stages 1-6). If an order needs to be cancelled after shipping, see the extended flow in §7 which now covers stage 7 (Cancellation) and stage 8 (RTO).
 
 ### Stage 1: Checkout (User-Side)
 
@@ -139,8 +139,16 @@ Admin Panel → POST /api/website/shipping/create { orderId }
 
 ### Stage 4: Pickup by Courier
 
-- Admin must schedule pickup via Shiprocket Dashboard OR
-- Use `generatePickup()` API (available in library but **not exposed via any endpoint**)
+- **Admin can now schedule pickup directly from the admin panel** via `POST /api/website/shipping/pickup`
+- The endpoint calls Shiprocket's `generatePickup()` API to schedule physical pickup from the configured location
+- Admin panel shows a "Schedule Pickup" button (emerald green) for orders with `status === "shipped"` and a `shiprocketShipmentId`
+- Returns pickup status, scheduled date, and pickup token number
+
+**Admin Panel Flow:**
+```
+Order Drawer → "Schedule Pickup" button → POST /api/website/shipping/pickup { orderId }
+  → Shiprocket generates pickup → Toast: "Pickup scheduled for 2026-07-27"
+```
 
 ### Stage 5: In Transit
 
@@ -268,72 +276,111 @@ These are handled in `order.webhook.ts` and are separate from Shiprocket's track
 
 ## 7. Order Cancellation Flow
 
-### Current State: ⚠️ INCOMPLETE
+### Current State: ✅ FULLY IMPLEMENTED
 
-There are **two cancellation paths**, and **neither cancels the Shiprocket shipment**:
+There are **three cancellation paths**, all of which now integrate with Shiprocket:
 
-#### Path A: Admin Cancels Order
+### Path A: Admin Cancels Order (Fully Integrated)
 ```
 Admin Panel → POST /api/admin/orders/cancel-by-admin
+Body: { orderId, reason, autoRto?: boolean }
 ↓
 order.controller.ts: cancelOrderByAdmin()
 ↓
-Updates DB: status = "cancelled", records cancellation reason & time
-↓ ❌ Ships refund request to Razorpay (if paid)
-↓ ❌ DOES NOT call Shiprocket cancel API
+Step 1: Check if order has shiprocketOrderId
+  ├─ No → Skip Shiprocket, proceed to refund
+  └─ Yes → Step 2: Call shiprocketCancelOrRto([shiprocketOrderId])
+              ├─ Cancelled ✅ → Log success, proceed
+              ├─ Not cancelled + needsRto + autoRto=true
+              │     → Call shiprocketRequestRto() → RTO initiated
+              └─ Not cancelled + needsRto + autoRto=false
+                    → Return 409: "Use RTO endpoint"
+              └─ Not cancelled + no RTO → Log failure, continue
+Step 3: Initiate Razorpay refund (if payment was captured)
+Step 4: Restore product stock
+Step 5: Update order status to "cancelled" in DB
 ```
 
-#### Path B: Shiprocket Cancel Endpoint (Stub)
+### Path B: Shiprocket Cancel Endpoint (Now Functional)
 ```
 POST /api/website/shipping/cancel
+Body: { orderId }
 ↓
 shiprocket.controller.ts: cancelShippingOrder()
 ↓
-RESPONDS: "Use the standard order cancellation endpoint. Shiprocket cancellation is handled automatically."
-↓ ❌ But it's NOT actually handled automatically!
+1. Checks Shiprocket order status via getShipmentStatus()
+2. If already delivered → 400 error
+3. If cancellable → Calls Shiprocket cancelOrder API → 200
+4. If already picked up → Returns 409 with needsRto: true
+5. Otherwise → Returns error with details
 ```
 
-### The `cancelOrder()` Function Exists But Is Unused
-
-The Shiprocket library (`api/src/lib/shiprocket.ts`) has a fully implemented `cancelOrder()` function:
-
-```typescript
-export async function cancelOrder(
-  orderIds: number[],
-): Promise<ShiprocketResponse<{ cancelled: boolean; message: string }>> {
-  return shiprocketFetch("/orders/cancel", {
-    method: "POST",
-    body: JSON.stringify({ ids: orderIds }),
-  });
-}
+### Path C: Unified Cancel + RTO Endpoint (New)
+```
+POST /api/website/shipping/cancel-or-rto
+Body: { orderId, autoRto?: boolean }
+↓
+shiprocket.controller.ts: cancelOrRto()
+↓
+1. Checks shipment status (delivered → reject)
+2. Attempts Shiprocket cancel
+3. If cancel fails + needsRto + autoRto=true → Auto-initiate RTO
+4. Returns action taken: "cancelled" | "rto" | "none" | "failed"
 ```
 
-But it's **never called anywhere** in the codebase. Shiprocket cancellation requires the **Shiprocket order ID** (numeric), not the AWB. The Shiprocket order ID is returned from `createOrder()` but is **not stored** in our database.
+### Shiprocket Library Methods (Now All Connected)
+
+| Function | Used? | Purpose |
+|----------|-------|---------|
+| `cancelOrder()` | ✅ Via `cancelOrderOrRto()` | Cancel order in Shiprocket |
+| `cancelOrderOrRto()` | ✅ | Intelligent cancel — detects if RTO is needed |
+| `requestReturnOrder()` | ✅ | Initiate RTO when shipment already picked up |
+| `getShipmentStatus()` | ✅ | Check current shipment state before cancelling |
+
+### Cancellation Logic Diagram
+
+```mermaid
+flowchart TD
+    A[Admin cancels order] --> B{Has shiprocketOrderId?}
+    B -->|No| C[Mark as cancelled in DB + refund]
+    B -->|Yes| D{Check shipment status via getShipmentStatus}
+    D -->|Delivered| E[400: Cannot cancel, already delivered]
+    D -->|Pickable|cancellable| F[Call cancelOrderOrRto API]
+    F -->|Success| G[Mark as cancelled + refund]
+    F -->|"needsRto: true"| H{autoRto enabled?}
+    H -->|Yes| I[Call requestReturnOrder → RTO initiated]
+    H -->|No| J[Return 409: use RTO endpoint]
+    I --> K[Update DB: rtoRequested, rtoStatus]
+    K --> L[Package returns to origin warehouse]
+```
+
+### RTO Endpoint (New)
+```
+POST /api/website/shipping/rto
+Body: { orderId }
+↓
+shiprocket.controller.ts: requestRtoForOrder()
+↓
+1. Validates order exists and has shiprocketOrderId
+2. Checks current status (rejects if already delivered)
+3. Calls Shiprocket RTO API: POST /orders/create/rto
+4. Updates DB: rtoRequested=true, rtoOrderId, rtoStatus
+5. Order status set to "cancelled"
+```
 
 ### Cancellation Limitations (Shiprocket API)
 
 According to Shiprocket API docs:
 - Orders can only be cancelled **before pickup**
 - Once the courier picks up the package, cancellation is **not possible** → must request RTO (Return to Origin)
-- After dispatch/cancellation, only tracking shows "Cancelled" — no RTO flow is implemented
-
-### What Should Happen (Gap)
-
-```mermaid
-flowchart TD
-    A[Admin cancels order] --> B{Has tracking number?}
-    B -->|No| C[Mark as cancelled in DB]
-    B -->|Yes| D{Can cancel in Shiprocket?}
-    D -->|Yes < 24hrs, no pickup| E[Call Shiprocket cancelOrder API]
-    D -->|No, already picked up| F[Initiate RTO with Shiprocket]
-    E --> G[Mark as cancelled in DB + refund]
-    F --> H[Order shows RTO status]
-    H --> I[Refund after RTO delivered]
-```
+- RTO creates a return order that brings the package back to the warehouse
+- After RTO is delivered back, a separate refund can be processed
 
 ---
 
 ## 8. Webhook Integration
+
+There are **two separate webhooks** in this system. One for Shiprocket (tracking updates) and one for Razorpay (payment events).
 
 ### Shiprocket Webhook
 
@@ -341,9 +388,59 @@ flowchart TD
 POST /api/website/shipping/webhook
 ```
 
-**Setup:** Configure in Shiprocket Dashboard → Settings → API → Webhooks
+The Shiprocket webhook receives real-time tracking updates when shipment status changes. It automatically updates the order status in the database.
 
-**Payload format from Shiprocket:**
+#### Setup Instructions (Step by Step)
+
+1. **Log in to Shiprocket Dashboard**
+   - Go to [https://app.shiprocket.in](https://app.shiprocket.in) and log in with your credentials
+
+2. **Navigate to Webhook Settings**
+   - Click **Settings** (gear icon, top-right corner)
+   - Go to the **API** section in the left sidebar
+   - Click the **Webhooks** tab
+
+3. **Add the Webhook URL**
+   - Click **"Add Webhook"** button
+   - Paste your webhook URL:
+     ```
+     POST https://your-api-domain.com/api/website/shipping/webhook
+     ```
+     Replace `your-api-domain.com` with your actual server domain.
+     
+     **For local development testing:** You can use a tool like **ngrok** to expose your local server:
+     ```bash
+     ngrok http 5000
+     # Then use: https://your-ngrok-id.ngrok.io/api/website/shipping/webhook
+     ```
+
+4. **Select Events to Watch**
+   - Shiprocket sends all status updates by default — no event selection needed
+   - The webhook triggers for: `Delivered`, `Cancelled`, `Shipped`, `In Transit`, `Out for Delivery`, `Pickup Generated`, `Returned`, `RTO`
+
+5. **Save the Webhook**
+   - Click **Save** to add the webhook URL
+   - Ensure the toggle switch is **enabled** (green)
+
+6. **Test the Webhook**
+   - Shiprocket provides a **"Test"** button that sends a sample payload
+   - You can also verify using the admin endpoint:
+     ```
+     GET /api/website/shipping/webhook/verify
+     Headers: Authorization: Bearer <admin-token>
+     ```
+     This returns the configured webhook URL and Shiprocket auth status.
+
+7. **Verify in Server Logs**
+   - After saving, check your server logs for:
+     ```
+     "Shiprocket webhook received"
+     ```
+   - Click **"Test"** in Shiprocket Dashboard to send a sample — you should see the log entry
+
+#### Payload Format
+
+Shiprocket sends the following payload when a tracking status changes:
 ```json
 {
   "awb": 59629792084,
@@ -351,29 +448,103 @@ POST /api/website/shipping/webhook
   "order_id": "13905312",
   "current_timestamp": "2021-07-02 16:41:59",
   "etd": "2021-07-02 16:41:59",
+  "current_status_id": 7,
   "shipment_status": "Delivered",
-  "channel_order_id": "enter your channel order id",
-  "courier_name": "enter courier_name",
-  "scans": [{"date": "2019-06-25 12:08:00", "activity": "SHIPMENT DELIVERED", "location": "PATIALA"}]
+  "shipment_status_id": 7,
+  "channel_order_id": "123456",
+  "channel": "Kidora Kart",
+  "courier_name": "Delhivery",
+  "scans": [
+    {
+      "date": "2021-06-25 12:08:00",
+      "activity": "SHIPMENT PICKED UP",
+      "location": "JODHPUR"
+    },
+    {
+      "date": "2021-06-26 09:30:00",
+      "activity": "IN TRANSIT",
+      "location": "DELHI"
+    },
+    {
+      "date": "2021-06-27 14:15:00",
+      "activity": "SHIPMENT DELIVERED",
+      "location": "PATIALA"
+    }
+  ]
 }
 ```
 
-**Status mapping implemented:**
+#### Status Mapping
 
-| Shiprocket Status | DB Action |
-|-------------------|-----------|
-| `"delivered"` | Sets `status: "delivered"`, `shipping.deliveredAt: now` |
-| `"cancelled"` / `"canceled"` / `"returned"` | Sets `status: "cancelled"` |
-| `"shipped"` / `"in transit"` / `"out for delivery"` / `"pickup generated"` | If order is `"confirmed"`, sets `status: "shipped"` + `shipping.shippedAt` |
+The webhook handler maps Shiprocket statuses to internal order statuses:
 
-**Note:** The webhook handler always returns `200` even on errors, per webhook best practices.
+| Shiprocket Status | DB Action | Details |
+|-------------------|-----------|---------|
+| `"Delivered"` | `status: "delivered"` | Sets `shipping.deliveredAt`. For COD orders, also sets `payment.status: "completed"` and `payment.paidAt` |
+| `"Cancelled"` / `"Canceled"` / `"Returned"` / `"RTO"` | `status: "cancelled"` | Shipment cancelled or returned to origin |
+| `"Shipped"` / `"In Transit"` / `"Out for Delivery"` / `"Pickup Generated"` | `status: "shipped"` | Only updates if current status is `"confirmed"`. Sets `shipping.shippedAt` |
+
+#### Additional Behaviors
+
+- **AWB Lookup:** The webhook looks up the order by `shipping.trackingNumber` (AWB code)
+- **Courier Name:** If the webhook includes a `courier_name` and the order doesn't have one, it's saved
+- **Shiprocket Order ID:** If the webhook includes an `order_id` (Shiprocket's internal ID) and we haven't stored one yet, it's saved to `shipping.shiprocketOrderId`
+- **Status History:** Every status change is recorded in `order.statusHistory` for full audit trail
+- **Error Handling:** Always returns HTTP 200 even on errors (per webhook best practices). Errors are logged for investigation
+- **Duplicate Protection:** The handler checks `order.status !== "delivered"` / `order.status !== "cancelled"` before updating, preventing duplicate updates
+
+#### Webhook Test/Verify Endpoint
+
+```
+GET /api/website/shipping/webhook/verify [Admin Only]
+```
+
+Returns the current webhook configuration status:
+```json
+{
+  "success": true,
+  "data": {
+    "webhookUrl": "https://your-api.com/api/website/shipping/webhook",
+    "configured": true,
+    "tokenValid": true,
+    "tokenError": null,
+    "timestamp": "2026-07-26T12:00:00.000Z",
+    "setupInstructions": [
+      "1. Go to https://app.shiprocket.in → Settings → API → Webhooks",
+      "2. Add webhook URL: https://your-api.com/api/website/shipping/webhook",
+      "3. Enable the webhook toggle",
+      "4. Click 'Test' to send a sample payload",
+      "5. Check server logs for 'Shiprocket webhook received' message"
+    ]
+  }
+}
+```
+
+#### Troubleshooting
+
+| Problem | Likely Cause | Solution |
+|---------|-------------|----------|
+| Webhook not received | Firewall blocking Shiprocket IPs | Whitelist Shiprocket IPs or disable IP restrictions |
+| Order not found by AWB | AWB mismatch | Check `shipping.trackingNumber` in DB matches the AWB in the webhook payload |
+| Status not updating | Status already set | Check `order.status` — webhook only updates on transition (e.g., `"confirmed"`→`"shipped"`, not `"shipped"`→`"shipped"`) |
+| SSL/TLS errors | Self-signed certificate | Use a valid SSL certificate (Let's Encrypt or cloud proxy) |
+| Webhook URL wrong | Trailing slash | Ensure no trailing slash in the webhook URL |
 
 ### Razorpay Webhook (Separate)
 
 ```
 POST /api/website/orders/webhooks/razorpay
 ```
-Handled in `order.webhook.ts` — processes payment events, refund events. Separate from Shiprocket.
+
+Handled in `order.webhook.ts` — processes payment events, refund events. **This is separate from the Shiprocket webhook.**
+
+| Event | Handler | Action |
+|-------|---------|--------|
+| `payment.captured` | `handlePaymentCaptured` | Order confirmed, stock deducted |
+| `payment.failed` | `handlePaymentFailed` | Order marked as failed |
+| `refund.created` | `handleRefundCreated` | Refund initiated |
+| `refund.processed` | `handleRefundProcessed` | Refund completed |
+| `refund.failed` | `handleRefundFailed` | Refund failed |
 
 ---
 
@@ -383,22 +554,50 @@ Handled in `order.webhook.ts` — processes payment events, refund events. Separ
 
 | Method | Path | Auth | Admin | Purpose |
 |--------|------|------|-------|---------|
-| `POST` | `/api/website/shipping/create` | ✅ | ✅ | Create order + shipment in Shiprocket |
-| `GET` | `/api/website/shipping/track/:orderId` | ✅ | ❌ | Track shipment via AWB |
-| `POST` | `/api/website/shipping/cancel` | ✅ | ✅ | Cancel shipment (⚠️ STUB) |
+| `POST` | `/api/website/shipping/create` | ✅ | ✅ | Create order + shipment in Shiprocket (persists shiprocketOrderId) |
+| `GET` | `/api/website/shipping/track/:orderId` | ❌ | ❌ | Track shipment via AWB — no auth required, guests can track by order ID |
+| `POST` | `/api/website/shipping/cancel` | ✅ | ✅ | Cancel shipment on Shiprocket (✅ now functional) |
+| `POST` | `/api/website/shipping/cancel-or-rto` | ✅ | ✅ | Unified cancel + RTO (auto-fallback) |
+| `POST` | `/api/website/shipping/rto` | ✅ | ✅ | Initiate RTO (Return to Origin) |
 | `GET` | `/api/website/shipping/pickup-locations` | ✅ | ✅ | Get pickup locations |
+| `POST` | `/api/website/shipping/label` | ✅ | ✅ | Regenerate shipping label for a shipment |
+| `POST` | `/api/website/shipping/invoice` | ✅ | ✅ | Regenerate shipping invoice for an order |
+| `POST` | `/api/website/shipping/pickup` | ✅ | ✅ | Schedule courier pickup for a shipped order |
 | `POST` | `/api/website/shipping/estimate` | ❌ | ❌ | Get shipping cost estimate |
 | `POST` | `/api/website/shipping/webhook` | ❌ | ❌ | Shiprocket tracking webhook |
+| `GET` | `/api/website/shipping/webhook/verify` | ✅ | ✅ | Verify webhook configuration |
+
+### Shiprocket Library Methods
+
+| Method | Used? | Purpose |
+|--------|-------|---------|
+| `createOrder()` | ✅ | Create order in Shiprocket |
+| `createShipment()` | ✅ | Assign courier + generate AWB |
+| `generateLabel()` | ✅ | Generate shipping label PDF (also via `POST /label` admin endpoint) |
+| `generateInvoice()` | ✅ | Generate invoice PDF (also via `POST /invoice` admin endpoint) |
+| `trackShipment()` | ✅ | Track by AWB |
+| `cancelOrder()` | ✅ | Cancel order in Shiprocket (via cancelOrderOrRto wrapper) |
+| `cancelOrderOrRto()` | ✅ | Intelligent cancel — detects if RTO is needed |
+| `requestReturnOrder()` | ✅ | Initiate RTO for shipments already in transit |
+| `getShipmentStatus()` | ✅ | Check shipment state before cancelling |
+| `checkServiceability()` | ✅ | Get courier rates by pincode |
+| `getPickupLocations()` | ✅ | Get configured pickup addresses |
+| `generatePickup()` | ✅ | Schedule pickup via `POST /api/website/shipping/pickup` |
+| `assignAwb()` | ❌ | Manually assign AWB (unused) |
+| `generateManifest()` | ❌ | Generate manifest PDF (unused) |
+| `printManifest()` | ❌ | Print manifest (unused) |
+| `printInvoice()` | ❌ | Print invoice PDF (unused) |
+| `printLabel()` | ❌ | Print label PDF (unused) |
 
 ### Admin Order Endpoints (with shipping relevance)
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `POST` | `/api/admin/orders/cancel-by-admin` | Cancel order + initiate refund |
+| `POST` | `/api/admin/orders/cancel-by-admin` | Cancel order + Shiprocket cancel + RTO + refund (body: `{ orderId, reason, autoRto? }`) |
 | `POST` | `/api/admin/orders/deliever/order` | Mark order as delivered |
 | `POST` | `/api/admin/orders/mark-to-shipped` | Mark order as shipped (manual) |
 
-### Shiprocket Library Methods (available but not exposed as endpoints)
+### Shiprocket Library Methods
 
 | Method | Used? | Purpose |
 |--------|-------|---------|
@@ -407,11 +606,14 @@ Handled in `order.webhook.ts` — processes payment events, refund events. Separ
 | `generateLabel()` | ✅ | Generate shipping label PDF |
 | `generateInvoice()` | ✅ | Generate invoice PDF |
 | `trackShipment()` | ✅ | Track by AWB |
-| `cancelOrder()` | ❌ | Cancel order in Shiprocket (unused) |
+| `cancelOrder()` | ✅ | Cancel order in Shiprocket (via cancelOrderOrRto wrapper) |
+| `cancelOrderOrRto()` | ✅ | Intelligent cancel — detects if RTO is needed |
+| `requestReturnOrder()` | ✅ | Initiate RTO for shipments already in transit |
+| `getShipmentStatus()` | ✅ | Check shipment state before cancelling |
 | `checkServiceability()` | ✅ | Get courier rates by pincode |
 | `getPickupLocations()` | ✅ | Get configured pickup addresses |
 | `assignAwb()` | ❌ | Manually assign AWB (unused) |
-| `generatePickup()` | ❌ | Schedule pickup (unused) |
+| `generatePickup()` | ✅ | Schedule pickup via `POST /api/website/shipping/pickup` |
 | `generateManifest()` | ❌ | Generate manifest PDF (unused) |
 | `printManifest()` | ❌ | Print manifest (unused) |
 | `printInvoice()` | ❌ | Print invoice PDF (unused) |
@@ -440,19 +642,25 @@ Handled in `order.webhook.ts` — processes payment events, refund events. Separ
 | **Cancellation auto-detected via tracking API** | Updates DB automatically |
 | **COD vs Prepaid** | Correctly passed to Shiprocket payload |
 | **No pickup locations configured** | Falls back to `342005` (Jodhpur) |
+| **Shiprocket order ID persisted** | `shiprocketOrderId` and `shiprocketShipmentId` stored on order doc |
+| **Shiprocket cancel via admin cancel** | `cancelOrderByAdmin` calls Shiprocket cancel before DB update |
+| **RTO auto-fallback** | If cancel fails + `autoRto=true`, RTO is initiated automatically |
+| **RTO manual endpoint** | `POST /rto` for cases where admin wants to trigger RTO separately |
+| **Webhook handles RTO status** | `"rto"` and `"returned"` statuses auto-cancel the order |
+| **Shipment status check before cancel** | `getShipmentStatus()` verifies not delivered before attempting cancel |
 
 ### ❌ NOT Handled (Gaps)
 
 | Scenario | Impact | Severity |
 |----------|--------|----------|
-| **Cancelling order doesn't cancel in Shiprocket** | Shipment continues even after cancellation, customer may receive product | 🔴 Critical |
-| **Shiprocket order ID not stored in DB** | Cannot reference Shiprocket order for cancellation/RTO | 🔴 Critical |
-| **No RTO (Return to Origin) flow** | If shipment can't be cancelled, no way to trigger return | 🟠 High |
-| **No pickup scheduling endpoint** | Admin must login to Shiprocket to schedule pickup | 🟡 Medium |
-| **Tracking endpoint is user-authenticated** | Guest users can't track shipments without logging in | 🟡 Medium |
+| ~~Cancelling order doesn't cancel in Shiprocket~~ | ✅ **FIXED** — Shiprocket cancel + RTO integrated |
+| ~~Shiprocket order ID not stored in DB~~ | ✅ **FIXED** — `shipping.shiprocketOrderId` + `shipping.shiprocketShipmentId` persisted |
+| ~~No RTO (Return to Origin) flow~~ | ✅ **FIXED** — RTO endpoint + auto-fallback in cancel flow |
+| ~~**No pickup scheduling endpoint**~~ | ✅ **FIXED** — `POST /api/website/shipping/pickup` calls `generatePickup()` |
+| ~~**Tracking endpoint is user-authenticated**~~ | ✅ **FIXED** — tracking is now public. Guests can track by order ID |
 | **Shiprocket webhook not configured** | No auto-updates will reach the system | 🟡 Medium |
 | **No health check endpoint** | Can't verify Shiprocket integration status | 🟢 Low |
-| **No endpoint to re-generate label/invoice** | If label wasn't generated initially, no way to retry | 🟢 Low |
+| ~~**No endpoint to re-generate label/invoice**~~ | ✅ **FIXED** — `POST /label` and `POST /invoice` allow admins to regenerate |
 | **No bulk shipment creation** | Can't create shipments for multiple orders at once | 🟢 Low |
 | **No print manifest/label endpoint** | Library functions exist but no API exposed | 🟢 Low |
 
@@ -460,46 +668,70 @@ Handled in `order.webhook.ts` — processes payment events, refund events. Separ
 
 ## 11. Gaps & Missing Features
 
-### Critical Gaps
+### ✅ Critical Gaps — All Fixed
 
 #### Gap 1: Order Cancellation Doesn't Cancel Shiprocket Shipment
 
-**The problem:** When an admin cancels an order via `POST /api/admin/orders/cancel-by-admin`, the system updates the DB status to `"cancelled"` and initiates a refund via Razorpay, but **never calls Shiprocket's cancel API**. The physical shipment continues, and the customer may receive the product after the refund.
+**Status: ✅ FIXED**
 
-**The fix requires:**
-1. Store `shiprocketOrderId` (numeric ID) in the order document when creating the shipment
-2. In `cancelOrderByAdmin()`, check if the order has a Shiprocket order ID
-3. If yes, call `cancelOrder([shiprocketOrderId])` before cancelling in DB
-4. Handle the case where Shiprocket says cancellation not possible (already picked up)
+The `cancelOrderByAdmin()` function now calls `cancelOrderOrRto()` from the Shiprocket library before cancelling in the DB. If the cancel succeeds, the order is marked cancelled. If it fails because the shipment is already picked up, the system either:
+- Auto-initiates RTO (if `autoRto: true` is passed)
+- Returns a 409 with `needsRto: true` asking the admin to use the `/rto` endpoint manually
+
+**Files changed:**
+- `api/src/controller/web/order.controller.ts` — Updated `cancelOrderByAdmin` with Shiprocket integration
+- `api/src/controller/web/shiprocket.controller.ts` — Added `cancelShippingOrder` (real), `requestRtoForOrder`, `cancelOrRto`
+- `api/src/routes/web/shiprocket.routes.ts` — Added `/cancel-or-rto` and `/rto` routes
 
 #### Gap 2: No RTO (Return to Origin) Flow
 
-**The problem:** Once a courier has picked up the package, Shiprocket doesn't allow cancellation. The only option is RTO (Return to Origin). There's no RTO trigger implemented.
+**Status: ✅ FIXED**
+
+Three new mechanisms for RTO:
+1. **`POST /api/website/shipping/rto`** — Manual RTO trigger for admins
+2. **`POST /api/website/shipping/cancel-or-rto`** — Unified endpoint that tries cancel first, auto-falls back to RTO
+3. **`cancelOrderByAdmin` with `autoRto: true`** — Automatic RTO during admin cancellation if cancel is rejected
+4. **Webhook** — Handles `"rto"` and `"returned"` statuses to auto-update the order
+
+**Files changed:**
+- `api/src/lib/shiprocket.ts` — Added `cancelOrderOrRto()`, `requestReturnOrder()`, `getShipmentStatus()`
+- `api/src/controller/web/shiprocket.controller.ts` — RTO and cancel-or-rto handlers
 
 #### Gap 3: Shiprocket Order ID Not Stored
 
-**The problem:** The Shiprocket API returns a numeric `order_id` from `createOrder()`, but our code doesn't store it in the order document. The response currently includes it in the API response but it's not persisted.
+**Status: ✅ FIXED**
+
+Two new fields added to the `shipping` subdocument in the Order schema:
+- `shipping.shiprocketOrderId` (Number) — Shiprocket's numeric order ID
+- `shipping.shiprocketShipmentId` (Number) — Shiprocket's shipment ID
+- `shipping.rtoRequested` (Boolean) — Whether RTO has been triggered
+- `shipping.rtoOrderId` (Number) — Shiprocket's RTO order ID (if RTO was initiated)
+- `shipping.rtoStatus` (String) — Current RTO status
+
+**Files changed:**
+- `api/src/models/order.ts` — Added 5 fields to shipping subdocument
+- `api/src/controller/web/shiprocket.controller.ts` — `createShippingOrder` now persists these fields
 
 ---
 
 ## 12. Recommendations
 
-### Priority 1 (Critical)
-- [ ] **Store Shiprocket order ID** — Add `shipping.shiprocketOrderId` field to the Order schema, save it when creating the shipment
-- [ ] **Integrate cancellation** — In `cancelOrderByAdmin()`, call Shiprocket's `cancelOrder()` if the order has a `shiprocketOrderId` and shipment hasn't been picked up
-- [ ] **Handle non-cancellable shipments** — If Shiprocket rejects cancellation (already picked up), mark the order for RTO
+### ✅ Completed
+- [x] **Store Shiprocket order ID** — Added `shipping.shiprocketOrderId` + `shipping.shiprocketShipmentId` to Order schema, persisted in `createShippingOrder`
+- [x] **Integrate cancellation** — `cancelOrderByAdmin()` now calls `cancelOrderOrRto()` before cancelling in DB
+- [x] **Handle non-cancellable shipments (RTO)** — Added `requestReturnOrder()`, `/rto` endpoint, `cancelOrRto` unified handler, and `autoRto` parameter in admin cancel
 
-### Priority 2 (High)
-- [ ] **Expose pickup scheduling** — Add an endpoint for `POST /api/website/shipping/pickup` that calls `generatePickup()` from the library
-- [ ] **Make tracking public** — Remove auth requirement from tracking endpoint, use a tracking token instead so guest users can track
+### Priority 1 (High — Next)
+- [x] **Expose pickup scheduling** — ✅ **DONE** — `POST /api/website/shipping/pickup` calls `generatePickup()` with admin panel button
+- [x] **Make tracking public** — ✅ **DONE** — `GET /api/website/shipping/track/:orderId` no longer requires auth. Any user (guest or logged in) can track by providing their order ID.
 
-### Priority 3 (Medium)
+### Priority 2 (Medium)
 - [ ] **Add health check** — `GET /api/website/shipping/health` that pings Shiprocket auth and returns integration status
-- [ ] **Add re-generate label/invoice endpoint** — Expose `generateLabel()` and `generateInvoice()` as API endpoints for admin use
+- [x] **Add re-generate label/invoice endpoint** — ✅ **DONE** — `POST /label` and `POST /invoice` endpoints with admin panel buttons
 - [ ] **Add print endpoints** — Expose `printLabel()`, `printInvoice()`, `printManifest()` as admin API endpoints
 - [ ] **Add Shiprocket manifest generation** — Expose manifest generation for bulk shipping preparation
 
-### Priority 4 (Low)
+### Priority 3 (Low)
 - [ ] **Bulk shipment creation** — Allow creating shipments for multiple confirmed orders at once
 - [ ] **Shipping charge audit** — Store Shiprocket-calculated charges vs actual charged amounts for reconciliation
 
@@ -509,10 +741,10 @@ Handled in `order.webhook.ts` — processes payment events, refund events. Separ
 
 | File | Lines | Key Classes/Functions |
 |------|-------|----------------------|
-| `api/src/lib/shiprocket.ts` | ~280 | `createOrder`, `createShipment`, `generateLabel`, `generateInvoice`, `trackShipment`, `cancelOrder`, `checkServiceability`, `getPickupLocations`, `buildShiprocketOrderPayload` |
-| `api/src/controller/web/shiprocket.controller.ts` | ~390 | `createShippingOrder`, `trackShippingOrder`, `cancelShippingOrder`, `getShippingEstimate`, `shiprocketWebhook` |
-| `api/src/routes/web/shiprocket.routes.ts` | ~120 | Route definitions + OpenAPI docs |
-| `api/src/controller/web/order.controller.ts` | ~900 | `createOrder`, `createRazorpayOrder`, `verifyPayment`, `retryPayment` |
+| `api/src/lib/shiprocket.ts` | ~320 | `createOrder`, `createShipment`, `generateLabel`, `generateInvoice`, `trackShipment`, `cancelOrder`, `cancelOrderOrRto`, `requestReturnOrder`, `getShipmentStatus`, `checkServiceability`, `getPickupLocations`, `assignAwb`, `generatePickup`, `generateManifest`, `printManifest`, `printInvoice`, `printLabel`, `buildShiprocketOrderPayload`, `isShiprocketSuccess` |
+| `api/src/controller/web/shiprocket.controller.ts` | ~560 | `createShippingOrder`, `trackShippingOrder`, `cancelShippingOrder`, `requestRtoForOrder`, `cancelOrRto`, `getShippingEstimate`, `shiprocketWebhook` |
+| `api/src/routes/web/shiprocket.routes.ts` | ~130 | Route definitions + OpenAPI docs |
+| `api/src/controller/web/order.controller.ts` | ~1000 | `createOrder`, `createRazorpayOrder`, `verifyPayment`, `retryPayment`, `cancelOrderByAdmin` (with Shiprocket integration) |
 | `api/src/controller/web/order.webhook.ts` | ~200 | Razorpay webhook handlers (payment/refund) |
 | `web/src/components/track/ShiprocketTrackingStatus.tsx` | ~35 | Frontend tracking badge component |
 | `api/src/config/env.ts` | ~100 | `SHIPROCKET_EMAIL`, `SHIPROCKET_PASSWORD`, `SHIPROCKET_TOKEN` |

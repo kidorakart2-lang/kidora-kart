@@ -5,15 +5,17 @@ import { motion, AnimatePresence } from "motion/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
-import { useAiChat, type ToolCallData } from "@/hooks/use-ai-chat";
+import { useAiChat } from "@/hooks/use-ai-chat";
+import type { UIMessage } from "ai";
 import { ChatMessage as ChatMessageComponent } from "@/components/chat/ChatMessage";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { HistorySidebar } from "@/components/chat/HistorySidebar";
 import { AiAgentSuggestions } from "@/components/ai-agent/AiAgentSuggestions";
 import { ToolCallIndicators } from "@/components/ai-agent/ToolCallIndicators";
 import { AlertDialogUse } from "@/components/alert-dialog";
-import { Sparkles, PanelLeftOpen, Bot, RefreshCw } from "lucide-react";
+import { Sparkles, PanelLeftOpen, Bot } from "lucide-react";
 import type { AiHistoryItem } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 function getAdminToken(): string | null {
   if (typeof document === "undefined") return null;
@@ -29,8 +31,8 @@ export default function AiAgentPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [selectedProvider, setSelectedProvider] = useState<string>(
-    () => typeof window !== "undefined" ? localStorage.getItem("ai-agent-provider") || "" : ""
+  const [selectedProvider, setSelectedProvider] = useState<string>(() =>
+    typeof window !== "undefined" ? localStorage.getItem("ai-agent-provider") || "" : "",
   );
   const [showHistory, setShowHistory] = useState(true);
   const [input, setInput] = useState("");
@@ -38,11 +40,12 @@ export default function AiAgentPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const [pastToolCalls, setPastToolCalls] = useState<ToolCallData[]>([]);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true);
   const inputRef = useRef<{ focus: () => void }>(null);
+  const rafRef = useRef<number | null>(null);
 
   const authHeaders: Record<string, string> = {};
   const adminToken = getAdminToken();
@@ -55,76 +58,75 @@ export default function AiAgentPage() {
     setMessages,
     status,
     error,
-    toolCalls,
-    continuing,
+    toolInvocations,
     conversationId,
     setConversationId,
     sendMessage: sendChatMessage,
     stop,
-    reset,
-    regenerate,
     clearError,
-    clearToolCalls,
+    isStreaming,
   } = useAiChat({
     api: "/api/admin/ai-agent/chat",
     headers: authHeaders,
     body: { provider: selectedProvider || undefined },
     credentials: "include",
-    initialMessages: [],
     onError: (err) => {
       toast({ title: "AI Agent Error", description: err.message, variant: "destructive" });
     },
     onFinish: () => {
       queryClient.invalidateQueries({ queryKey: ["ai-agent-history"] });
     },
-    onContinuation: () => {
-      toast({
-        title: "🔄 Still working...",
-        description: "The AI needs an extra moment to complete the task.",
-      });
-    },
   });
 
-  const isStreaming = status === "submitted" || status === "streaming";
   const isLanding = messages.length === 0;
 
   const scrollToBottom = useCallback((smooth = true) => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    requestAnimationFrame(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      const container = scrollContainerRef.current;
+      if (!container) return;
       container.scrollTo({
         top: container.scrollHeight,
         behavior: smooth ? "smooth" : "instant",
       });
+      rafRef.current = null;
     });
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const atBottom = scrollHeight - scrollTop - clientHeight < 100;
+    isAtBottomRef.current = atBottom;
+    setShowScrollBtn(!atBottom);
   }, []);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      isAtBottomRef.current = scrollHeight - scrollTop - clientHeight < 100;
-    };
     container.addEventListener("scroll", handleScroll, { passive: true });
     return () => container.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [handleScroll]);
 
   useEffect(() => {
     if (isAtBottomRef.current) {
-      const timer = setTimeout(() => scrollToBottom(!isStreaming), 50);
-      return () => clearTimeout(timer);
+      scrollToBottom(!isStreaming);
     }
   }, [messages, status, scrollToBottom, isStreaming]);
 
   useEffect(() => {
-    requestAnimationFrame(() => {
-      const container = scrollContainerRef.current;
-      if (container) container.scrollTo({ top: container.scrollHeight, behavior: "instant" });
-    });
+    const container = scrollContainerRef.current;
+    if (container) container.scrollTo({ top: container.scrollHeight, behavior: "instant" });
   }, [conversationKey]);
 
   useEffect(() => { isAtBottomRef.current = true; }, [conversationKey]);
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   const { data: providers = [] } = useQuery<string[]>({
     queryKey: ["ai-agent-providers"],
@@ -142,9 +144,7 @@ export default function AiAgentPage() {
   });
 
   useEffect(() => {
-    if (selectedProvider) {
-      localStorage.setItem("ai-agent-provider", selectedProvider);
-    }
+    if (selectedProvider) localStorage.setItem("ai-agent-provider", selectedProvider);
   }, [selectedProvider]);
 
   useEffect(() => {
@@ -158,20 +158,10 @@ export default function AiAgentPage() {
     }
   }, [providers, selectedProvider]);
 
-  useEffect(() => {
-    if (!isStreaming && toolCalls.length > 0) {
-      setPastToolCalls((prev) => {
-        const existing = new Set(prev.map((tc) => tc.toolCallId));
-        const newCalls = toolCalls.filter((tc) => !existing.has(tc.toolCallId));
-        return newCalls.length > 0 ? [...prev, ...newCalls] : prev;
-      });
-    }
-  }, [isStreaming, toolCalls]);
-
   const handleSend = () => {
     if (!input.trim() || isStreaming) return;
     isAtBottomRef.current = true;
-    sendChatMessage(input.trim());
+    sendChatMessage({ text: input.trim() });
     setInput("");
   };
 
@@ -179,47 +169,24 @@ export default function AiAgentPage() {
     setInput(prompt);
     setTimeout(() => {
       isAtBottomRef.current = true;
-      sendChatMessage(prompt);
+      sendChatMessage({ text: prompt });
       setInput("");
     }, 50);
   };
 
   const loadHistoryConversation = (item: AiHistoryItem) => {
-    reset();
     setConversationKey(item._id);
     setConversationId(item._id);
 
-    const restoredTools: ToolCallData[] = [];
-    const toolLines = item.response.match(/✅\s+(Created|Updated)\s+.+/g);
-    if (toolLines) {
-      toolLines.forEach((line, i) => {
-        const isCreate = line.includes("Created");
-        const name = line.replace(/✅\s+(Created|Updated)\s+/, "").trim();
-        restoredTools.push({
-          toolCallId: `hist-tc-${item._id}-${i}`,
-          toolName: isCreate ? "createTool" : "updateTool",
-          args: {},
-          result: isCreate ? { created: true, name } : { updated: true, name },
-          status: "done",
-        });
-      });
-    }
-    setPastToolCalls(restoredTools);
-
     if (item.messages && item.messages.length > 0) {
-      setMessages(item.messages.map((m, i) => ({
+      const restoredMessages: UIMessage[] = item.messages.map((m, i) => ({
         id: `hist-${item._id}-${i}`,
         role: m.role as "user" | "assistant",
         content: m.content,
-      })));
-    } else {
-      setMessages([{
-        id: `hist-summary-${item._id}`,
-        role: "assistant",
-        content: `📝 **Past conversation**\n\n---\n**You asked:** ${item.prompt.slice(0, 200)}\n\n**I replied:** ${item.response.slice(0, 500)}\n\n---\n*This is a summary. Start a new message to continue.*`,
-      }]);
+        parts: [{ type: "text" as const, text: m.content }],
+      }));
+      setMessages(restoredMessages);
     }
-    toast({ title: "Conversation loaded from history" });
   };
 
   const deleteConversation = async (id: string, e: React.MouseEvent) => {
@@ -246,22 +213,16 @@ export default function AiAgentPage() {
   };
 
   const startNewChat = () => {
-    reset();
     setConversationKey(`new-${Date.now()}`);
     setMessages([]);
-    clearToolCalls();
-    setPastToolCalls([]);
-    clearError();
     setConversationId(null);
+    clearError();
     isAtBottomRef.current = true;
     inputRef.current?.focus();
   };
 
   const historyItems = historyData?.items ?? [];
   const isHistoryEmpty = historyItems.length === 0;
-  const allCompletedTools = [...pastToolCalls, ...toolCalls.filter((tc) => tc.status === "done")]
-    .filter((tc, i, arr) => arr.findIndex((t) => t.toolCallId === tc.toolCallId) === i);
-  const showLoadingDots = isStreaming && (messages.length === 0 || messages[messages.length - 1]?.role !== "assistant" || !messages[messages.length - 1]?.content);
 
   return (
     <div className="h-dvh w-screen overflow-hidden bg-[#0F172A]">
@@ -352,7 +313,6 @@ export default function AiAgentPage() {
                     onInputChange={setInput}
                     onSend={handleSend}
                     onStop={stop}
-                    onRegenerate={() => regenerate()}
                     isStreaming={isStreaming}
                     providers={providers}
                     selectedProvider={selectedProvider}
@@ -371,18 +331,13 @@ export default function AiAgentPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
-                className="flex-1 flex flex-col min-h-0 overflow-hidden"
+                className="flex-1 flex flex-col min-h-0 overflow-hidden relative"
               >
-                <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overscroll-contain min-h-0">
+                <div
+                  ref={scrollContainerRef}
+                  className="flex-1 overflow-y-auto overscroll-contain min-h-0"
+                >
                   <div className="px-4 pt-6 max-w-3xl mx-auto space-y-6 pb-4">
-                    {conversationId && messages.length > 2 && (
-                      <div className="flex justify-center">
-                        <span className="text-[10px] text-zinc-400 backdrop-blur-xl bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
-                          Continuing conversation
-                        </span>
-                      </div>
-                    )}
-
                     {messages.map((msg, i) => (
                       <ChatMessageComponent
                         key={msg.id || i}
@@ -392,24 +347,9 @@ export default function AiAgentPage() {
                       />
                     ))}
 
-                    <ToolCallIndicators toolCalls={allCompletedTools} />
+                    <ToolCallIndicators toolInvocations={toolInvocations} />
 
-                    {continuing && (
-                      <div className="flex justify-center">
-                        <div className="inline-flex items-center gap-2 backdrop-blur-xl bg-amber-500/15 border border-amber-400/30 rounded-full px-4 py-2 shadow-lg">
-                          <div className="flex gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "0ms" }} />
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "150ms" }} />
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "300ms" }} />
-                          </div>
-                          <span className="text-xs font-medium text-amber-300">
-                            Continuing to complete the task…
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {showLoadingDots && (
+                    {isStreaming && toolInvocations.length === 0 && (
                       <div className="flex gap-3">
                         <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shrink-0 mt-1 shadow-lg shadow-blue-500/20">
                           <Bot className="h-3.5 w-3.5 text-white" />
@@ -428,14 +368,27 @@ export default function AiAgentPage() {
                       <div className="flex justify-center">
                         <div className="backdrop-blur-xl bg-red-500/15 border border-red-400/30 rounded-lg px-4 py-3 text-center max-w-md">
                           <p className="text-xs text-red-300 mb-2">{error.message}</p>
-                          <button onClick={() => { clearError(); regenerate(); }} className="inline-flex items-center gap-1 text-xs bg-red-600/80 hover:bg-red-700 text-white px-3 py-1.5 rounded transition-colors backdrop-blur-sm">
-                            <RefreshCw className="h-3 w-3" />
+                          <button
+                            onClick={() => { clearError(); }}
+                            className="inline-flex items-center gap-1 text-xs bg-red-600/80 hover:bg-red-700 text-white px-3 py-1.5 rounded transition-colors backdrop-blur-sm"
+                          >
                             Retry
                           </button>
                         </div>
                       </div>
                     )}
                   </div>
+
+                  {/* Scroll to bottom button */}
+                  {showScrollBtn && (
+                    <button
+                      onClick={() => scrollToBottom(true)}
+                      className="absolute bottom-20 right-6 h-8 w-8 rounded-full bg-zinc-800/80 border border-white/10 backdrop-blur-xl flex items-center justify-center shadow-lg hover:bg-zinc-700 transition-all z-10"
+                      title="Scroll to bottom"
+                    >
+                      <span className="text-zinc-400 text-lg leading-none">↓</span>
+                    </button>
+                  )}
                 </div>
 
                 <ChatInput
@@ -444,7 +397,6 @@ export default function AiAgentPage() {
                   onInputChange={setInput}
                   onSend={handleSend}
                   onStop={stop}
-                  onRegenerate={() => regenerate()}
                   isStreaming={isStreaming}
                   providers={providers}
                   selectedProvider={selectedProvider}
@@ -456,16 +408,16 @@ export default function AiAgentPage() {
             )}
           </AnimatePresence>
         </div>
-      </div>
 
-      <AlertDialogUse
-        isOpen={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        onConfirm={confirmDelete}
-        title="Delete conversation?"
-        description="This action cannot be undone. The conversation will be permanently removed."
-        confirmText="Delete"
-      />
+        <AlertDialogUse
+          isOpen={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          onConfirm={confirmDelete}
+          title="Delete conversation?"
+          description="This action cannot be undone. The conversation will be permanently removed."
+          confirmText="Delete"
+        />
+      </div>
     </div>
   );
 }

@@ -22,7 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import LoadingOverlay from "@/components/comman/LoadingOverlay";
 import Personalized from "@/components/product/Personalized";
-import { getAuthToken } from "@/lib/getAuthToken";
+import { getAuthToken } from "@/lib/cookies";
 import { openLoginModal } from "@/redux/features/uiSlice";
 import { useProfileBootstrap } from "@/hooks/useProfileBootstrap";
 import type { CheckoutFormData, OrderSummaryCartItem, ProductData } from "@/types";
@@ -301,7 +301,7 @@ export default function Checkout() {
 
   // Load Razorpay script with retry
   const loadRazorpayScript = async (retries = 2): Promise<boolean> => {
-    if ((window as unknown as { Razorpay?: unknown }).Razorpay) return true;
+    if (window.Razorpay) return true;
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       const loaded = await new Promise<boolean>((resolve) => {
@@ -312,7 +312,7 @@ export default function Checkout() {
         script.onerror = () => resolve(false);
         document.body.appendChild(script);
       });
-      if (loaded || (window as unknown as { Razorpay?: unknown }).Razorpay) return true;
+      if (loaded || window.Razorpay) return true;
       await new Promise((r) => setTimeout(r, 1000));
     }
     return false;
@@ -446,7 +446,7 @@ export default function Checkout() {
       };
 
       // Step 6: Open Razorpay checkout
-      const RazorpayConstructor = (window as unknown as { Razorpay: new (options: unknown) => { open: () => void } }).Razorpay;
+      const RazorpayConstructor = window.Razorpay!;
       const paymentObject = new RazorpayConstructor(options);
       paymentObject.open();
     } catch (error) {

@@ -28,9 +28,10 @@
 import { Router } from "express";
 import { contact } from "../../controller/web/contact.controller.js";
 import { uploadNone } from "../../middleware/uploadMiddleware.js";
+import rateLimit from "../../middleware/rateLimit.js";
 
 const router = Router();
 
-router.post("/", uploadNone, contact);
+router.post("/", rateLimit.contact, uploadNone, contact);
 
 export default router;

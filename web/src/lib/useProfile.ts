@@ -1,8 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getAuthToken } from "./getAuthToken";
-import { clearAuthCookies } from "./clearAuthCookies";
+import { getAuthToken, clearAuthCookies } from "@/lib/cookies";
 import type { UserDetails } from "@/types";
 
 /**
@@ -25,10 +24,9 @@ export function useUserProfile() {
     queryKey: userKeys.profile(),
     queryFn: async () => {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}api/website/user/profile`,
+        `/api/website/user/profile`,
         {
           headers: { Authorization: `Bearer ${token!}` },
-          credentials: "include",
         },
       );
       if (res.status === 401) {
