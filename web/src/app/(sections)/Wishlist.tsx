@@ -338,31 +338,30 @@ function WishlistCard({
         )}
       </div>
 
-      {/* Discount Badge */}
-      {discountPercentage > 0 && (
+      {/* Discount Badge — commented out: overlaps with remove button */}
+      {/*discountPercentage > 0 && (
         <div className="absolute top-2 right-2 z-20 bg-brand-accent-500 text-white text-[10px] fw-cta px-1.5 py-0.5 rounded-md shadow-md">
           {discountPercentage}% OFF
         </div>
-      )}
+      )*/}
 
       {/* Image */}
       <div
         className="relative aspect-[1/1] bg-muted/30 overflow-hidden cursor-pointer"
         onClick={() => router.push(`/product-details/${item.slug}`)}
-      >
-        <motion.div
-          whileHover={{ scale: 1.06 }}
-          transition={{ duration: 0.5 }}
-          className="w-full h-full"
-        >
-          <Image
-            src={item.image ?? "/placeholder.svg"}
-            alt={item.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-          />
-        </motion.div>
+      >          <motion.div
+            whileHover={{ scale: 1.06 }}
+            transition={{ duration: 0.5 }}
+            className="relative w-full h-full"
+          >
+            <Image
+              src={item.image ?? "/placeholder.svg"}
+              alt={item.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            />
+          </motion.div>
 
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

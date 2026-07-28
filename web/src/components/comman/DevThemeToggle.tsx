@@ -24,10 +24,8 @@ export default function DevThemeToggle() {
   const [current, setCurrent] = useState<(typeof THEMES)[number]>("brown");
   const [open, setOpen] = useState(false);
 
+  // TODO: hide this theme selector before production launch
   useEffect(() => {
-    // Only in dev
-    if (process.env.NODE_ENV !== "development") return;
-
     const saved = localStorage.getItem(STORAGE_KEY) as (typeof THEMES)[number] | null;
     if (saved && THEMES.includes(saved)) {
       setCurrent(saved);
@@ -48,8 +46,7 @@ export default function DevThemeToggle() {
     setOpen(false);
   }
 
-  if (process.env.NODE_ENV !== "development") return null;
-
+  // TODO: remove this early return to hide theme selector before production launch
   return (
     <div className="fixed bottom-4 right-4 z-[9999] font-mono text-xs">
       {/* Collapsed trigger */}

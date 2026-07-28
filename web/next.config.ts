@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
   cacheLife: CACHE,
   images: {
     formats: ["image/avif", "image/webp"],
+    dangerouslyAllowSVG: true,
     remotePatterns: [
       {
         protocol: "https",

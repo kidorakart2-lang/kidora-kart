@@ -1,8 +1,8 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductCard from "@/components/comman/ProductCard";
-import Link from "next/link";
-import { Zap, Dices, Boxes, Sparkles, ArrowRight } from "lucide-react";
+import HoverButton from "@/components/comman/HoverButton";
+import { Zap, Dices, Boxes, Sparkles } from "lucide-react";
 
 import type { ProductData } from "@/types";
 import { getProducts } from "@/lib/get-products";
@@ -124,27 +124,7 @@ export default async function ProductsTab() {
                     </div>
 
                     <div className="text-center mt-12">
-                      <Link href={getCategoryHref(categories, tab.value)}>
-                        <button
-                          type="button"
-                          className="group inline-flex items-center gap-3 rounded-full border-2 px-8 py-4 fw-cta text-sm uppercase tracking-wider transition-all duration-300 hover:text-white active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-section"
-                          style={{
-                            borderColor: tab.color,
-                            color: tab.color,
-                            ["--tw-ring-color" as string]: tab.color,
-                          }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.backgroundColor = tab.color)
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.backgroundColor =
-                              "transparent")
-                          }
-                        >
-                          View All {tab.label}
-                          <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
-                        </button>
-                      </Link>
+                      <HoverButton href={getCategoryHref(categories, tab.value)} label={tab.label} color={tab.color} />
                     </div>
                   </>
                 ) : (
