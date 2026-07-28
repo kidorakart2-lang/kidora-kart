@@ -1,7 +1,8 @@
 "use client";
 
-import { ShoppingBag, ArrowRight } from "lucide-react";
+import { ShoppingBag, ArrowRight, Shield, RotateCcw, Truck } from "lucide-react";
 import Link from "next/link";
+import { motion } from "motion/react";
 
 interface OrderSummaryPanelProps {
   subtotal: number;
@@ -18,110 +19,117 @@ export default function OrderSummaryPanel({
 }: OrderSummaryPanelProps) {
   return (
     <div className="lg:col-span-1">
-      <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border sticky top-24">
-        <div className="flex items-center gap-2 mb-6">
-          <ShoppingBag className="w-5 h-5 text-muted-foreground" />
-          <h2 className="text-lg font-semibold text-foreground">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="bg-background rounded-2xl border border-border shadow-sm hover:shadow-md transition-all duration-300 sticky top-24 overflow-hidden"
+      >
+        {/* Header with brand accent */}
+        <div className="flex items-center gap-3 px-6 sm:px-8 pt-6 sm:pt-8 pb-4">
+          <div className="w-8 h-8 rounded-lg bg-brand-100 flex items-center justify-center">
+            <ShoppingBag className="w-4 h-4 text-brand-600" strokeWidth={2} />
+          </div>
+          <h2 className="text-base fw-heading text-foreground">
             Order Summary
           </h2>
         </div>
 
         {/* Price Breakdown */}
-        <div className="space-y-4 py-6 border-y border-border">
-          <div className="flex justify-between text-muted-foreground">
-            <span>Subtotal</span>
-            <span className="font-semibold text-foreground">
-              ₹{subtotal.toFixed(2)}
-            </span>
-          </div>
+        <div className="px-6 sm:px-8">
+          <div className="space-y-3.5 py-5 border-t border-border">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span className="fw-heading text-foreground">₹{subtotal.toFixed(2)}</span>
+            </div>
 
-          {discountAmount > 0 && (
-            <div className="flex justify-between text-[var(--brand-accent-600)]">
-              <span>Discount</span>
-              <span className="font-semibold">
-                -₹{discountAmount.toFixed(2)}
+            {discountAmount > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-brand-accent-600">Discount</span>
+                <span className="fw-heading text-brand-accent-600">
+                  -₹{discountAmount.toFixed(2)}
+                </span>
+              </div>
+            )}
+
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Shipping</span>
+              <span className="fw-heading text-foreground">
+                {shipping === 0 ? (
+                  <span className="text-emerald-600">Free</span>
+                ) : (
+                  `₹${shipping.toFixed(2)}`
+                )}
               </span>
             </div>
-          )}
-
-          <div className="flex justify-between text-muted-foreground">
-            <span>Shipping</span>
-            <span className="font-semibold text-foreground">
-              ₹{shipping.toFixed(2)}
-            </span>
           </div>
         </div>
 
         {/* Total */}
-        <div className="flex justify-between items-center py-6">
-          <span className="text-lg font-semibold text-foreground">
-            Estimated Total
-          </span>
-          <span className="text-2xl font-bold text-foreground">
-            ₹{estimatedTotal.toFixed(2)}
-          </span>
+        <div className="px-6 sm:px-8">
+          <div className="flex justify-between items-center py-4 border-t border-border">
+            <span className="text-base fw-heading text-foreground">Estimated Total</span>
+            <motion.span
+              key={estimatedTotal}
+              initial={{ scale: 1.1 }}
+              animate={{ scale: 1 }}
+              className="text-2xl fw-heading text-foreground"
+              style={{
+                background: "linear-gradient(135deg, var(--brand-price-1-from), var(--brand-price-1-to))",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              ₹{estimatedTotal.toFixed(2)}
+            </motion.span>
+          </div>
         </div>
 
         {/* Buttons */}
-        <div className="space-y-3">
+        <div className="px-6 sm:px-8 pb-6 sm:pb-8 space-y-4">
           <Link href="/checkout?type=cart">
-            <button
-              className="w-full btn-gradient fw-cta
-                         py-4 rounded-xl transition-all duration-300 shadow-sm
-                         flex items-center justify-center gap-2"
+            <motion.button
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full btn-gradient fw-cta py-3.5 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2 text-sm tracking-wide"
             >
               Proceed to Checkout
-              <ArrowRight size={18} />
-            </button>
+              <ArrowRight size={16} />
+            </motion.button>
           </Link>
 
           <Link href="/">
-            <button
-              className="w-full mt-4 bg-background border border-border hover:border-foreground/30
-                         text-muted-foreground hover:text-foreground fw-cta py-4 rounded-xl
-                         transition-all duration-300"
-            >
+            <button className="w-full py-3 rounded-xl border border-border hover:border-foreground/30 text-muted-foreground hover:text-foreground fw-cta text-sm transition-all duration-300">
               Continue Shopping
             </button>
           </Link>
         </div>
 
         {/* Trust Badges */}
-        <div className="mt-6 pt-6 border-t border-border space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <div className="w-5 h-5 rounded-full bg-[var(--brand-accent-100)] flex items-center justify-center">
-              <svg
-                className="w-3 h-3 text-[var(--brand-accent-600)]"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
+        <div className="px-6 sm:px-8 pb-6 sm:pb-8">
+          <div className="bg-muted/50 rounded-xl p-4 border border-border space-y-3">
+            <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+              <div className="w-7 h-7 rounded-lg bg-brand-100 flex items-center justify-center shrink-0">
+                <Shield size={13} className="text-brand-600" strokeWidth={2} />
+              </div>
+              <span>Secure checkout via Razorpay</span>
             </div>
-            <span>Secure Checkout</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <div className="w-5 h-5 rounded-full bg-[var(--brand-accent-100)] flex items-center justify-center">
-              <svg
-                className="w-3 h-3 text-[var(--brand-accent-600)]"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
+            <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+              <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                <Truck size={13} className="text-emerald-600" strokeWidth={2} />
+              </div>
+              <span>Free shipping on orders over ₹499</span>
             </div>
-            <span>100% Safe & Tested</span>
+            <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+              <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                <RotateCcw size={13} className="text-amber-600" strokeWidth={2} />
+              </div>
+              <span>Easy 7-day returns</span>
+            </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

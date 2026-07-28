@@ -3,6 +3,7 @@ import GuestWishlist from "@/app/(sections)/GuestWishlist";
 import React, { Suspense } from "react";
 import { siteConfig } from "@/lib/utils";
 import { cookies } from "next/headers";
+import { serverFetch } from "@/lib/server-fetch";
 import type { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
 
 export const metadata = {
@@ -18,20 +19,17 @@ export const metadata = {
 async function getWishlist(token: RequestCookie) {
   if (!token) return null;
 
-  const response = await fetch(
-    `/api/website/wishlist/view`,
-    {
-      headers: {
-        Authorization: `Bearer ${token.value}`,
-      },
-    }
-  );
-  const data = await response.json();
-
-  if (!response.ok || !data._status) {
+  try {
+    const response = await serverFetch("/api/website/wishlist/view", {
+      headers: { Authorization: `Bearer ${token.value}` },
+      timeout: 5000,
+    });
+    const data = await response.json();
+    if (!response.ok || !data._status) return null;
+    return data;
+  } catch {
     return null;
   }
-  return data;
 }
 
 export default async function Page() {

@@ -27,17 +27,14 @@ interface SitemapCategory {
 }
 
 import { siteConfig } from "@/lib/utils";
+import { serverFetch } from "@/lib/server-fetch";
 
 export default async function sitemap() {
   const baseUrl = siteConfig.url;
 
   let products: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
   try {
-    const productsRes = await fetch("/api/website/product/all",
-      {
-        next: { revalidate: 86400 },
-      }
-    );
+    const productsRes = await serverFetch("/api/website/product/all", { timeout: 5000 });
     if (productsRes.ok) {
       const data = await productsRes.json();
 
@@ -72,12 +69,8 @@ export default async function sitemap() {
   }));
 
   let categoryUrls: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
-  const apiUrl = "/api/website/nav";
-
   try {
-    const response = await fetch(apiUrl, {
-      next: { revalidate: 3600 },
-    });
+    const response = await serverFetch("/api/website/nav", { timeout: 5000 });
 
     if (!response.ok) {
       throw new Error("Failed to fetch navigation data");

@@ -1,6 +1,7 @@
 import SimpleLoading from "@/components/comman/SimpleLoading";
 import { cacheLife, cacheTag } from "next/cache";
 import { TAG_SEARCH } from "@/lib/revalidation-tags";
+import { serverFetch } from "@/lib/server-fetch";
 import { Suspense } from "react";
 import Search from "./Search";
 
@@ -10,7 +11,7 @@ async function getProducts(q: string) {
   cacheTag(TAG_SEARCH);
 
   try {
-    const response = await fetch(`/api/website/product/get-by-search?search=${q}`);
+    const response = await serverFetch(`/api/website/product/get-by-search?search=${q}`, { timeout: 5000 });
     const data = await response.json();
     if (!response.ok || !data._status) return null;
     return data._data;

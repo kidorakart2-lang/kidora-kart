@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { toast } from "sonner";
 import { logout } from "./auth";
 
 export interface CartSliceItem {
@@ -53,10 +52,6 @@ export const cartSlice = createSlice({
       );
 
       if (existingItem) {
-        if (existingItem.quantity + quantity > 10) {
-          toast.error("Maximum quantity limit of 10 reached");
-          return;
-        }
         existingItem.quantity += quantity;
       } else {
         // Construct a clean object — do NOT spread action.payload so no
@@ -97,10 +92,6 @@ export const cartSlice = createSlice({
       );
 
       if (item) {
-        if (quantity > 10) {
-          toast.error("Maximum quantity limit is 10");
-          return;
-        }
         if (quantity < 1) {
           state.cartItems = state.cartItems.filter(
             (i) =>

@@ -5,6 +5,7 @@ import { siteConfig } from "@/lib/utils";
 import { cacheLife, cacheTag } from "next/cache";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getHomeSections, type HomeSection } from "@/lib/home-data";
+import { serverFetch } from "@/lib/server-fetch";
 import {
   TAG_PRODUCTS,
   TAG_HOMEPAGE,
@@ -147,7 +148,7 @@ async function GetTestimonials() {
   cacheTag(TAG_TESTIMONIALS, TAG_HOMEPAGE);
 
   try {
-    const response = await fetch("/api/website/testimonial");
+    const response = await serverFetch("/api/website/testimonial", { timeout: 5000 });
     const data = await response.json();
     return data._data;
   } catch {
@@ -161,7 +162,7 @@ async function getTabsData() {
   cacheTag(TAG_TABS, TAG_PRODUCTS);
 
   try {
-    const response = await fetch("/api/website/product/tab-products");
+    const response = await serverFetch("/api/website/product/tab-products", { timeout: 5000 });
     if (!response.ok) return [];
     const data = await response.json();
     return data._data;
@@ -176,7 +177,7 @@ async function getNewArrivals() {
   cacheTag(TAG_PRODUCTS, TAG_HOMEPAGE);
 
   try {
-    const response = await fetch("/api/website/product/new-arrivals");
+    const response = await serverFetch("/api/website/product/new-arrivals", { timeout: 5000 });
     const data = await response.json();
     return data._data;
   } catch {
@@ -190,7 +191,7 @@ async function getBestSellers() {
   cacheTag(TAG_BEST_SELLERS, TAG_PRODUCTS);
 
   try {
-    const response = await fetch("/api/website/product/best-sellers");
+    const response = await serverFetch("/api/website/product/best-sellers", { timeout: 5000 });
     const data = await response.json();
     return data._data;
   } catch {
@@ -204,7 +205,7 @@ async function getTrendingProducts() {
   cacheTag(TAG_PRODUCTS, TAG_HOMEPAGE);
 
   try {
-    const response = await fetch("/api/website/product/trending-products");
+    const response = await serverFetch("/api/website/product/trending-products", { timeout: 5000 });
     const data = await response.json();
     return data._data;
   } catch {

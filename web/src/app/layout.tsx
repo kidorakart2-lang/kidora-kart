@@ -9,9 +9,8 @@ import { Toaster } from "sonner";
 import MainLayout from "@/components/comman/MainLayout";
 import { Suspense } from "react";
 import { siteConfig, defaultMetadata, getStructuredAddress } from "@/lib/utils";
-import { cacheLife, cacheTag } from "next/cache";
 import { getLogo } from "@/lib/logo";
-import { TAG_NAVIGATION, TAG_FEATURED_PRODUCTS } from "@/lib/revalidation-tags";
+import { serverFetch } from "@/lib/server-fetch";
 import ScrollToTop from "@/components/ui/scroll-to-top";
 import RequirementModal from "@/components/comman/RequirementModal";
 import LoginModal from "@/components/comman/LoginModal";
@@ -143,23 +142,11 @@ function WebsiteSchema() {
 }
 
 async function getNavigation() {
-  "use cache";
-  cacheLife("navigation");
-  cacheTag(TAG_NAVIGATION);
-
   try {
-    const response = await fetch("/api/website/nav");
-
-    if (!response.ok) {
-      return null;
-    }
-
+    const response = await serverFetch("/api/website/nav", { timeout: 5000 });
+    if (!response.ok) return null;
     const data = await response.json();
-
-    if (!data?._status) {
-      return null;
-    }
-
+    if (!data?._status) return null;
     return data;
   } catch {
     return null;
@@ -167,34 +154,23 @@ async function getNavigation() {
 }
 
 async function getFeaturedProducts() {
-  "use cache";
-  cacheLife("products");
-  cacheTag(TAG_FEATURED_PRODUCTS);
-
   try {
-    const response = await fetch("/api/website/product/featured-for-footer");
-
-    if (!response.ok) {
-      return null;
-    }
-
+    const response = await serverFetch("/api/website/product/featured-for-footer", { timeout: 5000 });
+    if (!response.ok) return null;
     const data = await response.json();
-
-    if (!data?._status) {
-      return null;
-    }
-
+    if (!data?._status) return null;
     return data._data ?? [];
   } catch {
     return null;
   }
 }
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+// ── Data-fetching layout content ──
+// Extracted into a separate async component so it can be wrapped in
+// <Suspense>. Without this, the Promise.all blocks the entire page
+// from rendering (Next.js 16 PPR => "blocking-route" error).
+
+async function LayoutContent({ children }: { children: React.ReactNode }) {
   const [navigation, featuredProducts, logoData] = await Promise.all([
     getNavigation(),
     getFeaturedProducts(),
@@ -202,11 +178,34 @@ export default async function RootLayout({
   ]);
 
   return (
+    <MainLayout
+      navigationData={navigation}
+      featuredProducts={featuredProducts ?? []}
+      logoData={logoData}
+    >
+      {children}
+    </MainLayout>
+  );
+}
+
+// ── Static shell fallback ──
+// Rendered immediately while LayoutContent streams in.
+// Shows children without the data-dependent header/footer.
+
+function LayoutFallback({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
+
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
     <html lang="en">
       <head>
         <OrganizationSchema />
         <WebsiteSchema />
-        {/* Preconnect/dns-prefetch to API URL no longer needed — rewrites keep API calls same-origin */}
         <link rel="canonical" href={siteConfig.url} />
         <meta
           name="google-site-verification"
@@ -217,27 +216,30 @@ export default async function RootLayout({
         <meta name="geo.position" content={`${siteConfig.address.geo.lat};${siteConfig.address.geo.lng}`} />
         <meta name="ICBM" content={`${siteConfig.address.geo.lat}, ${siteConfig.address.geo.lng}`} />
         <link rel="icon" href="/logo.ico" />
-        {/* Static SSR fallback — overridden at runtime by ThemeColorMeta */}
         <meta name="theme-color" content={siteConfig.themeColor} />
         <meta name="msapplication-TileColor" content={siteConfig.themeColor} />
       </head>
       <body
-        className={`pt-0 !mr-0 bg-background    antialiased flex flex-col ${lato.variable} pb-12 md:pb-0`}
+        className={`pt-0 !mr-0 bg-background antialiased flex flex-col ${lato.variable} pb-12 md:pb-0`}
       >
         <ThemeColorMeta />
-        <Suspense>
+        <Suspense fallback={
+          <div className="flex items-center justify-center min-h-screen bg-background">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-foreground" />
+          </div>
+        }>
         <Client>
           <MotionProvider>
-          <MainLayout navigationData={navigation} featuredProducts={featuredProducts ?? []} logoData={logoData}>
-            {children}
-          </MainLayout>
-          <ScrollToTop />
-          <Toaster richColors closeButton position="top-right" />
-          <LoginModal />
-          <RequirementModal />
-          <PhoneNumberModal />
-          <CookieConsent />
-          <DevThemeToggle />
+            <Suspense fallback={<LayoutFallback>{children}</LayoutFallback>}>
+              <LayoutContent>{children}</LayoutContent>
+            </Suspense>
+            <ScrollToTop />
+            <Toaster richColors closeButton position="top-right" />
+            <LoginModal />
+            <RequirementModal />
+            <PhoneNumberModal />
+            <CookieConsent />
+            <DevThemeToggle />
           </MotionProvider>
         </Client>
         </Suspense>

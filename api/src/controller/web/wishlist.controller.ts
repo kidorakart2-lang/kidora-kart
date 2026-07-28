@@ -14,6 +14,7 @@ interface PopulatedWishlistProduct {
   image?: string;
   images: string[];
   slug: string;
+  stock?: number;
 }
 
 interface PopulatedWishlist {
@@ -40,6 +41,7 @@ export const getWishlist = asyncHandler(
       discount_price: product.discount_price,
       image: product.image ?? null,
       slug: product.slug,
+      stock: product.stock ?? 0,
     }));
 
     return success(res, items, "Wishlist retrieved successfully");

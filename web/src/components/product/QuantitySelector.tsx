@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import { Minus, Plus } from "lucide-react";
 
 interface QuantitySelectorProps {
   quantity: number;
@@ -17,46 +18,64 @@ export default function QuantitySelector({
 }: QuantitySelectorProps) {
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.8 }}
-      className="mb-7"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.75, duration: 0.4 }}
+      className="mb-8"
     >
-      <h3 className="text-base uppercase tracking-widest text-foreground mb-5 font-[350]">
-        Quantity
-      </h3>
-      <div className="inline-flex items-center border border-border rounded-full overflow-hidden">
-        <motion.button
-          type="button"
-          onClick={onDecrement}
-          disabled={quantity <= 1}
-          whileHover={{
-            backgroundColor:
-              "color-mix(in srgb, var(--brand-500) 5%, transparent)",
-          }}
-          whileTap={{ scale: 0.95 }}
-          className="w-10 h-10 flex items-center justify-center text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          aria-label="Decrease quantity"
+      <div className="flex items-center gap-2 mb-3.5">
+        <div className="w-1 h-4 rounded-full bg-brand-500" />
+        <h3 className="text-sm uppercase tracking-[0.2em] text-muted-foreground fw-heading">
+          Quantity
+        </h3>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div
+          className="inline-flex items-center rounded-xl border-2 border-border bg-background
+                     shadow-sm overflow-hidden"
         >
-          −
-        </motion.button>
-        <div className="w-12 h-10 flex items-center justify-center text-foreground font-light border-x border-border">
-          {quantity}
+          <motion.button
+            type="button"
+            onClick={onDecrement}
+            disabled={quantity <= 1}
+            whileTap={{ scale: 0.92 }}
+            className="w-11 h-11 flex items-center justify-center text-muted-foreground
+                     hover:bg-muted transition-colors duration-200
+                     disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            aria-label="Decrease quantity"
+          >
+            <Minus size={15} strokeWidth={2.5} />
+          </motion.button>
+
+          <div className="w-14 h-11 flex items-center justify-center border-x-2 border-border bg-muted/30">
+            <motion.span
+              key={quantity}
+              initial={{ y: -6, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="text-base fw-heading text-foreground tabular-nums"
+            >
+              {quantity}
+            </motion.span>
+          </div>
+
+          <motion.button
+            type="button"
+            onClick={onIncrement}
+            disabled={quantity >= stock}
+            whileTap={{ scale: 0.92 }}
+            className="w-11 h-11 flex items-center justify-center text-muted-foreground
+                     hover:bg-muted transition-colors duration-200
+                     disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            aria-label="Increase quantity"
+          >
+            <Plus size={15} strokeWidth={2.5} />
+          </motion.button>
         </div>
-        <motion.button
-          type="button"
-          onClick={onIncrement}
-          disabled={quantity >= stock}
-          whileHover={{
-            backgroundColor:
-              "color-mix(in srgb, var(--brand-500) 5%, transparent)",
-          }}
-          whileTap={{ scale: 0.95 }}
-          className="w-10 h-10 flex items-center justify-center text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          aria-label="Increase quantity"
-        >
-          +
-        </motion.button>
+
+        <span className="text-xs text-muted-foreground fw-body">
+          {stock} available
+        </span>
       </div>
     </motion.div>
   );

@@ -94,7 +94,7 @@ export default function GuestWishlist() {
         </motion.div>
 
         {/* Wishlist Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
           <AnimatePresence mode="popLayout">
             {items.map((item, index) => (
               <motion.article
@@ -112,26 +112,24 @@ export default function GuestWishlist() {
                   delay: index * 0.05,
                   layout: { duration: 0.3 },
                 }}
-                className="group relative bg-background rounded-2xl overflow-hidden shadow-md 
-                         hover:shadow-xl transition-all duration-300 border border-border"
+                className="group relative bg-background rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300"
               >
                 {/* Remove Button */}
                 <motion.button
                   onClick={() => handleRemoveFromWishlist(item)}
-                  className="absolute top-3 right-3 z-20 w-10 h-10 bg-background/90 backdrop-blur-sm 
-                           rounded-full shadow-lg border border-border flex items-center 
-                           justify-center hover:bg-destructive hover:text-destructive-foreground
-                           transition-all duration-300"
+                  className="absolute top-2 right-2 z-20 w-7 h-7 bg-background/90 backdrop-blur-sm 
+                           rounded-full border border-border flex items-center justify-center
+                           hover:bg-destructive hover:text-destructive-foreground transition-all duration-300"
                   whileHover={{ rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   aria-label="Remove from wishlist"
                 >
-                  <X className="w-5 h-5 text-muted-foreground transition-colors" />
+                  <X className="w-3 h-3" strokeWidth={2} />
                 </motion.button>
 
                 {/* Image Container */}
                 <div
-                  className="relative h-72 sm:h-80 bg-muted/30 overflow-hidden cursor-pointer"
+                  className="relative aspect-[1/1] bg-muted/30 overflow-hidden cursor-pointer"
                   onClick={() => router.push(`/product-details/${item.slug}`)}
                 >
                   <motion.div
@@ -144,48 +142,36 @@ export default function GuestWishlist() {
                       alt={item.name}
                       fill
                       className="object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                     />
                   </motion.div>
                 </div>
 
                 {/* Product Details */}
-                <div className="p-5">
+                <div className="p-3">
                   <h3
-                    className="text-base font-medium text-foreground mb-3 line-clamp-2 
-                             transition-colors cursor-pointer leading-tight min-h-[3rem]"
+                    className="text-sm font-medium text-foreground mb-2 line-clamp-2 cursor-pointer leading-snug min-h-[2.5rem]"
                     onClick={() => router.push(`/product-details/${item.slug}`)}
                   >
                     {item.name}
                   </h3>
 
                   {/* Pricing */}
-                  <div className="space-y-2">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg font-semibold text-foreground">
-                        ₹{(item.discount_price || item.price || 0).toFixed(2)}
-                      </span>
-                      {item.price &&
-                        item.discount_price &&
-                        item.price > item.discount_price && (
-                          <span className="text-sm text-muted-foreground line-through">
-                            ₹{item.price.toFixed(2)}
-                          </span>
-                        )}
-                    </div>
-
+                  <div className="flex items-baseline gap-1.5 flex-wrap">
+                    <span className="text-base font-semibold text-foreground">
+                      ₹{(item.discount_price || item.price || 0).toLocaleString()}
+                    </span>
                     {item.price &&
                       item.discount_price &&
                       item.price > item.discount_price && (
-                        <div
-                          className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 
-                                    text-xs font-semibold px-2 py-1 rounded-md"
-                        >
-                          {Math.round(
-                            (1 - item.discount_price / item.price) * 100
-                          )}
-                          % OFF
-                        </div>
+                        <>
+                          <span className="text-xs text-muted-foreground line-through">
+                            ₹{item.price.toLocaleString()}
+                          </span>
+                          <span className="text-[10px] bg-emerald-100 text-emerald-700 font-semibold px-1 py-0.5 rounded">
+                            {Math.round((1 - item.discount_price / item.price) * 100)}%
+                          </span>
+                        </>
                       )}
                   </div>
                 </div>

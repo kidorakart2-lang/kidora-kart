@@ -10,7 +10,7 @@ const SearchPanel = forwardRef<HTMLDivElement, SearchPanelProps>(
   ({ isOpen }, ref) => (
     <div
       ref={ref}
-      className={`w-full border-t border-border bg-background overflow-hidden transition-all duration-500 ${
+      className={`w-full border-t border-border bg-background transition-all duration-500 ${
         isOpen
           ? "max-h-24 opacity-100"
           : "max-h-0 opacity-0 border-t-0"

@@ -1,3 +1,5 @@
+import { serverFetch } from "@/lib/server-fetch";
+
 export interface FetchedProduct {
   _id: string;
   name: string;
@@ -9,17 +11,20 @@ export interface FetchedProduct {
   isPersonalized?: boolean;
   colors?: { _id: string; name: string; code?: string }[];
   giftImages?: string[];
-
 }
 
 /**
  * Fetch full product details by slug.
  */
 export async function fetchProductBySlug(slug: string): Promise<FetchedProduct | null> {
-  const res = await fetch(`/api/website/product/details/${slug}`);
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json._status && json._data ? (json._data as FetchedProduct) : null;
+  try {
+    const res = await serverFetch(`/api/website/product/details/${slug}`, { timeout: 8000 });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json._status && json._data ? (json._data as FetchedProduct) : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -27,24 +32,34 @@ export async function fetchProductBySlug(slug: string): Promise<FetchedProduct |
  */
 export async function fetchProductsByIds(ids: string[]): Promise<FetchedProduct[]> {
   if (ids.length === 0) return [];
-  const res = await fetch(`/api/website/product/batch`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ids }),
-  });
-  if (!res.ok) return [];
-  const json = await res.json();
-  return json._status && Array.isArray(json._data) ? (json._data as FetchedProduct[]) : [];
+  try {
+    const res = await serverFetch(`/api/website/product/batch`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+      timeout: 8000,
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json._status && Array.isArray(json._data) ? (json._data as FetchedProduct[]) : [];
+  } catch {
+    return [];
+  }
 }
 
 /**
  * Fetch the server-side cart view. Returns full items with embedded product data.
  */
 export async function fetchServerCart(token: string) {
-  const res = await fetch(`/api/website/cart/view`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json._status && json._data ? json._data : null;
+  try {
+    const res = await serverFetch(`/api/website/cart/view`, {
+      headers: { Authorization: `Bearer ${token}` },
+      timeout: 8000,
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json._status && json._data ? json._data : null;
+  } catch {
+    return null;
+  }
 }

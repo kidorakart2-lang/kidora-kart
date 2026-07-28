@@ -62,6 +62,11 @@ const rawJsonParser = raw({ type: "application/json" });
 
 const app = express();
 
+// Trust the X-Forwarded-For header set by the Next.js rewrite proxy.
+// Without this, express-rate-limit sees the proxy's IP (127.0.0.1) for every
+// request and cannot accurately identify users, triggering a validation warning.
+app.set("trust proxy", 1);
+
 app.use(
   helmet({
     // Disable browser-only protections — not relevant for a JSON API

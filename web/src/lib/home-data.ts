@@ -14,6 +14,7 @@ import {
   TAG_HOMEPAGE,
   TAG_TESTIMONIALS,
 } from "@/lib/revalidation-tags";
+import { serverFetch } from "@/lib/server-fetch";
 import type { BannerItem } from "@/types";
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -33,9 +34,7 @@ export async function getHomeSections(): Promise<HomeSection[]> {
   cacheTag(TAG_HOMEPAGE);
 
   try {
-    const res = await fetch(
-      "/api/website/home-page",
-    );
+    const res = await serverFetch("/api/website/home-page", { timeout: 5000 });
     const data = await res.json();
     return (data._data?.sections ?? []) as HomeSection[];
   } catch {
@@ -51,9 +50,7 @@ export async function getWebsiteBanners(): Promise<BannerItem[]> {
   cacheTag(TAG_HOMEPAGE);
 
   try {
-    const res = await fetch(
-      "/api/website/banner",
-    );
+    const res = await serverFetch("/api/website/banner", { timeout: 5000 });
     const data = await res.json();
     return (data._data as BannerItem[]) ?? [];
   } catch {
@@ -72,7 +69,7 @@ export async function fetchProducts(
   cacheTag(TAG_PRODUCTS);
 
   try {
-    const res = await fetch(`/api/website/product/${source}?limit=${limit}`);
+    const res = await serverFetch(`/api/website/product/${source}?limit=${limit}`, { timeout: 5000 });
     if (!res.ok) return [];
     const data = await res.json();
     return data._data ?? [];
@@ -89,7 +86,10 @@ export async function fetchProductsBySearch(
   cacheTag(TAG_PRODUCTS);
 
   try {
-    const res = await fetch(`/api/website/product/get-by-search?search=${encodeURIComponent(term)}&limit=8`);
+    const res = await serverFetch(
+      `/api/website/product/get-by-search?search=${encodeURIComponent(term)}&limit=8`,
+      { timeout: 5000 },
+    );
     if (!res.ok) return [];
     const data = await res.json();
     return data._data ?? [];
@@ -106,9 +106,7 @@ export async function fetchTestimonials(): Promise<any> {
   cacheTag(TAG_TESTIMONIALS, TAG_HOMEPAGE);
 
   try {
-    const res = await fetch(
-      "/api/website/testimonial",
-    );
+    const res = await serverFetch("/api/website/testimonial", { timeout: 5000 });
     const data = await res.json();
     return data._data;
   } catch {

@@ -2,6 +2,9 @@ import { siteConfig, defaultMetadata } from "@/lib/utils";
 import { notFound, redirect } from "next/navigation";
 import { cacheLife, cacheTag } from "next/cache";
 import { productTag, TAG_PRODUCTS } from "@/lib/revalidation-tags";
+import { serverFetch } from "@/lib/server-fetch";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { ProductData } from "@/types";
 import ProductDetailsPage from "./ProductDetail";
 
@@ -13,12 +16,10 @@ interface ProductDetailsPageProps {
 // IT ISNT SUPPORTED WITH nextConfig.cacheComponents setting do not USE IT 
 // export const revalidate = 1800;
 
-// ── Generate static params for all product pages at build time ──────
-// Fetches all product slugs so PPR can prerender a static shell for each.
-
+// ── Static params — fetches real products at build time, falls back to placeholder ──
 export async function generateStaticParams() {
   try {
-    const res = await fetch("/api/website/product/all");
+    const res = await serverFetch("/api/website/product/all", { timeout: 5000 });
     if (!res.ok) return [{ slug: "placeholder" }];
     const data = await res.json();
     const products = data._data as { slug: string }[];
@@ -250,24 +251,41 @@ async function getProducts(slug: string) {
   cacheLife("products");
   cacheTag(productTag(slug), TAG_PRODUCTS);
 
-  const response = await fetch(`/api/website/product/details/${slug}`);
-
-  if (!response.ok) {
+  try {
+    const response = await serverFetch(`/api/website/product/details/${slug}`, { timeout: 5000 });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data?._status ? (data._data as ProductData) : null;
+  } catch {
     return null;
   }
-
-  const data = await response.json();
-  return data?._status ? (data._data as ProductData) : null;
 }
 
-export default async function Page({ params }: ProductDetailsPageProps) {
-  const allParams = await params;
-  const { slug } = allParams;
+// ── Product detail skeleton ─────────────────────────────────────────
+function ProductDetailSkeleton() {
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div className="space-y-4">
+          <Skeleton className="w-full aspect-square rounded-2xl" />
+          <div className="flex gap-3">
+            {[1,2,3].map(i => <Skeleton key={i} className="w-20 h-20 rounded-xl" />)}
+          </div>
+        </div>
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-3/4" />
+          <Skeleton className="h-8 w-1/3" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-12 w-full rounded-xl" />
+          <Skeleton className="h-12 w-full rounded-xl" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  if (slug === "placeholder") {
-    redirect("/");
-  }
-
+// ── Product content fetcher — wrapped in Suspense ────────────────────
+async function ProductContent({ slug }: { slug: string }) {
   const product = await getProducts(slug);
 
   if (!product) {
@@ -287,5 +305,20 @@ export default async function Page({ params }: ProductDetailsPageProps) {
       />
       <ProductDetailsPage details={product} />
     </>
+  );
+}
+
+export default async function Page({ params }: ProductDetailsPageProps) {
+  const allParams = await params;
+  const { slug } = allParams;
+
+  if (slug === "placeholder") {
+    redirect("/");
+  }
+
+  return (
+    <Suspense fallback={<ProductDetailSkeleton />}>
+      <ProductContent slug={slug} />
+    </Suspense>
   );
 }

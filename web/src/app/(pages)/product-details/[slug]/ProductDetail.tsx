@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
-import { Star } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Star, Package, Truck, Shield, RotateCcw, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 
@@ -28,6 +28,13 @@ import ProductNotFound from "@/components/product/ProductNotFound";
 
 import type { ProductData } from "@/types";
 
+const TRUST_BADGES = [
+  { icon: Shield, label: "Secure Payment" },
+  { icon: Truck, label: "Free Shipping" },
+  { icon: RotateCcw, label: "Easy Returns" },
+  { icon: Package, label: "Gift Wrapping" },
+];
+
 interface ProductDetailsPageProps {
   details: ProductData;
 }
@@ -39,8 +46,8 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const [selectedColor, setSelectedColor] = useState(
-    details?.colors?.[0]?._id || ""
+  const [selectedColor, setSelectedColor] = useState<string | null>(
+    details?.colors?.[0]?._id || null
   );
   const [showVideo, setShowVideo] = useState(false);
   const isMobile = useIsMobile();
@@ -61,94 +68,61 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
 
   const handleWishlist = async () => {
     const isLoggedIn = !!getAuthToken();
-
     setWishlistLoading(true);
 
     if (isWishlisted) {
       if (isLoggedIn) {
         try {
-          const response = await fetch(
-            "/api/website/wishlist/remove/" +
-              product?._id,
-            {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${getAuthToken()}`,
-              },
-              body: JSON.stringify({
-                productId: product?._id,
-              }),
-            }
-          );
+          const response = await fetch("/api/website/wishlist/remove/" + product?._id, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${getAuthToken()}`,
+            },
+            body: JSON.stringify({ productId: product?._id }),
+          });
           const responseData = await response.json();
           if (response.ok || responseData._status) {
-            dispatch(
-              removeFromWishlist({
-                _id: product?._id,
-              })
-            );
+            dispatch(removeFromWishlist({ _id: product?._id }));
             toast.success(responseData._message);
           } else {
             toast.error(responseData._message);
           }
         } catch (error) {
-          const msg = error instanceof Error ? error.message : "Something went wrong";
-          toast.error(msg);
+          toast.error(error instanceof Error ? error.message : "Something went wrong");
         } finally {
           setWishlistLoading(false);
         }
       } else {
-        dispatch(
-          removeFromWishlist({
-            _id: product?._id,
-            isGuest: true,
-          })
-        );
+        dispatch(removeFromWishlist({ _id: product?._id, isGuest: true }));
         toast.success("Removed from wishlist");
         setWishlistLoading(false);
       }
     } else {
       if (isLoggedIn) {
         try {
-          const response = await fetch("/api/website/wishlist/add",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${getAuthToken()}`,
-              },
-              body: JSON.stringify({
-                productId: product?._id,
-              }),
-            }
-          );
+          const response = await fetch("/api/website/wishlist/add", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${getAuthToken()}`,
+            },
+            body: JSON.stringify({ productId: product?._id }),
+          });
           const responseData = await response.json();
           if (response.ok || responseData._status) {
-            dispatch(
-              addToWishlist({
-                _id: product?._id,
-                slug: product?.slug,
-              })
-            );
+            dispatch(addToWishlist({ _id: product?._id, slug: product?.slug }));
             toast.success(responseData._message);
           } else {
             toast.error(responseData._message);
           }
         } catch (error) {
-          const msg = error instanceof Error ? error.message : "Something went wrong";
-          toast.error(msg);
+          toast.error(error instanceof Error ? error.message : "Something went wrong");
         } finally {
           setWishlistLoading(false);
         }
       } else {
-        dispatch(
-          addToWishlist({
-            _id: product?._id,
-            slug: product?.slug,
-            isGuest: true,
-          })
-        );
+        dispatch(addToWishlist({ _id: product?._id, slug: product?.slug, isGuest: true }));
         toast.success("Added to wishlist");
         setWishlistLoading(false);
       }
@@ -160,84 +134,65 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
   const handleDecrement = () => setQuantity((prev) => Math.max(1, prev - 1));
 
   const handleBuyNow = async () => {
-    const buyNowItem = {
+    const buyNowItem: Record<string, unknown> = {
       productId: product._id,
       slug: product.slug,
       quantity: quantity,
-      colorId: selectedColor,
     };
+    if (selectedColor) {
+      buyNowItem.colorId = selectedColor;
+    }
     dispatch(setBuyNowItem(buyNowItem));
     router.push("/checkout?type=direct");
   };
 
   const renderStars = (rating: number) =>
     Array.from({ length: 5 }).map((_, i) => (
-      <motion.div
+      <Star
         key={i}
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: i * 0.1 }}
-      >
-        <Star
-          size={16}
-          className={
-            i < Math.floor(rating || 4)
-              ? "fill-brand-400 text-brand-400"
-              : "text-muted-foreground"
-          }
-        />
-      </motion.div>
+        size={15}
+        className={
+          i < Math.floor(rating || 4)
+            ? "fill-amber-400 text-amber-400"
+            : "fill-muted text-muted"
+        }
+        strokeWidth={1.5}
+      />
     ));
 
-  const allImages: string[] =
-    (product.images?.length ?? 0) > 0
-      ? [product.image, ...(product.images ?? [])].flatMap((img) => img ?? [])
-      : [product.image].flatMap((img) => img ?? []);
+  const allImages: string[] = useMemo(
+    () =>
+      (product.images?.length ?? 0) > 0
+        ? [product.image, ...(product.images ?? [])].flatMap((img) => img ?? [])
+        : [product.image].flatMap((img) => img ?? []),
+    [product]
+  );
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 },
-    },
-  };
-
-  const cartObj = {
+  const cartObj: Record<string, unknown> = {
     productId: product._id,
     slug: product.slug,
     quantity: quantity,
-    colorId: selectedColor,
   };
+  // Only include colorId if a color is actually selected
+  if (selectedColor) {
+    cartObj.colorId = selectedColor;
+  }
 
   const handleAddToCart = async (e: React.FormEvent) => {
     e.preventDefault();
     const isLoggedIn = !!getAuthToken();
-
     setLoading(true);
 
     if (isLoggedIn) {
       try {
-        const response = await fetch("/api/website/cart/add",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${getAuthToken()}`,
-            },
-            body: JSON.stringify(cartObj),
-          }
-        );
+        const response = await fetch("/api/website/cart/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
+          body: JSON.stringify(cartObj),
+        });
         const responseData = await response.json();
         if (response.ok || responseData._status) {
           dispatch(addToCart(cartObj));
@@ -246,8 +201,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
           toast.error(responseData._message);
         }
       } catch (error) {
-        const msg = error instanceof Error ? error.message : "Something went wrong";
-        toast.error(msg);
+        toast.error(error instanceof Error ? error.message : "Something went wrong");
       } finally {
         setLoading(false);
       }
@@ -258,91 +212,118 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
     }
   };
 
+  const discountPercentage =
+    product.price && product.discount_price
+      ? Math.round(((product.price - product.discount_price) / product.price) * 100)
+      : 0;
+
   return (
-    <main className="py-8 sm:py-12 ">
-      <motion.div
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
-          <motion.div variants={itemVariants} className="space-y-4">
-            <div className="relative">
-              <ImageSlider
-                images={allImages}
-                productName={product.name}
-                isNewArrival={product.isNewArrival ?? false}
-                isMobile={isMobile}
-                videoUrl={product.videoUrl}
-                showVideo={showVideo}
-                onShowVideo={() => setShowVideo((prev) => !prev)}
-              />
-            </div>
+    <main className="bg-gradient-to-b from-background via-background to-muted/30">
+      {/* ── Breadcrumb area ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <Breadcrumb
+          items={[
+            {
+              label: product.category?.[0]?.name || "Toys",
+              href: `/category/${product.category?.[0]?.slug || ""}`,
+            },
+            ...(product.subCategory?.[0]?.name
+              ? [
+                  {
+                    label: product.subCategory[0].name,
+                    href: `/category/${product.category?.[0]?.slug || ""}/${product.subCategory[0].slug}`,
+                  },
+                ]
+              : []),
+          ]}
+        />
+      </div>
+
+      {/* ── Product hero section ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14">
+          {/* ── Left: Images ── */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <ImageSlider
+              images={allImages}
+              productName={product.name}
+              isNewArrival={product.isNewArrival ?? false}
+              isMobile={isMobile}
+              videoUrl={product.videoUrl}
+              showVideo={showVideo}
+              onShowVideo={() => setShowVideo((prev) => !prev)}
+            />
           </motion.div>
 
-          <div className="flex flex-col p-2">
-            <Breadcrumb
-              items={[
-                {
-                  label: product.category?.[0]?.name || "Toys",
-                  href: `/category/${product.category?.[0]?.slug || ""}`,
-                },
-                ...(product.subCategory?.[0]?.name
-                  ? [
-                      {
-                        label: product.subCategory[0].name,
-                        href: `/category/${product.category?.[0]?.slug || ""}/${
-                          product.subCategory[0].slug
-                        }`,
-                      },
-                    ]
-                  : []),
-              ]}
-            />
+          {/* ── Right: Product Info (sticky on desktop) ── */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="flex flex-col lg:sticky lg:top-28 lg:self-start"
+          >
+            {/* Category tag */}
+            {product.category?.[0]?.name && (
+              <span className="inline-flex self-start items-center gap-1 px-3 py-1 rounded-full text-[11px] fw-cta uppercase tracking-wider bg-brand-100 text-brand-800 mb-3">
+                <Sparkles size={12} />
+                {product.category[0].name}
+              </span>
+            )}
 
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-4xl lg:text-5xl font-[350] text-foreground mb-6 leading-tight tracking-tight"
-            >
+            {/* Title */}
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl fw-heading text-foreground leading-tight tracking-tight mb-4">
               {product.name}
-            </motion.h1>
+            </h1>
 
+            {/* Rating row */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="flex items-center gap-4 mb-8"
+              transition={{ delay: 0.2 }}
+              className="flex items-center gap-3 mb-5"
             >
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
                 {renderStars(product.rating ?? 0)}
               </div>
-              <div className="h-4 w-px bg-muted-foreground" />
-              <span className="text-sm text-muted-foreground font-[350]">
-                {product.reviewCount} Reviews
+              <span className="text-sm text-muted-foreground fw-body">
+                {product.reviewCount || 0} reviews
               </span>
             </motion.div>
 
+            {/* Price */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="mb-10"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="mb-6"
             >
-              <div className="flex items-baseline gap-4 mb-1">
+              <div className="flex items-baseline gap-4">
                 {product.discount_price ? (
                   <>
-                    <span className="text-5xl font-[350] text-foreground tracking-tight">
+                    <span
+                      className="text-4xl sm:text-5xl fw-heading tracking-tight"
+                      style={{
+                        background: "linear-gradient(135deg, var(--brand-price-1-from), var(--brand-price-1-via), var(--brand-price-1-to))",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}
+                    >
                       ₹{product.discount_price.toLocaleString()}
                     </span>
-                    <span className="text-muted-foreground text-2xl line-through font-light">
+                    <span className="text-xl sm:text-2xl text-muted-foreground line-through fw-body">
                       ₹{product.price.toLocaleString()}
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs fw-cta bg-brand-accent-500/10 text-brand-accent-600 border border-brand-accent-200">
+                      {discountPercentage}% OFF
                     </span>
                   </>
                 ) : (
-                  <span className="text-5xl font-light text-foreground">
+                  <span className="text-4xl sm:text-5xl fw-heading text-foreground tracking-tight">
                     ₹{product.price?.toLocaleString() || "N/A"}
                   </span>
                 )}
@@ -352,25 +333,29 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             {/* Short Description */}
             {(product.shortDescription || product.short_description) && (
               <motion.p
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.45 }}
-                className="text-base text-muted-foreground font-[350] leading-relaxed mb-6"
+                transition={{ delay: 0.3 }}
+                className="text-base text-muted-foreground fw-body leading-relaxed mb-7"
               >
                 {product.shortDescription || product.short_description}
               </motion.p>
             )}
 
-            <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mb-5" />
+            {/* Divider */}
+            <div className="h-px bg-gradient-to-r from-border via-border/50 to-transparent mb-6" />
 
+            {/* Specifications */}
             <ProductSpecifications product={product} />
 
+            {/* Color Picker */}
             <ColorPicker
               colors={(product.colors ?? []) as ColorItem[]}
               selectedColor={selectedColor}
               onSelect={setSelectedColor}
             />
 
+            {/* Quantity */}
             <QuantitySelector
               quantity={quantity}
               stock={product.stock || 10}
@@ -378,6 +363,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               onDecrement={handleDecrement}
             />
 
+            {/* Action Buttons */}
             <ActionButtons
               loading={loading}
               wishlistLoading={wishlistLoading}
@@ -388,146 +374,137 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               onBuyNow={handleBuyNow}
             />
 
+            {/* Trust Badges */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1 }}
+              className="mt-8 grid grid-cols-4 gap-3"
+            >
+              {TRUST_BADGES.map((badge) => (
+                <div
+                  key={badge.label}
+                  className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-muted/50 border border-border"
+                >
+                  <badge.icon size={16} className="text-brand-600" strokeWidth={1.5} />
+                  <span className="text-[10px] text-muted-foreground fw-body text-center leading-tight">
+                    {badge.label}
+                  </span>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* Estimate delivery */}
             {product.estimated_delivery_time && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-                className="mt-8 flex items-center gap-3 text-base text-muted-foreground font-light"
+                transition={{ delay: 1.1 }}
+                className="mt-4 flex items-center gap-2.5 text-sm text-muted-foreground fw-body bg-muted/50 rounded-xl px-4 py-3 border border-border"
               >
-                <svg className="w-4 h-4 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
-                </svg>
-                <span>
-                  Expected delivery in {product.estimated_delivery_time}
-                </span>
+                <Truck size={15} className="text-brand-600 shrink-0" strokeWidth={1.5} />
+                <span>Expected delivery in <strong className="text-foreground fw-heading">{product.estimated_delivery_time}</strong></span>
               </motion.div>
             )}
-          </div>
+          </motion.div>
         </div>
+      </div>
 
-        {product?.isPersonalized && <Personalized />}
+      {/* ── Personalized section ── */}
+      {product?.isPersonalized && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+          <Personalized />
+        </div>
+      )}
 
+      {/* ── Description ── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-12"
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="bg-background rounded-2xl border border-border p-8 md:p-12 shadow-sm"
         >
-          <div className="bg-background/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-12 border border-white/80 relative overflow-hidden">
-            <motion.div
-              animate={{
-                rotate: [0, 360],
-                scale: [1, 1.05, 1],
-              }}
-              transition={{
-                rotate: { duration: 25, repeat: Infinity, ease: "linear" },
-                scale: { duration: 5, repeat: Infinity, ease: "easeInOut" },
-              }}
-              className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-brand-100/20 to-brand-200/20 rounded-full blur-3xl"
-            />
-
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-4">
-                <motion.div
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                >
-                  <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-                  </svg>
-                </motion.div>
-                <h2 className="text-3xl font-light text-foreground tracking-tight">
-                  Description For The Product
-                </h2>
-              </div>
-
-              <div className="h-px bg-gradient-to-r from-brand-200/50 via-brand-300/50 to-transparent mb-2" />
-
-              <div className="text-foreground leading-loose text-base font-[350] whitespace-pre-line">
-                {product.description}
-              </div>
-            </div>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-1 h-6 rounded-full bg-brand-500" />
+            <h2 className="text-2xl sm:text-3xl fw-heading text-foreground tracking-tight">
+              Description
+            </h2>
+          </div>
+          <div className="h-px bg-gradient-to-r from-brand-200/50 via-brand-300/30 to-transparent mb-6" />
+          <div className="text-foreground leading-relaxed text-base fw-body whitespace-pre-line max-w-4xl">
+            {product.description}
           </div>
         </motion.div>
+      </section>
 
-        {/* Gift Images Gallery */}
-        {product.giftImages && product.giftImages.length > 0 && (
+      {/* ── Gift Images Gallery ── */}
+      {product.giftImages && product.giftImages.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="mb-12"
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="bg-gradient-to-br from-amber-50/80 to-orange-50/80 dark:from-amber-950/20 dark:to-orange-950/20 rounded-2xl border border-amber-200/50 dark:border-amber-800/30 p-8 md:p-12 shadow-sm"
           >
-            <div className="bg-gradient-to-br from-amber-50/80 to-orange-50/80 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-12 border border-amber-100/80 relative overflow-hidden rounded-2xl">
+            <div className="flex items-center gap-3 mb-6">
               <motion.div
-                animate={{
-                  rotate: [0, 360],
-                  scale: [1, 1.05, 1],
-                }}
-                transition={{
-                  rotate: { duration: 25, repeat: Infinity, ease: "linear" },
-                  scale: { duration: 5, repeat: Infinity, ease: "easeInOut" },
-                }}
-                className="absolute -bottom-20 -left-20 w-64 h-64 bg-gradient-to-br from-amber-200/20 to-orange-200/20 rounded-full blur-3xl"
-              />
-
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-6">
-                  <motion.div
-                    animate={{ rotate: [0, 5, -5, 0] }}
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
-                  >
-                    <svg className="w-7 h-7 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h17.25a1.5 1.5 0 001.5-1.5v-1.5a1.5 1.5 0 00-1.5-1.5H3.375a1.5 1.5 0 00-1.5 1.5v1.5a1.5 1.5 0 001.5 1.5z" />
-                    </svg>
-                  </motion.div>
-                  <h2 className="text-3xl font-light text-foreground tracking-tight">
-                    Gift Presentation
-                  </h2>
-                </div>
-
-                <div className="h-px bg-gradient-to-r from-amber-200/50 via-amber-300/50 to-transparent mb-6" />
-
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                  {product.giftImages.map((img, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="relative aspect-square rounded-xl overflow-hidden group cursor-pointer"
-                    >
-                      <img
-                        src={img}
-                        alt={`${product.name} gift presentation ${index + 1}`}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
+                animate={{ rotate: [0, 8, -8, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Package size={24} className="text-amber-600" strokeWidth={1.5} />
+              </motion.div>
+              <h2 className="text-2xl sm:text-3xl fw-heading text-foreground tracking-tight">
+                Gift Presentation
+              </h2>
+            </div>
+            <div className="h-px bg-gradient-to-r from-amber-200/50 via-amber-300/30 to-transparent mb-6" />
+            <p className="text-sm text-muted-foreground fw-body mb-6">
+              Beautifully wrapped gift options for your loved ones
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {product.giftImages.map((img, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.08, duration: 0.4 }}
+                  className="relative aspect-square rounded-xl overflow-hidden group cursor-pointer shadow-md border-2 border-amber-200/50 dark:border-amber-800/30"
+                >
+                  <img
+                    src={img}
+                    alt={`${product.name} gift presentation ${index + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </motion.div>
+              ))}
             </div>
           </motion.div>
-        )}
+        </section>
+      )}
 
+      {/* ── Product FAQs ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
         <ProductFaqSection productId={product._id} />
+      </div>
+
+      {/* ── Related Products ── */}
+      <div className="mb-12">
         <RelatedProducts
           id={product._id}
           subCategory={(product.subCategory ?? []).map((c) => c._id)}
           subSubCategory={(product.subSubCategory ?? []).map((c) => c._id)}
         />
+      </div>
+
+      {/* ── Reviews ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <ProductReviews productId={product._id} />
-      </motion.div>
+      </div>
     </main>
   );
 }

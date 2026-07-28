@@ -376,7 +376,6 @@ export const update = async (
       throw new Error("Product not found");
     }
 
-
     const r2PublicBase = getPublicUrlBase();
 
     const allRemoveUrls = [...removeImagesUrl, ...removeGiftImagesUrl];

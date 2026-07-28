@@ -20,6 +20,7 @@ import CartEmptyState from "@/components/cart/CartEmptyState";
 import CartSkeleton from "@/components/cart/CartSkeleton";
 import OrderSummaryPanel from "@/components/cart/OrderSummaryPanel";
 import LoadingOverlay from "@/components/comman/LoadingOverlay";
+import { motion } from "motion/react";
 
 /* ── Types ──────────────────────────────────────────────────────────── */
 export interface CartApiItem {
@@ -68,11 +69,15 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
   const { productMap, isLoading: guestProductsLoading } = useProductsByIds(guestIds);
 
+  // ponytail: sync Redux state whenever API returns data (even empty cart)
+  // Previously checked `items?.length` which skipped empty carts, leaving stale
+  // Redux state that made `effectiveCart` fall back to computing guest items
+  // from old productIDs — items showed with no image/name/title.
   useEffect(() => {
-    // If server cart data provided via SSR prop, dispatch immediately
-    if (cart?._data?.items?.length) {
+    if (cart?._data) {
+      const items = cart._data.items ?? [];
       dispatch(updateFullCart({
-        items: cart._data.items.map(serverItemToSlice),
+        items: items.map(serverItemToSlice),
         totalPrice: cart._data.totalPrice,
         totalItems: cart._data.totalItems,
       }));
@@ -90,10 +95,11 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data?._data?.items?.length) {
+        if (data?._data) {
+          const items = data._data.items ?? [];
           setFetchedCart(data);
           dispatch(updateFullCart({
-            items: data._data.items.map(serverItemToSlice),
+            items: items.map(serverItemToSlice),
             totalPrice: data._data.totalPrice,
             totalItems: data._data.totalItems,
           }));
@@ -111,7 +117,6 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     if (guestProductsLoading) return null;
 
     const items = reduxCartItems.map((item) => {
-      // Look up fetched product data by _id (from batch response)
       const fetched = item.productId ? productMap.get(item.productId) : undefined;
       const product = fetched ?? {
         _id: item.productId,
@@ -150,9 +155,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     });
 
     const totalPrice = items.reduce(
-      (sum, i) =>
-        sum + (i.product.discount_price || i.product.price) * i.quantity,
-      0
+      (sum, i) => sum + (i.product.discount_price || i.product.price) * i.quantity, 0
     );
 
     return {
@@ -172,31 +175,20 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
     if (isGuestView) {
       const [productId, colorId] = id.split("_");
-      dispatch(
-        updateCartQuantity({
-          productId,
-          quantity: newQuantity,
-          colorId: colorId || null,
-        })
-      );
+      dispatch(updateCartQuantity({ productId, quantity: newQuantity, colorId: colorId || null }));
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch(
-        `/api/website/cart/items/update/${id}`,
-        {
-          body: JSON.stringify({
-            quantity: newQuantity,
-          }),
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-            "Content-Type": "application/json",
-          },
-          method: "put",
-        }
-      );
+      const response = await fetch(`/api/website/cart/items/update/${id}`, {
+        body: JSON.stringify({ quantity: newQuantity }),
+        headers: {
+          Authorization: `Bearer ${getAuthToken()}`,
+          "Content-Type": "application/json",
+        },
+        method: "put",
+      });
       const updatedCart = await response.json();
       if (!response.ok || !updatedCart._status) {
         toast.error(updatedCart._message || "Failed to update cart");
@@ -212,28 +204,20 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
   const removeItem = async (id: string) => {
     if (isGuestView) {
       const [productId, colorId] = id.split("_");
-      dispatch(
-        removeFromCart({
-          productId,
-          colorId: colorId || null,
-        })
-      );
+      dispatch(removeFromCart({ productId, colorId: colorId || null }));
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch(
-        `/api/website/cart/items/remove/${id}`,
-        {
-          body: JSON.stringify({ itemId: id }),
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-            "Content-Type": "application/json",
-          },
-          method: "put",
-        }
-      );
+      const response = await fetch(`/api/website/cart/items/remove/${id}`, {
+        body: JSON.stringify({ itemId: id }),
+        headers: {
+          Authorization: `Bearer ${getAuthToken()}`,
+          "Content-Type": "application/json",
+        },
+        method: "put",
+      });
       const updatedCart = await response.json();
       if (!response.ok || !updatedCart._status) {
         toast.error(updatedCart._message || "Failed to remove item from cart");
@@ -266,29 +250,45 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
       <main className="py-12 md:py-16 bg-gradient-to-b from-background via-background to-muted/30 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="mb-10">
-            <h1 className="text-3xl md:text-4xl fw-heading text-foreground tracking-tight">
-              Shopping Cart
-            </h1>
-            <p className="text-muted-foreground text-sm mt-2 font-light">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mb-10"
+          >
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl md:text-4xl fw-heading text-foreground tracking-tight">
+                Shopping Cart
+              </h1>
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand-100 text-brand-700 text-sm fw-heading">
+                {effectiveCart?._data?.totalItems || 0}
+              </span>
+            </div>
+            <p className="text-muted-foreground text-sm mt-1.5 fw-body">
               {effectiveCart?._data?.totalItems || 0}{" "}
               {effectiveCart?._data?.totalItems === 1 ? "item" : "items"} in your cart
             </p>
             <div className="h-px bg-gradient-to-r from-border via-border to-transparent mt-4" />
-          </div>
+          </motion.div>
 
           {(effectiveCart?._data?.items?.length ?? 0) > 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Cart Items */}
               <div className="lg:col-span-2 space-y-4">
-                {effectiveCart?._data?.items.map((item) => (
-                  <CartItemRow
+                {effectiveCart?._data?.items.map((item, index) => (
+                  <motion.div
                     key={item._id}
-                    item={item}
-                    loading={loading}
-                    onUpdateQuantity={updateQuantity}
-                    onRemove={removeItem}
-                  />
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05, duration: 0.35 }}
+                  >
+                    <CartItemRow
+                      item={item}
+                      loading={loading}
+                      onUpdateQuantity={updateQuantity}
+                      onRemove={removeItem}
+                    />
+                  </motion.div>
                 ))}
               </div>
 

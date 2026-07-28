@@ -1,4 +1,5 @@
 import { cacheLife, cacheTag } from "next/cache"
+import { serverFetch } from "@/lib/server-fetch"
 import BannerSingle from "./BannerSingle"
 import BannerSlider from "./BannerSlider"
 import { TAG_HOMEPAGE } from "@/lib/revalidation-tags"
@@ -10,7 +11,7 @@ async function GetBanners() {
   cacheTag(TAG_HOMEPAGE);
 
   try {
-    const res = await fetch("/api/website/banner")
+    const res = await serverFetch("/api/website/banner", { timeout: 5000 })
     const data = await res.json()
     return (data._data as BannerItem[]) ?? []
   } catch {

@@ -1,15 +1,14 @@
-"use cache";
-import { cacheLife } from "next/cache";
-
 const FALLBACK_LOGO = "/images/logo.webp";
 
 import type { LogoData } from "@/types";
+import { serverFetch } from "@/lib/server-fetch";
 
 export async function getLogo(): Promise<LogoData> {
-  cacheLife("navigation");
-
   try {
-    const response = await fetch("/api/website/logo", { method: "post" });
+    const response = await serverFetch("/api/website/logo", {
+      method: "post",
+      timeout: 5000,
+    });
 
     if (!response.ok) {
       return { logo: FALLBACK_LOGO };

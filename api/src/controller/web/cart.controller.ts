@@ -81,9 +81,9 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
     };
     const userId = req.user?._id;
 
-    if (!productId || !colorId) {
+    if (!productId) {
       await session.abortTransaction();
-      return fail(res, "Product ID and Color ID are required", 400);
+      return fail(res, "Product ID is required", 400);
     }
 
     const product = await Product.findOne({
@@ -111,10 +111,11 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
     }
 
     const existingItemIndex = cart.items.findIndex((item) => {
-      return (
-        String(item.product) === productId &&
-        String(item.color) === colorId
-      );
+      const sameProduct = String(item.product) === productId;
+      const sameColor = colorId
+        ? String(item.color) === colorId
+        : !item.color;
+      return sameProduct && sameColor;
     });
 
     const newQty = existingItemIndex > -1
@@ -135,7 +136,7 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
       cart.items.push({
         product: new mongoose.Types.ObjectId(productId!),
         quantity: quantity!,
-        color: new mongoose.Types.ObjectId(colorId!),
+        ...(colorId ? { color: new mongoose.Types.ObjectId(colorId!) } : {}),
       } as never);
     }
 

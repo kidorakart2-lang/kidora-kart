@@ -1,6 +1,6 @@
 "use client";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Heart, ShoppingBag } from "lucide-react";
+import { X, Heart, ShoppingBag, Sparkles, Clock, Eye } from "lucide-react";
 import Image from "next/image";
 import { getAuthToken } from "@/lib/cookies";
 import { toast } from "sonner";
@@ -9,7 +9,8 @@ import LoadingOverlay from "@/components/comman/LoadingOverlay";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
-import { setWishlist } from "@/redux/features/wishlist";
+import { addToCart } from "@/redux/features/cart";
+import { setWishlist, removeFromWishlist } from "@/redux/features/wishlist";
 import { useProductsByIds } from "@/lib/useProduct";
 import type { WishlistProduct } from "@/types";
 import type { RootState } from "@/redux/store/store";
@@ -31,27 +32,27 @@ export default function Wishlist({
   wishlist: WishlistProduct[] | { items: WishlistProduct[] } | null;
 }) {
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [cartLoading, setCartLoading] = useState<string | null>(null);
   const router = useRouter();
   const dispatch = useDispatch();
 
-  // Read Redux wishlist items for guest/fallback path
   const reduxWishlistItems = useSelector(
     (state: RootState) => state.wishlist?.wishlistItems ?? [],
   );
   const hasServerData = !!wishlist;
 
-  // Collect product IDs from Redux wishlist items for guest batch fetch
   const wishlistIds = useMemo(() => {
     if (hasServerData) return [];
-    return [
-      ...new Set(reduxWishlistItems.map((item) => item._id).filter(Boolean)),
-    ];
+    return [...new Set(reduxWishlistItems.map((item) => item._id).filter(Boolean))];
   }, [hasServerData, reduxWishlistItems]);
 
-  const { productMap, isLoading: guestProductsLoading } =
-    useProductsByIds(wishlistIds);
+  const { productMap, isLoading: guestProductsLoading } = useProductsByIds(wishlistIds);
 
-  // Build display items from fetched product data for guest/fallback
+  useEffect(() => {
+    if (!wishlist) return;
+    dispatch(setWishlist(wishlist));
+  }, [wishlist, dispatch]);
+
   const guestItems: WishlistDisplayItem[] = useMemo(() => {
     if (hasServerData) return [];
     return reduxWishlistItems.map((item) => {
@@ -69,45 +70,6 @@ export default function Wishlist({
     });
   }, [hasServerData, reduxWishlistItems, productMap]);
 
-  const removeFromWishlist = async (id: string): Promise<void> => {
-    setWishlistLoading(true);
-    try {
-      const response = await fetch(
-        "/api/website/wishlist/remove/" + id,
-        {
-          method: "PUT",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-          body: JSON.stringify({
-            productId: id,
-          }),
-        },
-      );
-      const responseData = await response.json();
-      if (response.ok || responseData._status) {
-        router.push("/wishlist");
-        toast.success(responseData._message);
-      } else {
-        toast.error(responseData._message);
-      }
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Something went wrong",
-      );
-    } finally {
-      setWishlistLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!wishlist || wishlist == null) return;
-    dispatch(setWishlist(wishlist));
-  }, [wishlist, dispatch]);
-
-  // Determine which items to render: SSR data (server) or guest items with TanStack Query
   const displayItems: WishlistDisplayItem[] = hasServerData
     ? (Array.isArray(wishlist) ? wishlist : (wishlist?.items ?? [])).map((item) => ({
         _id: item._id,
@@ -123,7 +85,71 @@ export default function Wishlist({
 
   const isLoading = hasServerData ? false : guestProductsLoading;
 
-  // ── Empty state ──────────────────────────────────────────────────
+  const removeFromWishlistHandler = async (id: string): Promise<void> => {
+    setWishlistLoading(true);
+    try {
+      const response = await fetch(`/api/website/wishlist/remove/${id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify({ productId: id }),
+      });
+      const responseData = await response.json();
+      if (response.ok || responseData._status) {
+        // Optimistically remove from Redux
+        dispatch(removeFromWishlist({ _id: id }));
+        toast.success(responseData._message);
+      } else {
+        toast.error(responseData._message);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Something went wrong");
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
+  const handleAddToCart = async (item: WishlistDisplayItem) => {
+    if (item.stock <= 0) return;
+    setCartLoading(item._id);
+
+    const isLoggedIn = !!getAuthToken();
+    const cartObj: Record<string, unknown> = { productId: item._id, slug: item.slug, quantity: 1 };
+    // Only include colorId if the product actually has a color — backend accepts optional color
+
+    if (isLoggedIn) {
+      try {
+        const response = await fetch("/api/website/cart/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
+          body: JSON.stringify(cartObj),
+        });
+        const responseData = await response.json();
+        if (response.ok || responseData._status) {
+          dispatch(addToCart(cartObj));
+          toast.success(responseData._message);
+        } else {
+          toast.error(responseData._message);
+        }
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Something went wrong");
+      } finally {
+        setCartLoading(null);
+      }
+    } else {
+      dispatch(addToCart({ ...cartObj, isGuest: true }));
+      toast.success("Added to cart");
+      setCartLoading(null);
+    }
+  };
+
+  // ── Empty state ──
   if (displayItems.length === 0 && !isLoading) {
     return (
       <motion.div
@@ -131,26 +157,29 @@ export default function Wishlist({
         animate={{ opacity: 1, y: 0 }}
         className="min-h-[70vh] flex items-center justify-center py-16"
       >
-        <div className="text-center space-y-6 max-w-sm">
-          <div className="w-20 h-20 mx-auto rounded-full bg-muted flex items-center justify-center">
-            <Heart className="w-10 h-10 text-muted-foreground" strokeWidth={1.5} fill="currentColor" />
-          </div>
+        <div className="text-center space-y-8 max-w-md px-4">
+          <motion.div
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-brand-accent-100 to-brand-accent-200 dark:from-brand-accent-900/30 dark:to-brand-accent-800/30 flex items-center justify-center shadow-lg border border-brand-accent-200 dark:border-brand-accent-700/30"
+          >
+            <Heart className="w-12 h-12 text-brand-accent-500" strokeWidth={1.5} fill="currentColor" />
+          </motion.div>
 
-          <div className="space-y-2">
-             <h2 className="text-2xl fw-heading text-foreground tracking-tight">
+          <div className="space-y-3">
+            <h2 className="text-3xl fw-heading text-foreground tracking-tight">
               Your Wishlist is Empty
             </h2>
-            <p className="text-muted-foreground text-sm">
-              Save your favorite items and create your dream collection.
+            <p className="text-muted-foreground text-sm fw-body leading-relaxed">
+              Save your favorite items and create your dream collection. Start exploring our toys!
             </p>
           </div>
 
           <Link
             href="/"
-            className="inline-flex items-center gap-2 btn-gradient fw-cta py-3 px-8
-                     rounded-xl transition-all duration-300 shadow-sm"
+            className="inline-flex items-center gap-2 btn-gradient fw-cta py-3.5 px-8 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
           >
-            <ShoppingBag size={18} />
+            <ShoppingBag size={17} />
             Start Shopping
           </Link>
         </div>
@@ -158,54 +187,75 @@ export default function Wishlist({
     );
   }
 
-  // ── Loading state ────────────────────────────────────────────────
+  // ── Loading state ──
   if (isLoading) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <LoadingOverlay hidden={false} />
-      </div>
+      <section className="py-12 md:py-16 bg-gradient-to-b from-background to-muted/30 min-h-screen">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-10">
+            <div className="h-8 w-48 bg-muted rounded-lg animate-pulse" />
+            <div className="h-4 w-32 bg-muted rounded animate-pulse mt-2" />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-background rounded-xl border border-border overflow-hidden">
+                <div className="h-40 bg-muted animate-pulse" />
+                <div className="p-3 space-y-2">
+                  <div className="h-3 bg-muted rounded animate-pulse w-3/4" />
+                  <div className="h-5 bg-muted rounded animate-pulse w-1/3" />
+                  <div className="h-8 bg-muted rounded-lg animate-pulse w-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     );
   }
 
-  // ── Wishlist grid ────────────────────────────────────────────────
+  // ── Wishlist grid ──
   return (
     <>
-      <section
-        id="wishlist"
-        className="py-12 md:py-16 bg-muted/30"
-      >
+      <section className="py-12 md:py-16 bg-gradient-to-b from-background to-muted/30 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.4 }}
             className="mb-10"
           >
-             <h1 className="text-2xl sm:text-3xl fw-heading tracking-tight text-foreground">
-              My Wishlist
-            </h1>
-            <p className="text-sm text-muted-foreground mt-2">
-              {displayItems.length}{" "}
-              {displayItems.length === 1 ? "item" : "items"} saved
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl md:text-4xl fw-heading tracking-tight text-foreground">
+                My Wishlist
+              </h1>
+              <span className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-brand-accent-100 text-brand-accent-600 text-sm fw-heading">
+                {displayItems.length} items
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1.5 fw-body">
+              Items you&apos;ve saved for later
             </p>
+            <div className="h-px bg-gradient-to-r from-border via-border to-transparent mt-4" />
           </motion.div>
 
           {/* Wishlist Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
             <AnimatePresence mode="popLayout">
               {displayItems.map((item, index) => (
                 <WishlistCard
                   key={item._id}
                   item={item}
                   index={index}
-                  onRemove={removeFromWishlist}
+                  onRemove={removeFromWishlistHandler}
+                  onAddToCart={handleAddToCart}
+                  cartLoading={cartLoading === item._id}
                 />
               ))}
             </AnimatePresence>
           </div>
 
-          {/* Continue Shopping Button */}
+          {/* Continue Shopping */}
           {displayItems.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -215,10 +265,9 @@ export default function Wishlist({
             >
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 btn-gradient fw-cta py-3 px-8
-                         rounded-xl transition-all duration-300"
+                className="inline-flex items-center gap-2 btn-gradient fw-cta py-3.5 px-8 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
               >
-                <ShoppingBag size={18} />
+                <ShoppingBag size={17} />
                 Continue Shopping
               </Link>
             </motion.div>
@@ -235,73 +284,75 @@ function WishlistCard({
   item,
   index,
   onRemove,
+  onAddToCart,
+  cartLoading,
 }: {
   item: WishlistDisplayItem;
   index: number;
   onRemove: (id: string) => Promise<void>;
+  onAddToCart: (item: WishlistDisplayItem) => Promise<void>;
+  cartLoading: boolean;
 }) {
   const router = useRouter();
+  const discountPercentage = item.price && item.discount_price && item.price > item.discount_price
+    ? Math.round((1 - item.discount_price / item.price) * 100)
+    : 0;
+
   return (
     <motion.article
       layout
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={{ opacity: 0, scale: 0.92 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{
-        opacity: 0,
-        scale: 0.8,
-        transition: { duration: 0.3 },
-      }}
-      transition={{
-        duration: 0.4,
-        delay: index * 0.05,
-        layout: { duration: 0.3 },
-      }}
-      className="group relative bg-background rounded-2xl overflow-hidden shadow-md
-               hover:shadow-xl transition-all duration-300 border border-border"
+      exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.3 } }}
+      transition={{ duration: 0.4, delay: index * 0.05, layout: { duration: 0.3 } }}
+      className="group relative bg-background rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col"
     >
       {/* Remove Button */}
       <motion.button
         onClick={() => onRemove(item._id)}
-        className="absolute top-3 right-3 z-20 w-10 h-10 bg-background/90 backdrop-blur-sm
-                 rounded-full shadow-lg border border-border flex items-center
-                 justify-center hover:bg-destructive hover:text-destructive-foreground
-                 transition-all duration-300"
+        className="absolute top-2 right-2 z-20 w-7 h-7 bg-background/80 backdrop-blur-sm rounded-full border border-border flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-all duration-300 opacity-0 group-hover:opacity-100"
         whileHover={{ rotate: 90 }}
         whileTap={{ scale: 0.9 }}
         aria-label="Remove from wishlist"
       >
-        <X className="w-5 h-5 text-muted-foreground transition-colors" />
+        <X className="w-3 h-3" strokeWidth={2} />
       </motion.button>
 
       {/* Stock Badge */}
-      <div className="absolute top-3 left-3 z-20">
-        {item.stock < 0 ? (
-          <span
-            className="inline-flex items-center gap-1 bg-gradient-to-r from-brand-accent-500 to-destructive
-                         text-destructive-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-lg"
-          >
-            <span className="w-1.5 h-1.5 bg-background rounded-full animate-pulse"></span>
+      <div className="absolute top-2 left-2 z-20">
+        {item.stock <= 0 ? (
+          <span className="inline-flex items-center gap-1 bg-destructive/90 text-destructive-foreground text-[10px] fw-cta px-1.5 py-0.5 rounded-full shadow-lg backdrop-blur-sm">
+            <span className="w-1 h-1 bg-destructive-foreground rounded-full animate-pulse" />
             Out of Stock
           </span>
+        ) : item.stock <= 5 ? (
+          <span className="inline-flex items-center gap-1 bg-amber-500/90 text-white text-[10px] fw-cta px-1.5 py-0.5 rounded-full shadow-lg backdrop-blur-sm">
+            <Clock size={8} />
+            {item.stock} left
+          </span>
         ) : (
-          <span
-            className="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-green-600
-                         text-background text-xs font-bold px-3 py-1.5 rounded-full shadow-lg"
-          >
-            <span className="w-1.5 h-1.5 bg-background rounded-full"></span>
+          <span className="inline-flex items-center gap-1 bg-emerald-500/90 text-white text-[10px] fw-cta px-1.5 py-0.5 rounded-full shadow-lg backdrop-blur-sm">
+            <span className="w-1 h-1 bg-white rounded-full" />
             In Stock
           </span>
         )}
       </div>
 
-      {/* Image Container */}
+      {/* Discount Badge */}
+      {discountPercentage > 0 && (
+        <div className="absolute top-2 right-2 z-20 bg-brand-accent-500 text-white text-[10px] fw-cta px-1.5 py-0.5 rounded-md shadow-md">
+          {discountPercentage}% OFF
+        </div>
+      )}
+
+      {/* Image */}
       <div
-        className="relative h-72 sm:h-80 bg-muted/30 overflow-hidden cursor-pointer"
+        className="relative aspect-[1/1] bg-muted/30 overflow-hidden cursor-pointer"
         onClick={() => router.push(`/product-details/${item.slug}`)}
       >
         <motion.div
-          whileHover={{ scale: 1.05 }}
-          transition={{ duration: 0.4 }}
+          whileHover={{ scale: 1.06 }}
+          transition={{ duration: 0.5 }}
           className="w-full h-full"
         >
           <Image
@@ -309,42 +360,53 @@ function WishlistCard({
             alt={item.name}
             fill
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           />
         </motion.div>
+
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
 
-      {/* Product Details */}
-      <div className="p-5">
+      {/* Details */}
+      <div className="p-3 flex flex-col gap-1.5 flex-1">
         <h3
-          className="text-base font-medium text-foreground mb-3 line-clamp-2
-                   transition-colors cursor-pointer leading-tight min-h-[3rem]"
+          className="text-sm fw-heading text-foreground line-clamp-2 hover:text-brand-700 transition-colors cursor-pointer leading-snug min-h-[2.5rem]"
           onClick={() => router.push(`/product-details/${item.slug}`)}
         >
           {item.name}
         </h3>
 
-        {/* Pricing */}
-        <div className="space-y-2">
-          <div className="flex items-baseline gap-2">
-            <span className="text-lg font-semibold text-foreground">
-              ₹{item.price.toFixed(2)}
+        {/* Price */}
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-base fw-heading text-foreground">
+            ₹{(item.discount_price || item.price || 0).toLocaleString()}
+          </span>
+          {item.price && item.discount_price && item.price > item.discount_price && (
+            <span className="text-xs text-muted-foreground line-through">
+              ₹{item.price.toLocaleString()}
             </span>
-            {item.originalPrice != null && item.originalPrice > item.price && (
-              <span className="text-sm text-muted-foreground line-through">
-                ₹{item.originalPrice.toFixed(2)}
-              </span>
-            )}
-          </div>
-
-          {item.originalPrice != null && item.originalPrice > item.price && (
-            <div
-              className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600
-                          text-xs font-semibold px-2 py-1 rounded-md"
-            >
-              {Math.round((1 - item.price / item.originalPrice) * 100)}% OFF
-            </div>
           )}
+        </div>
+
+        {/* Quick actions */}
+        <div className="flex gap-1.5 mt-auto pt-1.5">
+          <button
+            onClick={() => router.push(`/product-details/${item.slug}`)}
+            className="flex-1 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 fw-body text-[11px] transition-all duration-300 flex items-center justify-center gap-1"
+          >
+            <Eye size={12} strokeWidth={1.5} />
+            View
+          </button>
+
+          <button
+            onClick={() => onAddToCart(item)}
+            disabled={item.stock <= 0 || cartLoading}
+            className="flex-1 py-2 rounded-lg bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed fw-cta text-[11px] transition-all duration-300 flex items-center justify-center gap-1 shadow-sm"
+          >
+            <ShoppingBag size={12} strokeWidth={1.5} />
+            {cartLoading ? "Adding..." : "Cart"}
+          </button>
         </div>
       </div>
     </motion.article>

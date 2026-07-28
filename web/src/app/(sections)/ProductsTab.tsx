@@ -7,10 +7,11 @@ import { Zap, Dices, Boxes, Sparkles, ArrowRight } from "lucide-react";
 import type { ProductData } from "@/types";
 import { getProducts } from "@/lib/get-products";
 import { getCategoryHref } from "@/lib/category-nav";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getNavCategories(): Promise<import("@/types").CategoryData[]> {
   try {
-    const res = await fetch("/api/website/nav");
+    const res = await serverFetch("/api/website/nav", { timeout: 5000 });
     if (!res.ok) return [];
     const data = await res.json();
     return data._data ?? [];

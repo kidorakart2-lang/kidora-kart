@@ -1,8 +1,10 @@
 import FAQPage from "@/app/(sections)/FAQ";
-import React from "react";
+import React, { Suspense } from "react";
 import { siteConfig } from "@/lib/utils";
 import { cacheLife, cacheTag } from "next/cache";
 import { TAG_FAQ } from "@/lib/revalidation-tags";
+import { serverFetch } from "@/lib/server-fetch";
+import SimpleLoading from "@/components/comman/SimpleLoading";
 
 export const metadata = {
   title: `FAQ - Frequently Asked Questions | ${siteConfig.name}`,
@@ -25,7 +27,7 @@ async function GetFaq() {
   cacheTag(TAG_FAQ);
 
   try {
-    const response = await fetch("/api/website/faq");
+    const response = await serverFetch("/api/website/faq", { timeout: 5000 });
     const data = await response.json();
     return data._data;
   } catch {
@@ -51,7 +53,7 @@ function FAQSchema({ faqs }: { faqs: { question: string; answer: string }[] }) {
   );
 }
 
-export default async function page() {
+async function FAQContent() {
   const faqs = await GetFaq();
 
   return (
@@ -59,5 +61,13 @@ export default async function page() {
       {faqs?.length > 0 && <FAQSchema faqs={faqs} />}
       <FAQPage data={faqs || []} />
     </>
+  );
+}
+
+export default async function page() {
+  return (
+    <Suspense fallback={<SimpleLoading type="page" />}>
+      <FAQContent />
+    </Suspense>
   );
 }

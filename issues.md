@@ -154,46 +154,31 @@ Shipping operations like create, cancel, RTO, pickup, label/invoice regeneration
 ### 🔴 High Priority
 
 #### 2.1 Slug Not Uniquely Indexed
+**Status:** ✅ Fixed July 27, 2026
 **File:** `api/src/models/product.ts`
 
-The `slug` field has `required: true` but **no unique index**. Two products could theoretically share the same slug, causing routing conflicts on the frontend.
-
-```typescript
-slug: { type: String, required: [true, "Please Enter A Slug"] },
-```
-
-**Risk:** If two products have the same slug, the product detail page will always show only one of them (the first one found). The other product becomes inaccessible via URL.
-
-**Recommendation:** Add `unique: true` to the slug field or add a unique compound index on `slug` + `deletedAt`.
+Added `unique: true` to the slug field + explicit unique index on slug.
 
 #### 2.2 No Full-Text Search Index for Product Search
 **File:** `api/src/models/product.ts`
 
-Product search via `/get-by-search` uses regex matching (likely) on name/description. There's no MongoDB text index.
+Product search via `/get-by-search` uses regex matching on name/description. There's no MongoDB text index.
 
-**Risk:** Slow search performance as product catalog grows. `$regex` queries can't use indexes efficiently for prefix-unspecified patterns.
+**Risk:** Slow search performance as product catalog grows.
 
 **Recommendation:** Add a compound text index on `name`, `description`, `shortDescription`, and `tags`. Update search queries to use `$text` instead of `$regex` where possible.
 
 #### 2.3 SKU — No Schema-Level Uniqueness Constraint
+**Status:** ✅ Fixed July 27, 2026
 **File:** `api/src/models/product.ts`
 
-The `sku` field has no `unique: true` constraint at the schema level. SKU generation (which uses `crypto.randomUUID()`) and validation happen in the controller (`adminProduct.controller.ts`), but there's no database-level enforcement.
-
-**Risk:** Edge case where two products could have the same SKU if concurrent requests bypass controller validation. No standard format encoding at the database level.
-
-**Recommendation:** Add `unique: true` + `sparse: true` to the `sku` field in the schema (controller validation already exists, this adds DB-level enforcement).
+Added `unique: true, sparse: true` to the sku field + explicit unique sparse index.
 
 #### 2.4 `giftImages` Array — No Limit or Validation
+**Status:** ✅ Fixed July 27, 2026
 **File:** `api/src/models/product.ts`
 
-```typescript
-giftImages: [{ type: String, default: "" }],
-```
-
-No limit on the number of gift images. An admin could upload hundreds of images causing performance issues.
-
-**Recommendation:** Add a validation limiting the array to a reasonable number (e.g., 5-10 images).
+Changed from bare array-of-objects to typed array with `validate: max 10` limit.
 
 ---
 
@@ -220,11 +205,12 @@ The model has indexes for categories, feature flags, and price. But these are mi
 
 | Missing Index | Query Pattern |
 |--------------|---------------|
-| `sku` | SKU lookup |
 | `code` | Code lookup (used in admin panel) |
 | `deletedAt` + `createdAt` | Recently deleted products |
 
-**Recommendation:** Add sparse indexes for `sku` (if made unique) and `code`.
+`sku` index added (unique + sparse). `code` index already exists.
+
+**Recommendation:** Add `deletedAt` + `createdAt` compound index.
 
 #### 2.7 No Stock Reservation During Checkout
 **File:** `api/src/controller/web/order.controller.ts`
@@ -402,16 +388,10 @@ Product pages don't include BreadcrumbList JSON-LD. This helps search engines un
 ### 🟠 Medium Priority
 
 #### 4.5 Sitemap Error Handling Silently Fails
+**Status:** ✅ Fixed July 27, 2026
 **File:** `web/src/app/sitemap.ts`
 
-Both API fetches have empty catch blocks:
-```typescript
-catch (error) { }
-```
-
-If either API fails, the error is swallowed. The sitemap returns without products or categories, and the build succeeds — giving a false sense of completeness.
-
-**Recommendation:** Log the error (at minimum) so developers can detect sitemap generation failures.
+Added `console.error(...)` logging to both catch blocks.
 
 #### 4.6 No Hreflang Tags
 For a store serving Indian customers, there's no `hreflang="en_IN"` tag. While this may be acceptable for a single-language/location store, adding it helps search engines understand the target audience.
@@ -521,140 +501,42 @@ Order operations span multiple systems (our DB → Razorpay → Shiprocket), but
 ### Critical Issues
 
 #### 6.1 🔴 Web Rewrite Missing `/` Between Port and Path
+**Status:** ✅ Fixed July 27, 2026
 **File:** `web/next.config.ts`
 
-```typescript
-async rewrites() {
-  return [
-    {
-      source: "/api/:path*",
-      destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}api/:path*`,
-    },
-  ];
-},
-```
-
-The default `NEXT_PUBLIC_API_URL` is `"http://localhost:5000"` (no trailing slash). The concatenation produces:
-
-```
-http://localhost:5000api/website/user/login
-```
-
-instead of the correct:
-
-```
-http://localhost:5000/api/website/user/login
-```
-
-**Effect:** Every single proxied API request on the website (web/) will fail with a DNS/connection error or a completely broken URL. The Express server mounts routes at `/api/website/...`, so the missing `/` makes every URL unresolvable.
-
-**Compare with admin-panel (correct):**
-```typescript
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/";
-//                                                                          ^ trailing slash
-destination: `${backendUrl}api/:path*`,
-// Result: http://localhost:5000/api/website/user/login  ✅
-```
-
-**All 33+ website API call sites affected:** Including login, signup, cart, wishlist, profile, products, banners, nav, FAQ, testimonials, sitemap, etc.
-
-**Fix:** Add a trailing slash to the default URL or add a `/` in the template:
-```typescript
-destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/"}api/:path*`,
-//                                                          ^ trailing slash
-```
+Added trailing slash to default API URL in rewrite destination. Changed `"http://localhost:5000"` to `"http://localhost:5000/"`.
 
 ---
 
 ### High Priority
 
 #### 6.2 🔴 Admin Panel `resolveUrl` Lowercases All Paths — Fragile Against Case-Sensitive Routing
+**Status:** ✅ Fixed July 27, 2026
 **File:** `admin-panel/lib/api.ts`
 
-```typescript
-const normalised = path.toLowerCase() + qs;
-```
-
-The `resolveUrl()` function lowercases the entire URL path before making the request. Express routes are **case-insensitive by default**, so this works currently. However:
-
-- If anyone enables `app.set('case sensitive routing', true)` on the Express server, **every single admin panel API call would break** (all ~78+ calls).
-- The backend route `router.post("/findAllUser", ...)` is technically mixed-case — it works because Express is case-insensitive by default, but this is fragile.
-- **Real risk:** It prevents ever enabling case-sensitive routing, which is a security hardening practice.
-
-**Affected routes (mixed-case in Express):**
-| Route | Client URL (after lowercasing) | Server Route | Works? |
-|-------|-------------------------------|--------------|--------|
-| `/api/admin/user/findAllUser` | `/api/admin/user/findalluser` | `/findAllUser` | ✅ (case-insensitive)
-
-**Fix:** Remove the `.toLowerCase()` call from `resolveUrl`. Or at minimum, ensure Express routes consistently use lowercase only.
+Removed `.toLowerCase()` call from `resolveUrl()` and cleaned up unused variables (`qIndex`, `path`, `qs`, `normalised`).
 
 ---
 
 ### Medium Priority
 
 #### 6.3 🟠 Duplicate `/admin/` Prefix in Order Refund Routes
-**File:** `api/src/routes/admin/adminOrder.routes.ts`
+**Status:** ✅ Fixed July 27, 2026
+**Files:** `api/src/routes/admin/adminOrder.routes.ts`, `admin-panel/components/RefundedOrdersAdmin.tsx`
 
-The mount point is:
-```typescript
-app.use("/api/admin/orders", adminOrderRoutes);
-```
-
-Routes inside have an **additional `/admin/` prefix**:
-
-```typescript
-router.get("/admin/refunded", ...);         // Full: /api/admin/orders/admin/refunded
-router.get("/admin/refund/verify/:id", ...); // Full: /api/admin/orders/admin/refund/verify/:id
-router.patch("/admin/refund/:id", ...);      // Full: /api/admin/orders/admin/refund/:id
-router.post("/admin/refund/sync", ...);      // Full: /api/admin/orders/admin/refund/sync
-router.post("/admin/refund/bulk", ...);      // Full: /api/admin/orders/admin/refund/bulk
-```
-
-The client (`RefundedOrdersAdmin.tsx`) calls matching paths like `\`/api/admin/orders/admin/refunded\` — so it's **consistent** and doesn't cause 404s. But:
-
-- The URL structure is confusing: `/api/admin/orders/admin/...` has redundant `/admin/`
-- If the mount point were to change (e.g., to `app.use("/api/admin/order", ...)`), the routes would become `/api/admin/order/admin/refunded` — still double `/admin/`
-- **Recommendation:** Remove the `/admin/` prefix from these routes since they're already under `/api/admin/`
+Removed `/admin/` prefix from 5 refund routes and updated client paths to match.
 
 #### 6.4 🟠 Admin Panel Refund Component Uses Raw `fetch()` — Bypasses API Client
+**Status:** ✅ Fixed July 27, 2026
 **File:** `admin-panel/components/RefundedOrdersAdmin.tsx`
 
-This component makes multiple API calls using direct `fetch()` instead of the `api` helper:
-
-```typescript
-const BASE_URL = "/api/admin/orders";
-
-// Uses raw fetch() instead of api.get() / api.post()
-const response = await fetch(\`\${BASE_URL}/admin/refunded\`, { method: "GET", credentials: "include" });
-await fetch(\`\${BASE_URL}/admin/refund/sync\`, { method: "POST", credentials: "include" });
-await fetch(\`\${BASE_URL}/admin/refund/verify/\${orderId}\`, { method: "GET", credentials: "include" });
-await fetch(\`\${BASE_URL}/admin/refund/\${orderId}\`, { method: "PATCH", credentials: "include", ... });
-```
-
-This bypasses:
-- `resolveUrl()` — path lowercasing and normalization
-- CSRF token injection (`x-csrf-token` header)
-- Automatic `Authorization: Bearer` header from `adminToken` cookie
-- `_data` extraction from response
-
-**Why it still works:**
-- `credentials: "include"` sends cookies, so the `protect` middleware can authenticate via `req.cookies?.adminToken`
-- The refund routes don't use `csrfProtection` middleware, so missing CSRF headers don't cause 403s
-- Response parsing manually handles the full JSON
-
-**Risk:** If `csrfProtection` is ever added to these refund routes, all refund operations would silently fail with 403. The `PATCH` method also doesn't match the admin panel's typical `post`/`put` pattern for mutations.
-
-**Recommendation:** Migrate `RefundedOrdersAdmin.tsx` to use the `api` helper (or `api.postRaw()` for the sync endpoint that needs the full response).
+Migrated all 4 raw `fetch()` calls to use `api.get<>()`, `api.postRaw<>()`, and `api.patchRaw<>()`. Also added `patch()` and `patchRaw()` methods to the `api` helper. Removed unused `BASE_URL` constant.
 
 #### 6.5 🟠 Admin Panel Raw fetch() for Refresh/Logout — Bypasses API Client
+**Status:** ✅ Fixed July 27, 2026
 **File:** `admin-panel/components/header.tsx`
 
-```typescript
-await fetch("/api/admin/user/refresh", { method: "POST", credentials: "include" });
-await fetch("/api/admin/user/logout", { method: "POST", credentials: "include" });
-```
-
-These bypass `resolveUrl()` and CSRF injection too. The refresh endpoint doesn't use `csrfProtection` (it's unprotected by design), so this works. But inconsistent with the rest of the admin panel.
+Migrated both raw `fetch()` calls to use `api.post()` for refresh and logout.
 
 #### 6.6 🟠 Admin Panel Profile Uses `api.get()` with Token Override — Fragile Pattern
 **File:** `admin-panel/app/dashboard/profile/page.tsx`
@@ -770,19 +652,530 @@ All `api.get/post/put/del` calls use paths that match Express routes exactly (af
 
 ---
 
-### 6.12 Summary: Rewrite Audit
+#
+
+## 6.12 Summary: Rewrite Audit
+
+| # | Severity | Issue | File | Status |
+|---|----------|-------|------|:------:|
+| 6.1 | 🔴 CRITICAL | Missing `/` in web rewrite destination | `web/next.config.ts` | ✅ Fixed |
+| 6.2 | 🔴 HIGH | `resolveUrl` lowercases paths | `admin-panel/lib/api.ts` | ✅ Fixed |
+| 6.3 | 🟠 MEDIUM | Duplicate `/admin/` prefix in order refund routes | `api/src/routes/admin/adminOrder.routes.ts` | ✅ Fixed |
+| 6.4 | 🟠 MEDIUM | `RefundedOrdersAdmin.tsx` uses raw `fetch()` | `admin-panel/components/RefundedOrdersAdmin.tsx` | ✅ Fixed |
+| 6.5 | 🟠 MEDIUM | admin header uses raw `fetch()` | `admin-panel/components/header.tsx` | ✅ Fixed |
+| 6.6 | 🟠 MEDIUM | Admin profile calls website endpoints via token override | `admin-panel/app/dashboard/profile/page.tsx` | ❌ Open |
+| 6.7 | 🟠 MEDIUM | `ForgotPassword.tsx` calls website endpoint from admin | `admin-panel/components/ForgotPassword.tsx` | ❌ Open |
+| 6.8 | 🟢 LOW | No `basePath` config | `admin-panel/next.config.ts` | ❌ Open |
+| 6.9 | 🟢 LOW | CSP `connect-src` doesn't include backend URL | `web/next.config.ts` | ❌ Open |
+| 6.10 | 🟢 LOW | Sitemap uses relative API URLs | `web/src/app/sitemap.ts` | ❌ Open |
+
+**Top Fix Priority:** Fix the duplicate `/admin/` prefix in order refund routes and migrate raw `fetch()` calls — both completed. Remaining: 6.6 (admin profile uses website endpoint), 6.7 (ForgotPassword in admin mixed responsibility), and low-priority items.
+
+---
+
+## 7. Remaining Modules Audit
+
+> **Added:** July 27, 2026
+> **Scope:** Auth system, Order/Payment system, Cart/Wishlist, Middleware stack, Server config, File upload, Email/Notifications, In-memory cache, Job queue, Remaining CRUD controllers (FAQ, Testimonials, WhyChooseUs, Logo, Banner, Nav, Color, Material, Contact, Coupons, Reviews, Product FAQs)
+
+---
+
+### 7.1 Auth & Session Management
+
+#### 7.1.1 🔴 No Account Lockout — IP-Based Rate Limiting Only
+**Files:** `api/src/middleware/rateLimit.ts`, `api/src/controller/web/user.controller.ts`
+
+The login rate limiter limits requests per IP (15 requests per 15 minutes), but there's **no account-level lockout**. An attacker can distribute login attempts across multiple IPs and target a specific account without ever triggering the rate limiter.
+
+```typescript
+login: rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  message: jsonMessage("Too many tries to Login, please try again later"),
+}),
+```
+
+**Risk:** Targeted brute-force attacks on high-value accounts (admin users).
+
+**Recommendation:**
+- Track failed login attempts per email address in the database
+- Temporarily lock the account after N consecutive failures (e.g., 10)
+- Use exponential backoff: 1min → 5min → 30min → 2hr after each failure cluster
+
+#### 7.1.2 🟠 Dual Cookies (httpOnly + non-httpOnly) with Same Name
+**File:** `api/src/middleware/authMiddleware.ts` (attemptAutoRefresh)
+
+During auto-refresh, the function sets **two cookies with the same name** — one httpOnly and one non-httpOnly:
+
+```typescript
+res.cookie(accessCookieName, newAccessToken, accessTokenCookieOptions(tokenType));    // httpOnly: true
+res.cookie(accessCookieName, newAccessToken, clientAccessTokenCookieOptions());       // httpOnly: false
+```
+
+Browser behavior with duplicate cookie names is **implementation-dependent**:
+- Some browsers may merge them
+- Others may keep both and pick one based on path specificity
+- The non-httpOnly cookie (for client-side `js-cookie`) might overwrite the httpOnly one in some browsers
+
+**Risk:** The httpOnly cookie (used by `authMiddleware.ts` for server-side auth) could be unexpectedly overwritten by the non-httpOnly variant, reducing security.
+
+**Recommendation:** Use separate cookie names (e.g., `userTokenClient` for the non-httpOnly variant), or re-read the token from the Authorization header on auto-refresh instead.
+
+#### 7.1.3 🟠 Password Reset Token — Hash Verified but No Expiry Check on Server Response
+**File:** `api/src/lib/jwt.ts` (verifyPasswordResetToken)
+
+```typescript
+export const verifyPasswordResetToken = (token: string): PasswordResetJwtPayload | null => {
+  try {
+    const decoded = jwt.verify(token, env.JWT_SECRET);
+    // ...returns decoded if valid
+  } catch (error) {
+    return null;
+  }
+};
+```
+
+`jwt.verify()` automatically checks expiry — so expiry IS enforced. The token expires in 10 minutes. This is correctly implemented.  
+
+**Note:** No issue here — just verifying this works correctly.
+
+#### 7.1.4 🟢 Email Verification Not Required for Login
+**File:** `api/src/models/user.ts`, `api/src/controller/web/user.controller.ts`
+
+The user model has an `isEmailVerified` field, but the login endpoint does not check it. Users can log in before verifying their email.
+
+**Risk:** Users could sign up with a fake email and still access the site. The password reset flow would also be vulnerable — if someone signs up with someone else's email, they can't reset that email's password without access, but they can still log in.
+
+**Recommendation:** Gate login behind `isEmailVerified === true` for accounts that registered via email (not Google OAuth).
+
+---
+
+### 7.2 Order & Payment System
+
+#### 7.2.1 🟠 Inconsistent Response Format
+**Files:** `api/src/controller/web/order.controller.ts` vs all other controllers
+
+The order controller uses a **different response format** than the rest of the API:
+
+| Property | Order Controller | All Other Controllers |
+|----------|-----------------|----------------------|
+| Status | `success: true/false` | `_status: true/false` |
+| Message | `message: "..."` | `_message: "..."` |
+| Data | `order: {...}`, `orders: [...]` | `_data: {...}` |
+| Error | `error: "..."` | No standard error field |
+
+**Risk:** Frontend code must handle two different response formats. Could cause bugs where a frontend component expects `_data` but receives `order`.
+
+**Recommendation:** Migrate the order controller to use the standard `{ _status, _message, _data }` format, or add a mapping layer.
+
+#### 7.2.2 🟠 User Cancellation — Too Restrictive for Paid Orders
+**File:** `api/src/controller/web/order.controller.ts` (cancelOrder)
+
+```typescript
+if (order.status !== "pending") {
+  res.status(400).json({ success: false, message: "Order cannot be cancelled in its current state" });
+  return;
+}
+```
+
+A user can only cancel orders in `"pending"` status. But paid orders that are `"confirmed"` (not yet shipped) should also be cancellable. The 12-hour window check inside the function also doesn't make logical sense for `"pending"` orders (which haven't been paid yet).
+
+**Recommendation:** Allow cancellation of `"confirmed"` orders too. The 12-hour window should apply to paid orders, not pending ones.
+
+#### 7.2.3 🟠 Webhook Processing — No Retry Mechanism
+**Files:** `api/src/controller/web/order.controller.ts` (handleWebhook), `api/src/controller/web/order.webhook.ts`
+
+If Razorpay webhook processing fails (error, timeout, DB failure), the event is **lost permanently**. Razorpay will retry the webhook delivery, but if the handler itself fails on retry, there's no persistence mechanism.
+
+```typescript
+case "payment.captured":
+  await handlePaymentCaptured(eventPayload?.payload?.payment?.entity);
+  break;
+```
+
+**Risk:** Payments could be captured on Razorpay but the order remains "pending" in our system, requiring manual `syncStuckPayments` recovery.
+
+**Recommendation:**
+- Store raw webhook events in a DB collection before processing
+- Add a dead-letter queue for events that fail repeatedly
+- Add monitoring/alerts for webhook processing failures
+
+#### 7.2.4 🟢 Stock Restoration in cancelOrder is Fire-and-Forget
+**File:** `api/src/controller/web/order.controller.ts` (cancelOrder)
+
+```typescript
+(async () => {
+  try {
+    for (const item of order.items) {
+      await Product.findByIdAndUpdate(item.productId, {
+        $inc: { stock: item.quantity },
+      });
+    }
+  } catch (stockError) {
+    logger.error(stockError, "Failed to restore stock");
+  }
+})(); // immediately-invoked async — not awaited
+```
+
+Stock restoration runs in the background **after** the response is sent. If the server crashes between sending the response and restoring stock, the stock won't be restored.
+
+**Recommendation:** Use the `enqueue` pattern (like the rest of the codebase) or keep it synchronous for critical stock operations.
+
+---
+
+### 7.3 Cart & Wishlist System
+
+#### 7.3.1 🟠 removeFromCart and clearCart Don't Use Transactions
+**File:** `api/src/controller/web/cart.controller.ts` (removeFromCart, clearCart)
+
+`addToCart` properly uses `mongoose.startSession()` with transaction for atomicity. But `removeFromCart` and `clearCart` do not:
+
+```typescript
+// removeFromCart — no transaction
+const result = await Cart.updateOne(
+  { user: userId },
+  { $pull: { items: { _id: itemId } } }
+);
+
+// clearCart — no transaction
+await Cart.findOneAndUpdate(
+  { user: userId },
+  { $set: { items: [] } }
+);
+```
+
+**Risk:** In a concurrent scenario, a remove operation could interfere with an add operation, causing inconsistent state. Low risk (only affecting cart display, not payments), but inconsistent with the addToCart pattern.
+
+**Recommendation:** Use transactions consistently across all cart operations.
+
+---
+
+### 7.4 Server Configuration & Middleware
+
+#### 7.4.1 🟠 No Global Error Handler Middleware
+**File:** `api/src/server.ts`
+
+The Express app has **no global error handler middleware** (`(err, req, res, next) => ...`). Every controller handles errors individually via try/catch. If an async error slips through without being caught, Express's default error handler will respond with an HTML error page (not JSON), and the error stack may leak in development mode.
+
+```typescript
+// Missing at the end of the middleware stack:
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  logger.error({ err }, "Unhandled error");
+  res.status(500).json({ _status: false, _message: "Internal server error" });
+});
+```
+
+**Risk:** Unhandled errors could:
+- Return HTML instead of JSON (breaking client expectations)
+- Leak error details (stack traces, internal paths) in development
+- Crash the server without proper cleanup
+
+**Recommendation:** Add a global error handler middleware as the last middleware in the stack.
+
+#### 7.4.2 🟠 No 404 Handler at End of Middleware Stack
+**File:** `api/src/server.ts`
+
+If a request hits a path with no matching route, Express will return its default HTML 404 response (not JSON). There's no catch-all handler:
+
+```typescript
+// Missing:
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ _status: false, _message: "Route not found" });
+});
+```
+
+**Risk:** Bots/crawlers hitting non-existent paths get HTML instead of JSON. Makes API discovery harder.
+
+**Recommendation:** Add a JSON 404 handler after all routes.
+
+#### 7.4.3 🟠 Helmet Disables Most Browser Protections — Acceptable for API but Worth Noting
+**File:** `api/src/server.ts`
+
+```typescript
+app.use(helmet({
+  contentSecurityPolicy: false,     // disabled
+  crossOriginEmbedderPolicy: false, // disabled
+  crossOriginOpenerPolicy: false,   // disabled
+  crossOriginResourcePolicy: false, // disabled
+  originAgentCluster: false,        // disabled
+  referrerPolicy: false,            // disabled
+  xDnsPrefetchControl: false,       // disabled
+  xDownloadOptions: false,          // disabled
+  xFrameOptions: false,             // disabled
+  xPermittedCrossDomainPolicies: false, // disabled
+  // Only active:
+  //   strictTransportSecurity (HSTS)
+  //   xContentTypeOptions (nosniff)
+  //   hidePoweredBy (strip X-Powered-By)
+  //   xXssProtection (=0)
+}))
+```
+
+This is intentional — it's a JSON API, not a browser-facing HTML application. Most protections don't apply. However, if the API ever serves HTML (admin panel, error pages), some of these should be re-enabled.
+
+**Recommendation:** Document this decision clearly. If the admin panel is served separately (as it is — on port 3001), this is fine.
+
+#### 7.4.4 🟢 body-sanitizer Could Break MongoDB Queries with `$` in Field Values
+**File:** `api/src/server.ts` (sanitize function)
+
+```typescript
+function sanitize(obj: Sanitizable): Sanitizable {
+  if (typeof obj !== "object" || obj === null) return obj;
+  if (Array.isArray(obj)) return obj.map((item) => sanitize(item as Sanitizable));
+  return Object.keys(obj as Record<string, unknown>).reduce<Record<string, unknown>>((acc, key) => {
+    const k = key.replace(/^\$/, "").replace(/\./g, "");
+    acc[k] = sanitize((obj as Record<string, unknown>)[key] as Sanitizable);
+    return acc;
+  }, {});
+}
+```
+
+This strips leading `$` from keys and removes `.` characters. This is **good for security** (prevents NoSQL injection via `$where`, `$gt`, etc.).
+
+However, there's a subtle issue: nested query objects from the frontend (e.g., filters with `$gte`, `$lte` operators) would be silently broken. If the frontend ever needs to send MongoDB operators (e.g., for advanced filtering), it can't because the sanitizer strips them.
+
+**Recommendation:** Ensure this is documented. If a route needs to accept MongoDB operators, it should parse the raw body before sanitization runs.
+
+---
+
+### 7.5 File Upload & Image Processing
+
+#### 7.5.1 🟠 No Magic-Byte Verification for Uploaded Files
+**File:** `api/src/middleware/uploadMiddleware.ts`
+
+```typescript
+const fileFilter = (
+  _req: Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback,
+): void => {
+  const allowedTypes = /jpeg|jpg|png|webp/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype);
+  // ... rejects if mismatch
+};
+```
+
+File validation relies on **extension and MIME type only** — both can be spoofed. The comment notes that Sharp validates during actual processing, which provides secondary protection. However, Sharp validation happens **after** the file is accepted and uploaded to R2.
+
+**Risk:** An attacker could upload a non-image file (e.g., SVG with XSS, or a polyglot file) that passes MIME/extension checks but is rejected by Sharp. The file is still stored on R2 (though Sharp fails to process it, so it won't be served as an image).
+
+**Recommendation:** Add magic-byte verification (file signature) during the upload middleware phase, before accepting the file. This is an additional defense layer beyond what Sharp provides.
+
+#### 7.5.2 🟢 Sharp Processing Could Be a DoS Vector
+**File:** `api/src/lib/cloudflare.ts`
+
+```typescript
+const pipeline = sharp(file.buffer)
+  .resize({ width: 1200, fit: sharp.fit.inside, withoutEnlargement: true })
+  .webp({ quality: imageQuality, effort: 6 });
+```
+
+Sharp processes all uploaded images in-memory. A crafted "image bomb" (small file that decompresses to gigabytes) could cause memory exhaustion. The 5MB file size limit provides some protection.
+
+**Recommendation:** Consider adding a pixel dimension limit (e.g., max 6000x6000) as an additional safety check before passing to Sharp.
+
+---
+
+### 7.6 Email & Notifications
+
+#### 7.6.1 🟠 Single Email Provider — No Failover
+**File:** `api/src/lib/nodemailer.ts`
+
+```typescript
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: env.MY_GMAIL,
+    pass: env.MY_GMAIL_PASSWORD,
+  },
+});
+```
+
+Only Gmail SMTP is configured. If Gmail is down or rate-limited, all transactional emails fail silently (errors are logged but no fallback).
+
+**Recommendation:** Add a secondary email provider (e.g., SendGrid, AWS SES) as a fallback transporter.
+
+#### 7.6.2 🟠 Email Templates Use EJS with Inline Styles — Hard to Maintain
+**File:** `api/src/views/emails/*.ejs`
+
+EJS templates with inline CSS work well for email clients but are harder to maintain than dedicated email tools (MJML, React Email, react-email with preview).
+
+**Recommendation:** Consider migrating to a component-based email system (e.g., `react-email`) for better maintainability and preview capabilities.
+
+---
+
+### 7.7 In-Memory Cache
+
+#### 7.7.1 🟢 Single-Process Cache — Doesn't Scale Horizontally
+**File:** `api/src/lib/cache.ts`
+
+```typescript
+const cache = new NodeCache({
+  stdTTL: 300, // 5 minutes
+  checkperiod: 60,
+});
+```
+
+NodeCache is in-memory per-process. If the app is scaled to multiple instances (via PM2 cluster or multiple servers), each instance has its own cache. This means:
+- Cache invalidation on one instance doesn't propagate to others
+- Different users may see different cached data depending on which instance serves them
+- Restart clears the entire cache
+
+**Recommendation:** For horizontal scaling, replace with Redis or another shared cache.
+
+---
+
+### 7.8 Job Queue
+
+#### 7.8.1 🟠 In-Memory Queue — No Persistence Across Restarts
+**File:** `api/src/lib/jobQueue.ts`
+
+```typescript
+const queue: Job[] = [];
+let processing = false;
+
+async function processNext(): Promise<void> { ... }
+export function enqueue(fn: Job): void { queue.push(fn); ... }
+```
+
+The job queue is a simple in-memory array with serial processing:
+- Jobs are lost on server restart
+- No retry for failed jobs
+- No concurrency control (only one job at a time)
+- No persistency for critical operations (email sending, stock restoration)
+
+**Risk:** Critical jobs (email notifications, stock restoration) are silently lost on crash or restart.
+
+**Recommendation:** Replace with a proper job queue (BullMQ with Redis, or at minimum a DB-backed queue with a `processed` flag).
+
+---
+
+### 7.9 Remaining CRUD Controllers
+
+#### 7.9.1 ✅ FAQ, Testimonial, Logo, WhyChooseUs, Color, Material (Web Controllers)
+**Files:** `api/src/controller/web/faq.controller.ts`, `testimonial.controller.ts`, `logo.controller.ts`, `whyChooseUs.controller.ts`, `color.controller.ts`, `material.controller.ts`
+
+All six use the **consistent `buildCacheListController` helper** pattern:
+- Cache-backed public GET endpoints with 1-hour TTL
+- Cache invalidated on admin CRUD operations
+- Consistent `{ _status, _message, _data }` response format
+- Proper error handling via `success()` / `fail()` utilities
+
+**Assessment:** Clean, consistent, well-structured. No issues found.
+
+#### 7.9.2 ✅ Banner Controller (Web)
+**File:** `api/src/controller/web/banner.controller.ts`
+
+Custom `fetchBanners` function resolves link targets (product/category/subcategory slugs) with lazy-loaded slug maps. Uses `buildCacheListController` with 1-hour TTL. Proper error handling.
+
+**Assessment:** Well-structured. No issues found.
+
+#### 7.9.3 ✅ Navigation Controller
+**File:** `api/src/controller/web/nav.controller.ts`
+
+Fetches Category → SubCategory → SubSubCategory in parallel with `Promise.all`, then constructs the tree manually. 1-hour cache. Proper error handling with `success()` / `fail()`.
+
+**Assessment:** Clean pattern. No issues found.
+
+#### 7.9.4 ✅ Product FAQ Controller
+**File:** `api/src/controller/web/productFaq.controller.ts`
+
+Cached public endpoint with productId filtering. 10-minute TTL. `success()` / `fail()` utilities.
+
+**Assessment:** No issues found.
+
+#### 7.9.5 🔴 Rating and ReviewCount Not Updated After Review Creation
+**File:** `api/src/controller/web/review.controller.ts` (likely — needs verification)
+
+The product model stores `rating` and `reviewCount` fields. When a review is created/updated/deleted, these fields should be recalculated on the product document. This does not appear to happen automatically.
+
+**Risk:** Product ratings display stale data. New reviews don't update the displayed star rating until manually recalculated.
+
+**Recommendation:** Add a Mongoose post-save hook on the Review model that recalculates the parent product's rating using aggregation.
+
+---
+
+### 7.10 Inconsistent Patterns
+
+#### 7.10.1 🟢 `asyncHandler` Utility — Used by Cart Only, Not by Other Controllers
+**File:** `api/src/utils/asyncHandler.ts` vs `api/src/controller/web/cart.controller.ts`
+
+The cart controller uses the `asyncHandler` wrapper:
+```typescript
+export const getCart = asyncHandler(async (req: Request, res: Response) => { ... });
+```
+
+Other controllers (product, order, etc.) use manual `try/catch` in every handler. Inconsistent but not a bug — both patterns work.
+
+#### 7.10.2 🟢 Order Controller Uses `success: true/false` — Other Controllers Use `_status: true/false`
+**Files:** `api/src/controller/web/order.controller.ts` vs `api/src/utils/responses.ts`
+
+The order controller was likely written before the standard response format was established. See 7.2.1 above.
+
+---
+
+### 7.11 Summary: Remaining Modules
 
 | # | Severity | Issue | File |
 |---|----------|-------|------|
-| 6.1 | 🔴 CRITICAL | Missing `/` in web rewrite destination — all API calls produce broken URLs | `web/next.config.ts` |
-| 6.2 | 🔴 HIGH | `resolveUrl` lowercases paths — fragile if Express case-sensitive routing is enabled | `admin-panel/lib/api.ts` |
-| 6.3 | 🟠 MEDIUM | Duplicate `/admin/` prefix in order refund routes | `api/src/routes/admin/adminOrder.routes.ts` |
-| 6.4 | 🟠 MEDIUM | `RefundedOrdersAdmin.tsx` uses raw `fetch()` — bypasses api client | `admin-panel/components/RefundedOrdersAdmin.tsx` |
-| 6.5 | 🟠 MEDIUM | admin header uses raw `fetch()` for refresh/logout — inconsistent | `admin-panel/components/header.tsx` |
-| 6.6 | 🟠 MEDIUM | Admin profile calls website endpoints via token override — fragile | `admin-panel/app/dashboard/profile/page.tsx` |
-| 6.7 | 🟠 MEDIUM | `ForgotPassword.tsx` calls website endpoint from admin — mixed responsibility | `admin-panel/components/ForgotPassword.tsx` |
-| 6.8 | 🟢 LOW | No `basePath` config — hardcoded paths would break on subpath deployment | `admin-panel/next.config.ts` |
-| 6.9 | 🟢 LOW | CSP `connect-src` doesn't include backend URL — fragile if rewrites removed | `web/next.config.ts` |
-| 6.10 | 🟢 LOW | Sitemap uses relative API URLs — fails on cold build/export | `web/src/app/sitemap.ts` |
+| 7.1.1 | 🔴 HIGH | No account lockout — IP-based rate limiting only | `api/src/middleware/rateLimit.ts` |
+| 7.9.5 | 🔴 HIGH | Product ratings not recalculated after review creation | `api/src/controller/web/review.controller.ts` |
+| 7.1.2 | 🟠 MEDIUM | Dual cookies (httpOnly + non-httpOnly) with same name | `api/src/middleware/authMiddleware.ts` |
+| 7.2.1 | 🟠 MEDIUM | Inconsistent response format in order controller | `api/src/controller/web/order.controller.ts` |
+| 7.2.2 | 🟠 MEDIUM | User cancellation too restrictive for paid/confirmed orders | `api/src/controller/web/order.controller.ts` |
+| 7.2.3 | 🟠 MEDIUM | Webhook processing has no retry mechanism | `api/src/controller/web/order.controller.ts` |
+| 7.3.1 | 🟠 MEDIUM | Cart remove/clear don't use transactions | `api/src/controller/web/cart.controller.ts` |
+| 7.4.1 | 🟠 MEDIUM | No global error handler middleware | `api/src/server.ts` |
+| 7.4.2 | 🟠 MEDIUM | No 404 handler at end of middleware stack | `api/src/server.ts` |
+| 7.5.1 | 🟠 MEDIUM | No magic-byte verification for uploaded files | `api/src/middleware/uploadMiddleware.ts` |
+| 7.6.1 | 🟠 MEDIUM | Single email provider with no failover | `api/src/lib/nodemailer.ts` |
+| 7.8.1 | 🟠 MEDIUM | In-memory job queue — no persistence, no retry | `api/src/lib/jobQueue.ts` |
+| 7.1.4 | 🟢 LOW | Email verification not required for login | `api/src/controller/web/user.controller.ts` |
+| 7.2.4 | 🟢 LOW | Stock restoration in cancelOrder is fire-and-forget | `api/src/controller/web/order.controller.ts` |
+| 7.4.4 | 🟢 LOW | body-sanitizer strips $ from keys (intentional but limiting) | `api/src/server.ts` |
+| 7.5.2 | 🟢 LOW | Sharp processing could be DoS vector (mitigated by 5MB limit) | `api/src/lib/cloudflare.ts` |
+| 7.7.1 | 🟢 LOW | Single-process cache doesn't scale horizontally | `api/src/lib/cache.ts` |
 
-**Top Fix Priority:** Fix the missing `/` in `web/next.config.ts` rewrite destination (6.1) — this affects all 33+ API call sites on the website.
+### Clean / No Issues Found:
+
+| Module | Status |
+|--------|:------:|
+| FAQ controller | ✅ Clean |
+| Testimonial controller | ✅ Clean |
+| Logo controller | ✅ Clean |
+| Why Choose Us controller | ✅ Clean |
+| Color controller (web) | ✅ Clean |
+| Material controller (web) | ✅ Clean |
+| Banner controller (web) | ✅ Clean |
+| Nav controller | ✅ Clean |
+| Product FAQ controller | ✅ Clean |
+| Contact controller | 🟢 Not fully inspected — appears clean |
+| Coupon controller | 🟢 Not fully inspected — appears clean |
+| Refresh token system | ✅ Clean |
+| bcrypt password hashing | ✅ Clean |
+| Turnstile verification | ✅ Clean |
+| Rate limiters | ✅ Clean |
+| CSRF protection | ✅ Clean |
+| NoSQL injection sanitizer | ✅ Clean |
+
+---
+
+## Updated Summary
+
+| Severity | Sections 1-6 | Section 7 | **Total** |
+|----------|:------------:|:---------:|:---------:|
+| 🔴 High | 14 | 2 | **16** |
+| 🟠 Medium | 17 | 11 | **28** |
+| 🟢 Low | 11 | 5 | **16** |
+| **Total** | **42** | **18** | **60** |
+
+### Top New Critical Items from Section 7
+
+1. **Auth: No account lockout** (7.1.1) — IP-only rate limiting doesn't protect against distributed brute-force attacks on admin accounts.
+2. **Reviews: Ratings not recalculated** (7.9.5) — Product star ratings show stale data after new reviews are added.
+3. **Middleware: No global error handler** (7.4.1) — Unhandled async errors could crash the server or leak stack traces.
+4. **Auth: Dual cookies with same name** (7.1.2) — httpOnly cookie could be overwritten by non-httpOnly variant.
+5. **Queue: No persistence** (7.8.1) — Critical jobs (email, stock restoration) lost on server restart.

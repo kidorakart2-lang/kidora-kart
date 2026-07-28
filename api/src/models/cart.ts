@@ -25,7 +25,7 @@ const cartSchema = new Schema(
         color: {
           type: Schema.Types.ObjectId,
           ref: "colors",
-          required: true,
+          default: null,
         },
       },
     ],
