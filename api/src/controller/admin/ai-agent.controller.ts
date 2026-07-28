@@ -73,10 +73,9 @@ const STREAM_TIMEOUT_MS = 300_000;
  * rejects. This helper flattens text parts into a plain string and strips
  * dynamic-tool parts that are internal to the AI SDK UI streaming format.
  */
-function convertToModelFormat(messages: UIMessage[]): {
-  role: "user" | "assistant";
-  content: string;
-}[] {
+function convertToModelFormat(
+  messages: UIMessage[],
+): { role: "user" | "assistant"; content: string }[] {
   return messages
     .filter((m) => m.role === "user" || m.role === "assistant")
     .map((m) => {

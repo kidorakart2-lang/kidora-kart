@@ -24,13 +24,11 @@ const SKELETON_LINES = [
 export function StreamSkeleton() {
   return (
     <div className="flex gap-3 group">
-      {/* Bot avatar with animated glow */}
+      {/* Bot avatar with static glow */}
       <div className="relative shrink-0 mt-1">
         <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-chart-4 flex items-center justify-center shadow-lg shadow-primary/30">
           <Bot className="h-3.5 w-3.5 text-primary-foreground" />
         </div>
-        {/* Pulsing ring around avatar */}
-        <div className="absolute -inset-1 rounded-full bg-primary/20 animate-ping pointer-events-none" />
       </div>
 
       {/* Skeleton bubble */}

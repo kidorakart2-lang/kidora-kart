@@ -154,7 +154,7 @@ const rateLimiters: RateLimiters = {
   aiAgentChat: rateLimit({
     ...defaults,
     windowMs: 15 * 60 * 1000,
-    max: 15,
+    max: 30,
     message: jsonMessage("AI agent: too many requests, please try again later"),
   }),
 

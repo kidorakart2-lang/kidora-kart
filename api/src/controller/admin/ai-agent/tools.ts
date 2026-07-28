@@ -538,3 +538,24 @@ export const agentTools: Record<string, ToolDefinition> = {
     },
   },
 };
+
+/**
+ * Wrap all tool execute functions to strip non-JSON-serializable types
+ * (MongoDB ObjectIds, Date instances, etc.) from return values.
+ *
+ * The AI SDK's internal tool-call loop validates tool results against the
+ * model provider's schema before sending them back to the model. MongoDB
+ * ObjectIds (from .lean() or ._id) are not valid in the provider's schema
+ * and cause AI_InvalidPromptError / TypeValidationError.
+ *
+ * JSON.parse(JSON.stringify(result)) recursively converts ObjectIds,
+ * Dates, Buffers, and Maps to their plain JSON equivalents.
+ */
+for (const key of Object.keys(agentTools)) {
+  const tool = agentTools[key]!;
+  const originalExecute = tool.execute;
+  tool.execute = async (args: Record<string, unknown>) => {
+    const result = await originalExecute(args);
+    return JSON.parse(JSON.stringify(result));
+  };
+}

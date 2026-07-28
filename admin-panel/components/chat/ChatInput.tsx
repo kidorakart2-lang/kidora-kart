@@ -173,7 +173,7 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
             <button
               type="button"
               onClick={onStop}
-              className="h-8 w-8 flex items-center justify-center rounded-lg bg-destructive/80 hover:bg-destructive text-destructive-foreground transition-colors flex-shrink-0 animate-pulse backdrop-blur-sm"
+              className="h-8 w-8 flex items-center justify-center rounded-lg bg-destructive/80 hover:bg-destructive text-destructive-foreground transition-colors flex-shrink-0 backdrop-blur-sm"
               title="Stop generating"
             >
               <StopCircle className="h-4 w-4" />

@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
 import {
+  ChevronDown,
   History,
   MessageSquare,
   PanelLeftClose,
@@ -105,6 +106,9 @@ interface HistorySidebarProps {
   total?: number;
   isLoading: boolean;
   isEmpty: boolean;
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
+  onLoadMore?: () => void;
   activeKey: string;
   deletingId: string | null;
   onLoadConversation: (item: HistoryItem) => void;
@@ -119,6 +123,9 @@ export function HistorySidebar({
   total,
   isLoading,
   isEmpty,
+  hasMore,
+  isLoadingMore,
+  onLoadMore,
   activeKey,
   deletingId,
   onLoadConversation,
@@ -182,7 +189,8 @@ export function HistorySidebar({
                   </p>
                 </div>
               ) : (
-                <div className="space-y-1">
+                <>
+                  <div className="space-y-1">
                   {items.map((item) => {
                     const isActive = activeKey === item._id;
                     const isDeleting = deletingId === item._id;
@@ -268,7 +276,24 @@ export function HistorySidebar({
                       </div>
                     );
                   })}
-                </div>
+                  </div>
+                  {hasMore && (
+                    <div className="pt-2 pb-1 px-1">
+                      <button
+                        onClick={onLoadMore}
+                        disabled={isLoadingMore}
+                        className="w-full flex items-center justify-center gap-1.5 text-xs text-sidebar-foreground/60 hover:text-sidebar-foreground bg-sidebar-accent/50 hover:bg-sidebar-accent rounded-lg px-3 py-2 transition-colors"
+                      >
+                        {isLoadingMore ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <ChevronDown className="h-3 w-3" />
+                        )}
+                        {isLoadingMore ? "Loading..." : "Load more"}
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 

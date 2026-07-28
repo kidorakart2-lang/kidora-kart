@@ -66,18 +66,7 @@ export const ChatMessage = memo(function ChatMessage({ message, isLastAssistant,
             <p className="text-sm whitespace-pre-wrap leading-relaxed">{textContent}</p>
           ) : (
             <>
-              {streaming && isLastAssistant && !textContent && (
-                <div className="flex items-center gap-1.5 mb-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                  <span className="text-[10px] text-primary font-medium">
-                    Generating...
-                  </span>
-                </div>
-              )}
               <MarkdownMessage content={textContent} />
-              {isLastAssistant && streaming && textContent && (
-                <span className="inline-block w-1.5 h-4 bg-primary ml-0.5 rounded-sm animate-pulse align-text-bottom" />
-              )}
             </>
           )}
         </div>

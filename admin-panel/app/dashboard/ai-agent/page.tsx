@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { useAiChat } from "@/hooks/use-ai-chat";
@@ -136,14 +136,30 @@ export default function AiAgentPage() {
     staleTime: 60_000,
   });
 
-  const { data: historyData, isLoading: historyLoading } = useQuery<{
+  const {
+    data: historyPages,
+    isLoading: historyLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<{
     items: AiHistoryItem[];
     pagination: { total: number; page: number; totalPages: number };
   }>({
     queryKey: ["ai-agent-history"],
-    queryFn: () => api.get("/api/admin/ai-agent/history"),
+    queryFn: ({ pageParam }) =>
+      api.get(`/api/admin/ai-agent/history?page=${pageParam}&limit=20`),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.pagination.page < lastPage.pagination.totalPages
+        ? lastPage.pagination.page + 1
+        : undefined,
     staleTime: 30_000,
   });
+
+  const historyItems = historyPages?.pages.flatMap((p) => p.items) ?? [];
+  const historyTotal = historyPages?.pages[0]?.pagination.total;
+  const isHistoryEmpty = historyItems.length === 0;
 
   useEffect(() => {
     if (selectedProvider) localStorage.setItem("ai-agent-provider", selectedProvider);
@@ -230,9 +246,6 @@ export default function AiAgentPage() {
     inputRef.current?.focus();
   };
 
-  const historyItems = historyData?.items ?? [];
-  const isHistoryEmpty = historyItems.length === 0;
-
   return (
     <div className="h-dvh w-screen overflow-hidden bg-background">
       <div className="h-full w-full flex">
@@ -240,9 +253,12 @@ export default function AiAgentPage() {
           show={showHistory}
           onClose={() => setShowHistory(false)}
           items={historyItems}
-          total={historyData?.pagination.total}
+          total={historyTotal}
           isLoading={historyLoading}
           isEmpty={isHistoryEmpty}
+          hasMore={hasNextPage}
+          isLoadingMore={isFetchingNextPage}
+          onLoadMore={() => fetchNextPage()}
           activeKey={conversationKey}
           deletingId={deletingId}
           onLoadConversation={loadHistoryConversation}
@@ -266,7 +282,6 @@ export default function AiAgentPage() {
                 AI Agent
                 {isStreaming && (
                   <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-chart-3 bg-chart-3/15 backdrop-blur-sm px-2 py-0.5 rounded-full border border-chart-3/30">
-                    <span className="w-1.5 h-1.5 rounded-full bg-chart-3 animate-pulse" />
                     {status === "submitted" ? "Connecting..." : "Streaming"}
                   </span>
                 )}
@@ -322,6 +337,7 @@ export default function AiAgentPage() {
                     onInputChange={setInput}
                     onSend={handleSend}
                     onStop={stop}
+                    onRegenerate={regenerate}
                     isStreaming={isStreaming}
                     providers={providers}
                     selectedProvider={selectedProvider}
@@ -395,6 +411,7 @@ export default function AiAgentPage() {
                   onInputChange={setInput}
                   onSend={handleSend}
                   onStop={stop}
+                  onRegenerate={regenerate}
                   isStreaming={isStreaming}
                   providers={providers}
                   selectedProvider={selectedProvider}
