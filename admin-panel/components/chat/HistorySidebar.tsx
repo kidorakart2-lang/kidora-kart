@@ -85,11 +85,11 @@ function HistorySkeleton() {
       {[1, 2, 3, 4].map((i) => (
         <div key={i} className="animate-pulse rounded-xl p-3">
           <div className="flex gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-white/10 flex-shrink-0" />
+            <div className="w-8 h-8 rounded-lg bg-sidebar-accent flex-shrink-0" />
             <div className="flex-1 space-y-2">
-              <div className="h-3.5 bg-white/10 rounded w-3/4" />
-              <div className="h-2.5 bg-white/5 rounded w-1/2" />
-              <div className="h-2 bg-white/5 rounded w-1/4" />
+              <div className="h-3.5 bg-sidebar-accent rounded w-3/4" />
+              <div className="h-2.5 bg-sidebar-accent/50 rounded w-1/2" />
+              <div className="h-2 bg-sidebar-accent/50 rounded w-1/4" />
             </div>
           </div>
         </div>
@@ -135,20 +135,20 @@ export function HistorySidebar({
           transition={{ duration: 0.2, ease: "easeInOut" }}
           className="flex-shrink-0 overflow-hidden"
         >
-          <div className="w-[300px] h-full flex flex-col backdrop-blur-2xl bg-zinc-950/50 border-r border-white/10 shadow-2xl">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-              <h2 className="text-sm font-semibold flex items-center gap-2 text-zinc-200">
-                <History className="h-4 w-4 text-zinc-400" />
+          <div className="w-[300px] h-full flex flex-col backdrop-blur-2xl bg-sidebar border-r border-sidebar-border shadow-2xl">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-sidebar-border">
+              <h2 className="text-sm font-semibold flex items-center gap-2 text-sidebar-foreground">
+                <History className="h-4 w-4 text-sidebar-foreground/60" />
                 Chat History
                 {total !== undefined && (
-                  <span className="text-[10px] font-normal text-zinc-400 bg-white/10 px-1.5 py-0.5 rounded-full">
+                  <span className="text-[10px] font-normal text-sidebar-foreground/50 bg-sidebar-accent px-1.5 py-0.5 rounded-full">
                     {total}
                   </span>
                 )}
               </h2>
               <button
                 onClick={onClose}
-                className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-white/10 transition-colors text-zinc-400"
+                className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-sidebar-accent transition-colors text-sidebar-foreground/60"
                 title="Close sidebar"
               >
                 <PanelLeftClose className="h-4 w-4" />
@@ -160,7 +160,7 @@ export function HistorySidebar({
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full text-xs h-9 gap-1.5 bg-white/5 border-white/10 hover:bg-white/20 backdrop-blur-sm"
+                className="w-full text-xs h-9 gap-1.5 bg-sidebar-accent border-sidebar-border hover:bg-sidebar-accent/80 backdrop-blur-sm"
                 onClick={onNewChat}
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -173,11 +173,11 @@ export function HistorySidebar({
                 <HistorySkeleton />
               ) : isEmpty ? (
                 <div className="text-center py-16 px-6">
-                  <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mx-auto mb-4">
-                    <MessageSquare className="h-6 w-6 text-zinc-400" />
+                  <div className="w-12 h-12 rounded-xl bg-sidebar-accent flex items-center justify-center mx-auto mb-4">
+                    <MessageSquare className="h-6 w-6 text-sidebar-foreground/60" />
                   </div>
-                  <p className="text-sm font-medium text-zinc-300 mb-1">No conversations yet</p>
-                  <p className="text-xs text-zinc-400">
+                  <p className="text-sm font-medium text-sidebar-foreground mb-1">No conversations yet</p>
+                  <p className="text-xs text-sidebar-foreground/60">
                     Start chatting and your conversations will appear here.
                   </p>
                 </div>
@@ -195,8 +195,8 @@ export function HistorySidebar({
                         className={cn(
                           "group relative rounded-xl transition-all duration-150",
                           isActive
-                            ? "bg-white/10 ring-1 ring-white/20"
-                            : "hover:bg-white/5",
+                            ? "bg-sidebar-accent ring-1 ring-sidebar-ring"
+                            : "hover:bg-sidebar-accent/50",
                         )}
                       >
                         <button
@@ -208,17 +208,17 @@ export function HistorySidebar({
                             <div
                               className={cn(
                                 "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors",
-                                isActive
-                                  ? "bg-blue-500/20"
-                                  : "bg-white/10 group-hover:bg-white/20",
+                              isActive
+                                ? "bg-primary/20"
+                                : "bg-sidebar-accent group-hover:bg-sidebar-accent/80",
                               )}
                             >
                               <MessageSquare
                                 className={cn(
                                   "h-4 w-4",
                                   isActive
-                                    ? "text-blue-400"
-                                    : "text-zinc-400",
+                                    ? "text-primary"
+                                    : "text-sidebar-foreground/60",
                                 )}
                               />
                             </div>
@@ -228,18 +228,18 @@ export function HistorySidebar({
                                 className={cn(
                                   "text-sm font-medium leading-snug truncate",
                                   isActive
-                                    ? "text-blue-300"
-                                    : "text-zinc-200",
+                                    ? "text-primary"
+                                    : "text-sidebar-foreground",
                                 )}
                               >
                                 {title}
                               </p>
-                              <p className="text-xs text-zinc-400 truncate mt-1 leading-relaxed">
+                              <p className="text-xs text-sidebar-foreground/60 truncate mt-1 leading-relaxed">
                                 {subtitle}
                               </p>
                               <div className="flex items-center gap-1.5 mt-1.5">
-                                <Clock className="h-3 w-3 text-zinc-400" />
-                                <span className="text-[10px] text-zinc-400">
+                                <Clock className="h-3 w-3 text-sidebar-foreground/60" />
+                                <span className="text-[10px] text-sidebar-foreground/60">
                                   {formatTime(item.createdAt)}
                                 </span>
                               </div>
@@ -253,8 +253,8 @@ export function HistorySidebar({
                           className={cn(
                             "absolute top-2 right-2 h-7 w-7 flex items-center justify-center rounded-lg transition-all",
                             "opacity-0 group-hover:opacity-100 focus:opacity-100",
-                            "hover:bg-red-500/20",
-                            "text-zinc-400 hover:text-red-400",
+                            "hover:bg-destructive/20",
+                            "text-sidebar-foreground/60 hover:text-destructive",
                             isDeleting && "opacity-100",
                           )}
                           title="Delete conversation"
@@ -273,8 +273,8 @@ export function HistorySidebar({
             </div>
 
             {total !== undefined && total > 0 && (
-              <div className="px-4 py-2 border-t border-white/10">
-                <p className="text-[10px] text-center text-zinc-400">
+              <div className="px-4 py-2 border-t border-sidebar-border">
+                <p className="text-[10px] text-center text-sidebar-foreground/60">
                   Showing {items.length} of {total} conversations
                 </p>
               </div>

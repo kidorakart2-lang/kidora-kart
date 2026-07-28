@@ -75,7 +75,7 @@ export function ToolCallIndicators({ toolInvocations }: ToolCallIndicatorsProps)
             className={`flex items-center gap-2 backdrop-blur-xl border rounded-xl px-3 py-1.5 shadow-lg text-xs ${className}`}
           >
             {icon}
-            <span className="text-zinc-300">{text}</span>
+            <span className="text-foreground">{text}</span>
           </div>
         );
       })}

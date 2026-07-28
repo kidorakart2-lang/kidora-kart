@@ -2,7 +2,6 @@ import type { Request, Response } from "express";
 import {
   streamText,
   isStepCount,
-  convertToModelMessages,
   toUIMessageStream,
   pipeUIMessageStreamToResponse,
 } from "ai";
@@ -66,6 +65,52 @@ export const deleteConversation = async (req: Request, res: Response): Promise<R
 
 const STREAM_TIMEOUT_MS = 300_000;
 
+/**
+ * Convert UIMessage[] to the format expected by streamText / the model provider.
+ *
+ * The AI SDK's own convertToModelMessages was producing messages with
+ * `content` as an array (from UIMessage.parts) which OpenRouter's provider
+ * rejects. This helper flattens text parts into a plain string and strips
+ * dynamic-tool parts that are internal to the AI SDK UI streaming format.
+ */
+function convertToModelFormat(messages: UIMessage[]): {
+  role: "user" | "assistant";
+  content: string;
+}[] {
+  return messages
+    .filter((m) => m.role === "user" || m.role === "assistant")
+    .map((m) => {
+      // Flatten parts into plain text. The OpenRouter-free model and similar
+      // providers only accept `content` as a plain string (not an array).
+      const textParts: string[] = [];
+      for (const p of m.parts ?? []) {
+        if (p.type === "text") {
+          textParts.push(p.text);
+        } else if (p.type === "tool-call") {
+          // Serialise tool calls as pseudo-text so the model can "see" them
+          const tc = p as unknown as { toolName: string; args: unknown };
+          textParts.push(
+            `[Tool call: ${tc.toolName}(${JSON.stringify(tc.args)})]`,
+          );
+        } else if (p.type === "tool-result") {
+          // Truncate large results to avoid blowing the context window
+          const tr = p as unknown as { result: unknown };
+          const result =
+            typeof tr.result === "object"
+              ? JSON.stringify(tr.result).slice(0, 500)
+              : String(tr.result).slice(0, 500);
+          textParts.push(`[Tool result: ${result}]`);
+        }
+        // dynamic-tool parts — AI SDK internal, skip
+      }
+      return {
+        role: m.role as "user" | "assistant",
+        content: textParts.join("\n"),
+      };
+    })
+    .filter((m) => m.content.length > 0);
+}
+
 export const chat = async (req: Request, res: Response): Promise<void> => {
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => {
@@ -104,7 +149,7 @@ export const chat = async (req: Request, res: Response): Promise<void> => {
     const result = streamText({
       model,
       system: SYSTEM_PROMPT,
-      messages: await convertToModelMessages(messages),
+      messages: convertToModelFormat(messages),
       tools: agentTools,
       stopWhen: isStepCount(20),
       temperature: 0.2,
@@ -121,17 +166,23 @@ export const chat = async (req: Request, res: Response): Promise<void> => {
         const text = finalMessages
           .flatMap((m) => m.parts?.filter((p) => p.type === "text").map((p) => (p as { text: string }).text))
           .join("") || "";
+        const promptText = messages[0]?.parts?.filter((p) => p.type === "text").map((p) => (p as { text: string }).text).join("").slice(0, 500) || "";
         const historyData = {
           page: "ai-agent" as const,
           adminId,
-          prompt: messages[0]?.parts?.filter((p) => p.type === "text").map((p) => (p as { text: string }).text).join("").slice(0, 500) || "",
+          prompt: promptText,
           response: text.slice(0, 10000) || "...",
           messages: finalMessages,
+          conversationId: conversationId || null,
         };
 
         const saveConversation = () =>
           conversationId
-            ? AiResponse.findByIdAndUpdate(conversationId, { $set: historyData })
+            ? AiResponse.findOneAndUpdate(
+                { conversationId },
+                { $set: historyData },
+                { upsert: true, new: true },
+              )
             : new AiResponse(historyData).save();
 
         try {
@@ -147,13 +198,14 @@ export const chat = async (req: Request, res: Response): Promise<void> => {
       },
     });
 
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
     res.setHeader("Cache-Control", "no-cache, no-transform");
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
 
-    pipeUIMessageStreamToResponse({ response: res, stream: uiStream });
-    Promise.resolve(result.consumeStream()).catch(() => {});
+    // pipeUIMessageStreamToResponse writes the AI SDK data-format and calls
+    // res.end() when done. Await it so the handler stays alive for the whole
+    // streaming session — otherwise the finally block would tear things down.
+    await pipeUIMessageStreamToResponse({ response: res, stream: uiStream });
   } catch (err) {
     logger.error({ err }, "AI agent chat error");
     if (!res.headersSent) {
@@ -161,6 +213,7 @@ export const chat = async (req: Request, res: Response): Promise<void> => {
     }
   } finally {
     clearTimeout(timeoutId);
-    abortController.abort();
+    // No abortController.abort() — the controller was only needed for the
+    // timeout. Calling it here would kill the stream response.
   }
 };

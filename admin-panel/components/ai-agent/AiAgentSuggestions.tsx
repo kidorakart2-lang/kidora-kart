@@ -34,9 +34,9 @@ export function AiAgentSuggestions({ onSuggestion }: AiAgentSuggestionsProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.4 + i * 0.08 }}
           onClick={() => onSuggestion(s.prompt)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-full backdrop-blur-xl bg-white/5 border border-white/10 text-sm text-zinc-300 hover:bg-white/10 hover:border-white/20 transition-all shadow-lg hover:shadow-xl active:scale-95"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-full backdrop-blur-xl bg-card/50 border border-border text-sm text-foreground hover:bg-accent hover:border-border/80 transition-all shadow-lg hover:shadow-xl active:scale-95"
         >
-          <s.icon className="h-4 w-4 text-zinc-400" />
+          <s.icon className="h-4 w-4 text-muted-foreground" />
           {s.label}
         </motion.button>
       ))}

@@ -314,7 +314,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
             : `Add ${data.name} to wishlist`
         }
         aria-pressed={!!isWishlisted}
-        className={`absolute top-3 right-3 z-20 w-9 h-9 rounded-full bg-background/90 backdrop-blur-sm border border-border
+        className={`absolute top-3 right-3 z-30 w-9 h-9 rounded-full bg-background/90 backdrop-blur-sm border border-border
                  hover:bg-background flex items-center justify-center
                  transition-all duration-200 shadow-md hover:shadow-lg
                  hover:scale-110 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2

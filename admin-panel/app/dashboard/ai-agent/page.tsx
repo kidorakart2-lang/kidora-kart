@@ -12,8 +12,9 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { HistorySidebar } from "@/components/chat/HistorySidebar";
 import { AiAgentSuggestions } from "@/components/ai-agent/AiAgentSuggestions";
 import { ToolCallIndicators } from "@/components/ai-agent/ToolCallIndicators";
+import { StreamSkeleton } from "@/components/chat/StreamSkeleton";
 import { AlertDialogUse } from "@/components/alert-dialog";
-import { Sparkles, PanelLeftOpen, Bot } from "lucide-react";
+import { Sparkles, PanelLeftOpen } from "lucide-react";
 import type { AiHistoryItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -65,6 +66,7 @@ export default function AiAgentPage() {
     stop,
     clearError,
     isStreaming,
+    regenerate,
   } = useAiChat({
     api: "/api/admin/ai-agent/chat",
     headers: authHeaders,
@@ -166,8 +168,10 @@ export default function AiAgentPage() {
   };
 
   const handleSuggestion = (prompt: string) => {
+    if (isStreaming) return; // Guard: already streaming
     setInput(prompt);
     setTimeout(() => {
+      if (isStreaming) return; // Re-check: stream may have started since the guard
       isAtBottomRef.current = true;
       sendChatMessage({ text: prompt });
       setInput("");
@@ -230,7 +234,7 @@ export default function AiAgentPage() {
   const isHistoryEmpty = historyItems.length === 0;
 
   return (
-    <div className="h-dvh w-screen overflow-hidden bg-[#0F172A]">
+    <div className="h-dvh w-screen overflow-hidden bg-background">
       <div className="h-full w-full flex">
         <HistorySidebar
           show={showHistory}
@@ -247,34 +251,34 @@ export default function AiAgentPage() {
         />
 
         <div className="flex-1 flex flex-col min-w-0 min-h-0">
-          <header className="flex items-center justify-between px-6 py-3 border-b border-white/10 backdrop-blur-2xl bg-zinc-950/30 z-10 shrink-0 shadow-lg">
+          <header className="flex items-center justify-between px-6 py-3 border-b border-border backdrop-blur-2xl bg-card/50 z-10 shrink-0 shadow-lg">
             <div className="flex items-center gap-3">
               {!showHistory && (
                 <button
                   onClick={() => setShowHistory(true)}
-                  className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-white/10 transition-colors text-zinc-400"
+                  className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-accent transition-colors text-muted-foreground"
                 >
                   <PanelLeftOpen className="h-4 w-4" />
                 </button>
               )}
-              <h1 className="text-base font-semibold flex items-center gap-2 text-zinc-200">
-                <Sparkles className="h-4 w-4 text-blue-500" />
+              <h1 className="text-base font-semibold flex items-center gap-2 text-foreground">
+                <Sparkles className="h-4 w-4 text-primary" />
                 AI Agent
                 {isStreaming && (
-                  <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-amber-300 bg-amber-500/15 backdrop-blur-sm px-2 py-0.5 rounded-full border border-amber-400/30">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-chart-3 bg-chart-3/15 backdrop-blur-sm px-2 py-0.5 rounded-full border border-chart-3/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-chart-3 animate-pulse" />
                     {status === "submitted" ? "Connecting..." : "Streaming"}
                   </span>
                 )}
                 {status === "error" && (
-                  <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-red-300 bg-red-500/15 backdrop-blur-sm px-2 py-0.5 rounded-full border border-red-400/30">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                  <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-destructive bg-destructive/15 backdrop-blur-sm px-2 py-0.5 rounded-full border border-destructive/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
                     Error
                   </span>
                 )}
                 {status === "ready" && messages.length > 0 && (
-                  <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-emerald-300 bg-emerald-500/15 backdrop-blur-sm px-2 py-0.5 rounded-full border border-emerald-400/30">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-chart-1 bg-chart-1/15 backdrop-blur-sm px-2 py-0.5 rounded-full border border-chart-1/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-chart-1" />
                     Ready
                   </span>
                 )}
@@ -298,10 +302,10 @@ export default function AiAgentPage() {
                   transition={{ duration: 0.5, delay: 0.1 }}
                   className="text-center mb-8"
                 >
-                  <h2 className="text-3xl font-semibold text-zinc-100 mb-2">
+                  <h2 className="text-3xl font-semibold text-foreground mb-2">
                     Where should we begin?
                   </h2>
-                  <p className="text-sm text-zinc-400">
+                  <p className="text-sm text-muted-foreground">
                     I can help you manage your store — create products, FAQs, and more.
                   </p>
                 </motion.div>
@@ -355,27 +359,16 @@ export default function AiAgentPage() {
                     <ToolCallIndicators toolInvocations={toolInvocations} />
 
                     {isStreaming && toolInvocations.length === 0 && (
-                      <div className="flex gap-3">
-                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shrink-0 mt-1 shadow-lg shadow-blue-500/20">
-                          <Bot className="h-3.5 w-3.5 text-white" />
-                        </div>
-                        <div className="backdrop-blur-xl bg-zinc-900/50 border border-white/10 rounded-2xl rounded-bl-sm px-4 py-3 shadow-lg">
-                          <div className="flex gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-                            <span className="w-2 h-2 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-                            <span className="w-2 h-2 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: "300ms" }} />
-                          </div>
-                        </div>
-                      </div>
+                      <StreamSkeleton />
                     )}
 
                     {error && (
                       <div className="flex justify-center">
-                        <div className="backdrop-blur-xl bg-red-500/15 border border-red-400/30 rounded-lg px-4 py-3 text-center max-w-md">
-                          <p className="text-xs text-red-300 mb-2">{error.message}</p>
+                        <div className="backdrop-blur-xl bg-destructive/15 border border-destructive/30 rounded-lg px-4 py-3 text-center max-w-md">
+                          <p className="text-xs text-destructive mb-2">{error.message}</p>
                           <button
-                            onClick={() => { clearError(); }}
-                            className="inline-flex items-center gap-1 text-xs bg-red-600/80 hover:bg-red-700 text-white px-3 py-1.5 rounded transition-colors backdrop-blur-sm"
+                            onClick={() => { clearError(); regenerate(); }}
+                            className="inline-flex items-center gap-1 text-xs bg-destructive/80 hover:bg-destructive text-destructive-foreground px-3 py-1.5 rounded transition-colors backdrop-blur-sm"
                           >
                             Retry
                           </button>
@@ -388,10 +381,10 @@ export default function AiAgentPage() {
                   {showScrollBtn && (
                     <button
                       onClick={() => scrollToBottom(true)}
-                      className="absolute bottom-20 right-6 h-8 w-8 rounded-full bg-zinc-800/80 border border-white/10 backdrop-blur-xl flex items-center justify-center shadow-lg hover:bg-zinc-700 transition-all z-10"
+                      className="absolute bottom-20 right-6 h-8 w-8 rounded-full bg-card border-border backdrop-blur-xl flex items-center justify-center shadow-lg hover:bg-accent transition-all z-10"
                       title="Scroll to bottom"
                     >
-                      <span className="text-zinc-400 text-lg leading-none">↓</span>
+                      <span className="text-muted-foreground text-lg leading-none">↓</span>
                     </button>
                   )}
                 </div>

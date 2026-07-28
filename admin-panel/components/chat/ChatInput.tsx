@@ -64,24 +64,16 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
       "flex items-center justify-between mb-2 px-1",
       centered && "justify-center gap-3 mb-3",
     )}>
-      {centered && (
-        <span className="text-[10px] text-zinc-400 flex items-center gap-1">
-          <Sparkles className="h-3 w-3" />
-          AI Provider
-        </span>
-      )}
-      {!centered && (
-        <span className="text-[10px] text-zinc-400 flex items-center gap-1">
-          <Sparkles className="h-3 w-3" />
-          AI Provider
-        </span>
-      )}
+      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+        <Sparkles className="h-3 w-3" />
+        AI Provider
+      </span>
       <Select
         value={selectedProvider}
         onValueChange={onProviderChange}
         disabled={isStreaming}
       >
-        <SelectTrigger className="w-auto h-6 text-[10px] gap-1 border-0 bg-white/5 hover:bg-white/10 px-2 text-zinc-300">
+        <SelectTrigger className="w-auto h-6 text-[10px] gap-1 border-0 bg-muted hover:bg-accent px-2 text-foreground">
           <SelectValue placeholder="Select" />
         </SelectTrigger>
         <SelectContent>
@@ -97,15 +89,15 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
 
   // Help text below input
   const helpText = centered ? (
-    <p className="text-[10px] text-zinc-400 text-center mt-2">
+    <p className="text-[10px] text-muted-foreground text-center mt-2">
       Press Enter to send · Shift+Enter for new line
     </p>
   ) : providers.length === 0 ? (
-    <p className="text-[10px] text-zinc-400 text-center mt-2">
+    <p className="text-[10px] text-muted-foreground text-center mt-2">
       Configure an AI provider API key to use the agent.
     </p>
   ) : providers.length > 1 && !isStreaming && !hasError ? (
-    <p className="text-[10px] text-zinc-400 text-center mt-1.5">
+    <p className="text-[10px] text-muted-foreground text-center mt-1.5">
       Press Enter to send · Shift+Enter for new line
     </p>
   ) : null;
@@ -115,7 +107,7 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
     <div className="flex items-center justify-center mt-2">
       <button
         onClick={onRegenerate}
-        className="inline-flex items-center gap-1.5 text-[10px] text-zinc-400 hover:text-zinc-200 transition-colors px-3 py-1 rounded-full hover:bg-white/10"
+        className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors px-3 py-1 rounded-full hover:bg-accent"
       >
         <RefreshCw className="h-3 w-3" />
         Regenerate response
@@ -127,8 +119,8 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
     <div className={cn(
       "flex-shrink-0",
       centered
-        ? "backdrop-blur-2xl bg-zinc-900/40 border border-white/10 rounded-2xl shadow-2xl"
-        : "backdrop-blur-2xl bg-zinc-950/30 border-t border-white/10",
+        ? "backdrop-blur-2xl bg-card/40 border border-border rounded-2xl shadow-2xl"
+        : "backdrop-blur-2xl bg-card/50 border-t border-border",
     )}>
       <div className={cn(
         "px-4 py-3",
@@ -140,12 +132,12 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
           className={cn(
             "flex gap-2 items-end backdrop-blur-xl border rounded-xl px-3 py-2 transition-all shadow-lg",
             centered
-              ? "bg-zinc-800/60 border-white/10"
-              : "bg-zinc-900/60 border-white/10",
+              ? "bg-card border-border"
+              : "bg-card border-border",
             isFocused
-              ? "ring-2 ring-blue-500/40 border-blue-400/50"
+              ? "ring-2 ring-primary/40 border-primary/50"
               : "",
-            isStreaming && "ring-1 ring-amber-500/30 border-amber-400/40",
+            isStreaming && "ring-1 ring-chart-3/30 border-chart-3/40",
           )}
         >
           <textarea
@@ -172,7 +164,7 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
             disabled={isStreaming || providers.length === 0}
             rows={1}
             className={cn(
-              "flex-1 bg-transparent border-none outline-none resize-none placeholder:text-zinc-400 disabled:opacity-50 max-h-[200px] leading-relaxed text-zinc-200",
+              "flex-1 bg-transparent border-none outline-none resize-none placeholder:text-muted-foreground disabled:opacity-50 max-h-[200px] leading-relaxed text-foreground",
               centered ? "text-base py-1" : "text-sm",
             )}
           />
@@ -181,7 +173,7 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
             <button
               type="button"
               onClick={onStop}
-              className="h-8 w-8 flex items-center justify-center rounded-lg bg-red-500/80 hover:bg-red-600 text-white transition-colors flex-shrink-0 animate-pulse backdrop-blur-sm"
+              className="h-8 w-8 flex items-center justify-center rounded-lg bg-destructive/80 hover:bg-destructive text-destructive-foreground transition-colors flex-shrink-0 animate-pulse backdrop-blur-sm"
               title="Stop generating"
             >
               <StopCircle className="h-4 w-4" />
@@ -194,8 +186,8 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
               className={cn(
                 "h-8 w-8 flex items-center justify-center rounded-lg transition-all flex-shrink-0 backdrop-blur-sm",
                 canSend
-                  ? "bg-blue-600/80 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 hover:shadow-xl active:scale-95"
-                  : "bg-white/5 text-zinc-500 cursor-not-allowed",
+                  ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl active:scale-95"
+                  : "bg-muted text-muted-foreground cursor-not-allowed",
               )}
               title="Send message"
             >

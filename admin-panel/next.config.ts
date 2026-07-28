@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "pub-50951b7722e041bebc7b86688a160a35.r2.dev",
+        hostname: "pub-fd92fbed57584d69b870af038bded473.r2.dev",
       },
       {
         protocol: "https",
@@ -21,8 +21,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "placehold.co"
-      }
+        hostname: "placehold.co",
+      },
+      {
+        protocol: "https",
+        hostname: "*.r2.cloudflarestorage.com",
+      },
     ],
     deviceSizes: [360, 640, 750, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
