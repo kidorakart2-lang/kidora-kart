@@ -32,12 +32,13 @@ async function setSessionCookies(
   // httpOnly cookie for server-side auth
   res.cookie("adminToken", accessToken, accessTokenCookieOptions("admin"));
   // non-httpOnly cookie so client-side js-cookie sees the new token
-  res.cookie("adminToken", accessToken, clientAccessTokenCookieOptions());
+  res.cookie("adminToken_client", accessToken, clientAccessTokenCookieOptions());
   res.cookie("adminRefreshToken", refresh.tokenValue, refreshTokenCookieOptions(refresh.expiresAt));
 }
 
 function clearSessionCookiesAdmin(res: Response): void {
   res.cookie("adminToken", "", clearAccessTokenCookie());
+  res.cookie("adminToken_client", "", clearAccessTokenCookie());
   res.cookie("adminRefreshToken", "", clearRefreshTokenCookie());
 }
 
@@ -53,18 +54,53 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
     const user = await userModel.findOne({ email, role: "admin" })
-      .select("_id email password role name")
+      .select("_id email password role name failedLoginAttempts lockedUntil")
       .lean();
     if (!user) {
       res.status(401).json({ _status: false, _message: "Invalid credentials" });
       return;
     }
 
+    // ── Account lockout check ──
+    if (user.lockedUntil && new Date(user.lockedUntil) > new Date()) {
+      const remainingMs = new Date(user.lockedUntil).getTime() - Date.now();
+      const remainingMin = Math.ceil(remainingMs / 60000);
+      res.status(429).json({
+        _status: false,
+        _message: `Account temporarily locked due to too many failed login attempts. Please try again in ${remainingMin} minute${remainingMin > 1 ? "s" : ""}.`,
+      });
+      return;
+    }
+
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) {
+      // Increment failed attempts and set lockout if threshold reached
+      const newAttempts = (user.failedLoginAttempts ?? 0) + 1;
+      const update: Record<string, unknown> = { failedLoginAttempts: newAttempts };
+
+      if (newAttempts >= 5) {
+        const durations: Record<number, number> = {
+          5: 60 * 1000,        // 1 minute
+          6: 5 * 60 * 1000,     // 5 minutes
+          7: 5 * 60 * 1000,
+          8: 30 * 60 * 1000,   // 30 minutes
+          9: 30 * 60 * 1000,
+        };
+        const lockMs = newAttempts >= 10 ? 2 * 60 * 60 * 1000 : (durations[newAttempts] ?? 5 * 60 * 1000);
+        update.lockedUntil = new Date(Date.now() + lockMs);
+      }
+
+      await userModel.updateOne({ _id: user._id }, { $set: update });
+
       res.status(401).json({ _status: false, _message: "Invalid credentials" });
       return;
     }
+
+    // Successful login — reset lockout fields
+    await userModel.updateOne(
+      { _id: user._id },
+      { $set: { failedLoginAttempts: 0, lockedUntil: null } },
+    );
 
     await setSessionCookies(res, user);
 

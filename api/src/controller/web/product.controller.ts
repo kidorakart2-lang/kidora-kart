@@ -268,16 +268,7 @@ export const getProductByFilter = async (
       const effectiveSearchWords =
         searchWords.length > 0 ? searchWords : [trimmedSearch];
 
-      const regexPatterns = effectiveSearchWords.map((word) => ({
-        $or: [
-          { name: { $regex: word, $options: "i" } },
-          { slug: { $regex: word, $options: "i" } },
-          { description: { $regex: word, $options: "i" } },
-          { tags: { $regex: word, $options: "i" } },
-        ],
-      }));
-
-      query.$or = regexPatterns.flatMap((p) => p.$or);
+      query.$text = { $search: effectiveSearchWords.join(" ") };
     }
 
     if (isFeatured !== undefined) query.isFeatured = isFeatured;
@@ -706,37 +697,29 @@ export const getBySearch = async (
     }
 
     const trimmedSearch = search.trim();
+    // Remove very short tokens and common stop words so $text sees cleaner input
     const stopWords = new Set([
       "for", "the", "a", "an", "and", "or", "of", "to", "in", "on", "with",
       "him", "her", "is", "it", "by",
     ]);
-    const searchWords = trimmedSearch
+    const cleanWords = trimmedSearch
       .split(/\s+/)
       .filter((word) => word.length > 1 && !stopWords.has(word.toLowerCase()));
 
-    const effectiveSearchWords =
-      searchWords.length > 0 ? searchWords : [trimmedSearch];
+    const searchPhrase = (cleanWords.length > 0 ? cleanWords : [trimmedSearch]).join(" ");
 
-    const regexPatterns = effectiveSearchWords.map((word) => ({
-      $or: [
-        { name: { $regex: word, $options: "i" } },
-        { slug: { $regex: word, $options: "i" } },
-        { tags: { $regex: word, $options: "i" } },
-      ],
-    }));
-
-    const query = {
-      $and: [
-        { $or: regexPatterns.flatMap((pattern) => pattern.$or) },
-        { deletedAt: null },
-        { status: "active" },
-      ],
-    };
-
-    const products = await Product.find(query)
+    const products = await Product.find(
+      {
+        $text: { $search: searchPhrase },
+        deletedAt: null,
+        status: "active",
+      },
+      // Include text relevance score for potential relevance-based sorting
+      { score: { $meta: "textScore" } },
+    )
       .populate(PRODUCT_POPULATE)
       .select(PRODUCT_SELECT)
-      .sort({ order: -1, createdAt: -1 })
+      .sort({ score: { $meta: "textScore" } })
       .limit(parsedLimit)
       .lean();
 

@@ -15,7 +15,7 @@ import Cookies from "js-cookie";
  */
 export function getAuthToken(): string | null {
   try {
-    const cookieToken = Cookies.get("userToken");
+    const cookieToken = Cookies.get("userToken_client") || Cookies.get("userToken");
     if (cookieToken) return cookieToken;
   } catch {
     // ignore
@@ -33,10 +33,13 @@ export function getAuthToken(): string | null {
  */
 export function clearAuthCookies(): void {
   const cookieOptions = { path: "/", sameSite: "lax" as const };
-  Cookies.remove("userToken", cookieOptions);
+  Cookies.remove("userToken_client", cookieOptions);
   Cookies.remove("userRefreshToken", cookieOptions);
-  Cookies.remove("adminToken", cookieOptions);
+  Cookies.remove("adminToken_client", cookieOptions);
   Cookies.remove("adminRefreshToken", cookieOptions);
+  // Clean up old cookie names in case they still exist from before the rename
+  Cookies.remove("userToken", cookieOptions);
+  Cookies.remove("adminToken", cookieOptions);
 
   // Also clear the auth slice from redux-persist so isLogin resets to false
   try {

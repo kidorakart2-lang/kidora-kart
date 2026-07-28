@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import Review from "../../models/review.js";
-import Product from "../../models/product.js";
 import { success, fail } from "../../utils/responses.js";
 import { enqueue } from "../../lib/jobQueue.js";
 
@@ -28,15 +27,7 @@ export const createReview = async (req: Request, res: Response): Promise<Respons
 
     const review = await Review.create({ userId, productId, rating, comment }); // TODO: frontend Review uses createdAt for display
 
-    enqueue(async () => {
-      const reviews = await Review.find({ productId });
-      const avgRating =
-        reviews.reduce((a, b) => a + (b.rating ?? 0), 0) / reviews.length;
-      await Product.findByIdAndUpdate(productId, {
-        rating: avgRating.toFixed(1),
-        reviewCount: reviews.length,
-      });
-    });
+    enqueue("update-rating", { productId });
 
     return success(res, review, "Review submitted successfully", 201);
   } catch (error) {

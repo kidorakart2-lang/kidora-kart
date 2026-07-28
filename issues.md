@@ -160,13 +160,10 @@ Shipping operations like create, cancel, RTO, pickup, label/invoice regeneration
 Added `unique: true` to the slug field + explicit unique index on slug.
 
 #### 2.2 No Full-Text Search Index for Product Search
-**File:** `api/src/models/product.ts`
+**Status:** ✅ Fixed July 28, 2026
+**Files:** `api/src/controller/web/product.controller.ts`, `api/src/controller/admin/adminProduct.controller.ts`
 
-Product search via `/get-by-search` uses regex matching on name/description. There's no MongoDB text index.
-
-**Risk:** Slow search performance as product catalog grows.
-
-**Recommendation:** Add a compound text index on `name`, `description`, `shortDescription`, and `tags`. Update search queries to use `$text` instead of `$regex` where possible.
+Migrated from `$regex` to MongoDB `$text` with weighted index (`name:10, tags:5, shortDescription:3, description:1`). Both `getBySearch` and `getProductByFilter` now use `$text` queries with relevance-based sorting. Admin view search also migrated. See `docs/text-search-setup.md` for setup and verification steps.
 
 #### 2.3 SKU — No Schema-Level Uniqueness Constraint
 **Status:** ✅ Fixed July 27, 2026
@@ -185,18 +182,10 @@ Changed from bare array-of-objects to typed array with `validate: max 10` limit.
 ### 🟠 Medium Priority
 
 #### 2.5 `rating` Field — No Recalculation Mechanism
-**File:** `api/src/models/product.ts`
+**Status:** ✅ Already implemented. Rating recalculates via `enqueue("update-rating", { productId })` in the `createReview` endpoint.
+**File:** `api/src/lib/jobQueue.ts`
 
-```typescript
-rating: { type: Number, default: null },
-reviewCount: { type: Number, default: 0 },
-```
-
-The `rating` and `reviewCount` fields are stored on the product document but there's no mechanism to auto-recalculate them when reviews are added/changed. The review creation endpoint (`POST /api/website/review/create`) doesn't appear to update the product's rating.
-
-**Risk:** Product ratings become stale/incorrect over time. New reviews don't update the displayed rating.
-
-**Recommendation:** When a review is created/updated/deleted, recalculate and update the product's `rating` and `reviewCount` fields.
+The `update-rating` handler re-reads all non-deleted reviews for a product, calculates the average, and updates the product's `rating` and `reviewCount` fields via a DB-backed job queue.
 
 #### 2.6 Missing Indexes for Common Queries
 **File:** `api/src/models/product.ts`
@@ -257,20 +246,10 @@ When a product is updated, there's no history of changes. Can't track what chang
 ### 🔴 High Priority
 
 #### 3.1 Section Config Uses `Mixed` Type — No Validation
-**File:** `api/src/models/homePage.ts`
+**Status:** ✅ Fixed July 28, 2026
+**File:** `api/src/controller/admin/homePage.controller.ts`
 
-```typescript
-config: { type: Schema.Types.Mixed, default: {} },
-```
-
-The `config` field accepts ANY JSON structure. There's no validation that:
-- Banner sections have required fields like `image`, `link`, `title`
-- Product slider sections have valid `productIds` or `categoryIds`
-- Any section type has the expected configuration shape
-
-**Risk:** Admins can save invalid configs that silently fail on the frontend. A corrupted section could break the entire homepage rendering.
-
-**Recommendation:** Add validation per section type in the admin controller. Use a schema validation library or manual validation in `homePage.controller.ts`.
+Added `validateSectionConfig(type, config)` with type-specific schemas for all 12 section types. Validates required fields, types (array, number, string), and nested array item shapes. Wired into `addSection`, `updateSection`, and bulk `update` — all 3 entry points reject invalid config with 400.
 
 #### 3.2 No Frontend Error Boundary for Sections
 **File:** `web/src/app/page.tsx` (and related section rendering components)
@@ -437,11 +416,10 @@ No explicit `loading="lazy"` or `fetchpriority` attributes on below-the-fold ima
 ### 🔴 High Priority
 
 #### 5.1 Shipping Estimate Uses Hardcoded Fallback Pincode
-**File:** `api/src/controller/web/shiprocket.controller.ts` (getShippingEstimate) and `order.controller.ts` (createOrder)
+**Status:** ✅ Fixed July 28, 2026
+**Files:** `api/src/config/env.ts`, `api/src/controller/web/shiprocket.controller.ts`, `api/src/controller/web/order.controller.ts`
 
-Both use `"342005"` (Jodhpur) as the fallback pickup pincode if `getPickupLocations()` returns no results. If the store's actual pickup location is elsewhere, all shipping estimates during the initial setup period will be wrong.
-
-**Recommendation:** Add a `STORE_PICKUP_PINCODE` environment variable for the initial fallback.
+Added `STORE_PICKUP_PINCODE` env var (default: `342005`). Replaced all 4 hardcoded `"342005"` references in shiprocket.controller.ts and order.controller.ts with `env.STORE_PICKUP_PINCODE`.
 
 #### 5.2 No Synchronization Between Manual Delivery Marking and Shiprocket
 **File:** `api/src/controller/admin/adminOrder.controller.ts` (delieverOrder)
@@ -683,43 +661,19 @@ All `api.get/post/put/del` calls use paths that match Express routes exactly (af
 ### 7.1 Auth & Session Management
 
 #### 7.1.1 🔴 No Account Lockout — IP-Based Rate Limiting Only
-**Files:** `api/src/middleware/rateLimit.ts`, `api/src/controller/web/user.controller.ts`
+**Status:** ✅ Fixed July 28, 2026
+**Files:** `api/src/models/user.ts`, `api/src/controller/web/user.controller.ts`, `api/src/controller/admin/userAdmin.controller.ts`
 
-The login rate limiter limits requests per IP (15 requests per 15 minutes), but there's **no account-level lockout**. An attacker can distribute login attempts across multiple IPs and target a specific account without ever triggering the rate limiter.
-
-```typescript
-login: rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 15,
-  message: jsonMessage("Too many tries to Login, please try again later"),
-}),
-```
-
-**Risk:** Targeted brute-force attacks on high-value accounts (admin users).
-
-**Recommendation:**
-- Track failed login attempts per email address in the database
-- Temporarily lock the account after N consecutive failures (e.g., 10)
-- Use exponential backoff: 1min → 5min → 30min → 2hr after each failure cluster
+Added `failedLoginAttempts` and `lockedUntil` fields to User model. Both `loginUser` (web) and `login` (admin) now:
+- Check `lockedUntil` before allowing login, return 429 with remaining minutes
+- On failed password: increment attempts, set lockout with exponential backoff (5→1m, 6-7→5m, 8-9→30m, 10+→2h)
+- On success: reset both fields
 
 #### 7.1.2 🟠 Dual Cookies (httpOnly + non-httpOnly) with Same Name
-**File:** `api/src/middleware/authMiddleware.ts` (attemptAutoRefresh)
+**Status:** ✅ Fixed July 28, 2026
+**Files:** `api/src/middleware/authMiddleware.ts`, `api/src/controller/web/user.controller.ts`, `api/src/controller/admin/userAdmin.controller.ts`, `web/src/lib/cookies.ts`, `admin-panel/lib/api.ts`
 
-During auto-refresh, the function sets **two cookies with the same name** — one httpOnly and one non-httpOnly:
-
-```typescript
-res.cookie(accessCookieName, newAccessToken, accessTokenCookieOptions(tokenType));    // httpOnly: true
-res.cookie(accessCookieName, newAccessToken, clientAccessTokenCookieOptions());       // httpOnly: false
-```
-
-Browser behavior with duplicate cookie names is **implementation-dependent**:
-- Some browsers may merge them
-- Others may keep both and pick one based on path specificity
-- The non-httpOnly cookie (for client-side `js-cookie`) might overwrite the httpOnly one in some browsers
-
-**Risk:** The httpOnly cookie (used by `authMiddleware.ts` for server-side auth) could be unexpectedly overwritten by the non-httpOnly variant, reducing security.
-
-**Recommendation:** Use separate cookie names (e.g., `userTokenClient` for the non-httpOnly variant), or re-read the token from the Authorization header on auto-refresh instead.
+Separated cookie names: httpOnly uses `userToken`/`adminToken`, non-httpNow uses `userToken_client`/`adminToken_client`. Both variants no longer overwrite each other. Updated all server-side cookie setters (controllers, auth middleware) and client-side readers (cookies.ts, api.ts).
 
 #### 7.1.3 🟠 Password Reset Token — Hash Verified but No Expiry Check on Server Response
 **File:** `api/src/lib/jwt.ts` (verifyPasswordResetToken)
@@ -1031,25 +985,10 @@ NodeCache is in-memory per-process. If the app is scaled to multiple instances (
 ### 7.8 Job Queue
 
 #### 7.8.1 🟠 In-Memory Queue — No Persistence Across Restarts
-**File:** `api/src/lib/jobQueue.ts`
+**Status:** ✅ Fixed July 28, 2026
+**Files:** `api/src/lib/jobQueue.ts`, `api/src/models/job.ts`, `api/src/server.ts`, 3 controller files
 
-```typescript
-const queue: Job[] = [];
-let processing = false;
-
-async function processNext(): Promise<void> { ... }
-export function enqueue(fn: Job): void { queue.push(fn); ... }
-```
-
-The job queue is a simple in-memory array with serial processing:
-- Jobs are lost on server restart
-- No retry for failed jobs
-- No concurrency control (only one job at a time)
-- No persistency for critical operations (email sending, stock restoration)
-
-**Risk:** Critical jobs (email notifications, stock restoration) are silently lost on crash or restart.
-
-**Recommendation:** Replace with a proper job queue (BullMQ with Redis, or at minimum a DB-backed queue with a `processed` flag).
+Replaced in-memory job array with MongoDB-backed queue. Jobs persist across restarts, retry up to 3 times on failure, and stuck "processing" jobs are recovered on server startup.
 
 ---
 
@@ -1121,18 +1060,18 @@ The order controller was likely written before the standard response format was 
 
 | # | Severity | Issue | File |
 |---|----------|-------|------|
-| 7.1.1 | 🔴 HIGH | No account lockout — IP-based rate limiting only | `api/src/middleware/rateLimit.ts` |
-| 7.9.5 | 🔴 HIGH | Product ratings not recalculated after review creation | `api/src/controller/web/review.controller.ts` |
-| 7.1.2 | 🟠 MEDIUM | Dual cookies (httpOnly + non-httpOnly) with same name | `api/src/middleware/authMiddleware.ts` |
+| 7.1.1 | 🔴 HIGH | No account lockout — IP-based rate limiting only | ✅ Fixed |
+| 7.9.5 | 🔴 HIGH | Product ratings not recalculated after review creation | ✅ Already implemented via enqueue |
+| 7.1.2 | 🟠 MEDIUM | Dual cookies (httpOnly + non-httpOnly) with same name | ✅ Fixed |
 | 7.2.1 | 🟠 MEDIUM | Inconsistent response format in order controller | `api/src/controller/web/order.controller.ts` |
 | 7.2.2 | 🟠 MEDIUM | User cancellation too restrictive for paid/confirmed orders | `api/src/controller/web/order.controller.ts` |
 | 7.2.3 | 🟠 MEDIUM | Webhook processing has no retry mechanism | `api/src/controller/web/order.controller.ts` |
 | 7.3.1 | 🟠 MEDIUM | Cart remove/clear don't use transactions | `api/src/controller/web/cart.controller.ts` |
-| 7.4.1 | 🟠 MEDIUM | No global error handler middleware | `api/src/server.ts` |
-| 7.4.2 | 🟠 MEDIUM | No 404 handler at end of middleware stack | `api/src/server.ts` |
+| 7.4.1 | 🟠 MEDIUM | No global error handler middleware | ✅ Already present |
+| 7.4.2 | 🟠 MEDIUM | No 404 handler at end of middleware stack | ✅ Already present |
 | 7.5.1 | 🟠 MEDIUM | No magic-byte verification for uploaded files | `api/src/middleware/uploadMiddleware.ts` |
 | 7.6.1 | 🟠 MEDIUM | Single email provider with no failover | `api/src/lib/nodemailer.ts` |
-| 7.8.1 | 🟠 MEDIUM | In-memory job queue — no persistence, no retry | `api/src/lib/jobQueue.ts` |
+| 7.8.1 | 🟠 MEDIUM | In-memory job queue — no persistence, no retry | ✅ Fixed |
 | 7.1.4 | 🟢 LOW | Email verification not required for login | `api/src/controller/web/user.controller.ts` |
 | 7.2.4 | 🟢 LOW | Stock restoration in cancelOrder is fire-and-forget | `api/src/controller/web/order.controller.ts` |
 | 7.4.4 | 🟢 LOW | body-sanitizer strips $ from keys (intentional but limiting) | `api/src/server.ts` |

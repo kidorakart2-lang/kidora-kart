@@ -66,15 +66,17 @@ export async function handlePaymentCaptured(paymentEntity: Record<string, unknow
       logger.warn({ orderId: order.orderId, item: order.items[failedIdx]?.name }, "Stock deduction failed for some items during webhook auto-confirm");
     }
 
-    enqueue(async () => {
-      await sendEmail(order.shippingAddress?.email ?? "", "orderConfirmed", {
+    enqueue("send-email", {
+      to: order.shippingAddress?.email ?? "",
+      template: "orderConfirmed",
+      data: {
         orderId: order.orderId, packageId, orderDate: new Date().toLocaleString(),
         customerName: order.shippingAddress?.fullName || "Customer", orderTotal: order.pricing?.total,
         subtotal: order.pricing?.subtotal, discount: order.pricing?.discount?.amount || 0, shipping: order.pricing?.shipping,
         total: order.pricing?.total, deliveryOTP: "...", contactEmail: env.MY_GMAIL,
         items: order.items, shippingAddress: order.shippingAddress,
         billingAddress: order.billingAddress || order.shippingAddress, paymentMethod: "Online Payment",
-      });
+      },
     });
     logger.info({ orderId: order.orderId, razorpayPaymentId }, "Order auto-confirmed via payment.captured webhook");
   } catch (err) {

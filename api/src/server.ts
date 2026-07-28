@@ -10,6 +10,7 @@ import "dotenv/config";
 import { env } from "./config/env.js";
 import { swaggerSpec } from "./config/swagger.js";
 import { logger } from "./lib/logger.js";
+import { recoverStuckJobs } from "./lib/jobQueue.js";
 
 import userRoutes from "./routes/web/user.route.js";
 import productRoutes from "./routes/web/product.routes.js";
@@ -53,6 +54,7 @@ import aiRoutes from "./routes/admin/ai.routes.js";
 import aiResponseRoutes from "./routes/admin/aiResponse.routes.js";
 import aiAgentRoutes from "./routes/admin/ai-agent.routes.js";
 import auditLogRoutes from "./routes/admin/auditLog.routes.js";
+import settingsRoutes from "./routes/admin/settings.routes.js";
 import { getCsrfToken } from "./controller/csrf.controller.js";
 
 // Hoisted body-parser instances — created once at startup, reused on every request
@@ -197,6 +199,7 @@ app.use("/api/admin/banner-link-options", adminBannerLinkOptionsRoutes);
 app.use("/api/admin/product-faq", adminProductFaqRoutes);
 app.use("/api/admin/home-page", homePageAdminRoutes);
 app.use("/api/admin/audit-log", auditLogRoutes);
+app.use("/api/admin/settings", settingsRoutes);
 app.use("/api/admin/ai", aiRoutes);
 app.use("/api/admin/ai-response", aiResponseRoutes);
 app.use("/api/admin/ai-agent", aiAgentRoutes);
@@ -221,6 +224,7 @@ mongoose
   .connect(env.NEW_DB_URL)
   .then(() => {
     logger.info("Connected to MongoDB");
+    recoverStuckJobs();
     app.listen(PORT, () => {
       logger.info({ port: PORT }, "Server started");
     });

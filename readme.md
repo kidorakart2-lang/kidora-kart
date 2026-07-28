@@ -39,7 +39,8 @@ pnpm --filter admin-panel run dev  # Start admin panel (port 3001)
 - **Storage**: Cloudflare R2 (S3-compatible product images)
 - **Email**: Nodemailer (Gmail SMTP) + EJS templates
 - **Cache**: node-cache (in-memory, per-instance)
-- **Rate Limiting**: express-rate-limit (auth, OTP, API)
+- **Job Queue**: MongoDB-backed (DB persistence, retry up to 3x, startup recovery)
+- **Rate Limiting**: express-rate-limit (auth, OTP, API) + account-level lockout (exponential backoff)
 - **Validation**: Zod (runtime) + Mongoose schemas (DB)
 
 ## Environment
@@ -48,7 +49,7 @@ Each project has its own `.env` (gitignored). Copy `.env.example` in each packag
 
 | File | Key Vars |
 |------|----------|
-| `api/.env` | `MONGODB_URI`, `JWT_SECRET`, `RAZORPAY_KEY_*`, `CLOUDFLARE_*`, `GOOGLE_CLIENT_*`, `GMAIL_*`, `SUPPORT_EMAIL`, `CDN_HOST` |
+| `api/.env` | `MONGODB_URI`, `JWT_SECRET`, `RAZORPAY_KEY_*`, `CLOUDFLARE_*`, `GOOGLE_CLIENT_*`, `GMAIL_*`, `SUPPORT_EMAIL`, `CDN_HOST`, `STORE_PICKUP_PINCODE` |
 | `web/.env.local` | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `REVALIDATE_SECRET`, `NEXT_PUBLIC_CDN_HOST` |
 | `admin-panel/.env.local` | `NEXT_PUBLIC_BACKEND_URL`, `NEXT_PUBLIC_FRONTEND_URL`, `REVALIDATE_SECRET`, `NEXT_PUBLIC_SUPPORT_EMAIL`, `NEXT_PUBLIC_CDN_HOST` |
 
@@ -65,6 +66,7 @@ Brand identity is env-ified via shared variables:
 | `SUPPORT_EMAIL` | `support@kidorakart.com` | API (email templates), admin-panel (order receipt) |
 | `CDN_HOST` | `cdn.kidorakart.com` | API (image URLs), admin-panel (image validation), web (CSP/image sources) |
 | `EMAIL_FROM_NAME` | `Kidora Kart` | API (email sender display name) |
+| `STORE_PICKUP_PINCODE` | `342005` | API (shipping estimate fallback pincode for Shiprocket) |
 
 ## Deploying the API Server
 

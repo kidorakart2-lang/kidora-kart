@@ -119,6 +119,8 @@ const productSchema = new Schema(
     code: {
       type: String,
       required: [true, "Please enter a code"],
+      unique: true,
+      sparse: true,
     },
     price: {
       type: Number,
@@ -207,8 +209,17 @@ productSchema.index({ deletedAt: 1, status: 1, discount_price: 1, order: -1, cre
 
 // Common indexes
 productSchema.index({ name: 1 });
-productSchema.index({ code: 1 });
+productSchema.index({ code: 1 }, { unique: true, sparse: true });
 productSchema.index({ order: -1, createdAt: -1 });
+
+// Full-text search index for product search
+productSchema.index(
+  { name: "text", description: "text", shortDescription: "text", tags: "text" },
+  {
+    weights: { name: 10, tags: 5, shortDescription: 3, description: 1 },
+    name: "product_text_search",
+  },
+);
 
 export type IProduct = InferSchemaType<typeof productSchema>;
 

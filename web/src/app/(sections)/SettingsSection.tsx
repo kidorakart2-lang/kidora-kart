@@ -84,7 +84,8 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
     } catch {
       // Silently handle - cookie will be stale but harmless
     }
-    Cookies.remove("userToken", { path: "/" });
+    Cookies.remove("userToken_client", { path: "/" });
+    Cookies.remove("userToken", { path: "/" }); // cleanup old name
     dispatch(logout());
     router.push("/");
   };

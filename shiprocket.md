@@ -57,7 +57,7 @@
 | `api/src/routes/web/shiprocket.routes.ts` | Route definitions |
 | `api/src/controller/web/order.controller.ts` | Order creation, payment, cancellation |
 | `api/src/controller/web/order.webhook.ts` | Razorpay webhook handlers (for payment events) |
-| `api/src/config/env.ts` | Environment variable schema |
+| `api/src/config/env.ts` | Environment variable schema (SHIPROCKET_EMAIL, SHIPROCKET_PASSWORD, SHIPROCKET_TOKEN, STORE_PICKUP_PINCODE) |
 | `web/src/components/track/ShiprocketTrackingStatus.tsx` | Frontend tracking status display |
 | `web/src/app/(sections)/Track.tsx` | Order tracking page |
 
@@ -72,6 +72,9 @@ SHIPROCKET_PASSWORD=your-shiprocket-password
 
 # ── Optional: Pre-fetched Shiprocket JWT (bypasses login) ──
 SHIPROCKET_TOKEN=eyJ...
+
+# ── Store Pickup Pincode ──
+STORE_PICKUP_PINCODE=342005  # Default: Jodhpur. Override if pickup location differs.
 ```
 
 **Note:** If `SHIPROCKET_TOKEN` is set, the system uses it directly and skips the login API call. The token is cached in-memory with a 9-day refresh window. If only email/password are provided, it logs in on the first request and caches the token.
@@ -198,7 +201,7 @@ Checkout Page → POST /api/website/shipping/estimate
 **Fallback behavior:**
 - If Shiprocket returns no couriers → returns `{ available: false, fallbackCharge: 50 }`
 - If the call fails entirely → returns `{ available: false, fallbackCharge: 50 }`
-- If no pickup locations configured → falls back to `342005` (Jodhpur)
+- If no pickup locations configured → falls back to `STORE_PICKUP_PINCODE` env var (default: `342005`)
 
 **Also used in order creation:** The `createOrder` handler also performs a server-side shipping estimate as a fallback if the frontend doesn't provide one. This uses the same `checkServiceability()` + `getPickupLocations()` pattern.
 
@@ -641,7 +644,7 @@ Handled in `order.webhook.ts` — processes payment events, refund events. **Thi
 | **Delivery auto-detected via tracking API** | Updates DB automatically |
 | **Cancellation auto-detected via tracking API** | Updates DB automatically |
 | **COD vs Prepaid** | Correctly passed to Shiprocket payload |
-| **No pickup locations configured** | Falls back to `342005` (Jodhpur) |
+| **No pickup locations configured** | Falls back to `STORE_PICKUP_PINCODE` env var (default: `342005`) |
 | **Shiprocket order ID persisted** | `shiprocketOrderId` and `shiprocketShipmentId` stored on order doc |
 | **Shiprocket cancel via admin cancel** | `cancelOrderByAdmin` calls Shiprocket cancel before DB update |
 | **RTO auto-fallback** | If cancel fails + `autoRto=true`, RTO is initiated automatically |

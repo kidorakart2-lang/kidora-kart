@@ -35,7 +35,7 @@ function resolveUrl(url: string): string {
 
 function getTokenFromCookie(): string | null {
   if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|;\s*)adminToken=([^;]*)/);
+  const match = document.cookie.match(/(?:^|;\s*)adminToken_client=([^;]*)/);
   return match ? match[1] : null;
 }
 

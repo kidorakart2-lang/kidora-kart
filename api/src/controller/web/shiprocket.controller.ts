@@ -1,7 +1,9 @@
 import type { Request, Response } from "express";
 import Order from "../../models/order.js";
 import Product from "../../models/product.js";
+import { env } from "../../config/env.js";
 import { logger } from "../../lib/logger.js";
+import { getStorePickupPincode } from "../../lib/storeSettings.js";
 
 /**
  * Parse a product weight string into grams.
@@ -91,6 +93,30 @@ export const createShippingOrder = async (
       return;
     }
 
+    // Build a comprehensive address from all available fields
+    // The checkout form may store the main address in `addressLine1` or `street`
+    const streetAddr = shippingAddress.street || shippingAddress.addressLine1 || "";
+    const areaAddr = shippingAddress.area || shippingAddress.landmark || "";
+    const fullAddress = [streetAddr, areaAddr].filter(Boolean).join(", ");
+
+    // Validate required address fields before calling Shiprocket
+    const missingFields: string[] = [];
+    if (!shippingAddress.fullName) missingFields.push("fullName");
+    if (!fullAddress) missingFields.push("street/address");
+    if (!shippingAddress.city) missingFields.push("city");
+    if (!shippingAddress.state) missingFields.push("state");
+    if (!shippingAddress.pincode) missingFields.push("pincode");
+    if (!shippingAddress.phone) missingFields.push("phone");
+    if (!shippingAddress.email) missingFields.push("email");
+
+    if (missingFields.length > 0) {
+      res.status(400).json({
+        success: false,
+        message: `Order shipping address is incomplete. Missing: ${missingFields.join(", ")}`,
+      });
+      return;
+    }
+
     // Fetch product weights from DB
     const productIds = order.items.map((item) => String(item.productId));
     const productDocs = await Product.find({
@@ -122,9 +148,10 @@ export const createShippingOrder = async (
       customerName: shippingAddress.fullName,
       customerPhone: shippingAddress.phone,
       customerEmail: shippingAddress.email,
+      fullAddress,
       shippingAddress: {
-        street: shippingAddress.street,
-        area: shippingAddress.area || "",
+        street: streetAddr,
+        area: areaAddr,
         city: shippingAddress.city,
         state: shippingAddress.state,
         pincode: shippingAddress.pincode,
@@ -258,7 +285,7 @@ export const trackShippingOrder = async (
     const { orderId } = req.params;
 
     const order = await Order.findOne({ orderId })
-      .select("shipping.trackingNumber shipping.carrier shipping.trackingUrl status")
+      .select("orderId shipping.trackingNumber shipping.carrier shipping.trackingUrl status")
       .lean();
 
     if (!order) {
@@ -281,6 +308,23 @@ export const trackShippingOrder = async (
 
     // Fetch live tracking from Shiprocket
     const trackingResult = await trackShipment(order.shipping.trackingNumber);
+
+    // If Shiprocket API is down or returned no data, return a clear error
+    if (!trackingResult) {
+      res.status(200).json({
+        success: true,
+        trackingUnavailable: true,
+        message: "Live tracking is temporarily unavailable from the shipping provider. Please try again later.",
+        data: {
+          orderId: order.orderId,
+          trackingNumber: order.shipping.trackingNumber,
+          trackingUrl: order.shipping.trackingUrl,
+          carrier: order.shipping.carrier,
+          currentStatus: order.status,
+        },
+      });
+      return;
+    }
 
     const trackInfo = trackingResult?.tracking_data ?? null;
 
@@ -729,13 +773,14 @@ export const getShippingEstimate = async (
     const pickupResult = await getPickupLocations();
     const pickupData = (pickupResult as { data?: { pickup_locations?: Array<{ pickup_location: string; pincode: string }> } })?.data;
     const pickupLocations = pickupData?.pickup_locations;
+    const fallbackPincode = await getStorePickupPincode();
     const pickupPincode: string =
       pickupLocations && pickupLocations.length > 0
-        ? pickupLocations[0]!.pincode || "342005"
-        : "342005";
+        ? pickupLocations[0]!.pincode || fallbackPincode
+        : fallbackPincode;
 
     const serviceabilityResult = await checkServiceability(
-      pickupPincode || "342005",
+      pickupPincode || env.STORE_PICKUP_PINCODE,
       deliveryPincode,
       totalWeightKg,
       isCod === true,
@@ -752,7 +797,7 @@ export const getShippingEstimate = async (
         data: {
           available: false,
           message: "Shipping estimate unavailable for this pincode",
-          fallbackCharge: 50,
+          fallbackCharge: env.DEFAULT_SHIPPING_FEE,
         },
       });
       return;
@@ -789,7 +834,7 @@ export const getShippingEstimate = async (
       data: {
         available: false,
         message: "Shipping estimate temporarily unavailable",
-        fallbackCharge: 50,
+        fallbackCharge: env.DEFAULT_SHIPPING_FEE,
       },
     });
   }

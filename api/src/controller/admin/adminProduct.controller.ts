@@ -253,10 +253,7 @@ export const view = async (
 
     // Support search via request.body.name (used by admin panel bento grid picker)
     if (request.body?.name) {
-      query.$or = [
-        { name: { $regex: request.body.name, $options: "i" } },
-        { description: { $regex: request.body.name, $options: "i" } },
-      ];
+      query.$text = { $search: request.body.name.trim() };
     }
 
     if (categories) {
@@ -287,10 +284,7 @@ export const view = async (
     }
 
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ];
+      query.$text = { $search: search.trim() };
     }
 
     const [total, products] = await Promise.all([

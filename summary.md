@@ -1,11 +1,93 @@
 # Session: Next.js Rewrites, Cookie Consolidation, Rate Limiter Audit, and Production Fixes
 
+> **Extended to include:** Account lockout, cookie name separation, DB job queue, env var extraction, home page validation, text search migration
+
 ## Overview
-Major cross-cutting changes: architecture shift to same-origin API calls via Next.js rewrites, cookie utility consolidation, secure cookie fixes, comprehensive rate limiter audit, and admin panel improvements.
+Major cross-cutting changes: architecture shift to same-origin API calls via Next.js rewrites, cookie utility consolidation, secure cookie fixes, comprehensive rate limiter audit, admin panel improvements, plus a batch of infrastructure hardening fixes.
 
 ---
 
-## 1. Next.js Rewrites Architecture
+## 0. Recent Infrastructure Hardening (July 27-28, 2026)
+
+### 0.1 Account Lockout — Brute Force Protection (7.1.1)
+
+**Problem:** Only IP-based rate limiting (15 req/15min) existed. An attacker could distribute login attempts across multiple IPs targeting one account.
+
+**Solution:** Added account-level lockout with exponential backoff to both user and admin login.
+
+| File | Change |
+|------|--------|
+| `api/src/models/user.ts` | Added `failedLoginAttempts` (Number, default 0) and `lockedUntil` (Date, default null) fields |
+| `api/src/controller/web/user.controller.ts` | `loginUser` checks `lockedUntil` before login. On failure: increments attempts, sets backoff (5→1m, 6-7→5m, 8-9→30m, 10+→2h). On success: resets fields. Returns 429 during lockout. |
+| `api/src/controller/admin/userAdmin.controller.ts` | Same lockout logic for admin `login` |
+
+### 0.2 Cookie Name Separation — httpOnly vs non-httpOnly (7.1.2)
+
+**Problem:** `userToken` / `adminToken` used for BOTH httpOnly (server auth) and non-httpOnly (client js-cookie) variants — causing browser cookie overwrite.
+
+**Solution:** Separate names prevent overwrite.
+
+| Cookie | httpOnly (server) | non-httpOnly (client) |
+|--------|------------------|----------------------|
+| User | `userToken` | `userToken_client` |
+| Admin | `adminToken` | `adminToken_client` |
+
+**6 files changed** across API, web, and admin-panel (controllers, auth middleware, cookies.ts, api.ts, SettingsSection.tsx)
+
+### 0.3 DB-Backed Job Queue — Persistence Across Restarts (7.8.1)
+
+**Before:** In-memory `Job[]` array — jobs lost on restart, no retry, no persistence.
+
+**After:** MongoDB-backed queue with 3 job types, persistence, and automatic retry (up to 3x).
+
+| File | Change |
+|------|--------|
+| `api/src/models/job.ts` | **NEW** — Mongoose model with `type` (enum: send-email, update-profile, update-rating), `payload`, `status`, `retries`, `maxRetries` |
+| `api/src/lib/jobQueue.ts` | **REWRITTEN** — New `enqueue(type, payload)` API, atomic `findOneAndUpdate` status lock, retry with backoff, `recoverStuckJobs()` for startup |
+| `api/src/server.ts` | Calls `recoverStuckJobs()` after MongoDB connection to retry in-flight jobs from crashes |
+| 3 controller files | All 7 `enqueue()` call sites migrated to type-based API; dead imports removed |
+
+### 0.4 STORE_PICKUP_PINCODE Env Var (5.1)
+
+**Before:** Hardcoded `"342005"` (Jodhpur pincode) in 4 places across 2 controller files.
+
+**After:** Configurable `STORE_PICKUP_PINCODE` env var with `"342005"` default.
+
+| File | Change |
+|------|--------|
+| `api/src/config/env.ts` | Added `STORE_PICKUP_PINCODE: z.string().default("342005")` |
+| `api/src/controller/web/shiprocket.controller.ts` | Added `env` import, replaced 3 hardcoded references |
+| `api/src/controller/web/order.controller.ts` | Replaced 1 hardcoded reference (already had `env` import) |
+
+### 0.5 Home Page Section Validation (3.1)
+
+**Before:** `config: { type: Schema.Types.Mixed }` accepted any JSON with no validation.
+
+**After:** Type-specific schema validation on all 3 section entry points.
+
+| Change | Purpose |
+|--------|---------|
+| `SECTION_SCHEMAS` map | Defines expected fields, types, and required flags for all 12 section types |
+| `validateSectionConfig()` | Validates config against type schema — required fields, types, nested arrays |
+| Wired into `addSection`, `updateSection`, bulk `update` | All 3 entry points reject invalid config with 400 |
+
+### 0.6 Product Search Migrated to $text
+
+**Before:** Regex-based search (`$regex` on name/description) — slow, no relevance ranking.
+
+**After:** MongoDB `$text` index with weighted fields (name:10, tags:5, shortDescription:3, description:1) sorted by relevance.
+
+| File | Change |
+|------|--------|
+| `api/src/controller/web/product.controller.ts` | `getBySearch` and `getProductByFilter` migrated from `$regex` to `$text` (with stop word stripping) |
+| `api/src/controller/admin/adminProduct.controller.ts` | Admin view search migrated to `$text` |
+| `docs/text-search-setup.md` | **NEW** — Setup steps, verification queries, and notes on MongoDB text index limitations |
+
+The text index was already added to the product model schema in a prior session — Mongoose auto-creates it on startup.
+
+---
+
+## 1. Next.js Rewrites Architecture (Earlier Session)
 
 ### Problem
 The website used cross-origin `fetch()` calls to a separate Express backend via `NEXT_PUBLIC_API_URL`. This required:
@@ -240,3 +322,11 @@ Replaced with proper typed interfaces, Mongoose `.lean<T>()` generics, and globa
 - **~20 `as Record<string, unknown>` patterns replaced with typed interfaces**
 - **0 non-AI type errors across all 3 packages** (web: 0, api: 0 non-AI, admin-panel: 0)
 - **7 AI-agent errors remain** (ignored by request — in `ai-agent.controller.ts` and `ai-agent/tools.ts`)
+
+---
+
+## Notes
+- All changes typecheck clean (`npx tsc --noEmit` passes with 0 errors)
+- The rewrite architecture eliminates the need for client-side `Cookies.set("userToken", ...)` entirely — the server's `Set-Cookie` headers flow through the Next.js proxy to the frontend domain
+- Rate limits follow a tiered approach: strict for auth/admin, moderate for mutations, generous for public reads
+- Pre-existing type errors in `api/src/controller/admin/ai-agent.controller.ts` (Tool type definitions, `maxSteps`, `sendUsage`) are unrelated to these changes

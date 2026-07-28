@@ -138,6 +138,7 @@ async function attemptAutoRefresh(
   const newRefresh = await createRefreshToken(String(user._id), tokenType);
 
   const accessCookieName = tokenType === "user" ? "userToken" : "adminToken";
+  const clientCookieName = tokenType === "user" ? "userToken_client" : "adminToken_client";
   const refreshCookieName =
     tokenType === "user" ? "userRefreshToken" : "adminRefreshToken";
 
@@ -149,7 +150,7 @@ async function attemptAutoRefresh(
   );
   // Set non-httpOnly cookie so client-side js-cookie (getAuthToken()) sees the new token
   res.cookie(
-    accessCookieName,
+    clientCookieName,
     newAccessToken,
     clientAccessTokenCookieOptions(),
   );

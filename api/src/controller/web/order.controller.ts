@@ -4,12 +4,12 @@ import crypto from "crypto";
 import Order from "../../models/order.js";
 import Product from "../../models/product.js";
 import Cart from "../../models/cart.js";
-import User from "../../models/user.js";
 import { sendEmail } from "../../lib/nodemailer.js";
 import { hashOtp } from "../../lib/jwt.js";
 import { env } from "../../config/env.js";
 import { logger } from "../../lib/logger.js";
 import { enqueue } from "../../lib/jobQueue.js";
+import { getStorePickupPincode } from "../../lib/storeSettings.js";
 import {
   validateAndPriceCart,
   CartValidationError,
@@ -156,9 +156,9 @@ export const createOrder = async (
 
     const discount = isCodAdvance
       ? 0
-      : subtotal < 500
+      : subtotal < env.AUTO_DISCOUNT_THRESHOLD
         ? 0
-        : Math.round(subtotal * 0.05);
+        : Math.round(subtotal * (env.AUTO_DISCOUNT_PERCENT / 100));
 
     // ── Shipping charge: prefer frontend estimate, fall back to Shiprocket, then ₹50 ──
     let finalShippingCharge = shippingCharge;
@@ -186,12 +186,12 @@ export const createOrder = async (
           // Minimum weight of 0.1 kg to avoid zero-weight errors
           if (totalWeightKg < 0.1) totalWeightKg = 0.5;
 
-          // Get store pickup pincode from Shiprocket settings
-          // Shiprocket GET endpoints nest data inside a `data` key
+          // Get store pickup pincode from DB settings (fallback to env)
           const locations = await getPickupLocations();
           const pickupData = (locations as { data?: { pickup_locations?: Array<{ pincode: string }> } })?.data;
           const pickupLocations = pickupData?.pickup_locations;
-          let pickupPincode = "342005"; // fallback to Jodhpur
+          const dbFallbackPincode = await getStorePickupPincode();
+          let pickupPincode = dbFallbackPincode;
           if (pickupLocations && pickupLocations.length > 0) {
             pickupPincode = pickupLocations[0]!.pincode;
           }
@@ -222,11 +222,11 @@ export const createOrder = async (
       }
     }
 
-    const shipping = finalShippingCharge ?? 50;
-    const giftWrapCharges = giftWrap ? 50 : 0;
+    const shipping = finalShippingCharge ?? env.DEFAULT_SHIPPING_FEE;
+    const giftWrapCharges = giftWrap ? env.DEFAULT_GIFT_WRAP_FEE : 0;
     const total = subtotal - discount + shipping + giftWrapCharges;
     const codAdvance = isCodAdvance
-      ? Math.max(100, Math.round(subtotal * 0.1))
+      ? Math.max(env.COD_ADVANCE_MIN, Math.round(subtotal * (env.COD_ADVANCE_PERCENT / 100)))
       : 0;
 
     let orderHash: string | undefined;
@@ -339,10 +339,11 @@ export const createOrder = async (
       },
     });
 
-    enqueue(async () => {
-      try {
-        const user = req.user!;
+    enqueue("update-profile", {
+      userId: req.user!._id.toString(),
+      updates: (() => {
         const updates: Record<string, unknown> = {};
+        const user = req.user!;
         if (!user.mobile) {
           updates.mobile = Number(shippingAddress.phone);
           updates.isMobileVerified = true;
@@ -364,12 +365,8 @@ export const createOrder = async (
           if (!user.address.street) updates["address.street"] = shippingAddress.street;
           if (!user.address.area) updates["address.area"] = shippingAddress.area;
         }
-        if (Object.keys(updates).length > 0) {
-          await User.updateOne({ _id: user._id }, { $set: updates });
-        }
-      } catch (error) {
-        logger.error(error, "Error updating user details");
-      }
+        return updates;
+      })(),
     });
   } catch (error) {
     if (error instanceof CartValidationError) {
@@ -523,28 +520,26 @@ export const retryPayment = async (
             ),
           );
 
-          enqueue(async () => {
-            await sendEmail(
-              order.shippingAddress?.email ?? "",
-              "orderConfirmed",
-              {
-                orderId: order.orderId,
-                packageId: order.packageId,
-                orderDate: new Date().toLocaleString(),
-                customerName: order.shippingAddress?.fullName || "Customer",
-                orderTotal: order.pricing?.total,
-                subtotal: order.pricing?.subtotal,
-                discount: order.pricing?.discount?.amount || 0,
-                shipping: order.pricing?.shipping,
-                total: order.pricing?.total,
-                deliveryOTP: "...",
-                contactEmail: env.MY_GMAIL,
-                items: order.items,
-                shippingAddress: order.shippingAddress,
-                billingAddress: order.billingAddress || order.shippingAddress,
-                paymentMethod: "Online Payment",
-              },
-            );
+          enqueue("send-email", {
+            to: order.shippingAddress?.email ?? "",
+            template: "orderConfirmed",
+            data: {
+              orderId: order.orderId,
+              packageId: order.packageId,
+              orderDate: new Date().toLocaleString(),
+              customerName: order.shippingAddress?.fullName || "Customer",
+              orderTotal: order.pricing?.total,
+              subtotal: order.pricing?.subtotal,
+              discount: order.pricing?.discount?.amount || 0,
+              shipping: order.pricing?.shipping,
+              total: order.pricing?.total,
+              deliveryOTP: "...",
+              contactEmail: env.MY_GMAIL,
+              items: order.items,
+              shippingAddress: order.shippingAddress,
+              billingAddress: order.billingAddress || order.shippingAddress,
+              paymentMethod: "Online Payment",
+            },
           });
 
           res.status(200).json({
@@ -775,31 +770,26 @@ export const verifyPayment = async (
       },
     });
 
-    enqueue(async () => {
-      const emailResult = await sendEmail(
-        order.shippingAddress?.email ?? "",
-        "orderConfirmed",
-        {
-          orderId: order.orderId,
-          packageId,
-          orderDate: new Date().toLocaleString(),
-          customerName: order.shippingAddress?.fullName || "Customer",
-          orderTotal: order.pricing?.total,
-          subtotal: order.pricing?.subtotal,
-          discount: order.pricing?.discount?.amount || 0,
-          shipping: order.pricing?.shipping,
-          total: order.pricing?.total,
-          deliveryOTP,
-          contactEmail: env.MY_GMAIL,
-          items: order.items,
-          shippingAddress: order.shippingAddress,
-          billingAddress: order.billingAddress || order.shippingAddress,
-          paymentMethod: "Online Payment",
-        },
-      );
-      if (!emailResult) {
-        logger.warn("Failed to send order confirmation email");
-      }
+    enqueue("send-email", {
+      to: order.shippingAddress?.email ?? "",
+      template: "orderConfirmed",
+      data: {
+        orderId: order.orderId,
+        packageId,
+        orderDate: new Date().toLocaleString(),
+        customerName: order.shippingAddress?.fullName || "Customer",
+        orderTotal: order.pricing?.total,
+        subtotal: order.pricing?.subtotal,
+        discount: order.pricing?.discount?.amount || 0,
+        shipping: order.pricing?.shipping,
+        total: order.pricing?.total,
+        deliveryOTP,
+        contactEmail: env.MY_GMAIL,
+        items: order.items,
+        shippingAddress: order.shippingAddress,
+        billingAddress: order.billingAddress || order.shippingAddress,
+        paymentMethod: "Online Payment",
+      },
     });
   } catch (error) {
     logger.error(error, "Verify Payment Error");
@@ -946,7 +936,9 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    if (order.status !== "pending") {
+    // Allow cancellation for pending (unpaid) and confirmed (paid but not yet shipped) orders
+    const cancellableStatuses = ["pending", "confirmed"];
+    if (!cancellableStatuses.includes(order.status)) {
       res.status(400).json({ success: false, message: "Order cannot be cancelled in its current state" });
       return;
     }
@@ -956,8 +948,9 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
     const timeDifference = currentTime.getTime() - orderCreatedAt.getTime();
     const twelveHoursInMs = 12 * 60 * 60 * 1000;
 
+    // 12-hour window only applies to paid/confirmed orders — pending (unpaid) orders can always be cancelled
     if (
-      order.payment?.status !== "pending" &&
+      order.status === "confirmed" &&
       timeDifference > twelveHoursInMs
     ) {
       res.status(400).json({
@@ -1481,31 +1474,26 @@ export const confirmCODOrder = async (
       },
     });
 
-    enqueue(async () => {
-      const emailResult = await sendEmail(
-        order.shippingAddress?.email ?? "",
-        "orderConfirmed",
-        {
-          orderId: order.orderId,
-          packageId,
-          orderDate: new Date().toLocaleString(),
-          customerName: order.shippingAddress?.fullName || "Customer",
-          orderTotal: order.pricing?.total,
-          subtotal: order.pricing?.subtotal,
-          discount: order.pricing?.discount?.amount || 0,
-          shipping: order.pricing?.shipping,
-          total: order.pricing?.total,
-          deliveryOTP,
-          contactEmail: env.MY_GMAIL,
-          items: order.items,
-          shippingAddress: order.shippingAddress,
-          billingAddress: order.billingAddress || order.shippingAddress,
-          paymentMethod: "Cash on Delivery (COD)",
-        },
-      );
-      if (!emailResult) {
-        logger.warn("Failed to send COD confirmation email");
-      }
+    enqueue("send-email", {
+      to: order.shippingAddress?.email ?? "",
+      template: "orderConfirmed",
+      data: {
+        orderId: order.orderId,
+        packageId,
+        orderDate: new Date().toLocaleString(),
+        customerName: order.shippingAddress?.fullName || "Customer",
+        orderTotal: order.pricing?.total,
+        subtotal: order.pricing?.subtotal,
+        discount: order.pricing?.discount?.amount || 0,
+        shipping: order.pricing?.shipping,
+        total: order.pricing?.total,
+        deliveryOTP,
+        contactEmail: env.MY_GMAIL,
+        items: order.items,
+        shippingAddress: order.shippingAddress,
+        billingAddress: order.billingAddress || order.shippingAddress,
+        paymentMethod: "Cash on Delivery (COD)",
+      },
     });
   } catch (error) {
     logger.error(error, "COD Order Confirmation Error");

@@ -64,6 +64,16 @@ const envSchema = z.object({
   SHIPROCKET_PASSWORD: z.string().optional(),
   SHIPROCKET_TOKEN: z.string().optional(), // Cached JWT — service regenerates on 401
 
+  STORE_PICKUP_PINCODE: z.string().default("342005"),
+
+  // ── Financial defaults ──
+  DEFAULT_SHIPPING_FEE: z.coerce.number().int().nonnegative().default(50),
+  DEFAULT_GIFT_WRAP_FEE: z.coerce.number().int().nonnegative().default(50),
+  COD_ADVANCE_MIN: z.coerce.number().int().nonnegative().default(100),
+  COD_ADVANCE_PERCENT: z.coerce.number().min(0).max(100).default(10),
+  AUTO_DISCOUNT_THRESHOLD: z.coerce.number().int().nonnegative().default(500),
+  AUTO_DISCOUNT_PERCENT: z.coerce.number().min(0).max(100).default(5),
+
   TURNSTILE_SECRET_KEY: z.string().optional(),
 
   REVALIDATE_SECRET: z.string().optional(),

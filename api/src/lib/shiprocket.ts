@@ -401,6 +401,8 @@ export interface ShiprocketOrderInput {
   customerName: string;
   customerPhone: string;
   customerEmail: string;
+  /** Full billing address string — constructed from order's street, area, addressLine1, landmark */
+  fullAddress: string;
   shippingAddress: {
     street: string;
     area: string;
@@ -428,14 +430,13 @@ export function buildShiprocketOrderPayload(
   input: ShiprocketOrderInput,
 ): ShiprocketCreateOrderPayload {
   const addr = input.shippingAddress;
-  const fullAddress = [addr.street, addr.area].filter(Boolean).join(", ");
 
   return {
     order_id: input.orderId,
     order_date: input.orderDate,
     pickup_location: input.pickupLocation,
     billing_customer_name: input.customerName,
-    billing_address: fullAddress,
+    billing_address: input.fullAddress,
     billing_city: addr.city,
     billing_pincode: addr.pincode,
     billing_state: addr.state,

@@ -231,10 +231,11 @@ export interface LinkOption {
 export interface Review {
   _id?: string;
   productId: { _id: string; name: string };
-  userId: { _id: string; name: string };
+  userId: { _id: string; name: string; email?: string };
   rating: number;
   comment: string;
-  status: string;
+  status: boolean | string;
+  deletedAt?: string | null;
   createdAt?: string;
 }
 

@@ -1,5 +1,7 @@
 import type { Request, Response } from "express";
 import Reviews from "../../models/review.js";
+import { sendEmail } from "../../lib/nodemailer.js";
+import { logger } from "../../lib/logger.js";
 
 const POPULATE_USER = { path: "userId", select: "name email" } as const;
 const POPULATE_PRODUCT = { path: "productId", select: "name slug images" } as const;
@@ -111,7 +113,8 @@ export const deleteReview = async (
   try {
     const { id } = req.params;
     const review = await Reviews.findById(id)
-      .select("_id deletedAt userId")
+      .populate(POPULATE_USER)
+      .populate(POPULATE_PRODUCT)
       .lean();
     if (!review) {
       res.status(404).json({
@@ -121,6 +124,26 @@ export const deleteReview = async (
       });
       return;
     }
+
+    // Send deletion email to the user
+    const user = review.userId as unknown as { _id: string; name: string; email: string } | null;
+    const product = review.productId as unknown as { _id: string; name: string; slug: string; images: string[] } | null;
+    if (user && user.email && product) {
+      try {
+        await sendEmail(user.email, "reviewDeleted", {
+          user: { name: user.name },
+          product: { name: product.name },
+          review: {
+            rating: review.rating,
+            comment: (review as Record<string, unknown>).comment ?? "",
+          },
+        });
+        logger.info({ reviewId: id, userId: user._id }, "Review deletion email sent");
+      } catch (emailError) {
+        logger.error({ err: emailError, reviewId: id }, "Failed to send review deletion email");
+      }
+    }
+
     // Already soft-deleted → permanently delete
     if (review.deletedAt) {
       await Reviews.findByIdAndDelete(id);
@@ -131,17 +154,8 @@ export const deleteReview = async (
       });
       return;
     }
-    // No user attached → permanently delete (guest review)
-    if (!review.userId) {
-      await Reviews.findByIdAndDelete(id);
-      res.status(200).json({
-        _status: true,
-        _message: "Review deleted successfully",
-        _data: null,
-      });
-      return;
-    }
-    // Soft delete for user-attached reviews
+
+    // Soft delete for user-attached reviews (or permanently delete if no user)
     await Reviews.findByIdAndUpdate(id, { deletedAt: new Date() });
     res.status(200).json({
       _status: true,

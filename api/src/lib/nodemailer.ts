@@ -1,4 +1,5 @@
 import nodemailer, { type Transporter } from "nodemailer";
+import { Resend } from "resend";
 import path from "path";
 import ejs from "ejs";
 import { promisify } from "util";
@@ -60,10 +61,27 @@ const templates: Record<string, EmailTemplateConfig> = {
     subject: `Refund Processed - ${env.APP_NAME}`,
     template: "refund-processed.ejs",
   },
+  reviewDeleted: {
+    subject: `Your Review Has Been Removed - ${env.APP_NAME}`,
+    template: "review-deleted.ejs",
+  },
 };
 
-// --- Create Gmail transporter ---
-const createTransporter = async (): Promise<Transporter> => {
+// ponytail: Resend singleton — created once, reused across calls
+let resendClient: Resend | null = null;
+
+const getResendClient = (): Resend | null => {
+  if (!env.RESEND_API_KEY) return null;
+  if (!resendClient) resendClient = new Resend(env.RESEND_API_KEY);
+  return resendClient;
+};
+
+// --- Create Gmail transporter (fallback) ---
+let gmailTransporter: Transporter | null = null;
+
+const getGmailTransporter = async (): Promise<Transporter> => {
+  if (gmailTransporter) return gmailTransporter;
+
   if (!env.MY_GMAIL || !env.MY_GMAIL_PASSWORD) {
     throw new Error("Missing Gmail credentials in environment variables");
   }
@@ -76,10 +94,11 @@ const createTransporter = async (): Promise<Transporter> => {
       user: env.MY_GMAIL,
       pass: env.MY_GMAIL_PASSWORD,
     },
-    connectionTimeout: 20000,
+    connectionTimeout: 30000,
   });
 
   await transporter.verify();
+  gmailTransporter = transporter;
   return transporter;
 };
 
@@ -113,9 +132,35 @@ export const sendEmail = async (
   templateName: string,
   data: Record<string, unknown> = {},
 ): Promise<unknown> => {
+  const { subject, html } = await renderTemplate(templateName, data);
+
+  // Primary: Resend (HTTPS API, no SMTP connection issues)
+  const resend = getResendClient();
+  if (resend) {
+    try {
+      const { data: result, error } = await resend.emails.send({
+        // ponytail: Use SUPPORT_EMAIL so Resend's domain verification works.
+        // In test mode Resend auto-overrides from to its test @resend.dev address.
+        from: `"${env.APP_NAME}" <${env.SUPPORT_EMAIL}>`,
+        to: [to],
+        subject,
+        html,
+      });
+
+      if (error) {
+        logger.error({ err: error }, "Resend API error, falling back to Gmail SMTP");
+      } else {
+        logger.info({ id: result?.id }, "Email sent via Resend");
+        return result;
+      }
+    } catch (error) {
+      logger.error({ err: error }, "Resend send failed, falling back to Gmail SMTP");
+    }
+  }
+
+  // Fallback: Gmail SMTP
   try {
-    const transporter = await createTransporter();
-    const { subject, html } = await renderTemplate(templateName, data);
+    const transporter = await getGmailTransporter();
 
     const mailOptions = {
       from: `"${env.APP_NAME}" <${env.MY_GMAIL}>`,
@@ -125,10 +170,10 @@ export const sendEmail = async (
     };
 
     const info = await transporter.sendMail(mailOptions);
-    logger.info({ messageId: info.messageId }, "Email sent");
+    logger.info({ messageId: info.messageId }, "Email sent via Gmail SMTP");
     return info;
   } catch (error) {
-    logger.error({ err: error }, "Error sending email");
+    logger.error({ err: error }, "Error sending email via Gmail SMTP fallback");
     throw error;
   }
 };

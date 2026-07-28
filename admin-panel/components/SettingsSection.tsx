@@ -6,8 +6,10 @@ import {
   Lock,
   Mail,
   Loader2,
+  MapPin,
+  Save,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,6 +27,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { InputPassword } from "@/components/ui/input-password";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -33,6 +37,10 @@ import { useToast } from "@/hooks/use-toast";
 export interface SettingsData {
   email?: string;
   isEmailVerified?: boolean;
+}
+
+export interface StoreSettingsData {
+  storePickupPincode: string;
 }
 
 // Password Change Options Dialog
@@ -207,7 +215,122 @@ function PasswordFormSheet({
   );
 }
 
-export default function SettingsSection({ data }: { data?: SettingsData }) {
+// Store Pickup Pincode Editor
+function PickupPincodeEditor({
+  initialPincode,
+}: {
+  initialPincode: string;
+}) {
+  const { toast } = useToast();
+  const [pincode, setPincode] = useState(initialPincode);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setPincode(initialPincode);
+  }, [initialPincode]);
+
+  const handleSave = async () => {
+    if (!/^\d{6}$/.test(pincode)) {
+      toast({
+        title: "Error",
+        description: "Pincode must be a valid 6-digit number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const response = await fetch("/api/admin/settings", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ storePickupPincode: pincode }),
+      });
+
+      const resData = await response.json();
+      if (!response.ok || !resData._status) {
+        toast({
+          title: "Error",
+          description: resData._message || "Failed to save",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Pickup pincode updated successfully",
+      });
+    } catch {
+      toast({
+        title: "Error",
+        description: "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-semibold text-foreground mb-3">
+        Store Settings
+      </h3>
+      <div className="p-4 bg-card rounded-lg border space-y-3">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 bg-muted rounded-lg">
+            <MapPin size={18} className="text-primary" />
+          </div>
+          <div>
+            <p className="font-medium text-foreground">Store Pickup Pincode</p>
+            <p className="text-xs text-muted-foreground">
+              Used as fallback for shipping estimates when Shiprocket pickup
+              locations are unavailable
+            </p>
+          </div>
+        </div>
+        <div className="flex items-end gap-2">
+          <div className="flex-1">
+            <Label htmlFor="pickupPincode" className="text-xs text-muted-foreground mb-1 block">
+              6-digit pincode
+            </Label>
+            <Input
+              id="pickupPincode"
+              value={pincode}
+              onChange={(e) => setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="342005"
+              maxLength={6}
+              className="w-full"
+            />
+          </div>
+          <Button
+            onClick={handleSave}
+            disabled={saving || pincode === initialPincode}
+            className="gap-2"
+            size="sm"
+          >
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            Save
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SettingsSection({
+  data,
+  storeSettings,
+}: {
+  data?: SettingsData;
+  storeSettings?: StoreSettingsData;
+}) {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -269,6 +392,10 @@ export default function SettingsSection({ data }: { data?: SettingsData }) {
           <Loader2 className="animate-spin" />
         </div>
       )}
+
+      {/* Store Settings Section */}
+      <PickupPincodeEditor initialPincode={storeSettings?.storePickupPincode ?? ""} />
+
       {/* Security Section */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-foreground mb-3">Security</h3>

@@ -12,8 +12,13 @@ import {
   House,
   History,
   Sparkles,
+  Megaphone,
+  ShoppingBag,
+  Tags,
+  MessageCircle,
+  type LucideIcon,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import type { LucideIcon as LucideIconType } from "lucide-react";
 
 export interface NavItem {
   label: string;
@@ -22,54 +27,84 @@ export interface NavItem {
 }
 
 export interface NavItemWithIcon extends NavItem {
-  icon: LucideIcon;
+  icon: LucideIconType;
 }
 
-export const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Products", href: "/dashboard/products" },
-  { label: "Users", href: "/dashboard/users" },
-  { label: "Audit Log", href: "/dashboard/audit-log" },
-  { label: "Logos", href: "/dashboard/logos" },
-  { label: "Orders", href: "/dashboard/orders" },
-  { label: "Categories", href: "/dashboard/categories" },
-  { label: "Sub Categories", href: "/dashboard/sub-category" },
-  { label: "Sub Sub Categories", href: "/dashboard/sub-sub-category" },
-  { label: "Banners", href: "/dashboard/banners" },
-  { label: "Testimonials", href: "/dashboard/testimonials" },
-  { label: "FAQs", href: "/dashboard/faqs" },
-  { label: "Why Choose Us", href: "/dashboard/why-choose-us" },
-  { label: "Materials & Colors", href: "/dashboard/materials" },
-  { label: "Home Page", href: "/dashboard/home-page" },
-  { label: "Product FAQs", href: "/dashboard/product-faqs" },
-  { label: "AI Responses", href: "/dashboard/ai-responses" },
-  { label: "AI Agent", href: "/dashboard/ai-agent", target: "_blank" },
+export interface NavSection {
+  label: string;
+  icon: LucideIconType;
+  items: NavItemWithIcon[];
+}
+
+// Section definitions for collapsible groups in the sidebar
+export const NAV_SECTIONS: NavSection[] = [
+  {
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    items: [
+      { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "Orders",
+    icon: ShoppingCart,
+    items: [
+      { label: "Orders", href: "/dashboard/orders", icon: ShoppingBag },
+    ],
+  },
+  {
+    label: "Products",
+    icon: Package,
+    items: [
+      { label: "Products", href: "/dashboard/products", icon: Package },
+      { label: "Reviews", href: "/dashboard/reviews", icon: MessageSquare },
+      { label: "Product FAQs", href: "/dashboard/product-faqs", icon: HelpCircle },
+      { label: "Categories", href: "/dashboard/categories", icon: FolderTree },
+      { label: "Sub Categories", href: "/dashboard/sub-category", icon: Tags },
+      { label: "Sub Sub Categories", href: "/dashboard/sub-sub-category", icon: Tags },
+      { label: "Materials & Colors", href: "/dashboard/materials", icon: Palette },
+    ],
+  },
+  {
+    label: "Content",
+    icon: ImageIcon,
+    items: [
+      { label: "Home Page", href: "/dashboard/home-page", icon: House },
+      { label: "Banners", href: "/dashboard/banners", icon: Megaphone },
+      { label: "Testimonials", href: "/dashboard/testimonials", icon: MessageCircle },
+      { label: "FAQs", href: "/dashboard/faqs", icon: HelpCircle },
+      { label: "Why Choose Us", href: "/dashboard/why-choose-us", icon: Star },
+      { label: "Logos", href: "/dashboard/logos", icon: ImageIcon },
+    ],
+  },
+  {
+    label: "Users",
+    icon: Users,
+    items: [
+      { label: "Users", href: "/dashboard/users", icon: Users },
+    ],
+  },
+  {
+    label: "System",
+    icon: Sparkles,
+    items: [
+      { label: "AI Agent", href: "/dashboard/ai-agent", icon: Sparkles, target: "_blank" },
+      { label: "AI Responses", href: "/dashboard/ai-responses", icon: History },
+      { label: "Audit Log", href: "/dashboard/audit-log", icon: History },
+      { label: "Settings", href: "/dashboard/settings", icon: LayoutDashboard },
+    ],
+  },
 ];
 
-const ICON_MAP: Record<string, LucideIcon> = {
-  Dashboard: LayoutDashboard,
-  Products: Package,
-  Users: Users,
-  "Audit Log": History,
-  Logos: ImageIcon,
-  Orders: ShoppingCart,
-  Categories: FolderTree,
-  "Sub Categories": FolderTree,
-  "Sub Sub Categories": FolderTree,
-  Banners: ImageIcon,
-  Testimonials: MessageSquare,
-  FAQs: HelpCircle,
-  "Why Choose Us": Star,
-  "Materials & Colors": Palette,
-  "Home Page": House,
-  "Product FAQs": HelpCircle,
-  "AI Responses": Sparkles,
-  "AI Agent": Sparkles,
-};
+// Flatten for backward compatibility (used by other parts of the codebase)
+export const NAV_ITEMS: NavItem[] = NAV_SECTIONS.flatMap((section) =>
+  section.items.map(({ label, href, target }) => ({
+    label,
+    href,
+    target,
+  })),
+);
 
-export const NAV_ITEMS_WITH_ICONS: NavItemWithIcon[] = NAV_ITEMS.map(
-  (item) => ({
-    ...item,
-    icon: ICON_MAP[item.label] || LayoutDashboard,
-  }),
+export const NAV_ITEMS_WITH_ICONS: NavItemWithIcon[] = NAV_SECTIONS.flatMap(
+  (section) => section.items,
 );

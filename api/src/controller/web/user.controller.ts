@@ -51,13 +51,12 @@ async function setSessionCookies(
   const accessToken = generateToken(user, "user");
   const refresh = await createRefreshToken(String(user._id), type);
 
-  const cookieName = type === "user" ? "userToken" : "adminToken";
   // httpOnly cookie for server-side auth
-  res.cookie(cookieName, accessToken, accessTokenCookieOptions("user"));
+  res.cookie("userToken", accessToken, accessTokenCookieOptions("user"));
   // non-httpOnly cookie so client-side js-cookie (getAuthToken()) sees the new token
-  res.cookie(cookieName, accessToken, clientAccessTokenCookieOptions());
+  res.cookie("userToken_client", accessToken, clientAccessTokenCookieOptions());
   res.cookie(
-    type === "user" ? "userRefreshToken" : "adminRefreshToken",
+    "userRefreshToken",
     refresh.tokenValue,
     refreshTokenCookieOptions(refresh.expiresAt),
   );
@@ -68,8 +67,10 @@ async function setSessionCookies(
 /** Helper: clear all session cookies */
 function clearSessionCookies(res: Response): void {
   res.cookie("userToken", "", clearAccessTokenCookie());
+  res.cookie("userToken_client", "", clearAccessTokenCookie());
   res.cookie("userRefreshToken", "", clearRefreshTokenCookie());
   res.cookie("adminToken", "", clearAccessTokenCookie());
+  res.cookie("adminToken_client", "", clearAccessTokenCookie());
   res.cookie("adminRefreshToken", "", clearRefreshTokenCookie());
   res.cookie("deliveryToken", "", clearAccessTokenCookie());
   res.cookie("deliveryRefreshToken", "", clearRefreshTokenCookie());
@@ -134,6 +135,21 @@ export const registerUser = async (
   }
 };
 
+/**
+ * Calculate exponential backoff lock duration based on failed attempt count.
+ * Returns lock duration in milliseconds.
+ *  5 failures → 1 minute
+ *  6-7      → 5 minutes
+ *  8-9      → 30 minutes
+ *  10+      → 2 hours
+ */
+function getLockDurationMs(attempts: number): number {
+  if (attempts >= 10) return 2 * 60 * 60 * 1000;
+  if (attempts >= 8) return 30 * 60 * 1000;
+  if (attempts >= 6) return 5 * 60 * 1000;
+  return 1 * 60 * 1000;
+}
+
 export const loginUser = async (
   req: Request,
   res: Response,
@@ -150,14 +166,54 @@ export const loginUser = async (
       return fail(res, "All fields are required", 400);
     }
 
-    const user = await User.findOne({ email }).lean();
-    if (!user || !(await comparePassword(password, user.password))) {
+    // Fetch user with selectable fields — need password, failedLoginAttempts, lockedUntil
+    const user = await User.findOne({ email })
+      .select("password name email avatar gender mobile role status isEmailVerified isMobileVerified failedLoginAttempts lockedUntil")
+      .lean();
+
+    if (!user) {
       return fail(res, "Invalid email or password", 401);
     }
+
+    // ── Account lockout check ──
+    if (user.lockedUntil && new Date(user.lockedUntil) > new Date()) {
+      const remainingMs = new Date(user.lockedUntil).getTime() - Date.now();
+      const remainingMin = Math.ceil(remainingMs / 60000);
+      return fail(
+        res,
+        `Account temporarily locked due to too many failed login attempts. Please try again in ${remainingMin} minute${remainingMin > 1 ? "s" : ""}.`,
+        429,
+      );
+    }
+
+    // Check password
+    const isMatch = await comparePassword(password, user.password);
+
+    if (!isMatch) {
+      // Increment failed attempts and set lockout if threshold reached
+      const newAttempts = (user.failedLoginAttempts ?? 0) + 1;
+      const update: Record<string, unknown> = { failedLoginAttempts: newAttempts };
+
+      if (newAttempts >= 5) {
+        update.lockedUntil = new Date(Date.now() + getLockDurationMs(newAttempts));
+      }
+
+      await User.updateOne({ _id: user._id }, { $set: update });
+
+      return fail(res, "Invalid email or password", 401);
+    }
+
+    // Successful login — reset lockout fields
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { failedLoginAttempts: 0, lockedUntil: null } },
+    );
 
     const userData = { ...user };
     delete (userData as { password?: string; googleId?: string }).password;
     delete (userData as { password?: string; googleId?: string }).googleId;
+    delete (userData as Record<string, unknown>).failedLoginAttempts;
+    delete (userData as Record<string, unknown>).lockedUntil;
 
     const accessToken = await setSessionCookies(res, user, "user");
 
