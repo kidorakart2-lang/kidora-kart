@@ -36,6 +36,12 @@ const envSchema = z.object({
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
 
   RESEND_API_KEY: z.string().optional(),
+  // Set to the dev domain from your Resend dashboard (e.g. "acme_123@resend.dev")
+  // until you verify a custom domain, then switch to your verified domain.
+  RESEND_FROM_EMAIL: z
+    .string()
+    .email()
+    .default("noreply@resend.dev"),
 
   AI_PROVIDER: z.enum(["gemini", "openrouter", "llm7", "huggingface"]).default("openrouter"),
 

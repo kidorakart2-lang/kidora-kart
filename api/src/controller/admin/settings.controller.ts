@@ -1,8 +1,6 @@
 import type { Request, Response } from "express";
-import StoreSettings from "../../models/storeSettings.js";
+import StoreSettings, { SETTINGS_ID } from "../../models/storeSettings.js";
 import { logger } from "../../lib/logger.js";
-
-const SETTINGS_ID = "global";
 
 export const getSettings = async (
   _req: Request,

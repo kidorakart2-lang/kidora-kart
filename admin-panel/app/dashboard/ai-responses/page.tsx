@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DataTable, type Column } from "@/components/data-table";
 import { Sparkles, Trash2, Copy } from "lucide-react";
+import { ErrorState } from "@/components/ui/error-state";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import type { AiResponseItem } from "@/lib/types";
@@ -29,7 +30,7 @@ export default function AiResponsesPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data } = useQuery<ListResponse>({
+  const { data, isError, error } = useQuery<ListResponse>({
     queryKey: ["ai-responses", page],
     queryFn: () =>
       api.post("/api/admin/ai-response/list", { page, limit: 50 }),
@@ -120,6 +121,18 @@ export default function AiResponsesPage() {
       ),
     },
   ];
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          title="Failed to load AI responses"
+          message={error instanceof Error ? error.message : "Could not fetch AI responses from the server."}
+          onRetry={() => queryClient.invalidateQueries({ queryKey: ["ai-responses"] })}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

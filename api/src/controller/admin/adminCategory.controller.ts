@@ -9,7 +9,7 @@ export const create = async (
   response: Response,
 ): Promise<void> => {
   if (!request.body) {
-    response.send({ _status: false, _message: "Request body is empty", _data: [] });
+    response.status(500).json({ _status: false, _message: "Request body is empty", _data: [] });
     return;
   }
   try {
@@ -52,7 +52,7 @@ export const create = async (
     } else {
       messages.push("Something went wrong");
     }
-    response.send({ _status: false, _message: messages, _data: [] });
+    response.status(500).json({ _status: false, _message: messages, _data: [] });
   }
 };
 
@@ -116,14 +116,14 @@ export const destroy = async (
       .select("_id deletedAt")
       .lean();
     if (!existing) {
-      response.send({ _status: false, _message: "Category not found", _data: null });
+      response.status(500).json({ _status: false, _message: "Category not found", _data: null });
       return;
     }
     if (existing.deletedAt) {
       // Already soft-deleted → permanently delete
       await category.findByIdAndDelete(request.body.id);
       cache.del("navigationData");
-      response.send({ _status: true, _message: "Category permanently deleted", _data: null });
+      response.status(200).json({ _status: true, _message: "Category permanently deleted", _data: null });
       return;
     }
     // Soft delete
@@ -152,11 +152,19 @@ export const details = async (
 ): Promise<void> => {
   try {
     const result = await category.findById({ _id: request.body.id }).lean();
-    response.send({
-      _status: !!result,
-      _message: result ? "Category found" : "Category not found",
-      _data: result,
-    });
+    if (result) {
+      response.status(200).json({
+        _status: true,
+        _message: "Category found",
+        _data: result,
+      });
+    } else {
+      response.status(404).json({
+        _status: false,
+        _message: "Category not found",
+        _data: null,
+      });
+    }
   } catch (err) {
     response.send({
       _status: false,

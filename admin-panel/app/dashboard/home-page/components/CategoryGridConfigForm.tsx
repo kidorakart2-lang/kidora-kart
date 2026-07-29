@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback, useRef } from "react"
 import { api } from "@/lib/api"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -37,27 +36,24 @@ export default function CategoryGridConfigForm({ config, onChange }: Props) {
 
   const [items, setItems] = useState<SelectableItem[]>([])
   const [loading, setLoading] = useState(false)
-  const [page, setPage] = useState(1)
 
-  const LIMIT = 20
-
-  const loadItems = useCallback(async (type: string, searchTerm: string, pageNum: number) => {
+  const loadItems = useCallback(async (type: string, searchTerm: string) => {
     setLoading(true)
     try {
       let data: SelectableItem[] = []
       switch (type) {
         case "category": {
-          const res = await api.postRaw<{ _data: SelectableItem[] }>("/api/admin/category/view", { name: searchTerm || undefined, limit: LIMIT, page: pageNum })
+          const res = await api.postRaw<{ _data: SelectableItem[] }>("/api/admin/category/view", { name: searchTerm || undefined })
           data = res._data ?? []
           break
         }
         case "subCategory": {
-          const res = await api.postRaw<{ _data: SelectableItem[] }>("/api/admin/subcategory/view", { name: searchTerm || undefined, limit: LIMIT, page: pageNum })
+          const res = await api.postRaw<{ _data: SelectableItem[] }>("/api/admin/subcategory/view", { name: searchTerm || undefined })
           data = res._data ?? []
           break
         }
         case "subSubCategory": {
-          const res = await api.postRaw<{ _data: SelectableItem[] }>("/api/admin/subsubcategory/view", { name: searchTerm || undefined, limit: LIMIT, page: pageNum })
+          const res = await api.postRaw<{ _data: SelectableItem[] }>("/api/admin/subsubcategory/view", { name: searchTerm || undefined })
           data = res._data ?? []
           break
         }
@@ -73,8 +69,9 @@ export default function CategoryGridConfigForm({ config, onChange }: Props) {
   }, [])
 
   useEffect(() => {
-    loadItems(sourceType, search, page)
-  }, [loadItems, sourceType, search, page])
+    loadItems(sourceType, search)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadItems, sourceType])
 
   const toggleItem = (id: string) => {
     const item = items.find((i: SelectableItem) => i._id === id)
@@ -101,7 +98,7 @@ export default function CategoryGridConfigForm({ config, onChange }: Props) {
     set("categorySearch", val)
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      setPage(1)
+      loadItems(sourceType, val)
     }, 300)
   }
 
@@ -110,10 +107,7 @@ export default function CategoryGridConfigForm({ config, onChange }: Props) {
     set("categorySelectedIds", [])
     set("categoryItems", [])
     set("categorySearch", "")
-    setPage(1)
   }
-
-  const isLastPage = items.length < LIMIT
 
   return (
     <div className="space-y-4">
@@ -201,13 +195,7 @@ export default function CategoryGridConfigForm({ config, onChange }: Props) {
           : "No items selected — section will not render"}
       </p>
 
-      <div className="flex items-center justify-between">
-        <p className="text-[10px] text-muted-foreground">Page {page}{isLastPage ? "" : "+"}</p>
-        <div className="flex gap-1">
-          <Button variant="outline" size="sm" className="h-7 text-xs" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
-          <Button variant="outline" size="sm" className="h-7 text-xs" disabled={isLastPage} onClick={() => setPage((p) => p + 1)}>Next</Button>
-        </div>
-      </div>
+
     </div>
   )
 }

@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { invalidateCache } from "@/lib/invalidate-cache";
+import { ErrorState } from "@/components/ui/error-state";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -60,7 +61,7 @@ export default function ReviewsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: reviews = [], isLoading } = useQuery({
+  const { data: reviews = [], isLoading, isError, error } = useQuery({
     queryKey: ["reviews", deletedFilter],
     queryFn: () => fetchReviews(deletedFilter === "active" ? undefined : deletedFilter),
     staleTime: 5 * 60 * 1000,
@@ -111,6 +112,18 @@ export default function ReviewsPage() {
           r.productId?.name?.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : reviews;
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          title="Failed to load reviews"
+          message={error instanceof Error ? error.message : "Could not fetch reviews from the server."}
+          onRetry={() => queryClient.invalidateQueries({ queryKey: ["reviews"] })}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

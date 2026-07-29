@@ -32,6 +32,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { ErrorState } from "@/components/ui/error-state";
 import { api, ApiClientError } from "@/lib/api";
 
 interface AdminUser extends BaseItem {
@@ -65,7 +66,7 @@ export default function UsersPage() {
   const queryClient = useQueryClient();
   const [deletedFilter, setDeletedFilter] = useState<string>("active");
 
-  const { data: users = [], isLoading: loading } = useQuery<AdminUser[]>({
+  const { data: users = [], isLoading: loading, isError, error } = useQuery<AdminUser[]>({
     queryKey: ["users", deletedFilter],
     queryFn: async () => {
       const data = await api.post<AdminUser[]>("/api/admin/user/findAllUser", {
@@ -232,6 +233,18 @@ export default function UsersPage() {
       ),
     },
   ];
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          title="Failed to load users"
+          message={error instanceof Error ? error.message : "Could not fetch users from the server."}
+          onRetry={() => queryClient.invalidateQueries({ queryKey: ["users"] })}
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return (

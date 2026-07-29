@@ -1,7 +1,10 @@
 import mongoose, { Schema, type InferSchemaType } from "mongoose";
 
+export const SETTINGS_ID = "global"
+
 const storeSettingsSchema = new Schema(
   {
+    _id: { type: String, default: SETTINGS_ID },
     // Fixed single-document ID — always upsert with _id: "global"
     storePickupPincode: {
       type: String,

@@ -8,20 +8,14 @@ import { GripVertical, Trash2, Eye, EyeOff } from "lucide-react"
 import type { HomeSection } from "../types"
 import { getTypeMeta, getSectionTitle } from "../constants"
 
-// ── Helpers ──
-
-function isHexObjectId(id: string): boolean {
-  return /^[0-9a-f]{24}$/i.test(id)
-}
-
 // ── Unsaved indicator ──
 
-export function UnsavedIndicator({ sections }: { sections: HomeSection[] }) {
-  const hasUnsaved = sections.some((s) => !isHexObjectId(s._id))
+export function UnsavedIndicator({ hasUnsaved }: { hasUnsaved: boolean }) {
   if (!hasUnsaved) return null
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-sm text-amber-800">
-      ⚠️ You have unsaved sections. Click &ldquo;Save All&rdquo; to persist.
+    <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-sm text-amber-800 flex items-center gap-2">
+      <span>⚠️</span>
+      <span>You have unsaved changes. Click <strong>Save All</strong> to persist.</span>
     </div>
   )
 }
@@ -60,6 +54,7 @@ export default function SortableSection({
   const meta = getTypeMeta(section.type)
   const Icon = meta.icon
   const title = getSectionTitle(section)
+  const isLocalId = section._id.startsWith("local_")
 
   return (
     <div ref={setNodeRef} style={style} className="border rounded-xl bg-card shadow-sm hover:shadow-md transition-shadow">
@@ -82,7 +77,7 @@ export default function SortableSection({
             <Badge variant="outline" className="text-xs shrink-0">
               {meta.label}
             </Badge>
-            {!isHexObjectId(section._id) && (
+            {isLocalId && (
               <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full font-medium shrink-0">
                 Unsaved
               </span>

@@ -48,7 +48,7 @@ export const create = async (
     } else {
       messages.push("Something went wrong");
     }
-    response.send({ _status: false, _message: messages, _data: [] });
+    response.status(500).json({ _status: false, _message: messages, _data: [] });
   }
 };
 
@@ -123,14 +123,14 @@ export const destroy = async (
   try {
     const existing = await subSubCategory.findById(request.body.id).select("_id deletedAt").lean();
     if (!existing) {
-      response.send({ _status: false, _message: "Sub-sub-category not found", _data: null });
+      response.status(500).json({ _status: false, _message: "Sub-sub-category not found", _data: null });
       return;
     }
     if (existing.deletedAt) {
       // Already soft-deleted → permanently delete
       await subSubCategory.findByIdAndDelete(request.body.id);
       cache.del("navigationData");
-      response.send({ _status: true, _message: "Sub-sub-category permanently deleted", _data: null });
+      response.status(200).json({ _status: true, _message: "Sub-sub-category permanently deleted", _data: null });
       return;
     }
     await subSubCategory.updateOne(

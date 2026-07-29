@@ -31,6 +31,7 @@ import PendingPaymentFix from "@/components/PendingPaymentFix";
 import SyncStuckPayments from "@/components/SyncStuckPayments";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/ui/error-state";
 import {
   Table,
   TableBody,
@@ -53,7 +54,7 @@ export default function OrdersPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: orders = [], isLoading } = useQuery<OrderData[]>({
+  const { data: orders = [], isLoading, isError, error } = useQuery<OrderData[]>({
     queryKey: ["orders"],
     queryFn: async () => {
       const res = await api.post<{ success: boolean; data: OrderData[] }>("/api/admin/orders/all", {});
@@ -72,6 +73,18 @@ export default function OrdersPage() {
       description: "Use cancel action instead",
     });
   };
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          title="Failed to load orders"
+          message={error instanceof Error ? error.message : "Could not fetch orders from the server."}
+          onRetry={() => queryClient.invalidateQueries({ queryKey: ["orders"] })}
+        />
+      </div>
+    );
+  }
 
   // ── Mutations ──
   const invalidateOrders = () => {

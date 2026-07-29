@@ -15,6 +15,7 @@ import { Plus, Pencil, Trash2, Eye, EyeOff, Loader2, Gem, Award, ShieldCheck, Sp
 import { api, ApiClientError } from "@/lib/api";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ErrorState } from "@/components/ui/error-state";
 import type { WhyChooseUsItem } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -65,7 +66,7 @@ export default function WhyChooseUsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: whyChooseUsArray = [], isLoading } = useQuery({
+  const { data: whyChooseUsArray = [], isLoading, isError, error } = useQuery({
     queryKey: ["whyChooseUs", deletedFilter],
     queryFn: () => fetchWhyChooseUs(deletedFilter === "active" ? undefined : deletedFilter),
     staleTime: 5 * 60 * 1000,
@@ -152,6 +153,18 @@ export default function WhyChooseUsPage() {
       createMutation.mutate(submitData);
     }
   };
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          title="Failed to load why choose us entries"
+          message={error instanceof Error ? error.message : "Could not fetch data from the server."}
+          onRetry={() => queryClient.invalidateQueries({ queryKey: ["whyChooseUs"] })}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

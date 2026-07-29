@@ -14,6 +14,7 @@ import {
 import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
+import { ErrorState } from "@/components/ui/error-state";
 import { Plus, Palette, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ApiClientError } from "@/lib/api";
@@ -49,13 +50,13 @@ export default function MaterialsColorsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: materials = [], isLoading: materialsLoading } = useQuery<MaterialItem[]>({
+  const { data: materials = [], isLoading: materialsLoading, isError: materialsError } = useQuery<MaterialItem[]>({
     queryKey: ["materials", deletedFilter],
     queryFn: () => fetchMaterials(deletedFilter === "active" ? undefined : deletedFilter),
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: colors = [], isLoading: colorsLoading } = useQuery<ColorItem[]>({
+  const { data: colors = [], isLoading: colorsLoading, isError: colorsError } = useQuery<ColorItem[]>({
     queryKey: ["colors", deletedFilter],
     queryFn: () => fetchColors(deletedFilter === "active" ? undefined : deletedFilter),
     staleTime: 5 * 60 * 1000,
@@ -169,6 +170,21 @@ export default function MaterialsColorsPage() {
   };
 
   const loading = materialsLoading || colorsLoading;
+
+  if (materialsError || colorsError) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          title="Failed to load materials & colors"
+          message="Could not fetch data from the server. Check your connection and try again."
+          onRetry={() => {
+            queryClient.invalidateQueries({ queryKey: ["materials"] });
+            queryClient.invalidateQueries({ queryKey: ["colors"] });
+          }}
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return (

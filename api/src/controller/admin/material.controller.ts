@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import material from "../../models/material.js";
-import cache from "../../lib/cache.js";
+import cache, { delByPrefix } from "../../lib/cache.js";
 
 const extractValidationMessages = (err: import("mongoose").Error.ValidationError | unknown): string[] | null => {
   if (!(err instanceof Error) || !("errors" in err)) return null;
@@ -20,7 +20,7 @@ export const create = async (
   try {
     const data = new material(request.body);
     const ress = await data.save();
-    cache.del("materialData");
+    delByPrefix("admin_material_view");
 
     response.status(201).json({
       _status: true,
@@ -50,14 +50,13 @@ export const view = async (
   response: Response,
 ): Promise<void> => {
   try {
-    const cacheKey = "admin_material_view";
+    const isDeletedAt = request.body?.isDeletedAt ?? request.query?.isDeletedAt;
+    const cacheKey = `admin_material_view_${isDeletedAt ?? "active"}`;
     const cached = cache.get<{ _status: boolean; _message: string; _data: unknown[] }>(cacheKey);
     if (cached) { response.status(200).json(cached); return; }
 
     const andCondition: Record<string, unknown>[] = [];
     const orCondition: Record<string, unknown>[] = [];
-
-    const isDeletedAt = request.body?.isDeletedAt ?? request.query?.isDeletedAt;
     if (isDeletedAt === "all") {
       // No deletedAt filter — show all
     } else if (isDeletedAt === "deleted") {
@@ -116,7 +115,7 @@ export const destroy = async (
     if (existing.deletedAt) {
       // Already soft-deleted → permanently delete
       await material.findByIdAndDelete(request.body.id);
-      cache.del("materialData");
+      delByPrefix("admin_material_view");
       response.status(200).json({ _status: true, _message: "Material permanently deleted", _data: null });
       return;
     }
@@ -125,7 +124,7 @@ export const destroy = async (
       { _id: request.body.id },
       { $set: { deletedAt: new Date() } },
     );
-    cache.del("materialData");
+    delByPrefix("admin_material_view");
     response.status(200).json({
       _status: true,
       _message: "Material deleted",
@@ -205,7 +204,7 @@ export const update = async (
       });
       return;
     }
-    cache.del("materialData");
+    delByPrefix("admin_material_view");
     response.status(200).json({
       _status: true,
       _message: "Material updated",
@@ -255,7 +254,7 @@ export const changeStatus = async (
       });
       return;
     }
-    cache.del("materialData");
+    delByPrefix("admin_material_view");
     response.status(200).json({
       _status: true,
       _message: "Material status changed",

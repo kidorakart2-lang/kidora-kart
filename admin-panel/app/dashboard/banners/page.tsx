@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api, ApiClientError } from "@/lib/api";
+import { ErrorState } from "@/components/ui/error-state";
 import type { Banner, LinkOption } from "@/lib/types";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import SingleImageUploader from "@/components/SingleImageUploader";
@@ -101,7 +102,7 @@ export default function BannersPage() {
     } catch { /* silently fail */ }
   };
 
-  const { data: banners = [], isLoading: loading } = useQuery<Banner[]>({
+  const { data: banners = [], isLoading: loading, isError, error } = useQuery<Banner[]>({
     queryKey: ["banners", deletedFilter],
     queryFn: async () => {
       const data = await api.post<Banner[]>("/api/admin/banner/view", {
@@ -226,6 +227,18 @@ export default function BannersPage() {
   const handleStatusChange = (id: string) => {
     statusMutation.mutate(id);
   };
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          title="Failed to load banners"
+          message={error instanceof Error ? error.message : "Could not fetch banners from the server."}
+          onRetry={() => queryClient.invalidateQueries({ queryKey: ["banners"] })}
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return (

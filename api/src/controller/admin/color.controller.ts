@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import color from "../../models/color.js";
-import cache from "../../lib/cache.js";
+import cache, { delByPrefix } from "../../lib/cache.js";
 
 const extractValidationMessages = (
   err: unknown,
@@ -22,7 +22,7 @@ export const create = async (
   try {
     const data = new color(request.body);
     const ress = await data.save();
-    cache.del("colorData");
+    delByPrefix("admin_color_view");
     response.status(201).json({
       _status: true,
       _message: "Color created successfully",
@@ -51,14 +51,13 @@ export const view = async (
   response: Response,
 ): Promise<void> => {
   try {
-    const cacheKey = "admin_color_view";
+    const isDeletedAt = request.body?.isDeletedAt ?? request.query?.isDeletedAt;
+    const cacheKey = `admin_color_view_${isDeletedAt ?? "active"}`;
     const cached = cache.get<{ _status: boolean; _message: string; _data: unknown[] }>(cacheKey);
     if (cached) { response.status(200).json(cached); return; }
 
     const andCondition: Record<string, unknown>[] = [];
     const orCondition: Record<string, unknown>[] = [];
-
-    const isDeletedAt = request.body?.isDeletedAt ?? request.query?.isDeletedAt;
     if (isDeletedAt === "all") {
       // No deletedAt filter — show all
     } else if (isDeletedAt === "deleted") {
@@ -117,7 +116,7 @@ export const destroy = async (
     if (existing.deletedAt) {
       // Already soft-deleted → permanently delete
       await color.findByIdAndDelete(request.body.id);
-      cache.del("colorData");
+      delByPrefix("admin_color_view");
       response.status(200).json({ _status: true, _message: "Color permanently deleted", _data: null });
       return;
     }
@@ -126,7 +125,7 @@ export const destroy = async (
       { _id: request.body.id },
       { $set: { deletedAt: new Date() } },
     );
-    cache.del("colorData");
+    delByPrefix("admin_color_view");
 
     response.status(200).json({
       _status: true,
@@ -205,7 +204,7 @@ export const update = async (
       });
       return;
     }
-    cache.del("colorData");
+    delByPrefix("admin_color_view");
     response.status(200).json({
       _status: true,
       _message: "Color updated",
@@ -247,7 +246,7 @@ export const changeStatus = async (
       { _id: request.body.id },
       [{ $set: { status: { $not: "$status" } } }],
     );
-    cache.del("colorData");
+    delByPrefix("admin_color_view");
     if (result.matchedCount === 0) {
       response.status(404).json({
         _status: false,

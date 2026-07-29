@@ -203,15 +203,11 @@ export const create = async (
 
     Object.assign(productDoc, updateData);
     const ress = await productDoc.save();
-    invalidateProductCaches();
-    response.send({
-      _status: true,
+    invalidateProductCaches();response.status(200).json({ _status: true,
       _message: "Product created successfully",
       _data: ress,
     });
-  } catch (err) {
-    response.send({
-      _status: false,
+  } catch (err) {response.status(500).json({ _status: false,
       _message: collectValidationMessages(err),
       _data: [],
     });
@@ -295,9 +291,7 @@ export const view = async (
         .skip(skip)
         .limit(limit)
         .lean(),
-    ]);
-    response.send({
-      _status: true,
+    ]);response.status(200).json({ _status: true,
       _message: "Products fetched successfully",
       _data: products,
       _pagination: {
@@ -307,9 +301,7 @@ export const view = async (
         totalPages: Math.ceil(total / limit),
       },
     });
-  } catch (_err) {
-    response.send({
-      _status: false,
+  } catch (_err) {response.status(500).json({ _status: false,
       _message: "Something went wrong",
       _data: [],
     });
@@ -331,21 +323,19 @@ export const getOne = async (
     }
 
     if (!product) {
-      response.status(404).send({
+      response.status(404).json({
         _status: false,
         _message: "Product not found",
         _data: null,
       });
       return;
     }
-
-    response.send({
-      _status: true,
+response.status(200).json({ _status: true,
       _message: "Product fetched successfully",
       _data: product,
     });
   } catch (err) {
-    response.status(500).send({
+    response.status(500).json({
       _status: false,
       _message: "Something went wrong",
       _data: null,
@@ -612,15 +602,11 @@ export const update = async (
       new: true,
       runValidators: true,
     });
-    invalidateProductCaches();
-    response.send({
-      _status: true,
+    invalidateProductCaches();response.status(200).json({ _status: true,
       _message: "Product updated successfully",
       _data: updatedProduct,
     });
-  } catch (err) {
-    response.send({
-      _status: false,
+  } catch (err) {response.status(500).json({ _status: false,
       _message: collectValidationMessages(err),
       _data: null,
     });
@@ -639,9 +625,7 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
     );
 
     if (softDeleted) {
-      invalidateProductCaches();
-      res.send({
-        _status: true,
+      invalidateProductCaches();res.status(200).json({ _status: true,
         _message: "Product deleted successfully",
         _data: null,
       });
@@ -650,9 +634,7 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
 
     // Product not found or already soft-deleted → try permanent delete
     const deleted = await Product.findByIdAndDelete(id);
-    if (!deleted) {
-      res.send({
-        _status: false,
+    if (!deleted) {res.status(500).json({ _status: false,
         _message: "Product not found",
         _data: null,
       });
@@ -760,9 +742,7 @@ export const getByCategory = async (
     const total = await Product.countDocuments({
       category: { $in: categoryIds },
     });
-
-    response.send({
-      _status: true,
+response.status(200).json({ _status: true,
       _message: "Products fetched successfully",
       _data: products,
       _pagination: {
@@ -772,9 +752,7 @@ export const getByCategory = async (
         totalPages: Math.ceil(total / Number(limit)),
       },
     });
-  } catch (err) {
-    response.send({
-      _status: false,
+  } catch (err) {response.status(500).json({ _status: false,
       _message: "Something went wrong",
       _data: [],
     });
@@ -828,15 +806,11 @@ export const getProductByFilter = async (
       .limit(Math.min(Number(limit), 100))
       .sort("-createdAt")
       .lean();
-
-    response.send({
-      _status: true,
+response.status(200).json({ _status: true,
       _message: "Filtered products fetched successfully",
       _data: products,
     });
-  } catch (err) {
-    response.send({
-      _status: false,
+  } catch (err) {response.status(500).json({ _status: false,
       _message: "Something went wrong",
       _data: [],
     });
@@ -860,15 +834,11 @@ export const updateStock = async (
     );
     if (!product) {
       throw new Error("Product not found");
-    }
-    response.send({
-      _status: true,
+    }response.status(200).json({ _status: true,
       _message: "Stock updated successfully",
       _data: product,
     });
-  } catch (err) {
-    response.send({
-      _status: false,
+  } catch (err) {response.status(500).json({ _status: false,
       _message: "Something went wrong",
       _data: null,
     });

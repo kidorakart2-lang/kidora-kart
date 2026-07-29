@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import NewMultiSelect from "../../../components/NewMultiSelect";
+import { ErrorState } from "@/components/ui/error-state";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import SingleImageUploader from "@/components/SingleImageUploader";
 import BannersSelect from "@/components/BannersSelect";
@@ -89,7 +90,7 @@ export default function SubSubCategoriesClient({
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: subSubCategories = [], isLoading } =
+  const { data: subSubCategories = [], isLoading, isError, error } =
     useQuery({
       queryKey: ["subSubCategories", deletedFilter],
       queryFn: () => fetchSubSubCategories(deletedFilter === "active" ? undefined : deletedFilter),
@@ -230,6 +231,18 @@ export default function SubSubCategoriesClient({
     updateMutation.isPending ||
     deleteMutation.isPending ||
     statusMutation.isPending;
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          title="Failed to load sub sub categories"
+          message={error instanceof Error ? error.message : "Could not fetch data from the server."}
+          onRetry={() => queryClient.invalidateQueries({ queryKey: ["subSubCategories"] })}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

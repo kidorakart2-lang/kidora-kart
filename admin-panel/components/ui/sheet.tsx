@@ -73,7 +73,11 @@ function SheetContent({
         onPointerDownOutside={(e) => {
           if (
             e.target instanceof Element &&
-            e.target.closest('[data-toast-viewport]')
+            (e.target.closest('[data-toast-viewport]') ||
+              e.target.closest('[data-slot="select-content"]') ||
+              e.target.closest('[data-radix-popper-content-wrapper]') ||
+              e.target.closest('[role="dialog"]') ||
+              e.target.closest('[role="alertdialog"]'))
           ) {
             e.preventDefault()
           }

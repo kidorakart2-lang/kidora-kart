@@ -139,9 +139,7 @@ export const sendEmail = async (
   if (resend) {
     try {
       const { data: result, error } = await resend.emails.send({
-        // ponytail: Use SUPPORT_EMAIL so Resend's domain verification works.
-        // In test mode Resend auto-overrides from to its test @resend.dev address.
-        from: `"${env.APP_NAME}" <${env.SUPPORT_EMAIL}>`,
+        from: `"${env.APP_NAME}" <${env.RESEND_FROM_EMAIL}>`,
         to: [to],
         subject,
         html,

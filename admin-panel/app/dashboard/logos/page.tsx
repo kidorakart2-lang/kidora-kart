@@ -15,6 +15,7 @@ import { api } from "@/lib/api";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import type { Logo } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ErrorState } from "@/components/ui/error-state";
 
 function fetchLogos(isDeletedAt?: string): Promise<Logo[]> {
   return api.post<Logo[]>("/api/admin/logo/view", { isDeletedAt });
@@ -47,7 +48,7 @@ export default function LogosPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: logos = [], isLoading } = useQuery({
+  const { data: logos = [], isLoading, isError, error } = useQuery({
     queryKey: ["logos", deletedFilter],
     queryFn: () => fetchLogos(deletedFilter === "active" ? undefined : deletedFilter),
     staleTime: 5 * 60 * 1000,
@@ -146,6 +147,18 @@ export default function LogosPage() {
   const confirmDelete = () => {
     if (logoToDelete) deleteMutation.mutate(logoToDelete);
   };
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          title="Failed to load logos"
+          message={error instanceof Error ? error.message : "Could not fetch logos from the server."}
+          onRetry={() => queryClient.invalidateQueries({ queryKey: ["logos"] })}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

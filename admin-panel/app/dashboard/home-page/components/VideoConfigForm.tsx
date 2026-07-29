@@ -107,6 +107,37 @@ export default function VideoConfigForm({ config, onChange }: Props) {
         </p>
       </div>
 
+      {config.videoUrl && (
+        <div className="rounded-lg overflow-hidden border bg-muted/30">
+          <div className="text-[10px] font-medium px-3 py-1.5 bg-muted text-muted-foreground border-b">
+            Preview
+          </div>
+          <div className="aspect-video relative">
+            {config.videoUrl.includes("youtube.com/embed") || config.videoUrl.includes("youtu.be") ? (
+              <iframe
+                src={config.videoUrl.includes("youtu.be") ? config.videoUrl.replace("youtu.be/", "youtube.com/embed/") : config.videoUrl}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; encrypted-media; gyroscope"
+                allowFullScreen
+                title="Video preview"
+              />
+            ) : (
+              <video
+                src={config.videoUrl}
+                className="w-full h-full object-cover"
+                controls
+                preload="metadata"
+              >
+                <track kind="captions" label="No captions" />
+              </video>
+            )}
+          </div>
+          <div className="text-[10px] text-muted-foreground px-3 py-1.5 border-t text-right">
+            {config.videoUrl.includes("youtube") || config.videoUrl.includes("youtu.be") ? "YouTube" : config.videoUrl.endsWith(".mp4") ? "Video file" : "Video"}
+          </div>
+        </div>
+      )}
+
       <div className="border-t pt-3 space-y-3">
         <Label className="text-sm">Button URL (from banner link)</Label>
         <p className="text-[10px] text-muted-foreground">

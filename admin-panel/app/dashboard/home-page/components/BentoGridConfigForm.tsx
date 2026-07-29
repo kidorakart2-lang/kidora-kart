@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Loader2, Search } from "lucide-react"
+import { Loader2, Search, X } from "lucide-react"
 import type { SectionConfig, BentoCell } from "../types"
 import { BENTO_LAYOUTS, BENTO_SOURCE_TYPES, EMPTY_CELL } from "../constants"
 
@@ -157,11 +157,22 @@ function BentoCellEditor({
     }
   }, [])
 
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Only re-fetch when sourceType changes (e.g. switching from 'product' to 'category')
+  // Search-driven fetches are handled exclusively by the debounced handleSearch
   useEffect(() => {
     loadItems(sourceType, search)
-  }, [loadItems, sourceType, search])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadItems, sourceType])
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
+
   const handleSearch = (val: string) => {
     setSearchState(val)
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -328,6 +339,24 @@ function BentoCellEditor({
           )}
           <span className="truncate flex-1">{cell.title}</span>
           <span className="shrink-0">{cell.linkType !== "none" ? `→ ${cell.linkTarget || "..."}` : "No link"}</span>
+          <button
+            type="button"
+            onClick={() =>
+              onChange({
+                sourceId: undefined,
+                image: "",
+                title: "",
+                subtitle: "",
+                linkType: "none",
+                linkTarget: "",
+                linkExternalUrl: "",
+              })
+            }
+            className="h-5 w-5 rounded-full hover:bg-destructive/10 hover:text-destructive flex items-center justify-center shrink-0 transition-colors"
+            title="Clear selection"
+          >
+            <X className="h-3 w-3" />
+          </button>
         </div>
       )}
     </div>

@@ -45,7 +45,7 @@ export const create = async (
     } else {
       messages.push("Failed to create why-choose-us entry");
     }
-    response.send({ _status: false, _message: messages, _data: [] });
+    response.status(500).json({ _status: false, _message: messages, _data: [] });
   }
 };
 
@@ -108,14 +108,14 @@ export const destroy = async (
   try {
     const existing = await whyChooseUs.findById(request.body.id).select("_id deletedAt").lean();
     if (!existing) {
-      response.send({ _status: false, _message: "Why-choose-us entry not found", _data: null });
+      response.status(500).json({ _status: false, _message: "Why-choose-us entry not found", _data: null });
       return;
     }
     if (existing.deletedAt) {
       // Already soft-deleted → permanently delete
       await whyChooseUs.findByIdAndDelete(request.body.id);
       cache.del("whyChooseUsData");
-      response.send({ _status: true, _message: "Why-choose-us entry permanently deleted", _data: null });
+      response.status(200).json({ _status: true, _message: "Why-choose-us entry permanently deleted", _data: null });
       return;
     }
     await whyChooseUs.updateOne(
@@ -143,11 +143,19 @@ export const details = async (
 ): Promise<void> => {
   try {
     const result = await whyChooseUs.findById({ _id: request.body.id }).lean();
-    response.send({
-      _status: !!result,
-      _message: result ? "Why-choose-us entry found" : "Why-choose-us entry not found",
-      _data: result,
-    });
+    if (result) {
+      response.status(200).json({
+        _status: true,
+        _message: "Why-choose-us entry found",
+        _data: result,
+      });
+    } else {
+      response.status(404).json({
+        _status: false,
+        _message: "Why-choose-us entry not found",
+        _data: null,
+      });
+    }
   } catch (err) {
     response.send({
       _status: false,

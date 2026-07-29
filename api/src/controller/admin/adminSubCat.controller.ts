@@ -50,7 +50,7 @@ export const create = async (
     } else {
       messages.push("Something went wrong");
     }
-    response.send({ _status: false, _message: messages, _data: [] });
+    response.status(500).json({ _status: false, _message: messages, _data: [] });
   }
 };
 
@@ -120,7 +120,7 @@ export const destroy = async (
   try {
     const existing = await subCategory.findById(request.body.id).select("_id deletedAt").lean();
     if (!existing) {
-      response.send({ _status: false, _message: "Sub-category not found", _data: null });
+      response.status(500).json({ _status: false, _message: "Sub-category not found", _data: null });
       return;
     }
     if (existing.deletedAt) {
@@ -129,7 +129,7 @@ export const destroy = async (
       cache.del("navigationData");
       cache.del("subCategory_men");
       cache.del("subCategory_women");
-      response.send({ _status: true, _message: "Sub-category permanently deleted", _data: null });
+      response.status(200).json({ _status: true, _message: "Sub-category permanently deleted", _data: null });
       return;
     }
     await subCategory.updateOne(
@@ -159,11 +159,19 @@ export const details = async (
 ): Promise<void> => {
   try {
     const result = await subCategory.findById({ _id: request.body.id }).lean();
-    response.send({
-      _status: !!result,
-      _message: result ? "Sub-category found" : "Sub-category not found",
-      _data: result,
-    });
+    if (result) {
+      response.status(200).json({
+        _status: true,
+        _message: "Sub-category found",
+        _data: result,
+      });
+    } else {
+      response.status(404).json({
+        _status: false,
+        _message: "Sub-category not found",
+        _data: null,
+      });
+    }
   } catch (err) {
     response.send({
       _status: false,

@@ -19,44 +19,63 @@ interface ConfigField {
 type SectionSchema = Record<string, ConfigField>;
 
 const SECTION_SCHEMAS: Record<string, { fields: SectionSchema; titleRequired?: boolean }> = {
+  // ── Banner slider / single banner ──
+  // NEW format: selectedBannerIds, bannerMode, bannerSearch
+  // LEGACY format: image, link, title, subtitle, buttonText  (accepted for backward compat)
+  // ── Banner slider / single banner ──
+  // Form saves: bannerMode, selectedBannerIds (string[]), bannerSearch
   "banner": {
     fields: {
-      image: { type: "string", required: true },
-      link: { type: "string" },
-      title: { type: "string" },
-      subtitle: { type: "string" },
-      buttonText: { type: "string" },
+      selectedBannerIds: { type: "array", required: true },
+      bannerMode: { type: "string" },
+      bannerSearch: { type: "string" },
     },
   },
+  // ── Round / Square / Shop-by-Price categories ──
+  // Form saves: heading (string)
   "round-categories": {
     fields: {
-      categoryIds: { type: "array", required: true },
-      title: { type: "string" },
+      heading: { type: "string" },
     },
   },
+  "square-categories": {
+    fields: {
+      heading: { type: "string" },
+    },
+  },
+  // ── Category grid with source-type selector ──
+  // Form saves: heading, categorySourceType, categorySelectedIds, categoryItems, categorySearch
   "category-grid": {
     fields: {
-      categoryIds: { type: "array", required: true },
-      title: { type: "string" },
+      heading: { type: "string" },
+      categorySourceType: { type: "string" },
+      categorySelectedIds: { type: "array", required: true },
+      categoryItems: { type: "array" },
+      categorySearch: { type: "string" },
     },
   },
+  // ── Product slider ──
+  // Form saves: heading, productSource, limit
   "product-slider": {
     fields: {
-      title: { type: "string" },
-      productIds: { type: "array" },
-      categoryIds: { type: "array" },
-      limit: { type: "number" },
+      heading: { type: "string" },
+      productSource: { type: "string" },
+      limit: { type: "string" },
     },
   },
+  // ── Products tab ──
+  // Form saves: heading, searchTerms
   "products-tab": {
     fields: {
-      title: { type: "string" },
-      categoryIds: { type: "array" },
+      heading: { type: "string" },
+      searchTerms: { type: "string" },
     },
   },
+  // ── Shop by Price ──
+  // Form saves: heading, ranges
   "shop-by-price": {
     fields: {
-      title: { type: "string" },
+      heading: { type: "string" },
       ranges: {
         type: "array",
         required: true,
@@ -68,42 +87,60 @@ const SECTION_SCHEMAS: Record<string, { fields: SectionSchema; titleRequired?: b
       },
     },
   },
+  // ── DB-driven sections (no config needed) ──
   "why-choose-us": {
-    fields: {}, // Uses existing data from DB — no config needed
+    fields: {},
   },
   "testimonial": {
-    fields: {}, // Uses existing data from DB
+    fields: {},
   },
+  // ── Promo banner ──
+  // Form saves: heading, buttonText, selectedBannerId, bannerImage, bannerLinkData, bannerSearch
   "promo-banner": {
     fields: {
-      image: { type: "string", required: true },
-      link: { type: "string" },
-      title: { type: "string" },
-      subtitle: { type: "string" },
+      heading: { type: "string" },
+      buttonText: { type: "string" },
+      selectedBannerId: { type: "string", required: true },
+      bannerImage: { type: "string" },
+      bannerSearch: { type: "string" },
     },
   },
+  // ── Video section ──
+  // Form saves: heading, subtitle, buttonText, videoUrl, selectedBannerId, bannerLinkData, bannerSearch
   "video": {
     fields: {
+      heading: { type: "string" },
+      subtitle: { type: "string" },
+      buttonText: { type: "string" },
       videoUrl: { type: "string", required: true },
-      title: { type: "string" },
+      selectedBannerId: { type: "string" },
+      bannerSearch: { type: "string" },
     },
   },
+  // ── Bento grid ──
+  // Form saves: heading, layout, cells[ { image, title, subtitle, linkType, linkTarget, sourceType, sourceId } ]
   "bento-grid": {
     fields: {
-      items: {
+      heading: { type: "string" },
+      layout: { type: "string" },
+      cells: {
         type: "array",
         required: true,
         itemShape: {
           image: { type: "string", required: true },
-          link: { type: "string", required: true },
           title: { type: "string" },
-          size: { type: "string" },
+          subtitle: { type: "string" },
+          linkType: { type: "string" },
+          linkTarget: { type: "string" },
+          sourceType: { type: "string" },
+          sourceId: { type: "string" },
         },
       },
     },
   },
+  // ── Custom HTML ──
   "custom": {
-    fields: {}, // No validation — anything goes
+    fields: {},
   },
 };
 
@@ -131,7 +168,7 @@ function validateSectionConfig(
   for (const [fieldName, fieldSchema] of Object.entries(schema.fields)) {
     const value = cfg[fieldName];
 
-    if (fieldSchema.required && (value === undefined || value === null || value === "")) {
+    if (fieldSchema.required && (value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0))) {
       errors.push(`"${type}" section: "${fieldName}" is required`);
       continue;
     }

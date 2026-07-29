@@ -148,26 +148,46 @@ function PreviewSectionCard({
 function PromoBannerPreview({ config }: { config: SectionConfig }) {
   const [resolvedImage, setResolvedImage] = useState<string | undefined>(config.bannerImage)
   const [loading, setLoading] = useState(false)
+  const [fetchError, setFetchError] = useState(false)
 
   useEffect(() => {
     if (config.bannerImage) {
       setResolvedImage(config.bannerImage)
+      setFetchError(false)
       return
     }
     if (config.selectedBannerId) {
       setLoading(true)
+      setFetchError(false)
       api
         .postRaw<{ _data: Banner[] }>("/api/admin/banner/view", { limit: 100 })
         .then((res) => {
           const found = (res._data ?? []).find((b: Banner) => b._id === config.selectedBannerId)
           if (found?.image) {
             setResolvedImage(found.image)
+            setFetchError(false)
+          } else {
+            setFetchError(true)
           }
         })
-        .catch(() => {})
+        .catch(() => {
+          setFetchError(true)
+        })
         .finally(() => setLoading(false))
     }
   }, [config.bannerImage, config.selectedBannerId])
+
+  const hasNoSelection = !config.selectedBannerId && !config.bannerImage
+
+  if (hasNoSelection) {
+    return (
+      <div className="rounded-lg p-6 flex flex-col items-center justify-center bg-muted border-2 border-dashed border-border">
+        <ImageIcon className="h-6 w-6 mb-2 text-muted-foreground/40" />
+        <p className="text-sm font-medium text-muted-foreground/60">No banner selected</p>
+        <p className="text-[10px] text-muted-foreground/40 mt-0.5">Choose a banner in the config</p>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -178,7 +198,7 @@ function PromoBannerPreview({ config }: { config: SectionConfig }) {
           : undefined,
       }}
     >
-      {!resolvedImage && !loading && (
+      {!resolvedImage && !loading && !fetchError && (
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-sky-500" />
       )}
       {loading && (
@@ -186,8 +206,17 @@ function PromoBannerPreview({ config }: { config: SectionConfig }) {
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-background/30 border-t-background" />
         </div>
       )}
+      {fetchError && (
+        <div className="absolute inset-0 bg-gradient-to-r from-rose-500 to-pink-500" />
+      )}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.2),transparent_60%)]" />
-      {loading ? null : (
+      {loading ? null : fetchError ? (
+        <div className="relative z-10 text-center">
+          <ImageIcon className="h-6 w-6 mb-2 mx-auto" />
+          <p className="text-sm font-semibold">{config.heading || "Promo Banner"}</p>
+          <p className="text-[10px] text-rose-200 mt-1">Could not load banner image — check banner still exists</p>
+        </div>
+      ) : (
         <>
           <ImageIcon className="h-6 w-6 mb-2 relative z-10" />
           <p className="text-sm font-semibold relative z-10">
@@ -203,8 +232,6 @@ function PromoBannerPreview({ config }: { config: SectionConfig }) {
           )}
           {resolvedImage ? (
             <p className="text-[10px] text-background/50 mt-2 relative z-10">Banner image loaded</p>
-          ) : config.selectedBannerId ? (
-            <p className="text-[10px] text-amber-300 mt-2 relative z-10">Could not load banner image</p>
           ) : null}
         </>
       )}

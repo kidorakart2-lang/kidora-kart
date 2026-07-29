@@ -34,7 +34,7 @@ import {
   SheetFooter,
   SheetClose,
 } from "@/components/ui/sheet"
-import { Plus, Save, Loader2, Monitor, LayoutGrid } from "lucide-react"
+import { Plus, Save, Loader2, Monitor, LayoutGrid, TriangleAlert } from "lucide-react"
 
 import type { HomeSection, SectionConfig } from "./types"
 import { SECTION_TYPES, getTypeMeta } from "./constants"
@@ -42,11 +42,44 @@ import { UnsavedIndicator } from "./components/SortableSection"
 import SortableSection from "./components/SortableSection"
 import SectionConfigForm from "./components/SectionConfigForm"
 import { PreviewDialog } from "./components/Preview"
+import { ErrorState } from "@/components/ui/error-state"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { invalidateCache } from "@/lib/invalidate-cache"
 
+const STORAGE_KEY = "home-page-draft"
+
+function saveDraft(sections: HomeSection[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sections))
+  } catch { /* quota exceeded — silently ignore */ }
+}
+
+function loadDraft(): HomeSection[] | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    return raw ? (JSON.parse(raw) as HomeSection[]) : null
+  } catch {
+    return null
+  }
+}
+
+function clearDraft(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch { /* ignore */ }
+}
+
 function generateObjectId(): string {
-  const hex = "0123456789abcdef"
-  return Array.from({ length: 24 }, () => hex[Math.floor(Math.random() * 16)]).join("")
+  return `local_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`
 }
 
 function fetchSections(): Promise<{ sections: HomeSection[] }> {
@@ -69,18 +102,32 @@ export default function HomePagePage() {
   const [addConfig, setAddConfig] = useState<SectionConfig>({})
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "tablet" | "mobile">("desktop")
+  const [hasUnsaved, setHasUnsaved] = useState(false)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [showAutoSaved, setShowAutoSaved] = useState(false)
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const isInitialEditTypeRef = useRef(true)
 
   // ── React Query ──
-  const { isLoading } = useQuery({
+  const { isLoading, isError, error, refetch } = useQuery({
     queryKey: ["home-page-sections"],
     queryFn: async () => {
       const response = await fetchSections();
-      const data = (response?.sections ?? []) as HomeSection[];
-      setSections(data.sort((a: HomeSection, b: HomeSection) => a.order - b.order));
-      return data;
+      const serverSections = (response?.sections ?? []) as HomeSection[];
+      const sorted = serverSections.sort((a: HomeSection, b: HomeSection) => a.order - b.order);
+
+      // Restore draft from localStorage if it exists
+      const draft = loadDraft()
+      if (draft && draft.length > 0) {
+        setSections(draft)
+        setHasUnsaved(true)
+        return draft
+      }
+
+      setSections(sorted)
+      return sorted;
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -90,6 +137,8 @@ export default function HomePagePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["home-page-sections"] });
       invalidateCache(["homepage"]);
+      clearDraft()
+      setHasUnsaved(false)
       toast({ title: "Home page saved successfully!" });
     },
     onError: (error: Error) => {
@@ -98,7 +147,7 @@ export default function HomePagePage() {
     onSettled: () => setSaving(false),
   });
 
-  // ── Edit type tracking ──
+  // ── Edit type tracking: reset config when section type changes ──
   useEffect(() => {
     if (!editDialogOpen || !editingSection) return;
     if (isInitialEditTypeRef.current) { isInitialEditTypeRef.current = false; return; }
@@ -106,23 +155,65 @@ export default function HomePagePage() {
     setEditConfig({ ...meta.defaults.config });
   }, [editType, editDialogOpen, editingSection]);
 
+  // ── Add type tracking: reset config when section type changes ──
+  useEffect(() => {
+    if (!addDialogOpen) return;
+    const meta = getTypeMeta(addType);
+    setAddConfig({ ...meta.defaults.config });
+  }, [addType, addDialogOpen]);
+
+  // ── Debounced auto-save to localStorage (500ms after last change) with flash indicator ──
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (!hasUnsaved) return
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => {
+      saveDraft(sections)
+      // Flash auto-saved indicator
+      setShowAutoSaved(true)
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
+      autoSaveTimerRef.current = setTimeout(() => setShowAutoSaved(false), 1500)
+    }, 500)
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
+    }
+  }, [sections, hasUnsaved])
+
+  // ── Warn on page leave when there are unsaved changes ──
+  useEffect(() => {
+    if (!hasUnsaved) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ""
+    }
+    window.addEventListener("beforeunload", handler)
+    return () => window.removeEventListener("beforeunload", handler)
+  }, [hasUnsaved])
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+
+  const withDraft = (fn: (prev: HomeSection[]) => HomeSection[]) => {
+    setSections(fn)
+    setHasUnsaved(true)
+  }
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    setSections((prev) => {
+    withDraft((prev) => {
       const oldIdx = prev.findIndex((s) => s._id === active.id);
       const newIdx = prev.findIndex((s) => s._id === over.id);
       if (oldIdx === -1 || newIdx === -1) return prev;
       return arrayMove(prev, oldIdx, newIdx);
-    });
+    })
   };
 
   const handleToggle = (section: HomeSection) => {
-    setSections((prev) => prev.map((s) =>
+    withDraft((prev) => prev.map((s) =>
       s._id === section._id ? { ...s, config: { ...(s.config || ({} as SectionConfig)), hidden: !(s.config?.hidden ?? false) } } : s
-    ));
+    ))
   };
 
   const handleEdit = (section: HomeSection) => {
@@ -134,9 +225,9 @@ export default function HomePagePage() {
   };
 
   const handleSaveEdit = () => {
-    setSections((prev) => prev.map((s) =>
+    withDraft((prev) => prev.map((s) =>
       s._id === editingSection!._id ? { ...s, type: editType, config: editConfig } : s
-    ));
+    ))
     setEditDialogOpen(false);
     setEditingSection(null);
     toast({ title: "Section updated locally. Don't forget to save all changes." });
@@ -144,26 +235,50 @@ export default function HomePagePage() {
 
   const handleAddSection = () => {
     const meta = getTypeMeta(addType);
-    const newSection: HomeSection = { _id: generateObjectId(), type: addType, config: { ...meta.defaults.config, ...addConfig }, order: sections.length };
-    setSections((prev) => [...prev, newSection]);
+    const maxOrder = sections.length > 0 ? Math.max(...sections.map((s) => s.order)) : -1
+    const newSection: HomeSection = { _id: generateObjectId(), type: addType, config: { ...meta.defaults.config, ...addConfig }, order: maxOrder + 1 };
+    withDraft((prev) => [...prev, newSection])
     setAddDialogOpen(false);
     setAddType("round-categories");
     setAddConfig({});
   };
 
   const handleDelete = (id: string) => {
-    setSections((prev) => prev.filter((s) => s._id !== id));
+    setDeleteConfirmId(null)
+    withDraft((prev) => prev.filter((s) => s._id !== id))
   };
 
   const handleSaveAll = async () => {
-    const emptyCategoryGrids = sections.filter((s) => s.type === "category-grid" && !(s.config as SectionConfig)?.categorySelectedIds?.length);
-    if (emptyCategoryGrids.length > 0) {
-      toast({ title: "Cannot save — incomplete sections", description: `${emptyCategoryGrids.length} category-grid section(s) have no items selected.`, variant: "destructive" });
-      return;
+    const cfg = (s: HomeSection) => (s.config ?? {}) as SectionConfig
+
+    const emptyBanners = sections.filter((s) => s.type === "banner" && !cfg(s).selectedBannerIds?.length)
+    const emptyCategoryGrids = sections.filter((s) => s.type === "category-grid" && !cfg(s).categorySelectedIds?.length)
+    const emptyPromoBanners = sections.filter((s) => s.type === "promo-banner" && !cfg(s).selectedBannerId && !cfg(s).bannerImage)
+    const emptyVideos = sections.filter((s) => s.type === "video" && !cfg(s).videoUrl)
+    const emptyBentoGrids = sections.filter(
+      (s) => s.type === "bento-grid" && (!cfg(s).cells?.length || (cfg(s).cells ?? []).some((c) => !c.image)),
+    )
+
+    const issues: { type: string; count: number; label: string }[] = []
+    if (emptyBanners.length) issues.push({ type: "banner", count: emptyBanners.length, label: "banner" })
+    if (emptyCategoryGrids.length) issues.push({ type: "category-grid", count: emptyCategoryGrids.length, label: "category grid" })
+    if (emptyPromoBanners.length) issues.push({ type: "promo-banner", count: emptyPromoBanners.length, label: "promo banner" })
+    if (emptyVideos.length) issues.push({ type: "video", count: emptyVideos.length, label: "video" })
+    if (emptyBentoGrids.length) issues.push({ type: "bento-grid", count: emptyBentoGrids.length, label: "bento grid" })
+
+    if (issues.length > 0) {
+      const details = issues.map((i) => `${i.count} ${i.label}(s)`).join(", ")
+      toast({
+        title: "Cannot save — incomplete sections",
+        description: `${issues.length} section type(s) missing required fields: ${details}. Edit them to fill in the missing data.`,
+        variant: "destructive",
+      })
+      return
     }
-    setSaving(true);
-    const ordered = sections.map((s, i) => ({ ...s, order: i }));
-    saveMutation.mutate(ordered);
+
+    setSaving(true)
+    const ordered = sections.map((s, i) => ({ ...s, order: i }))
+    saveMutation.mutate(ordered)
   };
 
   if (isLoading) {
@@ -175,6 +290,18 @@ export default function HomePagePage() {
         </div>
       </div>
     );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-6 space-y-6">
+        <ErrorState
+          title="Failed to load home page sections"
+          message={error instanceof Error ? error.message : "Could not fetch sections from the server. Check your connection and try again."}
+          onRetry={() => refetch()}
+        />
+      </div>
+    )
   }
 
   return (
@@ -194,14 +321,24 @@ export default function HomePagePage() {
         </div>
       </div>
 
-      <UnsavedIndicator sections={sections} />
+      <div className="flex items-center gap-3 flex-wrap">
+        <UnsavedIndicator hasUnsaved={hasUnsaved} />
+        {showAutoSaved && (
+          <div className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-full px-3 py-1.5 inline-flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-300 shadow-sm">
+            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Auto-saved
+          </div>
+        )}
+      </div>
 
       {sections.length > 0 ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={sections.map((s) => s._id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-2">
               {sections.map((section) => (
-                <SortableSection key={section._id} section={section} index={sections.findIndex((s) => s._id === section._id)} onEdit={handleEdit} onToggle={handleToggle} onDelete={handleDelete} />
+                <SortableSection key={section._id} section={section} index={sections.findIndex((s) => s._id === section._id)} onEdit={handleEdit} onToggle={handleToggle} onDelete={(id) => setDeleteConfirmId(id)} />
               ))}
             </div>
           </SortableContext>
@@ -243,6 +380,25 @@ export default function HomePagePage() {
       <PreviewDialog open={previewOpen} onClose={() => setPreviewOpen(false)} sections={sections} device={previewDevice} onDeviceChange={setPreviewDevice} />
 
       {/* Add Section Sheet */}
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete section?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This section will be removed from the home page. You can undo this by closing without saving,
+              but once you click <strong>Save All</strong> the deletion is permanent.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleDelete(deleteConfirmId!)} className="bg-destructive hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Sheet open={addDialogOpen} onOpenChange={(open) => { if (!open) { setAddDialogOpen(false); setAddType("round-categories"); setAddConfig({}); } }}>
         <SheetContent side="right" className="w-full sm:max-w-lg md:max-w-xl lg:max-w-2xl">
           <SheetHeader><SheetTitle>Add Section</SheetTitle></SheetHeader>

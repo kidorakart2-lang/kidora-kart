@@ -44,7 +44,7 @@ export const create = async (
     } else {
       messages.push("Failed to create testimonial");
     }
-    response.send({ _status: false, _message: messages, _data: [] });
+    response.status(500).json({ _status: false, _message: messages, _data: [] });
   }
 };
 
@@ -107,14 +107,14 @@ export const destroy = async (
   try {
     const existing = await testimonial.findById(request.body.id).select("_id deletedAt").lean();
     if (!existing) {
-      response.send({ _status: false, _message: "Testimonial not found", _data: null });
+      response.status(500).json({ _status: false, _message: "Testimonial not found", _data: null });
       return;
     }
     if (existing.deletedAt) {
       // Already soft-deleted → permanently delete
       await testimonial.findByIdAndDelete(request.body.id);
       cache.del("testimonialData");
-      response.send({ _status: true, _message: "Testimonial permanently deleted", _data: null });
+      response.status(200).json({ _status: true, _message: "Testimonial permanently deleted", _data: null });
       return;
     }
     await testimonial.updateOne(
@@ -142,11 +142,19 @@ export const details = async (
 ): Promise<void> => {
   try {
     const result = await testimonial.findById({ _id: request.body.id }).lean();
-    response.send({
-      _status: !!result,
-      _message: result ? "Testimonial found" : "Testimonial not found",
-      _data: result,
-    });
+    if (result) {
+      response.status(200).json({
+        _status: true,
+        _message: "Testimonial found",
+        _data: result,
+      });
+    } else {
+      response.status(404).json({
+        _status: false,
+        _message: "Testimonial not found",
+        _data: null,
+      });
+    }
   } catch (err) {
     response.send({
       _status: false,

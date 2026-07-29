@@ -31,7 +31,7 @@ export const create = async (
       messages.push("Failed to create FAQ");
     }
     cache.del("faqData");
-    response.send({ _status: false, _message: messages, _data: [] });
+    response.status(500).json({ _status: false, _message: messages, _data: [] });
   }
 };
 
@@ -91,14 +91,14 @@ export const destroy = async (
   try {
     const existing = await faqs.findById(request.body.id).select("_id deletedAt").lean();
     if (!existing) {
-      response.send({ _status: false, _message: "FAQ not found", _data: null });
+      response.status(500).json({ _status: false, _message: "FAQ not found", _data: null });
       return;
     }
     if (existing.deletedAt) {
       // Already soft-deleted → permanently delete
       await faqs.findByIdAndDelete(request.body.id);
       cache.del("faqData");
-      response.send({ _status: true, _message: "FAQ permanently deleted", _data: null });
+      response.status(200).json({ _status: true, _message: "FAQ permanently deleted", _data: null });
       return;
     }
     await faqs.updateOne(
@@ -126,11 +126,19 @@ export const details = async (
 ): Promise<void> => {
   try {
     const result = await faqs.findById({ _id: request.body.id }).lean();
-    response.send({
-      _status: !!result,
-      _message: result ? "FAQ found" : "FAQ not found",
-      _data: result,
-    });
+    if (result) {
+      response.status(200).json({
+        _status: true,
+        _message: "FAQ found",
+        _data: result,
+      });
+    } else {
+      response.status(404).json({
+        _status: false,
+        _message: "FAQ not found",
+        _data: null,
+      });
+    }
   } catch (err) {
     response.send({
       _status: false,

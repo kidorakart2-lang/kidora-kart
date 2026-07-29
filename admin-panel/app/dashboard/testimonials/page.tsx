@@ -25,6 +25,7 @@ import {
 import { api, ApiClientError } from "@/lib/api";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import SingleImageUploader from "@/components/SingleImageUploader";
+import { ErrorState } from "@/components/ui/error-state";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -67,7 +68,7 @@ export default function TestimonialsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: testimonials = [], isLoading } = useQuery({
+  const { data: testimonials = [], isLoading, isError, error } = useQuery({
     queryKey: ["testimonials", deletedFilter],
     queryFn: () => fetchTestimonials(deletedFilter === "active" ? undefined : deletedFilter),
     staleTime: 5 * 60 * 1000,
@@ -167,6 +168,18 @@ export default function TestimonialsPage() {
       createMutation.mutate(submitData);
     }
   };
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          title="Failed to load testimonials"
+          message={error instanceof Error ? error.message : "Could not fetch testimonials from the server."}
+          onRetry={() => queryClient.invalidateQueries({ queryKey: ["testimonials"] })}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

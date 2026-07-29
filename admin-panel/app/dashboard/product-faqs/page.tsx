@@ -15,6 +15,7 @@ import { ExportButtons } from "@/components/export-buttons"
 import { AlertDialogUse } from "@/components/alert-dialog"
 import { Plus, Pencil, Trash2, Eye, EyeOff, Search, X, CopyPlus } from "lucide-react"
 import AiAssistButton from "@/components/ai-assist-button"
+import { ErrorState } from "@/components/ui/error-state"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import type { ProductFAQSet } from "@/lib/types"
@@ -87,7 +88,7 @@ export default function ProductFAQsPage() {
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
-  const { data: faqSets = [], isLoading: loading } = useQuery({
+  const { data: faqSets = [], isLoading: loading, isError, error } = useQuery({
     queryKey: ["product-faq-sets", deletedFilter],
     queryFn: () => fetchFaqSets(deletedFilter === "active" ? undefined : deletedFilter),
     staleTime: 5 * 60 * 1000,
@@ -212,6 +213,18 @@ export default function ProductFAQsPage() {
     return set.entries.some((e) => e.question.toLowerCase().includes(q) || e.answer.toLowerCase().includes(q))
       || getProductNames(set, products).toLowerCase().includes(q);
   });
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          title="Failed to load product FAQ sets"
+          message={error instanceof Error ? error.message : "Could not fetch FAQ sets from the server."}
+          onRetry={() => queryClient.invalidateQueries({ queryKey: ["product-faq-sets"] })}
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return (

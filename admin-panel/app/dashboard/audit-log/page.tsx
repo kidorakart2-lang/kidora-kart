@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { api } from "@/lib/api";
+import { ErrorState } from "@/components/ui/error-state";
 import {
   Search,
   Trash2,
@@ -57,29 +59,35 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleString();
 }
 
+interface AuditListResponse {
+  logs: AuditEntry[];
+}
+
 export default function AuditLogPage() {
-  const [logs, setLogs] = useState<AuditEntry[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [clearing, setClearing] = useState(false);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    api.post<{ logs: AuditEntry[] }>("/api/admin/audit-log/list").then((res) => {
-      setLogs(res.logs ?? []);
-      setLoading(false);
-    }).catch(() => {
-      setLoading(false);
-    });
-  }, []);
+  const { data: auditData, isLoading, isError, error } = useQuery<AuditListResponse>({
+    queryKey: ["audit-log"],
+    queryFn: () => api.post<AuditListResponse>("/api/admin/audit-log/list"),
+    staleTime: 30_000,
+  });
+
+  const logs = auditData?.logs ?? [];
+
+  const clearMutation = useMutation({
+    mutationFn: () => api.post("/api/admin/audit-log/clear"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["audit-log"] });
+      setClearing(false);
+    },
+    onError: () => setClearing(false),
+  });
 
   const handleClear = async () => {
     setClearing(true);
-    try {
-      await api.post("/api/admin/audit-log/clear");
-      setLogs([]);
-    } finally {
-      setClearing(false);
-    }
+    clearMutation.mutate();
   };
 
   const filtered = logs.filter((entry) => {
@@ -146,7 +154,15 @@ export default function AuditLogPage() {
         />
       </div>
 
-      {loading ? (
+      {isError ? (
+        <div className="p-6">
+          <ErrorState
+            title="Failed to load audit log"
+            message={error instanceof Error ? error.message : "Could not fetch audit log from the server."}
+            onRetry={() => queryClient.invalidateQueries({ queryKey: ["audit-log"] })}
+          />
+        </div>
+      ) : isLoading ? (
         <div className="space-y-4 animate-pulse">
           <div className="h-8 w-48 bg-muted rounded"></div>
           <div className="h-96 bg-muted rounded-lg"></div>

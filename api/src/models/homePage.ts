@@ -8,6 +8,7 @@ const homeSectionSchema = new Schema({
     enum: [
       "banner",
       "round-categories",
+      "square-categories",
       "category-grid",
       "product-slider",
       "products-tab",

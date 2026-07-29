@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Pencil, Trash2, Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { ErrorState } from "@/components/ui/error-state"
 import AiAssistButton from "@/components/ai-assist-button"
 import type { FAQ } from "@/lib/types";
 
@@ -40,7 +41,7 @@ export default function FAQsPage() {
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
-  const { data: faqs = [], isLoading: loading } = useQuery<FAQ[]>({
+  const { data: faqs = [], isLoading: loading, isError, error } = useQuery<FAQ[]>({
     queryKey: ["faqs", deletedFilter],
     queryFn: async () => {
       const filter = deletedFilter === "active" ? undefined : deletedFilter
@@ -134,6 +135,18 @@ export default function FAQsPage() {
   };
 
   const sortedFaqs = [...faqs].sort((a: FAQ, b: FAQ) => a.order - b.order)
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          title="Failed to load FAQs"
+          message={error instanceof Error ? error.message : "Could not fetch FAQs from the server."}
+          onRetry={() => queryClient.invalidateQueries({ queryKey: ["faqs"] })}
+        />
+      </div>
+    )
+  }
 
   if (loading) {
     return (
