@@ -9,7 +9,6 @@ import LoadingOverlay from "@/components/comman/LoadingOverlay";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
-import { addToCart } from "@/redux/features/cart";
 import { setWishlist, removeFromWishlist } from "@/redux/features/wishlist";
 import { useProductsByIds } from "@/lib/useProduct";
 import type { WishlistProduct } from "@/types";
@@ -32,7 +31,6 @@ export default function Wishlist({
   wishlist: WishlistProduct[] | { items: WishlistProduct[] } | null;
 }) {
   const [wishlistLoading, setWishlistLoading] = useState(false);
-  const [cartLoading, setCartLoading] = useState<string | null>(null);
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -113,43 +111,7 @@ export default function Wishlist({
     }
   };
 
-  const handleAddToCart = async (item: WishlistDisplayItem) => {
-    if (item.stock <= 0) return;
-    setCartLoading(item._id);
-
-    const isLoggedIn = !!getAuthToken();
-    const cartObj: Record<string, unknown> = { productId: item._id, slug: item.slug, quantity: 1 };
-    // Only include colorId if the product actually has a color — backend accepts optional color
-
-    if (isLoggedIn) {
-      try {
-        const response = await fetch("/api/website/cart/add", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-          body: JSON.stringify(cartObj),
-        });
-        const responseData = await response.json();
-        if (response.ok || responseData._status) {
-          dispatch(addToCart(cartObj));
-          toast.success(responseData._message);
-        } else {
-          toast.error(responseData._message);
-        }
-      } catch (err) {
-        const serverErr = err as { response?: { data?: { message?: string } }; message?: string };
-        toast.error(serverErr?.response?.data?.message || (err instanceof Error ? err.message : "Something went wrong"));
-      } finally {
-        setCartLoading(null);
-      }
-    } else {
-      dispatch(addToCart({ ...cartObj, isGuest: true }));
-      toast.success("Added to cart");
-      setCartLoading(null);
-    }
-  };
+  /* handleAddToCart temporarily removed — wishlist items don't carry colorId */
 
   // ── Empty state ──
   if (displayItems.length === 0 && !isLoading) {
@@ -250,8 +212,8 @@ export default function Wishlist({
                   item={item}
                   index={index}
                   onRemove={removeFromWishlistHandler}
-                  onAddToCart={handleAddToCart}
-                  cartLoading={cartLoading === item._id}
+                  onAddToCart={async () => {}}
+                  cartLoading={false}
                 />
               ))}
             </AnimatePresence>
@@ -400,14 +362,15 @@ function WishlistCard({
             View
           </button>
 
-          <button
+          {/* Cart button hidden — wishlist items don't carry colorId, so adding to cart fails */}
+          {/* <button
             onClick={() => onAddToCart(item)}
             disabled={item.stock <= 0 || cartLoading}
             className="flex-1 py-2 rounded-lg bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed fw-cta text-[11px] transition-all duration-300 flex items-center justify-center gap-1 shadow-sm"
           >
             <ShoppingBag size={12} strokeWidth={1.5} />
             {cartLoading ? "Adding..." : "Cart"}
-          </button>
+          </button> */}
         </div>
       </div>
     </motion.article>

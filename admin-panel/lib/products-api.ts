@@ -61,6 +61,10 @@ export async function changeProductStatus(id: string) {
   return api.put("/api/admin/product/change-status/" + id);
 }
 
+export async function restoreProduct(id: string) {
+  return api.put("/api/admin/product/restore/" + id);
+}
+
 export async function saveProduct({ formData, editingProduct }: { formData: FormData; editingProduct: Product | null }) {
   const url = editingProduct
     ? `/api/admin/product/update/${editingProduct._id}`

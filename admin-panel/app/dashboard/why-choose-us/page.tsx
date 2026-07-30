@@ -94,6 +94,16 @@ export default function WhyChooseUsPage() {
     onError: (error: Error) => toast({ title: error.message, variant: "destructive" }),
   });
 
+  const restoreMutation = useMutation({
+    mutationFn: (id: string) => api.put(`/api/admin/whyChooseUs/restore/${id}`, { id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["whyChooseUs"] });
+      invalidateCache(["homepage"]);
+      toast({ title: "Why Choose Us restored successfully" });
+    },
+    onError: (error: Error) => toast({ title: error.message, variant: "destructive" }),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: deleteWhyChooseUs,
     onSuccess: () => {
@@ -210,6 +220,12 @@ export default function WhyChooseUsPage() {
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" size="sm" onClick={() => handleEdit(item)} className="flex-1" disabled={isPending}><Pencil className="h-3 w-3 mr-1" />Edit</Button>
                 <Button variant="destructive" size="sm" onClick={() => handleDelete(item._id!)} className="flex-1" disabled={isPending}><Trash2 className="h-3 w-3 mr-1" />Delete</Button>
+                {deletedFilter === "deleted" && (
+                  <Button variant="outline" size="sm" onClick={() => item._id && restoreMutation.mutate(item._id)} className="flex-1" disabled={isPending}>
+                    <svg className="h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    Restore
+                  </Button>
+                )}
               </div>
               <Button variant="outline" size="sm" onClick={() => item._id && statusMutation.mutate(item._id)} className="w-full" disabled={isPending}>
                 {statusMutation.isPending ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : item.status ? <Eye className="h-3 w-3 mr-1" /> : <EyeOff className="h-3 w-3 mr-1" />}

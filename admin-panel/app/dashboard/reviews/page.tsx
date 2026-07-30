@@ -68,6 +68,18 @@ export default function ReviewsPage() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const restoreMutation = useMutation({
+    mutationFn: (id: string) => api.put(`/api/admin/review/restore/${id}`, { id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
+      invalidateCache(["reviews", "product"]);
+      toast({ title: "Review restored successfully" });
+    },
+    onError: (error: Error) => {
+      toast({ title: error.message, variant: "destructive" });
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: deleteReview,
     onSuccess: () => {
@@ -409,6 +421,25 @@ export default function ReviewsPage() {
                           {isDeleted ? "Permanently delete this review (irreversible)" : "Soft delete review"}
                         </TooltipContent>
                       </Tooltip>
+                      {isDeleted && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => review._id && restoreMutation.mutate(review._id)}
+                              className="flex-1 transition-all duration-200 hover:scale-105 h-8 text-xs"
+                              disabled={isPending}
+                            >
+                              <svg className="h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                              Restore
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Restore this review to make it visible again
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
                     </TooltipProvider>
                   </div>
                 </div>

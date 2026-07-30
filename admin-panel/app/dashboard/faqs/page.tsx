@@ -60,6 +60,18 @@ export default function FAQsPage() {
     setDrawerOpen(true)
   }
 
+  const restoreMutation = useMutation({
+    mutationFn: (id: string) => api.put("/api/admin/faq/restore", { id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["faqs"] });
+      invalidateCache(["faq"]);
+      toast({ title: "FAQ restored successfully" });
+    },
+    onError: (error: Error) => {
+      toast({ title: error instanceof ApiClientError ? error.message : "Failed to restore FAQ", variant: "destructive" });
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: () => api.put("/api/admin/faq/destroy", { id: faqToDelete }),
     onSuccess: () => {
@@ -257,6 +269,17 @@ export default function FAQsPage() {
                     <Trash2 className="h-3 w-3 mr-1" />
                     Delete
                   </Button>
+                  {deletedFilter === "deleted" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => restoreMutation.mutate(faq._id)}
+                      className="transition-all duration-200 hover:scale-105"
+                    >
+                      <svg className="h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                      Restore
+                    </Button>
+                  )}
                 </div>
               </AccordionContent>
             </AccordionItem>

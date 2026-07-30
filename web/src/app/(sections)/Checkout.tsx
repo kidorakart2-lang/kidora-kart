@@ -648,7 +648,7 @@ export default function Checkout() {
         </div>
 
         <AlertDialog open={alert.open} onOpenChange={(open) => !open && setAlert({ title: "", open: false })}>
-          <AlertDialogContent className="max-w-md border-brand-500/30 shadow-xl">
+          <AlertDialogContent className="w-[95vw] sm:max-w-md border-brand-500/30 shadow-xl max-h-[90vh] overflow-y-auto">
             <AlertDialogHeader>
               <div className="flex items-center gap-3">
                 {alert.errors && alert.errors.length > 0 ? (

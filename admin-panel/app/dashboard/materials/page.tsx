@@ -31,6 +31,8 @@ import {
   updateColor,
   deleteColor,
   changeColorStatus,
+  restoreMaterial,
+  restoreColor,
 } from "@/lib/materials-api";
 import { MaterialCard } from "@/components/materials/MaterialCard";
 import { ColorCard } from "@/components/materials/ColorCard";
@@ -155,6 +157,26 @@ export default function MaterialsColorsPage() {
     },
   });
 
+  const restoreMaterialMutation = useMutation({
+    mutationFn: restoreMaterial,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["materials"] });
+      invalidateCache(["filters"]);
+      toast({ title: "Material restored successfully" });
+    },
+    onError: (error) => toast({ title: error.message, variant: "destructive" }),
+  });
+
+  const restoreColorMutation = useMutation({
+    mutationFn: restoreColor,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["colors"] });
+      invalidateCache(["filters"]);
+      toast({ title: "Color restored successfully" });
+    },
+    onError: (error) => toast({ title: error.message, variant: "destructive" }),
+  });
+
   const colorStatusMutation = useMutation({
     mutationFn: changeColorStatus,
     onSuccess: () => {
@@ -261,8 +283,9 @@ export default function MaterialsColorsPage() {
                   setDrawerType("material");
                   setDrawerOpen(true);
                 }}
-                onDelete={(id, name) => { setCascadeId(id); setCascadeName(name || ""); setCascadeModel("materials"); setCascadeDialogOpen(true); }}
+                onDelete={(id) => { setCascadeId(id); setCascadeName(material.name || ""); setCascadeModel("materials"); setCascadeDialogOpen(true); }}
                 onStatusChange={(m) => materialStatusMutation.mutate(m._id)}
+                onRestore={deletedFilter === "deleted" ? (id) => restoreMaterialMutation.mutate(id) : undefined}
               />
             ))}
           </div>
@@ -298,8 +321,9 @@ export default function MaterialsColorsPage() {
                   setDrawerType("color");
                   setDrawerOpen(true);
                 }}
-                onDelete={(id, name) => { setCascadeId(id); setCascadeName(name || ""); setCascadeModel("colors"); setCascadeDialogOpen(true); }}
+                onDelete={(id) => { setCascadeId(id); setCascadeName(color.name || ""); setCascadeModel("colors"); setCascadeDialogOpen(true); }}
                 onStatusChange={(c) => colorStatusMutation.mutate(c._id)}
+                onRestore={deletedFilter === "deleted" ? (id) => restoreColorMutation.mutate(id) : undefined}
               />
             ))}
           </div>

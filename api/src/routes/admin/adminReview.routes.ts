@@ -177,6 +177,7 @@ import {
   updateReview,
   deleteReview,
   changeStatus,
+  restoreReview,
 } from "../../controller/admin/adminReview.controller.js";
 import protect, { adminOnly } from "../../middleware/authMiddleware.js";
 
@@ -187,5 +188,6 @@ router.post("/details/:id", protect, adminOnly, getReviewById);
 router.put("/update/:id", protect, adminOnly, updateReview);
 router.put("/status/:id", protect, adminOnly, changeStatus);
 router.put("/delete/:id", protect, adminOnly, deleteReview);
+router.put("/restore/:id", protect, adminOnly, restoreReview);
 
 export default router;

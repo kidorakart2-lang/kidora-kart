@@ -175,37 +175,40 @@ function BentoCellEditor({
         linkTarget = item.slug || item._id
         break
       case "category":
-        subtitle = item.description || ""
+        subtitle = (item.description as string) || ""
         linkType = "category"
         linkTarget = item.slug || item._id
         break
       case "subCategory":
-        subtitle = item.description || ""
+        subtitle = (item.description as string) || ""
         linkType = "category"
-        const parentCatSlug = item.category?.[0]?.slug || ""
-        linkTarget = parentCatSlug ? `${parentCatSlug}/${item.slug}` : item.slug
+        const catArr = item.category as Array<{slug?: string}> | undefined
+        const parentCatSlug = catArr?.[0]?.slug || ""
+        linkTarget = parentCatSlug ? `${parentCatSlug}/${item.slug}` : (item.slug || "")
         break
       case "subSubCategory":
-        subtitle = item.description || ""
+        subtitle = (item.description as string) || ""
         linkType = "category"
-        const parentSubCatSlug = item.subCategory?.[0]?.slug || ""
-        const grandParentCatSlug = item.subCategory?.[0]?.category?.[0]?.slug || ""
+        const subCatArr = item.subCategory as Array<{slug?: string; category?: Array<{slug?: string}>}> | undefined
+        const parentSubCatSlug = subCatArr?.[0]?.slug || ""
+        const grandParentCatSlug = subCatArr?.[0]?.category?.[0]?.slug || ""
         if (grandParentCatSlug && parentSubCatSlug) {
           linkTarget = `${grandParentCatSlug}/${parentSubCatSlug}/${item.slug}`
         } else if (parentSubCatSlug) {
           linkTarget = `${parentSubCatSlug}/${item.slug}`
         } else {
-          linkTarget = item.slug
+          linkTarget = item.slug || ""
         }
         break
       case "banner":
-        subtitle = item.description || ""
-        if (item.link?.type === "external") {
+        subtitle = (item.description as string) || ""
+        const link = item.link as { type?: string; target?: string } | undefined
+        if (link?.type === "external") {
           linkType = "external"
           linkTarget = ""
         } else {
-          linkType = item.link?.type || "category"
-          linkTarget = item.link?.target || ""
+          linkType = link?.type || "category"
+          linkTarget = link?.target || ""
         }
         break
     }
@@ -270,7 +273,8 @@ function BentoCellEditor({
                 : ""
           }
           if (sourceType === "banner") {
-            return item.link?.type ? `Link: ${item.link.type}` : ""
+            const link = item.link as { type?: string } | undefined
+            return link?.type ? `Link: ${link.type}` : ""
           }
           return `Slug: ${item.slug || "-"}`
         }}

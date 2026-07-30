@@ -210,6 +210,7 @@ import {
   destroy,
   view,
   changeStatus,
+  restore,
 } from "../../controller/admin/color.controller.js";
 import protect, { adminOnly } from "../../middleware/authMiddleware.js";
 import { uploadNone } from "../../middleware/uploadMiddleware.js";
@@ -222,5 +223,6 @@ router.put("/destroy", protect, adminOnly, uploadNone, destroy);
 router.post("/details", protect, adminOnly, uploadNone, details);
 router.put("/update/:id", protect, adminOnly, uploadNone, update);
 router.post("/change-status", protect, adminOnly, uploadNone, changeStatus);
+router.put("/restore", protect, adminOnly, uploadNone, restore);
 
 export default router;

@@ -225,7 +225,7 @@ export const restore = async (
       response.status(400).json({ _status: false, _message: "Sub-sub-category ID is required", _data: null });
       return;
     }
-    await SubSubCategory.updateOne(
+    await subSubCategory.updateOne(
       { _id: id },
       { $set: { deletedAt: null } },
     );

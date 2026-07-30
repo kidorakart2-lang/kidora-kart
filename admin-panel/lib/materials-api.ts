@@ -42,3 +42,11 @@ export const deleteColor = async (id: string) => {
 export const changeColorStatus = async (id: string) => {
   return api.post("/api/admin/color/change-status", { id });
 };
+
+export const restoreMaterial = async (id: string) => {
+  return api.put("/api/admin/material/restore", { id });
+};
+
+export const restoreColor = async (id: string) => {
+  return api.put("/api/admin/color/restore", { id });
+};

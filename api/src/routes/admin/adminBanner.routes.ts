@@ -305,6 +305,7 @@ import {
   linkOptionsCategories,
   linkOptionsSubCategories,
   linkOptionsSubSubCategories,
+  restore,
 } from "../../controller/admin/adminBanner.controller.js";
 import protect, { adminOnly } from "../../middleware/authMiddleware.js";
 import { uploadSingle, uploadNone } from "../../middleware/uploadMiddleware.js";
@@ -321,6 +322,7 @@ router.put("/delete/:id", protect, adminOnly, uploadNone, deleteBanner);
 router.post("/view", protect, adminOnly, uploadNone, getAllBanner);
 // change status — no file needed
 router.post("/change-status", protect, adminOnly, uploadNone, changeStatus);
+router.put("/restore/:id", protect, adminOnly, uploadNone, restore);
 
 // link-options endpoints (for cascading dropdowns in the admin form)
 router.get("/link-options/products", protect, adminOnly, linkOptionsProducts);

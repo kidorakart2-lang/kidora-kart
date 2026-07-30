@@ -215,6 +215,7 @@ import {
   update,
   destroy,
   changeStatus,
+  restore,
 } from "../../controller/admin/adminProductFaq.controller.js";
 import protect, { adminOnly } from "../../middleware/authMiddleware.js";
 
@@ -226,5 +227,6 @@ router.post("/details", protect, adminOnly, details);
 router.put("/update/:id", protect, adminOnly, update);
 router.put("/delete/:id", protect, adminOnly, destroy);
 router.post("/change-status", protect, adminOnly, changeStatus);
+router.put("/restore/:id", protect, adminOnly, restore);
 
 export default router;

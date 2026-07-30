@@ -47,7 +47,7 @@ export default function CategoryGridConfigForm({ config, onChange }: Props) {
   const selectedIds = (config.categorySelectedIds as string[]) || []
   const sourceCfg = SOURCE_CONFIG[sourceType]
 
-  const handleSourceTypeChange = (newType: string) => {
+  const handleSourceTypeChange = (newType: SourceType) => {
     onChange({
       ...config,
       categorySourceType: newType,
@@ -61,7 +61,16 @@ export default function CategoryGridConfigForm({ config, onChange }: Props) {
   const handleSelection = (ids: string[]) => {
     const currentItems = (config.categoryItems as PickerItem[]) || []
     const updatedItems = currentItems.filter((i) => ids.includes(i._id))
-    onChange({ ...config, categorySelectedIds: ids, categoryItems: updatedItems })
+    onChange({
+      ...config,
+      categorySelectedIds: ids,
+      categoryItems: updatedItems.map((i) => ({
+        _id: i._id,
+        name: i.name || i.title || "",
+        image: i.image || i.images?.[0],
+        slug: i.slug,
+      })),
+    })
   }
 
   // When a NEW item is selected (not deselected), add its full data to categoryItems
@@ -75,12 +84,17 @@ export default function CategoryGridConfigForm({ config, onChange }: Props) {
       onChange({
         ...config,
         categoryItems: [
-          ...currentItems,
+          ...currentItems.map((i) => ({
+            _id: i._id,
+            name: i.name || i.title || "",
+            image: i.image || i.images?.[0],
+            slug: i.slug,
+          })),
           {
             _id: item._id,
             name: item.name || item.title || "",
-            image: item.image || item.images?.[0] || "",
-            slug: item.slug || "",
+            image: item.image || item.images?.[0],
+            slug: item.slug,
           },
         ],
       })

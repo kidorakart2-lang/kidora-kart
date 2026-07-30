@@ -335,6 +335,7 @@ import {
   updateStock,
   update,
   changeStatus,
+  restore,
 } from "../../controller/admin/adminProduct.controller.js";
 import protect, { adminOnly } from "../../middleware/authMiddleware.js";
 import {
@@ -351,6 +352,7 @@ router.put("/update/:id", protect, adminOnly, uploadProduct, update);
 router.put("/delete/:id", protect, adminOnly, uploadNone, destroy);
 router.put("/change-status/:id", protect, adminOnly, uploadNone, changeStatus);
 router.put("/update-stock/:id", protect, adminOnly, uploadNone, updateStock);
+router.put("/restore/:id", protect, adminOnly, uploadNone, restore);
 router.post(
   "/get-by-category/:categorySlug/:subCategorySlug/:subSubCategorySlug",
   protect,

@@ -19,7 +19,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import ProductForm from "@/components/product/ProductForm";
-import { fetchColors, fetchMaterials, fetchCategories, fetchSubCategories, fetchSubSubCategories, fetchProducts, deleteProduct, changeProductStatus, saveProduct, buildProductFormData, buildUpdateFormData, INITIAL_FORM_STATE, isValidVideoUrl } from "@/lib/products-api";
+import { fetchColors, fetchMaterials, fetchCategories, fetchSubCategories, fetchSubSubCategories, fetchProducts, deleteProduct, changeProductStatus, saveProduct, restoreProduct, buildProductFormData, buildUpdateFormData, INITIAL_FORM_STATE, isValidVideoUrl } from "@/lib/products-api";
 import type { Product, ProductFormData } from "@/lib/types";
 import { Plus, IndianRupee, Video } from "lucide-react";
 
@@ -74,6 +74,16 @@ export default function ProductsPage() {
     : videoFilter === "hasVideo" ? allProducts.filter((p) => !!p.videoUrl)
     : allProducts.filter((p) => !p.videoUrl);
   const totalItems = videoFilter !== "all" ? products.length : (fetchResult?.pagination?.total ?? products.length);
+
+  const restoreMutation = useMutation({
+    mutationFn: restoreProduct,
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      invalidateCache(["products", "homepage", "best-sellers", "flash-sale"]);
+      toast({ title: "Product restored successfully" });
+    },
+    onError: (error: Error) => { toast({ title: "Error restoring product", description: error.message, variant: "destructive" }); },
+  });
 
   const deleteMutation = useMutation({
     mutationFn: deleteProduct,
@@ -315,6 +325,16 @@ export default function ProductsPage() {
       key: "videoUrl", label: "Has Video",
       render: (item: Product) => item.videoUrl ? (<span className="inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full border border-primary/20"><Video className="h-3.5 w-3.5" />Yes</span>) : (<span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Video className="h-3.5 w-3.5" />No</span>),
     },
+    // Restore column — only shows in "Deleted Only" view
+    ...(deletedFilter === "deleted" ? [{
+      key: "restore" as any, label: "Restore",
+      render: (item: Product) => (
+        <Button variant="outline" size="sm" onClick={() => restoreMutation.mutate(item._id)} className="transition-all duration-200 hover:scale-105">
+          <svg className="h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Restore
+        </Button>
+      ),
+    }] : []),
     {
       key: "status", label: "Status",
       render: (item: Product) => {
