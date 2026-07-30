@@ -4,6 +4,7 @@ import {
   createOrder,
   createRazorpayOrder,
   verifyPayment,
+  removeCartItemByProduct,
 } from "@/lib/orderService";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
@@ -24,9 +25,10 @@ import LoadingOverlay from "@/components/comman/LoadingOverlay";
 import Personalized from "@/components/product/Personalized";
 import { getAuthToken } from "@/lib/cookies";
 import { openLoginModal } from "@/redux/features/uiSlice";
+import { removeFromCart } from "@/redux/features/cart";
 import { useProfileBootstrap } from "@/hooks/useProfileBootstrap";
 import type { CheckoutFormData, OrderSummaryCartItem, ProductData } from "@/types";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2, AlertTriangle } from "lucide-react";
 import ShippingAddressForm from "@/components/checkout/ShippingAddressForm";
 import GiftOptions from "@/components/checkout/GiftOptions";
 import PaymentOptions from "@/components/checkout/PaymentOptions";
@@ -53,10 +55,20 @@ export default function Checkout() {
   // Ensure profile data is loaded if a valid cookie exists
   useProfileBootstrap();
 
-  const [alert, setAlert] = useState({
+  const [alert, setAlert] = useState<{
+    title: string;
+    open: boolean;
+    errors?: Array<{
+      productId: string;
+      type: string;
+      message: string;
+      quantity: number;
+    }>;
+  }>({
     title: "",
     open: false,
   });
+  const [removingItems, setRemovingItems] = useState<Set<string>>(new Set());
   const [couponCode] = useState(null);
 
   const logo = useSelector((state: RootState) => state.logo.logo);
@@ -424,9 +436,11 @@ export default function Checkout() {
                 open: true,
               });
             }
-          } catch (error) {
+          } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } }; message?: string };
+            const vpMsg = err?.response?.data?.message || err?.message || "Payment verification failed. Please contact support.";
             setAlert({
-              title: "Payment verification failed. Please contact support.",
+              title: vpMsg,
               open: true,
             });
             setLoading(false);
@@ -449,13 +463,70 @@ export default function Checkout() {
       const RazorpayConstructor = window.Razorpay!;
       const paymentObject = new RazorpayConstructor(options);
       paymentObject.open();
-    } catch (error) {
+    } catch (error: unknown) {
+      const err = error as {
+        response?: {
+          data?: {
+            message?: string;
+            errors?: Array<{ productId: string; type: string; message: string; quantity: number }>;
+          };
+        };
+        message?: string;
+      };
+      const serverMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Something went wrong. Please try again.";
+      const cartErrors = err?.response?.data?.errors;
       setAlert({
-        title: "Something went wrong. Please try again.",
+        title: serverMessage,
         open: true,
+        ...(Array.isArray(cartErrors) && cartErrors.length > 0
+          ? { errors: cartErrors }
+          : {}),
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle removing an invalid item from cart
+  const handleRemoveInvalidItem = async (productId: string) => {
+    if (removingItems.has(productId)) return;
+    setRemovingItems((prev) => new Set(prev).add(productId));
+
+    try {
+      // Find colorId from Redux cart state
+      const cartItem = cartItemsState.find(
+        (item) => item.productId === productId,
+      );
+
+      // Dispatch Redux remove first (instant UI update)
+      dispatch(
+        removeFromCart({
+          productId,
+          colorId: cartItem?.colorId ?? null,
+        }),
+      );
+
+      // Sync with server
+      await removeCartItemByProduct(productId, cartItem?.colorId ?? undefined);
+
+      toast.success("Item removed from cart");
+
+      // Check if all items were removed
+      const remainingCount = cartItemsState.length - 1;
+      if (remainingCount <= 0) {
+        setAlert({ title: "", open: false });
+      }
+    } catch {
+      toast.error("Failed to remove item. Please try again.");
+    } finally {
+      setRemovingItems((prev) => {
+        const next = new Set(prev);
+        next.delete(productId);
+        return next;
+      });
     }
   };
 
@@ -576,17 +647,71 @@ export default function Checkout() {
         </div>
         </div>
 
-        <AlertDialog open={alert.open}>
-          <AlertDialogContent className="max-w-sm border-brand-500/30 shadow-xl">
+        <AlertDialog open={alert.open} onOpenChange={(open) => !open && setAlert({ title: "", open: false })}>
+          <AlertDialogContent className="max-w-md border-brand-500/30 shadow-xl">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-foreground">{alert.title || "Alert"}</AlertDialogTitle>
+              <div className="flex items-center gap-3">
+                {alert.errors && alert.errors.length > 0 ? (
+                  <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                  </div>
+                ) : null}
+                <AlertDialogTitle className="text-foreground">
+                  {alert.title || "Alert"}
+                </AlertDialogTitle>
+              </div>
             </AlertDialogHeader>
-            <AlertDialogFooter>
+
+            {alert.errors && alert.errors.length > 0 ? (
+              <div className="space-y-3 py-2">
+                <p className="text-sm text-muted-foreground">
+                  The following items in your cart have issues. You can remove them and continue with the remaining items.
+                </p>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {alert.errors.map((itemErr) => (
+                    <div
+                      key={itemErr.productId}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground truncate">
+                          {itemErr.message}
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRemoveInvalidItem(itemErr.productId)}
+                        disabled={removingItems.has(itemErr.productId)}
+                        className="flex-shrink-0 text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/50"
+                      >
+                        {removingItems.has(itemErr.productId) ? (
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-destructive border-t-transparent" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                        <span className="ml-1.5">Remove</span>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  After removing items, you can try placing the order again.
+                </p>
+              </div>
+            ) : null}
+
+            <AlertDialogFooter className={alert.errors && alert.errors.length > 0 ? "border-t pt-4 mt-2" : ""}>
               <Button
-                onClick={() => setAlert({ title: "", open: false })}
-                className="w-full bg-brand-600 hover:bg-brand-700 text-background"
+                onClick={() => setAlert({ title: "", open: false, errors: undefined })}
+                variant={alert.errors && alert.errors.length > 0 ? "outline" : "default"}
+                className={
+                  alert.errors && alert.errors.length > 0
+                    ? ""
+                    : "w-full bg-brand-600 hover:bg-brand-700 text-background"
+                }
               >
-                Okay
+                {alert.errors && alert.errors.length > 0 ? "Close" : "Okay"}
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>

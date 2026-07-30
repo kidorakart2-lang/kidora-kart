@@ -141,6 +141,35 @@ export const destroy = async (
   }
 };
 
+export const restore = async (
+  request: Request,
+  response: Response,
+): Promise<void> => {
+  try {
+    const { id } = request.params;
+    if (!id) {
+      response.status(400).json({ _status: false, _message: "Color ID is required", _data: null });
+      return;
+    }
+    await color.updateOne(
+      { _id: id },
+      { $set: { deletedAt: null } },
+    );
+    delByPrefix("admin_color_view");
+    response.status(200).json({
+      _status: true,
+      _message: "Color restored successfully",
+      _data: null,
+    });
+  } catch (err) {
+    response.status(500).json({
+      _status: false,
+      _message: "Failed to restore color",
+      _data: null,
+    });
+  }
+};
+
 export const details = async (
   request: Request,
   response: Response,

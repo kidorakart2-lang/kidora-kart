@@ -173,6 +173,35 @@ export const update = async (
   }
 };
 
+export const restore = async (
+  request: Request,
+  response: Response,
+): Promise<void> => {
+  try {
+    const { id } = request.params;
+    if (!id) {
+      response.status(400).json({ _status: false, _message: "FAQ ID is required", _data: null });
+      return;
+    }
+    await faqs.updateOne(
+      { _id: id },
+      { $set: { deletedAt: null } },
+    );
+    cache.del("faqData");
+    response.status(200).json({
+      _status: true,
+      _message: "FAQ restored successfully",
+      _data: null,
+    });
+  } catch (err) {
+    response.status(500).json({
+      _status: false,
+      _message: "Failed to restore FAQ",
+      _data: null,
+    });
+  }
+};
+
 export const changeStatus = async (
   request: Request,
   response: Response,

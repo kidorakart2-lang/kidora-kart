@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
+import CascadeDeleteDialog from "@/components/CascadeDeleteDialog";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { Plus, Edit, Trash2, FolderTree, Loader2 } from "lucide-react";
 import {
@@ -73,6 +74,9 @@ export default function SubSubCategoriesClient({
   const [editingCategory, setEditingCategory] = useState<SubSubCategoryItem | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+  const [cascadeDialogOpen, setCascadeDialogOpen] = useState(false);
+  const [cascadeId, setCascadeId] = useState("");
+  const [cascadeName, setCascadeName] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState<{ name: string; image: any; bannerId: string }>({
     name: "",
@@ -175,7 +179,14 @@ export default function SubSubCategoriesClient({
     setDrawerOpen(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: string, name: string) => {
+    setCascadeId(id);
+    setCascadeName(name);
+    setCascadeDialogOpen(true);
+  };
+
+  const handleCascadeComplete = (id: string) => {
+    setCascadeDialogOpen(false);
     setCategoryToDelete(id);
     setDeleteDialogOpen(true);
   };
@@ -386,7 +397,7 @@ export default function SubSubCategoriesClient({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDelete(category._id)}
+                        onClick={() => handleDelete(category._id, category.name || "")}
                         className="flex-1 transition-all duration-200 hover:scale-105 text-destructive hover:text-destructive"
                         disabled={isPending}
                       >
@@ -494,6 +505,16 @@ export default function SubSubCategoriesClient({
         </div>
       </Drawer>
 
+      <CascadeDeleteDialog
+        open={cascadeDialogOpen}
+        onClose={() => setCascadeDialogOpen(false)}
+        model="SubSubCategories"
+        id={cascadeId}
+        entityName={cascadeName}
+        onProceedToDelete={handleCascadeComplete}
+        isDeleting={deleteMutation.isPending}
+      />
+
       <AlertDialogUse
         isOpen={deleteDialogOpen}
         onClose={() => {
@@ -504,7 +525,7 @@ export default function SubSubCategoriesClient({
         }}
         onConfirm={confirmDelete}
         title="Delete Sub Sub Category"
-        description="Are you sure you want to delete this sub sub category? This action cannot be undone."
+        description="Are you sure you want to soft-delete this sub sub category?"
         confirmText={deleteMutation.isPending ? "Deleting..." : "Delete"}
         confirmDisabled={deleteMutation.isPending}
       />

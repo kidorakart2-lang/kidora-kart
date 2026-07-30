@@ -106,8 +106,9 @@ export default function PhoneNumberModal() {
       } else {
         setError(data._message || "Failed to save phone number");
       }
-    } catch {
-      setError("Something went wrong");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      setError(err?.response?.data?.message || err?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }

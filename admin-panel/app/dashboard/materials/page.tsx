@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
+import CascadeDeleteDialog from "@/components/CascadeDeleteDialog";
 import { AlertDialogUse } from "@/components/alert-dialog";
 import { ErrorState } from "@/components/ui/error-state";
 import { Plus, Palette, Package } from "lucide-react";
@@ -44,6 +45,10 @@ export default function MaterialsColorsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<"material" | "color">("material");
+  const [cascadeDialogOpen, setCascadeDialogOpen] = useState(false);
+  const [cascadeId, setCascadeId] = useState("");
+  const [cascadeName, setCascadeName] = useState("");
+  const [cascadeModel, setCascadeModel] = useState<"materials" | "colors">("materials");
   const [materialForm, setMaterialForm] = useState({ name: "", order: 0 });
   const [colorForm, setColorForm] = useState({ name: "", code: "#000000", order: 0 });
   const [deletedFilter, setDeletedFilter] = useState<string>("active");
@@ -256,7 +261,7 @@ export default function MaterialsColorsPage() {
                   setDrawerType("material");
                   setDrawerOpen(true);
                 }}
-                onDelete={(id) => { setItemToDelete(id); setDeleteType("material"); setDeleteDialogOpen(true); }}
+                onDelete={(id, name) => { setCascadeId(id); setCascadeName(name || ""); setCascadeModel("materials"); setCascadeDialogOpen(true); }}
                 onStatusChange={(m) => materialStatusMutation.mutate(m._id)}
               />
             ))}
@@ -293,7 +298,7 @@ export default function MaterialsColorsPage() {
                   setDrawerType("color");
                   setDrawerOpen(true);
                 }}
-                onDelete={(id) => { setItemToDelete(id); setDeleteType("color"); setDeleteDialogOpen(true); }}
+                onDelete={(id, name) => { setCascadeId(id); setCascadeName(name || ""); setCascadeModel("colors"); setCascadeDialogOpen(true); }}
                 onStatusChange={(c) => colorStatusMutation.mutate(c._id)}
               />
             ))}
@@ -345,12 +350,27 @@ export default function MaterialsColorsPage() {
         )}
       </Drawer>
 
+      <CascadeDeleteDialog
+        open={cascadeDialogOpen}
+        onClose={() => setCascadeDialogOpen(false)}
+        model={cascadeModel}
+        id={cascadeId}
+        entityName={cascadeName}
+        onProceedToDelete={(id) => {
+          setCascadeDialogOpen(false);
+          setItemToDelete(id);
+          setDeleteType(cascadeModel === "materials" ? "material" : "color");
+          setDeleteDialogOpen(true);
+        }}
+        isDeleting={deleteType === "material" ? deleteMaterialMutation.isPending : deleteColorMutation.isPending}
+      />
+
       <AlertDialogUse
         isOpen={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={confirmDelete}
         title={`Delete ${deleteType === "material" ? "Material" : "Color"}`}
-        description={`Are you sure you want to delete this ${deleteType}? This action cannot be undone.`}
+        description={`Are you sure you want to soft-delete this ${deleteType}?`}
       />
     </div>
   );

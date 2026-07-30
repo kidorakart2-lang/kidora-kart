@@ -115,3 +115,14 @@ export const cancelOrder = async (orderId: string, reason: string) => {
   });
   return response.json();
 };
+
+export const removeCartItemByProduct = async (
+  productId: string,
+  colorId?: string,
+) => {
+  const response = await authFetch("/cart/remove-by-product", {
+    method: "POST",
+    body: JSON.stringify({ productId, colorId }),
+  });
+  return response.json();
+};

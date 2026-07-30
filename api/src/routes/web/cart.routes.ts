@@ -163,6 +163,7 @@ import {
   addToCart,
   updateCartItem,
   removeFromCart,
+  removeFromCartByProduct,
   clearCart,
 } from "../../controller/web/cart.controller.js";
 import { uploadNone } from "../../middleware/uploadMiddleware.js";
@@ -178,6 +179,8 @@ router.post("/add", rateLimit.cartActions, protect, uploadNone, addToCart);
 router.put("/items/update/:itemId", rateLimit.cartActions, protect, uploadNone, updateCartItem);
 
 router.put("/items/remove/:itemId", rateLimit.cartActions, protect, removeFromCart);
+
+router.post("/remove-by-product", rateLimit.cartActions, protect, removeFromCartByProduct);
 
 router.put("/destroy", rateLimit.cartActions, protect, clearCart);
 

@@ -95,8 +95,9 @@ export default function ProductCard({ data }: { data: ProductData }) {
             toast.error(responseData._message);
           }
         } catch (err) {
+          const serverErr = err as { response?: { data?: { message?: string } }; message?: string };
           toast.error(
-            err instanceof Error ? err.message : "Something went wrong",
+            serverErr?.response?.data?.message || (err instanceof Error ? err.message : "Something went wrong"),
           );
         } finally {
           setWishlistLoading(false);
@@ -140,8 +141,9 @@ export default function ProductCard({ data }: { data: ProductData }) {
             toast.error(responseData._message);
           }
         } catch (err) {
+          const serverErr = err as { response?: { data?: { message?: string } }; message?: string };
           toast.error(
-            err instanceof Error ? err.message : "Something went wrong",
+            serverErr?.response?.data?.message || (err instanceof Error ? err.message : "Something went wrong"),
           );
         } finally {
           setWishlistLoading(false);
@@ -188,8 +190,9 @@ export default function ProductCard({ data }: { data: ProductData }) {
           toast.error(responseData._message);
         }
       } catch (err) {
+        const serverErr = err as { response?: { data?: { message?: string } }; message?: string };
         toast.error(
-          err instanceof Error ? err.message : "Something went wrong",
+          serverErr?.response?.data?.message || (err instanceof Error ? err.message : "Something went wrong"),
         );
       } finally {
         setLoading(false);

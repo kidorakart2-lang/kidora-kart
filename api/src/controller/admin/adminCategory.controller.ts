@@ -218,6 +218,35 @@ export const update = async (
   }
 };
 
+export const restore = async (
+  request: Request,
+  response: Response,
+): Promise<void> => {
+  try {
+    const { id } = request.params;
+    if (!id) {
+      response.status(400).json({ _status: false, _message: "Category ID is required", _data: null });
+      return;
+    }
+    await category.updateOne(
+      { _id: id },
+      { $set: { deletedAt: null } },
+    );
+    cache.del("navigationData");
+    response.status(200).json({
+      _status: true,
+      _message: "Category restored successfully",
+      _data: null,
+    });
+  } catch (err) {
+    response.status(500).json({
+      _status: false,
+      _message: "Failed to restore category",
+      _data: null,
+    });
+  }
+};
+
 export const changeStatus = async (
   request: Request,
   response: Response,

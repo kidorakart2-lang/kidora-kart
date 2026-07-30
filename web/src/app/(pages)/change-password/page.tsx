@@ -59,8 +59,9 @@ export default function ChangePasswordPage() {
       } else {
         toast.error(resData._message || "Failed to change password");
       }
-    } catch {
-      toast.error("Something went wrong. Please try again.");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      toast.error(err?.response?.data?.message || err?.message || "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }

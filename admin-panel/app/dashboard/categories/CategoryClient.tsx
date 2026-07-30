@@ -19,6 +19,7 @@ import {
 import { Drawer } from "@/components/drawer";
 import { ExportButtons } from "@/components/export-buttons";
 import { AlertDialogUse } from "@/components/alert-dialog";
+import CascadeDeleteDialog from "@/components/CascadeDeleteDialog";
 import { Plus, Edit, Trash2, FolderTree, Loader2 } from "lucide-react";
 import {
   Select,
@@ -75,6 +76,10 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+  const [cascadeDialogOpen, setCascadeDialogOpen] = useState(false);
+  const [cascadeModel, setCascadeModel] = useState("Categories");
+  const [cascadeId, setCascadeId] = useState("");
+  const [cascadeName, setCascadeName] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [deletedFilter, setDeletedFilter] = useState<string>("active");
   const [formData, setFormData] = useState<FormState>({
@@ -164,7 +169,15 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
     setDrawerOpen(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: string, name: string) => {
+    setCascadeId(id);
+    setCascadeName(name);
+    setCascadeModel("Categories");
+    setCascadeDialogOpen(true);
+  };
+
+  const handleCascadeComplete = (id: string) => {
+    setCascadeDialogOpen(false);
     setCategoryToDelete(id);
     setDeleteDialogOpen(true);
   };
@@ -350,17 +363,16 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
                       >
                         <Edit className="h-3 w-3 mr-2" />
                         Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(category._id)}
-                        className="flex-1 transition-all duration-200 hover:scale-105 text-destructive hover:text-destructive"
-                        disabled={isPending}
-                      >
-                        <Trash2 className="h-3 w-3 mr-2" />
-                        Delete
-                      </Button>
+                      </Button>                      <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(category._id, category.name)}
+                            className="flex-1 transition-all duration-200 hover:scale-105 text-destructive hover:text-destructive"
+                            disabled={isPending}
+                          >
+                            <Trash2 className="h-3 w-3 mr-2" />
+                            Delete
+                          </Button>
                     </div>
                     <Button
                       variant={category.status ? "default" : "secondary"}
@@ -445,6 +457,17 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
         </div>
       </Drawer>
 
+      {/* Cascade delete dialog — shows reference usage before deleting */}
+      <CascadeDeleteDialog
+        open={cascadeDialogOpen}
+        onClose={() => setCascadeDialogOpen(false)}
+        model={cascadeModel}
+        id={cascadeId}
+        entityName={cascadeName}
+        onProceedToDelete={handleCascadeComplete}
+        isDeleting={deleteMutation.isPending}
+      />
+
       <AlertDialogUse
         isOpen={deleteDialogOpen}
         onClose={() => {
@@ -455,7 +478,7 @@ export default function CategoriesClient({ initialCategories = [] }: { initialCa
         }}
         onConfirm={confirmDelete}
         title="Delete Category"
-        description="Are you sure you want to delete this category? This action cannot be undone."
+        description="Are you sure you want to soft-delete this category?"
       />
     </div>
   );

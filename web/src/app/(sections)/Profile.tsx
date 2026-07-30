@@ -225,8 +225,9 @@ export default function AccountPage() {
       } else {
         toast.error(res._message);
       }
-    } catch {
-      toast.error("Something went wrong");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      toast.error(err?.response?.data?.message || err?.message || "Something went wrong");
     } finally {
       setIsSubmitting(false);
     }

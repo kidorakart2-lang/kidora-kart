@@ -55,6 +55,7 @@ import aiResponseRoutes from "./routes/admin/aiResponse.routes.js";
 import aiAgentRoutes from "./routes/admin/ai-agent.routes.js";
 import auditLogRoutes from "./routes/admin/auditLog.routes.js";
 import settingsRoutes from "./routes/admin/settings.routes.js";
+import cascadeDeleteRoutes from "./routes/admin/cascadeDelete.routes.js";
 import { getCsrfToken } from "./controller/csrf.controller.js";
 
 // Hoisted body-parser instances — created once at startup, reused on every request
@@ -202,6 +203,7 @@ app.use("/api/admin/audit-log", auditLogRoutes);
 app.use("/api/admin/settings", settingsRoutes);
 app.use("/api/admin/ai", aiRoutes);
 app.use("/api/admin/ai-response", aiResponseRoutes);
+app.use("/api/admin/utils", cascadeDeleteRoutes);
 app.use("/api/admin/ai-agent", aiAgentRoutes);
 app.get("/api/admin/csrf-token", getCsrfToken);
 

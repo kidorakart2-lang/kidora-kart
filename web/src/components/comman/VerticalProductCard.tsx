@@ -74,7 +74,8 @@ export default function VerticalProductCard({ data }: VerticalProductCardProps) 
             toast.error(responseData._message);
           }
         } catch (err) {
-          toast.error(err instanceof Error ? err.message : "Something went wrong");
+          const serverErr = err as { response?: { data?: { message?: string } }; message?: string };
+          toast.error(serverErr?.response?.data?.message || (err instanceof Error ? err.message : "Something went wrong"));
         } finally {
           setWishlistLoading(false);
         }
@@ -105,7 +106,8 @@ export default function VerticalProductCard({ data }: VerticalProductCardProps) 
             toast.error(responseData._message);
           }
         } catch (err) {
-          toast.error(err instanceof Error ? err.message : "Something went wrong");
+          const serverErr = err as { response?: { data?: { message?: string } }; message?: string };
+          toast.error(serverErr?.response?.data?.message || (err instanceof Error ? err.message : "Something went wrong"));
         } finally {
           setWishlistLoading(false);
         }
@@ -142,7 +144,8 @@ export default function VerticalProductCard({ data }: VerticalProductCardProps) 
           toast.error(responseData._message);
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Something went wrong");
+        const serverErr = err as { response?: { data?: { message?: string } }; message?: string };
+        toast.error(serverErr?.response?.data?.message || (err instanceof Error ? err.message : "Something went wrong"));
       } finally {
         setLoading(false);
       }

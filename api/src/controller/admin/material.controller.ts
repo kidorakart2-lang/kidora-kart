@@ -139,6 +139,35 @@ export const destroy = async (
   }
 };
 
+export const restore = async (
+  request: Request,
+  response: Response,
+): Promise<void> => {
+  try {
+    const { id } = request.params;
+    if (!id) {
+      response.status(400).json({ _status: false, _message: "Material ID is required", _data: null });
+      return;
+    }
+    await material.updateOne(
+      { _id: id },
+      { $set: { deletedAt: null } },
+    );
+    delByPrefix("admin_material_view");
+    response.status(200).json({
+      _status: true,
+      _message: "Material restored successfully",
+      _data: null,
+    });
+  } catch (err) {
+    response.status(500).json({
+      _status: false,
+      _message: "Failed to restore material",
+      _data: null,
+    });
+  }
+};
+
 export const details = async (
   request: Request,
   response: Response,

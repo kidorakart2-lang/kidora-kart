@@ -173,6 +173,34 @@ export const deleteReview = async (
   }
 };
 
+export const restoreReview = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      res.status(400).json({ _status: false, _message: "Review ID is required", _data: null });
+      return;
+    }
+    await Reviews.updateOne(
+      { _id: id },
+      { $set: { deletedAt: null } },
+    );
+    res.status(200).json({
+      _status: true,
+      _message: "Review restored successfully",
+      _data: null,
+    });
+  } catch (error) {
+    res.status(500).json({
+      _status: false,
+      _message: "Failed to restore review",
+      _data: null,
+    });
+  }
+};
+
 export const changeStatus = async (
   req: Request,
   res: Response,

@@ -106,7 +106,8 @@ export default function Wishlist({
         toast.error(responseData._message);
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Something went wrong");
+      const serverErr = error as { response?: { data?: { message?: string } }; message?: string };
+      toast.error(serverErr?.response?.data?.message || (error instanceof Error ? error.message : "Something went wrong"));
     } finally {
       setWishlistLoading(false);
     }
@@ -138,7 +139,8 @@ export default function Wishlist({
           toast.error(responseData._message);
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Something went wrong");
+        const serverErr = err as { response?: { data?: { message?: string } }; message?: string };
+        toast.error(serverErr?.response?.data?.message || (err instanceof Error ? err.message : "Something went wrong"));
       } finally {
         setCartLoading(null);
       }

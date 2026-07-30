@@ -47,9 +47,9 @@ export default function ContactPage() {
         setFormData({ name: "", email: "", message: "" });
         setTimeout(() => setIsSubmitted(false), 3000);
       }
-    } catch {
-      toast.error("Something went wrong");
-      setIsLoading(false);
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      toast.error(err?.response?.data?.message || err?.message || "Something went wrong");
     } finally {
       setIsLoading(false);
     }

@@ -655,6 +655,41 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const restore = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      res.status(400).json({ _status: false, _message: "Product ID is required", _data: null });
+      return;
+    }
+    const product = await Product.findByIdAndUpdate(
+      id,
+      { $set: { deletedAt: null } },
+      { new: true, projection: { _id: 1 } },
+    );
+    if (!product) {
+      res.status(404).json({ _status: false, _message: "Product not found", _data: null });
+      return;
+    }
+    invalidateProductCaches();
+    res.status(200).json({
+      _status: true,
+      _message: "Product restored successfully",
+      _data: null,
+    });
+  } catch (err) {
+    logger.error(err, "Failed to restore product");
+    res.status(500).json({
+      _status: false,
+      _message: "Failed to restore product",
+      _data: null,
+    });
+  }
+};
+
 export const changeStatus = async (
   req: Request,
   res: Response,

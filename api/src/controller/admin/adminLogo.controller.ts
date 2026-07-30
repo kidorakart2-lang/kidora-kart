@@ -150,6 +150,35 @@ export const destroy = async (
   }
 };
 
+export const restore = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      res.status(400).json({ _status: false, _message: "Logo ID is required", _data: null });
+      return;
+    }
+    await logoModal.updateOne(
+      { _id: id },
+      { $set: { deletedAt: null } },
+    );
+    cache.del("logoData");
+    res.status(200).json({
+      _status: true,
+      _message: "Logo restored successfully",
+      _data: null,
+    });
+  } catch (error) {
+    res.status(500).json({
+      _status: false,
+      _message: "Failed to restore logo",
+      _data: null,
+    });
+  }
+};
+
 export const changeStatus = async (
   req: Request,
   res: Response,

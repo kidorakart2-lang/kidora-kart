@@ -89,7 +89,8 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             toast.error(responseData._message);
           }
         } catch (error) {
-          toast.error(error instanceof Error ? error.message : "Something went wrong");
+          const serverErr = error as { response?: { data?: { message?: string } }; message?: string };
+          toast.error(serverErr?.response?.data?.message || (error instanceof Error ? error.message : "Something went wrong"));
         } finally {
           setWishlistLoading(false);
         }
@@ -117,7 +118,8 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             toast.error(responseData._message);
           }
         } catch (error) {
-          toast.error(error instanceof Error ? error.message : "Something went wrong");
+          const serverErr = error as { response?: { data?: { message?: string } }; message?: string };
+          toast.error(serverErr?.response?.data?.message || (error instanceof Error ? error.message : "Something went wrong"));
         } finally {
           setWishlistLoading(false);
         }
@@ -201,7 +203,8 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
           toast.error(responseData._message);
         }
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Something went wrong");
+        const serverErr = error as { response?: { data?: { message?: string } }; message?: string };
+        toast.error(serverErr?.response?.data?.message || (error instanceof Error ? error.message : "Something went wrong"));
       } finally {
         setLoading(false);
       }

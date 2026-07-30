@@ -108,14 +108,38 @@ export async function validateAndPriceCart(
     }
 
     const colorIdStr = item.colorId;
-    const isValidColor = product.colors.some(
-      (c) => String(c) === colorIdStr,
+
+    // Edge case: if colorId is null/undefined/"null" string, treat as invalid
+    if (!colorIdStr || colorIdStr === "null" || colorIdStr === "undefined") {
+      errors.push({
+        productId: item.productId,
+        type: "invalid_color",
+        message: `A valid color selection is required for "${product.name}"`,
+        quantity: item.quantity,
+      });
+      continue;
+    }
+
+    // Safely check colors array — it could be empty or undefined with .lean()
+    const productColors = product.colors ?? [];
+    if (productColors.length === 0) {
+      errors.push({
+        productId: item.productId,
+        type: "invalid_color",
+        message: `"${product.name}" has no colors configured. Please contact support.`,
+        quantity: item.quantity,
+      });
+      continue;
+    }
+
+    const isValidColor = productColors.some(
+      (c) => String(c).trim() === colorIdStr.trim(),
     );
     if (!isValidColor) {
       errors.push({
         productId: item.productId,
         type: "invalid_color",
-        message: `Selected color is not available for "${product.name}"`,
+        message: `Selected color is not available for "${product.name}". Please remove it from your cart and select a different color.`,
         quantity: item.quantity,
       });
       continue;

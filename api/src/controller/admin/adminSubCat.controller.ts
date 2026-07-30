@@ -225,6 +225,34 @@ export const update = async (
   }
 };
 
+export const restore = async (
+  request: Request,
+  response: Response,
+): Promise<void> => {
+  try {
+    const { id } = request.params;
+    if (!id) {
+      response.status(400).json({ _status: false, _message: "Sub-category ID is required", _data: null });
+      return;
+    }
+    await subCategory.updateOne(
+      { _id: id },
+      { $set: { deletedAt: null } },
+    );
+    response.status(200).json({
+      _status: true,
+      _message: "Sub-category restored successfully",
+      _data: null,
+    });
+  } catch (err) {
+    response.status(500).json({
+      _status: false,
+      _message: "Failed to restore sub-category",
+      _data: null,
+    });
+  }
+};
+
 export const changeStatus = async (
   request: Request,
   response: Response,

@@ -302,6 +302,68 @@ export const removeFromCart = asyncHandler(
   },
 );
 
+// Remove items from cart by product ID (and optional colorId)
+// Used by the checkout page when cart validation fails (invalid_color, deleted, etc.)
+export const removeFromCartByProduct = asyncHandler(
+  async (req: Request, res: Response) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      const { productId, colorId } = req.body as {
+        productId?: string;
+        colorId?: string;
+      };
+      const userId = req.user?._id;
+
+      if (!productId) {
+        await session.abortTransaction();
+        return fail(res, "Product ID is required", 400);
+      }
+
+      const cart = await Cart.findOne({ user: userId }).session(session);
+      if (!cart) {
+        await session.abortTransaction();
+        return fail(res, "Cart not found", 404);
+      }
+
+      const beforeCount = cart.items.length;
+
+      cart.items = cart.items.filter((item) => {
+        const sameProduct = String(item.product) === productId;
+        if (colorId) {
+          return !(sameProduct && String(item.color) === colorId);
+        }
+        return !sameProduct;
+      }) as unknown as typeof cart.items;
+
+      if (cart.items.length === beforeCount) {
+        await session.abortTransaction();
+        return fail(res, "Item not found in cart", 404);
+      }
+
+      await cart.save({ session });
+      await session.commitTransaction();
+
+      return success(
+        res,
+        { productId, remainingItems: cart.items.length },
+        "Item removed from cart",
+      );
+    } catch (error) {
+      await session.abortTransaction();
+      logger.error({ err: error }, "Error in removeFromCartByProduct");
+      return fail(
+        res,
+        "Failed to remove item from cart",
+        500,
+      );
+    } finally {
+      session.endSession();
+    }
+  },
+);
+
 // Clear cart
 export const clearCart = asyncHandler(async (req: Request, res: Response) => {
   const session = await mongoose.startSession();

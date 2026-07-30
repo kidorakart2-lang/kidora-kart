@@ -219,6 +219,7 @@ import {
   details,
   update,
   changeStatus,
+  restore,
 } from "../../controller/admin/adminCategory.controller.js";
 import protect, { adminOnly } from "../../middleware/authMiddleware.js";
 import {
@@ -235,5 +236,6 @@ router.post("/create", protect, adminOnly, uploadSingle, create);
 router.put("/update/:id", protect, adminOnly, uploadSingle, update);
 router.put("/delete/:id", protect, adminOnly, uploadNone, destroy);
 router.put("/change-status/:id", protect, adminOnly, uploadNone, changeStatus);
+router.put("/restore/:id", protect, adminOnly, uploadNone, restore);
 
 export default router;

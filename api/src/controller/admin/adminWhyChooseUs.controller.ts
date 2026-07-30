@@ -201,6 +201,35 @@ export const update = async (
   }
 };
 
+export const restore = async (
+  request: Request,
+  response: Response,
+): Promise<void> => {
+  try {
+    const { id } = request.params;
+    if (!id) {
+      response.status(400).json({ _status: false, _message: "WhyChooseUs ID is required", _data: null });
+      return;
+    }
+    await whyChooseUs.updateOne(
+      { _id: id },
+      { $set: { deletedAt: null } },
+    );
+    cache.del("whyChooseUsData");
+    response.status(200).json({
+      _status: true,
+      _message: "WhyChooseUs entry restored successfully",
+      _data: null,
+    });
+  } catch (err) {
+    response.status(500).json({
+      _status: false,
+      _message: "Failed to restore why-choose-us entry",
+      _data: null,
+    });
+  }
+};
+
 export const changeStatus = async (
   request: Request,
   response: Response,

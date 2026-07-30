@@ -175,6 +175,24 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const restore = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      fail(res, "FAQ Set ID is required", 400);
+      return;
+    }
+    await productFaq.updateOne(
+      { _id: id },
+      { $set: { deletedAt: null } },
+    );
+    invalidateCache();
+    success(res, null, "FAQ Set restored successfully");
+  } catch (err) {
+    fail(res, "Failed to restore FAQ set", 500);
+  }
+};
+
 export const changeStatus = async (req: Request, res: Response): Promise<void> => {
   try {
     const result = await productFaq.updateMany(
