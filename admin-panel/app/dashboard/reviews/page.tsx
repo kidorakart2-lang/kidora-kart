@@ -56,6 +56,7 @@ function changeReviewStatus(id: string) {
 export default function ReviewsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [reviewToDelete, setReviewToDelete] = useState<string | null>(null);
+  const [reviewToDeleteIsDeleted, setReviewToDeleteIsDeleted] = useState(false);
   const [deletedFilter, setDeletedFilter] = useState<string>("active");
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
@@ -72,14 +73,16 @@ export default function ReviewsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reviews"] });
       invalidateCache(["reviews", "product"]);
-      toast({ title: "Review deleted successfully" });
+      toast({ title: reviewToDeleteIsDeleted ? "Review permanently deleted" : "Review deleted successfully" });
       setDeleteDialogOpen(false);
       setReviewToDelete(null);
+      setReviewToDeleteIsDeleted(false);
     },
     onError: (error: Error) => {
       toast({ title: error.message, variant: "destructive" });
       setDeleteDialogOpen(false);
       setReviewToDelete(null);
+      setReviewToDeleteIsDeleted(false);
     },
   });
 
@@ -95,8 +98,9 @@ export default function ReviewsPage() {
 
   const isPending = deleteMutation.isPending || statusMutation.isPending;
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: string, isAlreadyDeleted: boolean) => {
     setReviewToDelete(id);
+    setReviewToDeleteIsDeleted(isAlreadyDeleted);
     setDeleteDialogOpen(true);
   };
 
@@ -388,7 +392,7 @@ export default function ReviewsPage() {
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => review._id && handleDelete(review._id)}
+                            onClick={() => review._id && handleDelete(review._id, isDeleted)}
                             className="flex-1 transition-all duration-200 hover:scale-105 h-8 text-xs"
                             disabled={isPending}
                           >
@@ -398,11 +402,11 @@ export default function ReviewsPage() {
                             ) : (
                               <Trash2 className="h-3 w-3 mr-1" />
                             )}
-                            {isDeleted ? "Delete" : "Delete"}
+                            {isDeleted ? "Delete Permanently" : "Delete"}
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          {isDeleted ? "Permanently delete" : "Soft delete review"}
+                          {isDeleted ? "Permanently delete this review (irreversible)" : "Soft delete review"}
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -421,12 +425,16 @@ export default function ReviewsPage() {
           if (!deleteMutation.isPending) {
             setDeleteDialogOpen(false);
             setReviewToDelete(null);
+            setReviewToDeleteIsDeleted(false);
           }
         }}
         onConfirm={confirmDelete}
-        title="Delete Review"
-        description="Are you sure you want to delete this review? The user will be notified via email about this action."
-        confirmText="Delete Review"
+        title={reviewToDeleteIsDeleted ? "Permanently Delete Review" : "Delete Review"}
+        description={reviewToDeleteIsDeleted
+          ? "This will permanently delete this review from the database. This action cannot be undone. The user will not be able to submit a new review for this product."
+          : "Are you sure you want to delete this review? The user will be notified via email about this action. You can restore it later from the 'All' filter."
+        }
+        confirmText={reviewToDeleteIsDeleted ? "Permanently Delete" : "Soft Delete"}
       />
     </div>
   );

@@ -901,8 +901,8 @@ export default function OrdersPage() {
               <div className="rounded-lg border border-border p-4 space-y-3">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">History</p>
                 <div className="space-y-2">
-                  {selectedOrder.statusHistory.map((s) => (
-                    <div key={s.id} className="flex items-center justify-between text-sm">
+                  {selectedOrder.statusHistory.map((s, idx) => (
+                    <div key={s.status + idx} className="flex items-center justify-between text-sm">
                       <span className="capitalize font-medium">{s.status}</span>
                       <span className="text-muted-foreground text-xs">
                         {new Date(s.timestamp).toLocaleDateString("en-IN", {

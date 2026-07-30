@@ -30,6 +30,9 @@ export interface SectionConfig {
   layout?: string
   cells?: BentoCell[]
   // Category grid config
+  // Shop by price config
+  ranges?: { label: string; min: number; max: number }[]
+  // Category grid config
   categorySourceType?: "category" | "subCategory" | "subSubCategory"
   categorySelectedIds?: string[]
   categorySearch?: string

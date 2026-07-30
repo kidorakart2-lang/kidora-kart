@@ -25,7 +25,7 @@ export const getAllReviews = async (
     const reviews = await Reviews.find(query)
       .populate(POPULATE_USER)
       .populate(POPULATE_PRODUCT)
-      .select("_id userId productId rating review status images createdAt")
+      .select("_id userId productId rating comment status createdAt")
       .sort("-createdAt")
       .lean();
     res.status(200).json({
@@ -125,10 +125,11 @@ export const deleteReview = async (
       return;
     }
 
-    // Send deletion email to the user
+    // Send deletion email to the user (only for first-time soft-delete, not for permanent delete)
+    const isAlreadyDeleted = !!review.deletedAt;
     const user = review.userId as unknown as { _id: string; name: string; email: string } | null;
     const product = review.productId as unknown as { _id: string; name: string; slug: string; images: string[] } | null;
-    if (user && user.email && product) {
+    if (!isAlreadyDeleted && user && user.email && product) {
       try {
         await sendEmail(user.email, "reviewDeleted", {
           user: { name: user.name },
@@ -145,8 +146,9 @@ export const deleteReview = async (
     }
 
     // Already soft-deleted → permanently delete
-    if (review.deletedAt) {
+    if (isAlreadyDeleted) {
       await Reviews.findByIdAndDelete(id);
+      logger.info({ reviewId: id }, "Review permanently deleted");
       res.status(200).json({
         _status: true,
         _message: "Review permanently deleted",

@@ -258,6 +258,9 @@ export default function HomePagePage() {
     const emptyBentoGrids = sections.filter(
       (s) => s.type === "bento-grid" && (!cfg(s).cells?.length || (cfg(s).cells ?? []).some((c) => !c.image)),
     )
+    const emptyShopByPrice = sections.filter(
+      (s) => s.type === "shop-by-price" && (!Array.isArray(cfg(s).ranges) || (cfg(s).ranges as unknown[]).length === 0),
+    )
 
     const issues: { type: string; count: number; label: string }[] = []
     if (emptyBanners.length) issues.push({ type: "banner", count: emptyBanners.length, label: "banner" })
@@ -265,6 +268,7 @@ export default function HomePagePage() {
     if (emptyPromoBanners.length) issues.push({ type: "promo-banner", count: emptyPromoBanners.length, label: "promo banner" })
     if (emptyVideos.length) issues.push({ type: "video", count: emptyVideos.length, label: "video" })
     if (emptyBentoGrids.length) issues.push({ type: "bento-grid", count: emptyBentoGrids.length, label: "bento grid" })
+    if (emptyShopByPrice.length) issues.push({ type: "shop-by-price", count: emptyShopByPrice.length, label: "shop by price" })
 
     if (issues.length > 0) {
       const details = issues.map((i) => `${i.count} ${i.label}(s)`).join(", ")
@@ -352,7 +356,7 @@ export default function HomePagePage() {
       )}
 
       {/* Edit Sheet */}
-      <Sheet open={editDialogOpen && !!editingSection} onOpenChange={(open) => { if (!open) { setEditDialogOpen(false); setEditingSection(null); } }}>
+      <Sheet open={editDialogOpen && !!editingSection} onOpenChange={(open) => { if (!open) { setEditDialogOpen(false); setEditingSection(null); } }} modal={false}>
         <SheetContent side="right" className="w-full sm:max-w-lg md:max-w-xl lg:max-w-2xl">
           <SheetHeader><SheetTitle>Edit Section</SheetTitle></SheetHeader>
           <div className="flex-1 overflow-y-auto px-6">
@@ -399,7 +403,7 @@ export default function HomePagePage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Sheet open={addDialogOpen} onOpenChange={(open) => { if (!open) { setAddDialogOpen(false); setAddType("round-categories"); setAddConfig({}); } }}>
+      <Sheet open={addDialogOpen} onOpenChange={(open) => { if (!open) { setAddDialogOpen(false); setAddType("round-categories"); setAddConfig({}); } }} modal={false}>
         <SheetContent side="right" className="w-full sm:max-w-lg md:max-w-xl lg:max-w-2xl">
           <SheetHeader><SheetTitle>Add Section</SheetTitle></SheetHeader>
           <div className="flex-1 overflow-y-auto px-6">

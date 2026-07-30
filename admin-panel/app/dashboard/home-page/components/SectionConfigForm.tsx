@@ -16,6 +16,7 @@ import CategoryGridConfigForm from "./CategoryGridConfigForm"
 import PromoBannerConfigForm from "./PromoBannerConfigForm"
 import VideoConfigForm from "./VideoConfigForm"
 import BentoGridConfigForm from "./BentoGridConfigForm"
+import ShopByPriceConfigForm from "./ShopByPriceConfigForm"
 
 interface Props {
   type: string
@@ -32,7 +33,6 @@ export default function SectionConfigForm({ type, config, onChange }: Props) {
 
     case "round-categories":
     case "square-categories":
-    case "shop-by-price":
       return (
         <div className="space-y-2">
           <Label>Heading</Label>
@@ -43,6 +43,9 @@ export default function SectionConfigForm({ type, config, onChange }: Props) {
           />
         </div>
       )
+
+    case "shop-by-price":
+      return <ShopByPriceConfigForm config={config} onChange={onChange} />
 
     case "category-grid":
       return <CategoryGridConfigForm config={config} onChange={onChange} />

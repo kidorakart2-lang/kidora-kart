@@ -1,7 +1,5 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
-import { api } from "@/lib/api"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -11,13 +9,46 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Loader2, Search, X } from "lucide-react"
+import { X } from "lucide-react"
+import ItemPicker, { type PickerItem } from "./ItemPicker"
 import type { SectionConfig, BentoCell } from "../types"
 import { BENTO_LAYOUTS, BENTO_SOURCE_TYPES, EMPTY_CELL } from "../constants"
 
 interface Props {
   config: SectionConfig
   onChange: (cfg: SectionConfig) => void
+}
+
+const SOURCE_ENDPOINTS: Record<string, {
+  url: string
+  searchField: string
+  searchPlaceholder: string
+}> = {
+  product: {
+    url: "/api/admin/product/view",
+    searchField: "name",
+    searchPlaceholder: "Search products...",
+  },
+  category: {
+    url: "/api/admin/category/view",
+    searchField: "name",
+    searchPlaceholder: "Search categories...",
+  },
+  subCategory: {
+    url: "/api/admin/subcategory/view",
+    searchField: "name",
+    searchPlaceholder: "Search sub categories...",
+  },
+  subSubCategory: {
+    url: "/api/admin/subsubcategory/view",
+    searchField: "name",
+    searchPlaceholder: "Search sub sub categories...",
+  },
+  banner: {
+    url: "/api/admin/banner/view",
+    searchField: "description",
+    searchPlaceholder: "Search banners...",
+  },
 }
 
 export default function BentoGridConfigForm({ config, onChange }: Props) {
@@ -111,92 +142,35 @@ function BentoCellEditor({
   onChange: (updates: Partial<BentoCell>) => void
 }) {
   const sourceType = cell.sourceType || "product"
-
-  const [items, setItems] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
-  const [search, setSearchState] = useState("")
-
-  const loadItems = useCallback(async (type: string, searchTerm: string) => {
-    setLoading(true)
-    try {
-      let items: any[] = []
-      switch (type) {
-        case "product": {
-          const res = await api.postRaw<{ _data: any[] }>("/api/admin/product/view", { name: searchTerm || undefined, limit: 10 })
-          items = res._data ?? []
-          break
-        }
-        case "category": {
-          const res = await api.postRaw<{ _data: any[] }>("/api/admin/category/view", { name: searchTerm || undefined, limit: 10 })
-          items = res._data ?? []
-          break
-        }
-        case "subCategory": {
-          const res = await api.postRaw<{ _data: any[] }>("/api/admin/subcategory/view", { name: searchTerm || undefined, limit: 10 })
-          items = res._data ?? []
-          break
-        }
-        case "subSubCategory": {
-          const res = await api.postRaw<{ _data: any[] }>("/api/admin/subsubcategory/view", { name: searchTerm || undefined, limit: 10 })
-          items = res._data ?? []
-          break
-        }
-        case "banner": {
-          const res = await api.postRaw<{ _data: any[] }>("/api/admin/banner/view", { description: searchTerm || undefined, limit: 10 })
-          items = res._data ?? []
-          break
-        }
-        default:
-          items = []
-      }
-      setItems(items)
-    } catch {
-      setItems([])
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Only re-fetch when sourceType changes (e.g. switching from 'product' to 'category')
-  // Search-driven fetches are handled exclusively by the debounced handleSearch
-  useEffect(() => {
-    loadItems(sourceType, search)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadItems, sourceType])
-
-  // Cleanup debounce on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
-  }, [])
-
-  const handleSearch = (val: string) => {
-    setSearchState(val)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      loadItems(sourceType, val)
-    }, 300)
-  }
+  const endpointCfg = SOURCE_ENDPOINTS[sourceType] || SOURCE_ENDPOINTS.product
+  const selectedIds = cell.sourceId ? [cell.sourceId] : []
 
   const handleSourceTypeChange = (newType: string) => {
-    onChange({ sourceType: newType, sourceId: undefined, image: "", title: "", subtitle: "", linkType: "none", linkTarget: "" })
-    setSearchState("")
+    onChange({
+      sourceType: newType,
+      sourceId: undefined,
+      image: "",
+      title: "",
+      subtitle: "",
+      linkType: "none",
+      linkTarget: "",
+    })
   }
 
-  const selectItem = (item: any) => {
+  const handleItemSelect = (item: PickerItem) => {
     const title = item.name || item.title || ""
     const image = item.image || item.images?.[0] || ""
     let subtitle = ""
     let linkType = "category"
     let linkTarget = item._id || ""
-    let linkExternalUrl = ""
 
     switch (sourceType) {
       case "product":
-        subtitle = item.discount_price ? `₹${item.discount_price}` : item.price ? `₹${item.price}` : ""
+        subtitle = item.discount_price
+          ? `₹${item.discount_price}`
+          : item.price
+            ? `₹${item.price}`
+            : ""
         linkType = "product"
         linkTarget = item.slug || item._id
         break
@@ -228,7 +202,6 @@ function BentoCellEditor({
         subtitle = item.description || ""
         if (item.link?.type === "external") {
           linkType = "external"
-          linkExternalUrl = item.link?.externalUrl || ""
           linkTarget = ""
         } else {
           linkType = item.link?.type || "category"
@@ -237,15 +210,18 @@ function BentoCellEditor({
         break
     }
 
+    onChange({ sourceType, sourceId: item._id, image, title, subtitle, linkType, linkTarget })
+  }
+
+  const clearSelection = () => {
     onChange({
-      sourceType,
-      sourceId: item._id,
-      image,
-      title,
-      subtitle,
-      linkType,
-      linkTarget,
-      linkExternalUrl,
+      sourceId: undefined,
+      image: "",
+      title: "",
+      subtitle: "",
+      linkType: "none",
+      linkTarget: "",
+      linkExternalUrl: "",
     })
   }
 
@@ -273,85 +249,49 @@ function BentoCellEditor({
         </SelectContent>
       </Select>
 
-      <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder={`Search ${sourceType === "product" ? "products" : sourceType === "category" ? "categories" : sourceType === "subCategory" ? "sub categories" : sourceType === "banner" ? "banners" : "items"}...`}
-          value={search}
-          onChange={(e) => handleSearch(e.target.value)}
-          className="pl-8 h-8 text-xs"
-        />
-      </div>
-
-      <div className="max-h-40 overflow-y-auto border rounded-md p-1 space-y-0.5">
-        {loading ? (
-          <div className="flex items-center justify-center py-4">
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-          </div>
-        ) : items.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-3">
-            {search.trim() ? "No matches found" : `No ${sourceType === "product" ? "products" : "items"} available`}
-          </p>
-        ) : (
-          items.map((item: any) => {
-            const isSelected = cell.sourceId === item._id
-            const itemImage = item.image || item.images?.[0] || ""
-            const itemLabel = item.name || item.title || ""
-            return (
-              <button
-                key={item._id}
-                type="button"
-                onClick={() => selectItem(item)}
-                className={`w-full flex items-center gap-2 p-2 rounded-md text-left transition-all cursor-pointer text-xs ${
-                  isSelected
-                    ? "bg-primary/10 text-primary ring-1 ring-primary/30"
-                    : "hover:bg-muted"
-                }`}
-              >
-                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                  isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
-                }`}>
-                  {isSelected && <div className="h-2 w-2 rounded-full bg-white" />}
-                </div>
-                {itemImage ? (
-                  <img src={itemImage} alt={itemLabel} className="w-7 h-7 rounded object-cover shrink-0" />
-                ) : null}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{itemLabel}</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {sourceType === "product"
-                      ? item.discount_price ? `₹${item.discount_price}` : item.price ? `₹${item.price}` : ""
-                      : sourceType === "banner"
-                        ? item.link?.type ? `Link: ${item.link.type}` : ""
-                        : `Slug: ${item.slug || "-"}`}
-                  </p>
-                </div>
-              </button>
-            )
-          })
-        )}
-      </div>
+      <ItemPicker
+        endpointUrl={endpointCfg.url}
+        searchField={endpointCfg.searchField}
+        extraBody={{ limit: 10 }}
+        key={`${index}-${sourceType}`}
+        searchPlaceholder={endpointCfg.searchPlaceholder}
+        selectedIds={selectedIds}
+        onSelectionChange={() => {}}
+        onItemSelect={handleItemSelect}
+        mode="single"
+        maxHeight="max-h-40"
+        renderLabel={(item) => item.name || item.title || ""}
+        renderSubLabel={(item) => {
+          if (sourceType === "product") {
+            return item.discount_price
+              ? `₹${item.discount_price}`
+              : item.price
+                ? `₹${item.price}`
+                : ""
+          }
+          if (sourceType === "banner") {
+            return item.link?.type ? `Link: ${item.link.type}` : ""
+          }
+          return `Slug: ${item.slug || "-"}`
+        }}
+      />
 
       {cell.image && cell.title && (
         <div className="text-[10px] text-muted-foreground flex items-center gap-2 pt-1 border-t">
           {cell.image && (
-            <img src={cell.image} alt={cell.title} className="w-6 h-6 rounded object-cover shrink-0" />
+            <img
+              src={cell.image}
+              alt={cell.title}
+              className="w-6 h-6 rounded object-cover shrink-0"
+            />
           )}
           <span className="truncate flex-1">{cell.title}</span>
-          <span className="shrink-0">{cell.linkType !== "none" ? `→ ${cell.linkTarget || "..."}` : "No link"}</span>
+          <span className="shrink-0">
+            {cell.linkType !== "none" ? `→ ${cell.linkTarget || "..."}` : "No link"}
+          </span>
           <button
             type="button"
-            onClick={() =>
-              onChange({
-                sourceId: undefined,
-                image: "",
-                title: "",
-                subtitle: "",
-                linkType: "none",
-                linkTarget: "",
-                linkExternalUrl: "",
-              })
-            }
+            onClick={clearSelection}
             className="h-5 w-5 rounded-full hover:bg-destructive/10 hover:text-destructive flex items-center justify-center shrink-0 transition-colors"
             title="Clear selection"
           >

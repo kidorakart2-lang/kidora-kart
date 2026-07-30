@@ -226,9 +226,20 @@ export const update = async (req: Request, res: Response): Promise<void> => {
   try {
     const sections = (req.body.sections ?? []) as Record<string, unknown>[];
 
+    // Strip client-generated local IDs (_id: "local_xxx") so Mongoose doesn't
+    // try to cast them to ObjectId. Existing sections with real MongoDB ObjectId
+    // values (12/24 hex strings) are kept as-is.
+    const cleanedSections = sections.map((s) => {
+      const sec = { ...s } as Record<string, unknown>;
+      if (typeof sec._id === "string" && (sec._id as string).startsWith("local_")) {
+        delete sec._id;
+      }
+      return sec;
+    });
+
     // Validate every section in the bulk update
-    for (let i = 0; i < sections.length; i++) {
-      const sec = sections[i] as { type?: string; config?: Record<string, unknown> };
+    for (let i = 0; i < cleanedSections.length; i++) {
+      const sec = cleanedSections[i] as { type?: string; config?: Record<string, unknown> };
       const validationErrors = validateSectionConfig(sec.type ?? "", sec.config);
       if (validationErrors.length > 0) {
         fail(res, `Section ${i + 1}: ${validationErrors.join(" ")}`, 400);
@@ -238,7 +249,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
 
     const page = await homePage.findOneAndUpdate(
       {},
-      { $set: { sections }, $inc: { version: 1 } },
+      { $set: { sections: cleanedSections }, $inc: { version: 1 } },
       { new: true, upsert: true },
     );
     cache.del(CACHE_KEY);
