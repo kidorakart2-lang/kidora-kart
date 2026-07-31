@@ -200,6 +200,46 @@ const protect = async (
   });
 };
 
+/**
+ * Optional authentication — populates `req.user` when a valid token is
+ * present (Bearer header or cookie), but never blocks the request.
+ * Used by endpoints like forgot-password that behave differently for
+ * logged-in users (e.g. reset the logged-in account's own password
+ * instead of accepting an arbitrary email from the request body).
+ */
+export const optionalAuth = async (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    let token: string | undefined;
+
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+
+    if (!token) {
+      token = req.cookies?.adminToken || req.cookies?.userToken;
+    }
+
+    if (token) {
+      const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
+      const user = await getCachedUser(decoded._id);
+      if (user) {
+        req.user = user;
+      }
+    }
+  } catch {
+    // Invalid/expired token — treat as unauthenticated, never block
+  }
+
+  next();
+};
+
 export const requireRole = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const user = req.user;

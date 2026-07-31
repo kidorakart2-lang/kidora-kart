@@ -31,14 +31,12 @@ import {
 } from "lucide-react";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { LucideIcon } from "lucide-react";
 import type { AuditEntry } from "@/lib/types";
@@ -65,7 +63,7 @@ interface AuditListResponse {
 
 export default function AuditLogPage() {
   const [search, setSearch] = useState("");
-  const [clearing, setClearing] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: auditData, isLoading, isError, error } = useQuery<AuditListResponse>({
@@ -80,13 +78,15 @@ export default function AuditLogPage() {
     mutationFn: () => api.post("/api/admin/audit-log/clear"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["audit-log"] });
-      setClearing(false);
+      setClearOpen(false);
     },
-    onError: () => setClearing(false),
+    onError: () => {
+      // Keep the dialog open so the admin can retry or cancel
+      setClearOpen(true);
+    },
   });
 
-  const handleClear = async () => {
-    setClearing(true);
+  const handleClear = () => {
     clearMutation.mutate();
   };
 
@@ -111,21 +111,21 @@ export default function AuditLogPage() {
             Track administrative actions and security events
           </p>
         </div>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="destructive"
-              disabled={clearing || logs.length === 0}
-              className="transition-all duration-200 hover:scale-105"
-            >
-              {clearing ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4 mr-2" />
-              )}
-              Clear All
-            </Button>
-          </AlertDialogTrigger>
+        <Button
+          variant="destructive"
+          disabled={clearMutation.isPending || logs.length === 0}
+          onClick={() => setClearOpen(true)}
+          className="transition-all duration-200 hover:scale-105"
+        >
+          {clearMutation.isPending ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Trash2 className="h-4 w-4 mr-2" />
+          )}
+          Clear All
+        </Button>
+
+        <AlertDialog open={clearOpen} onOpenChange={(open) => { if (!open && !clearMutation.isPending) setClearOpen(false); }}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Clear Audit Log</AlertDialogTitle>
@@ -135,10 +135,27 @@ export default function AuditLogPage() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleClear}>
-                {clearing ? "Clearing..." : "Clear All"}
-              </AlertDialogAction>
+              <AlertDialogCancel disabled={clearMutation.isPending} onClick={() => setClearOpen(false)}>
+                Cancel
+              </AlertDialogCancel>
+              {/* Plain Button (NOT AlertDialogAction) so the dialog stays open
+                  while the async clear runs. Radix AlertDialogAction auto-closes
+                  the dialog on click, which hid the loading/error state. */}
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleClear}
+                disabled={clearMutation.isPending}
+              >
+                {clearMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Clearing...
+                  </>
+                ) : (
+                  "Clear All"
+                )}
+              </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

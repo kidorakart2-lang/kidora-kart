@@ -22,7 +22,8 @@ interface ShiprocketCreateOrderPayload {
   billing_country: string;
   billing_email: string;
   billing_phone: string;
-  shipping_is_billing: boolean;
+  /** Shiprocket expects this as integer 1 (true) or 0 (false) */
+  shipping_is_billing: 0 | 1;
   order_items: ShiprocketOrderItem[];
   payment_method: "Prepaid" | "COD";
   total_discount?: number;
@@ -151,6 +152,41 @@ export function isShiprocketSuccess<T>(
 }
 
 // ── Public API methods ───────────────────────────────────────────────
+
+/**
+ * Normalize an Indian phone number for Shiprocket.
+ * Strips spaces, dashes, brackets and the +91 / 91 country code prefix.
+ * Returns null if the result is not a 10-digit number.
+ */
+export function normalizePhone(phone: string | number | undefined | null): string | null {
+  if (phone === undefined || phone === null) return null;
+  let digits = String(phone).replace(/[^0-9]/g, "");
+  // Strip country code: 91XXXXXXXXXX (12 digits) or +91XXXXXXXXXX
+  if (digits.length === 12 && digits.startsWith("91")) digits = digits.slice(2);
+  if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1);
+  return /^\d{10}$/.test(digits) ? digits : null;
+}
+
+/**
+ * Normalize an Indian pincode to a 6-digit string.
+ * Returns null if it can't be normalized.
+ */
+export function normalizePincode(pincode: string | number | undefined | null): string | null {
+  if (pincode === undefined || pincode === null) return null;
+  const digits = String(pincode).trim();
+  return /^\d{6}$/.test(digits) ? digits : null;
+}
+
+/**
+ * Derive a Shiprocket-safe order ID (max 20 alphanumeric characters).
+ * Shiprocket's /orders/create/adhoc rejects order_id longer than 20 chars,
+ * while our DB orderId is like `ORD-1785135707933-11AE1E4C` (26 chars).
+ * We strip non-alphanumerics and keep the trailing 20 chars — the random hex
+ * suffix (which is what makes it unique) is preserved.
+ */
+export function toShiprocketOrderId(orderId: string): string {
+  return orderId.replace(/[^A-Za-z0-9]/g, "").slice(-20);
+}
 
 /**
  * 1. Create an order in Shiprocket.
@@ -431,19 +467,40 @@ export function buildShiprocketOrderPayload(
 ): ShiprocketCreateOrderPayload {
   const addr = input.shippingAddress;
 
+  const billingPhone = normalizePhone(input.customerPhone) ?? String(input.customerPhone ?? "");
+  const billingPincode = normalizePincode(addr.pincode) ?? String(addr.pincode ?? "");
+  const billingCity = String(addr.city ?? "").trim();
+  const billingState = String(addr.state ?? "").trim();
+  const billingAddress = String(input.fullAddress ?? "").trim();
+  const billingName = String(input.customerName ?? "").trim();
+  const billingEmail = String(input.customerEmail ?? "").trim();
+
+  // Shiprocket's adhoc create API expects `shipping_is_billing` as the integer 1.
+  // Some API versions also require the shipping_* fields to be populated even
+  // when shipping_is_billing is set, otherwise it returns
+  // "Please add billing/shipping address first". We mirror the billing values
+  // into the shipping fields as a safety net.
   return {
-    order_id: input.orderId,
+    order_id: toShiprocketOrderId(input.orderId),
     order_date: input.orderDate,
     pickup_location: input.pickupLocation,
-    billing_customer_name: input.customerName,
-    billing_address: input.fullAddress,
-    billing_city: addr.city,
-    billing_pincode: addr.pincode,
-    billing_state: addr.state,
+    billing_customer_name: billingName,
+    billing_address: billingAddress,
+    billing_city: billingCity,
+    billing_pincode: billingPincode,
+    billing_state: billingState,
     billing_country: addr.country || "India",
-    billing_email: input.customerEmail,
-    billing_phone: input.customerPhone,
-    shipping_is_billing: true,
+    billing_email: billingEmail,
+    billing_phone: billingPhone,
+    shipping_is_billing: 1,
+    shipping_customer_name: billingName,
+    shipping_address: billingAddress,
+    shipping_city: billingCity,
+    shipping_pincode: billingPincode,
+    shipping_state: billingState,
+    shipping_country: addr.country || "India",
+    shipping_email: billingEmail,
+    shipping_phone: billingPhone,
     order_items: input.items.map((item) => ({
       name: item.name,
       sku: item.sku || item.name.slice(0, 20),

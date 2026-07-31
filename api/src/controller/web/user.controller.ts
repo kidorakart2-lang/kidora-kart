@@ -381,15 +381,36 @@ export const updateProfile = async (
 export const forgotPassword = async (
   req: Request,
   res: Response,
-): Promise<void> => {    if (!req.body || !req.body.email) {
+): Promise<void> => {
+  // Logged-in users always reset their own account — the email entered in the
+  // body is ignored so they can't trigger a reset OTP for an arbitrary address.
+  const sessionEmail = (req.user as { email?: string } | undefined)?.email;
+  const bodyEmail = (req.body as { email?: string } | undefined)?.email;
+
+  if (!sessionEmail && !bodyEmail) {
     fail(res, "Email is required", 400);
     return;
   }
 
+  // Match the existing login/register lookup behavior: emails are stored and
+  // compared case-sensitively in Mongo, so DON'T lowercase here or users who
+  // registered with mixed-case emails would silently fail the lookup.
+  const email = (sessionEmail ?? bodyEmail ?? "").trim();
+
   try {
-    const { email } = req.body as { email?: string };
-    const user = await User.findOne({ email }).select("name").lean();
+    // Exclude soft-deleted accounts — consistent with resetPassword which
+    // already rejects user.deletedAt with "Account not found or deactivated".
+    const user = await User.findOne({ email, deletedAt: null })
+      .select("name")
+      .lean();
     if (!user) {
+      // For guests, stay silent about whether the account exists so we don't
+      // leak which emails are registered (anti-enumeration). A logged-in
+      // session that no longer maps to an account is a genuine error.
+      if (sessionEmail) {
+        fail(res, "Account not found. Please log in again.", 404);
+        return;
+      }
       success(
         res,
         null,
@@ -399,7 +420,7 @@ export const forgotPassword = async (
     }
 
     const otp = generateOtp();
-    const token = generatePasswordResetToken(email!, otp);
+    const token = generatePasswordResetToken(email, otp);
 
     res.status(200).json({
       _status: true,
@@ -407,7 +428,7 @@ export const forgotPassword = async (
       _token: token,
     });
 
-    sendEmail(email!, "passwordReset", {
+    sendEmail(email, "passwordReset", {
       otp,
       subject: "Your Password Reset OTP",
       name: user.name || "User",

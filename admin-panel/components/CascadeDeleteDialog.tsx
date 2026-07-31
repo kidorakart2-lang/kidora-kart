@@ -9,7 +9,6 @@ import {
   AlertDialogTitle,
   AlertDialogFooter,
   AlertDialogCancel,
-  AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
@@ -151,7 +150,12 @@ export default function CascadeDeleteDialog({
             e.preventDefault();
           },
           onEscapeKeyDown: (e: { preventDefault: () => void }) => {
-            if (phase === "executing") e.preventDefault();
+            // Keep the dialog open while references are being cleaned AND once
+            // they have been removed (confirm-delete phase) — closing then would
+            // leave the entity active with its references already gone.
+            if (phase === "executing" || phase === "confirm-delete") {
+              e.preventDefault();
+            }
           },
         }}
       >
@@ -284,11 +288,19 @@ export default function CascadeDeleteDialog({
           {phase === "preview" && (
             <>
               <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleExecute}>
+              {/* Plain Button (NOT AlertDialogAction) so the dialog stays open
+                  through the multi-phase flow. Radix AlertDialogAction auto-closes
+                  the dialog on click, which previously broke the flow before the
+                  final "Confirm Soft Delete" step could run. */}
+              <Button
+                type="button"
+                onClick={handleExecute}
+                disabled={loading || !!error}
+              >
                 {preview && preview.total > 0
                   ? "Clean Up & Delete"
                   : "Proceed to Delete"}
-              </AlertDialogAction>
+              </Button>
             </>
           )}
           {phase === "executing" && (

@@ -6,7 +6,7 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface AlertDialogUseProps {
@@ -17,6 +17,7 @@ interface AlertDialogUseProps {
   description: string;
   confirmText?: string;
   confirmDisabled?: boolean;
+  confirmLoading?: boolean;
 }
 
 export function AlertDialogUse({
@@ -27,6 +28,7 @@ export function AlertDialogUse({
   description,
   confirmText = "Delete",
   confirmDisabled = false,
+  confirmLoading = false,
 }: AlertDialogUseProps) {
   return (
     <AlertDialog open={isOpen}>
@@ -46,10 +48,17 @@ export function AlertDialogUse({
           <Button
             type="button"
             onClick={onConfirm}
-            disabled={confirmDisabled}
+            disabled={confirmDisabled || confirmLoading}
             className="bg-destructive text-white hover:bg-destructive/90"
           >
-            {confirmText}
+            {confirmLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              confirmText
+            )}
           </Button>
         </div>
       </AlertDialogContent>

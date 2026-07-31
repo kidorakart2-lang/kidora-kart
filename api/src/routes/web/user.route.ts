@@ -389,7 +389,7 @@ import {
   reLogin,
   logoutUser,
 } from "../../controller/web/user.controller.js";
-import protect from "../../middleware/authMiddleware.js";
+import protect, { optionalAuth } from "../../middleware/authMiddleware.js";
 import rateLimit from "../../middleware/rateLimit.js";
 import { uploadAvatar, uploadNone } from "../../middleware/uploadMiddleware.js";
 
@@ -417,6 +417,7 @@ router.post(
 
 router.post(
   "/forgot-password",
+  optionalAuth,
   rateLimit.passwordReset,
   uploadNone,
   forgotPassword,

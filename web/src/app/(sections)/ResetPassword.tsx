@@ -34,19 +34,24 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState("request");
+  // If the logged-in session token is expired/invalid, the API can't read the
+  // session email — fall back to asking for the email explicitly.
+  const [showEmailFallback, setShowEmailFallback] = useState(false);
 
   const token = getAuthToken();
+  const isLoggedIn = !!token;
   const returnTo = searchParams.get("returnTo");
 
   const handleRequestReset = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!email) {
+    if (!isLoggedIn && !email) {
       toast.error("Please enter your email address");
       return;
     }
 
     setIsLoading(true);
     try {
+      // When logged in, the API uses the session email — no need to send one.
       const response = await fetch(
         "/api/website/user/forgot-password",
         {
@@ -55,11 +60,19 @@ export default function ResetPassword() {
             "Content-Type": "application/json",
             authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify(isLoggedIn && !showEmailFallback ? {} : { email }),
         }
       );
 
       if (!response.ok) {
+        // Logged-in user with an expired/invalid session token — the API can't
+        // resolve their email, so fall back to letting them type it.
+        if (isLoggedIn && !showEmailFallback) {
+          setShowEmailFallback(true);
+          throw new Error(
+            "Your session has expired. Please enter your email address to continue."
+          );
+        }
         throw new Error("Failed to send reset link. Please try again.");
       }
 
@@ -214,25 +227,32 @@ export default function ResetPassword() {
         <CardContent>
           {step === "request" ? (
             <form onSubmit={handleRequestReset} className="space-y-5">
-              <div>
-                <Label htmlFor="email" className="block text-muted-foreground mb-2 font-medium text-sm">
-                  Email Address
-                </Label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail size={18} className="text-foreground z-10" />
+              {isLoggedIn && !showEmailFallback ? (
+                <p className="text-sm text-muted-foreground text-center">
+                  You're signed in — a verification code will be sent to your
+                  registered email address.
+                </p>
+              ) : (
+                <div>
+                  <Label htmlFor="email" className="block text-muted-foreground mb-2 font-medium text-sm">
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail size={18} className="text-foreground z-10" />
+                    </div>
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="example@mail.com"
+                      className="w-full pl-10 pr-4 py-3 bg-background/70 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md"
+                      required
+                    />
                   </div>
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="example@mail.com"
-                    className="w-full pl-10 pr-4 py-3 bg-background/70 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md"
-                    required
-                  />
                 </div>
-              </div>
+              )}
               <button
                 type="submit"
                 disabled={isLoading}
@@ -351,6 +371,7 @@ export default function ResetPassword() {
                   setOtp("");
                   setNewPassword("");
                   setConfirmPassword("");
+                  setShowEmailFallback(false);
                 }}
                 className="text-brand-600 hover:text-brand-700 font-semibold hover:underline transition-colors"
               >

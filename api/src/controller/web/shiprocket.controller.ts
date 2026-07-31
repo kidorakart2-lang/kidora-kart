@@ -84,35 +84,56 @@ export const createShippingOrder = async (
       return;
     }
 
-    const shippingAddress = order.shippingAddress;
+    // Fall back to billingAddress when the shipping address block is missing
+    // or incomplete (older orders may only store a billing address).
+    // Both blocks have optional fields, so we read them through a record type.
+    const shippingAddress =
+      (order.shippingAddress as Record<string, unknown> | null | undefined) ??
+      (order.billingAddress as Record<string, unknown> | null | undefined);
     if (!shippingAddress) {
       res.status(400).json({
         success: false,
-        message: "Order has no shipping address",
+        message: "Order has no shipping or billing address",
       });
       return;
     }
 
-    // Build a comprehensive address from all available fields
-    // The checkout form may store the main address in `addressLine1` or `street`
-    const streetAddr = shippingAddress.street || shippingAddress.addressLine1 || "";
-    const areaAddr = shippingAddress.area || shippingAddress.landmark || "";
+    // Merge both address blocks so we can pick the best available fields.
+    // The checkout form may store the main address in `addressLine1` or `street`.
+    const addressSource = {
+      ...(order.billingAddress as Record<string, unknown> | null | undefined),
+      ...shippingAddress,
+    } as Record<string, unknown>;
+
+    const streetAddr = String(addressSource.street || addressSource.addressLine1 || "").trim();
+    const areaAddr = String(addressSource.area || addressSource.landmark || "").trim();
+    const city = String(addressSource.city || "").trim();
+    const state = String(addressSource.state || "").trim();
+    const pincode = String(addressSource.pincode ?? "").trim();
+    const phone = String(addressSource.phone ?? "").trim();
+    const email = String(addressSource.email ?? "").trim();
+    const fullName = String(addressSource.fullName || "").trim();
+    const country = String(addressSource.country || "India").trim();
+
+    // Build the address string from street + area only — city/state/pincode are
+    // sent as dedicated Shiprocket fields, and keeping this short avoids the
+    // ~255 character limit Shiprocket enforces on the address string.
     const fullAddress = [streetAddr, areaAddr].filter(Boolean).join(", ");
 
     // Validate required address fields before calling Shiprocket
     const missingFields: string[] = [];
-    if (!shippingAddress.fullName) missingFields.push("fullName");
+    if (!fullName) missingFields.push("fullName");
     if (!fullAddress) missingFields.push("street/address");
-    if (!shippingAddress.city) missingFields.push("city");
-    if (!shippingAddress.state) missingFields.push("state");
-    if (!shippingAddress.pincode) missingFields.push("pincode");
-    if (!shippingAddress.phone) missingFields.push("phone");
-    if (!shippingAddress.email) missingFields.push("email");
+    if (!city) missingFields.push("city");
+    if (!state) missingFields.push("state");
+    if (!pincode) missingFields.push("pincode");
+    if (!phone) missingFields.push("phone");
+    if (!email) missingFields.push("email");
 
     if (missingFields.length > 0) {
       res.status(400).json({
         success: false,
-        message: `Order shipping address is incomplete. Missing: ${missingFields.join(", ")}`,
+        message: `Order address is incomplete. Missing: ${missingFields.join(", ")}`,
       });
       return;
     }
@@ -145,17 +166,17 @@ export const createShippingOrder = async (
     const shiprocketInput: ShiprocketOrderInput = {
       orderId: order.orderId,
       orderDate: new Date(order.createdAt).toISOString().split("T")[0] ?? "",
-      customerName: shippingAddress.fullName,
-      customerPhone: shippingAddress.phone,
-      customerEmail: shippingAddress.email,
+      customerName: fullName,
+      customerPhone: phone,
+      customerEmail: email,
       fullAddress,
       shippingAddress: {
         street: streetAddr,
         area: areaAddr,
-        city: shippingAddress.city,
-        state: shippingAddress.state,
-        pincode: shippingAddress.pincode,
-        country: shippingAddress.country || "India",
+        city,
+        state,
+        pincode,
+        country,
       },
       items: order.items.map((item) => ({
         name: item.name,
@@ -172,7 +193,20 @@ export const createShippingOrder = async (
     };
 
     const payload = buildShiprocketOrderPayload(shiprocketInput);
-    logger.info({ orderId }, "Creating Shiprocket order...");
+    // Log a sanitized payload (no email/phone) so Shiprocket rejections are debuggable
+    logger.info(
+      {
+        orderId,
+        payload: {
+          ...payload,
+          billing_email: "***",
+          billing_phone: "***",
+          shipping_email: "***",
+          shipping_phone: "***",
+        },
+      },
+      "Creating Shiprocket order...",
+    );
 
     // Step 1: Create order in Shiprocket
     const orderResult = await shiprocketCreateOrder(payload);

@@ -21,7 +21,6 @@ import { AlertDialogUse } from "@/components/alert-dialog";
 import { Plus, Loader2, ShieldCheck } from "lucide-react";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -415,11 +414,19 @@ export default function UsersPage() {
         isOpen={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={confirmDelete}
+        confirmLoading={deleteMutation.isPending}
         title="Delete User"
         description="Are you sure you want to delete this user? This action cannot be undone."
       />
 
-      <AlertDialog open={verifyDialogOpen} onOpenChange={setVerifyDialogOpen}>
+      <AlertDialog
+        open={verifyDialogOpen}
+        onOpenChange={(open) => {
+          // Block closing while the verify → change-role async chain is running
+          if (!open && verifyLoading) return;
+          setVerifyDialogOpen(open);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -454,7 +461,11 @@ export default function UsersPage() {
             >
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction
+            {/* Plain Button (NOT AlertDialogAction) so the dialog stays open
+                through the verify → change-role async chain. Radix
+                AlertDialogAction auto-closes on click, hiding the loading state. */}
+            <Button
+              type="button"
               onClick={handleVerifyAndChangeRole}
               disabled={verifyLoading || !verifyPassword}
             >
@@ -465,7 +476,7 @@ export default function UsersPage() {
               ) : (
                 "Confirm"
               )}
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
