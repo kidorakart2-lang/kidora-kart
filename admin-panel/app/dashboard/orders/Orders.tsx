@@ -798,6 +798,11 @@ export default function OrdersPage() {
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{item.name}</p>
+                    {item.variantName && (
+                      <p className="text-xs text-primary font-medium">
+                        {item.variantName}
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       Qty: {item.quantity} × ₹{item.priceAtPurchase.toFixed(2)}
                     </p>
@@ -808,7 +813,7 @@ export default function OrdersPage() {
                     )}
                   </div>
                   <p className="text-sm font-semibold shrink-0">
-                    ₹{(item.quantity * item.priceAtPurchase).toFixed(2)}
+                    ₹{(item.subtotal ?? item.quantity * item.priceAtPurchase).toFixed(2)}
                   </p>
                 </div>
               ))}

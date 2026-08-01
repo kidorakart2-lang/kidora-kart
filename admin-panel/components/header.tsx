@@ -18,7 +18,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { toast } from "@/lib/toast";
 import { NAV_ITEMS, type NavItem } from "@/lib/nav-items";
-import { api } from "@/lib/api";
+import { api, clearCsrfToken } from "@/lib/api";
 
 export function Header() {
   const router = useRouter();
@@ -117,6 +117,9 @@ export function Header() {
     } catch {
       // Even if the request fails, navigate to login page
     }
+    // Drop the stale CSRF token client-side so the next login session fetches
+    // a fresh one from the server (the server also clears it via Set-Cookie).
+    clearCsrfToken();
     router.push("/");
   };
   return (

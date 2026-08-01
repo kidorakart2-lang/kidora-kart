@@ -452,6 +452,10 @@ export interface ShiprocketOrderInput {
     sku?: string;
     quantity: number;
     priceAtPurchase: number;
+    /** Exact line total stored on the order item (pack price for variants). */
+    subtotal?: number;
+    /** Buy Now variant name (e.g. "Pack of 5") — shipped as a single line. */
+    variantName?: string;
   }>;
   paymentMethod: "Prepaid" | "COD";
   subtotal: number;
@@ -501,12 +505,25 @@ export function buildShiprocketOrderPayload(
     shipping_country: addr.country || "India",
     shipping_email: billingEmail,
     shipping_phone: billingPhone,
-    order_items: input.items.map((item) => ({
-      name: item.name,
-      sku: item.sku || item.name.slice(0, 20),
-      units: item.quantity,
-      selling_price: item.priceAtPurchase,
-    })),
+    order_items: input.items.map((item) => {
+      // Variant packs ship as ONE line at the exact pack price. Sending the
+      // per-unit price × pack size would drift for odd packs (3 @ ₹100 →
+      // 33.33 × 3 = 99.99) and the courier invoice would mismatch the order.
+      if (item.variantName) {
+        return {
+          name: `${item.name} (${item.variantName})`,
+          sku: item.sku || item.name.slice(0, 20),
+          units: 1,
+          selling_price: item.subtotal ?? item.priceAtPurchase * item.quantity,
+        };
+      }
+      return {
+        name: item.name,
+        sku: item.sku || item.name.slice(0, 20),
+        units: item.quantity,
+        selling_price: item.priceAtPurchase,
+      };
+    }),
     payment_method: input.paymentMethod,
     // Omit shipping_charges so Shiprocket calculates the actual rate based on weight & pincode
     total_discount: input.discount,

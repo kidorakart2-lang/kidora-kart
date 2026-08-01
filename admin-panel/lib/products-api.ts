@@ -21,7 +21,7 @@ export const INITIAL_FORM_STATE: ProductFormData = {
   discount_price: "", stock: "", estimated_delivery_time: "", status: "draft",
   isFeatured: false, isNewArrival: false, isBestSeller: false, isTopRated: false,
   isUpsell: false, isOnSale: false, isPersonalized: false, isGift: false,
-  order: 0, mainImage: null, additionalImages: [null, null, null, null, null],
+  order: 0, variants: [], mainImage: null, additionalImages: [null, null, null, null, null],
   mainImagePreview: "", additionalImagePreviews: ["", "", "", "", ""],
   giftImages: [null, null, null, null, null], giftImagePreviews: ["", "", "", "", ""],
 };
@@ -122,6 +122,8 @@ export function buildProductFormData(
   formData.giftImages?.forEach((file) => { if (file) fd.append("giftImages", file); });
   removeImagesUrl.forEach((url) => fd.append("removeImagesUrl[]", url));
   removeGiftImagesUrl.forEach((url) => fd.append("removeGiftImagesUrl[]", url));
+  // Variants are sent as a single JSON string (FormData has no nested arrays)
+  fd.append("variants", JSON.stringify(formData.variants));
   return fd;
 }
 
@@ -208,6 +210,11 @@ export function buildUpdateFormData(
   // Removal URLs — always include if non-empty
   removeImagesUrl.forEach((url) => fd.append("removeImagesUrl[]", url));
   removeGiftImagesUrl.forEach((url) => fd.append("removeGiftImagesUrl[]", url));
+
+  // Variants — compare JSON and include only when changed
+  if (JSON.stringify(formData.variants) !== JSON.stringify(initialData.variants)) {
+    fd.append("variants", JSON.stringify(formData.variants));
+  }
 
   return fd;
 }

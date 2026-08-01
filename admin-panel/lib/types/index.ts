@@ -23,9 +23,11 @@ export interface OrderItem {
   images: string[];
   quantity: number;
   priceAtPurchase: number;
+  subtotal?: number;
   isPersonalized: boolean;
   personalizedName?: string;
   colorId?: { name?: string; _id?: string };
+  variantName?: string;
 }
 
 export interface OrderData {
@@ -75,12 +77,21 @@ export interface OrderData {
   orderDate?: string;
 }
 
+export interface ProductVariant {
+  _id?: string;
+  name: string;
+  quantity: number;
+  price: number;
+  mrp?: number | null;
+}
+
 export interface Product {
   _id: string;
   name: string;
   price: number;
   stock: number;
   discount_price: number;
+  variants?: ProductVariant[];
   weight: string;
   length?: number;
   height?: number;
@@ -299,6 +310,7 @@ export interface ProductFormData {
   isPersonalized: boolean;
   isGift: boolean;
   order: number;
+  variants: ProductVariant[];
   mainImage: File | null;
   additionalImages: (File | null)[];
   mainImagePreview: string;

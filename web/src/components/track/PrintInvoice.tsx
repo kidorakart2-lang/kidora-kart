@@ -82,12 +82,13 @@ export default function PrintInvoice({ order }: PrintInvoiceProps) {
               <tr key={i} className="border-b border-gray-200">
                 <td className="py-3 px-2">
                   <p className="font-medium">{item.name}</p>
+                  {item.variantName && <p className="text-xs font-semibold text-gray-700">{item.variantName}</p>}
                   <p className="text-xs text-gray-500">Color: {item.colorId?.name}</p>
                   {item.isPersonalized && item.personalizedName && <p className="text-xs text-gray-500">Personalized: {item.personalizedName}</p>}
                 </td>
                 <td className="py-3 px-2 text-center">{item.quantity}</td>
                 <td className="py-3 px-2 text-right">₹{item.priceAtPurchase?.toLocaleString("en-IN")}</td>
-                <td className="py-3 px-2 text-right font-semibold">₹{(item.priceAtPurchase * item.quantity)?.toLocaleString("en-IN")}</td>
+                <td className="py-3 px-2 text-right font-semibold">₹{(item.subtotal ?? item.priceAtPurchase * item.quantity)?.toLocaleString("en-IN")}</td>
               </tr>
             ))}
           </tbody>

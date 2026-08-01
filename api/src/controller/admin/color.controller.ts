@@ -146,7 +146,8 @@ export const restore = async (
   response: Response,
 ): Promise<void> => {
   try {
-    const { id } = request.params;
+    // The admin panel sends the id in the body (route is /restore, not /restore/:id).
+    const { id } = request.body;
     if (!id) {
       response.status(400).json({ _status: false, _message: "Color ID is required", _data: null });
       return;

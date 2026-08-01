@@ -32,6 +32,7 @@ import coupenRoutes from "./routes/web/coupen.routes.js";
 import productFaqRoutes from "./routes/web/productFaq.routes.js";
 import homePageRoutes from "./routes/web/homePage.routes.js";
 import shiprocketRoutes from "./routes/web/shiprocket.routes.js";
+import locationRoutes from "./routes/web/location.routes.js";
 import materialRoutes from "./routes/admin/material.routes.js";
 import colorRoutes from "./routes/admin/color.routes.js";
 import userAdminRoutes from "./routes/admin/userAdmin.routes.js";
@@ -166,6 +167,7 @@ app.use("/api/website/coupen", coupenRoutes);
 app.use("/api/website/product-faq", productFaqRoutes);
 app.use("/api/website/home-page", homePageRoutes);
 app.use("/api/website/shipping", shiprocketRoutes);
+app.use("/api/website/location", locationRoutes);
 
 // ── Swagger Docs ──
 // Available in all environments in development; in production only when ENABLE_SWAGGER=true

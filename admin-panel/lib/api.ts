@@ -47,10 +47,21 @@ async function fetchCsrfToken(): Promise<string | null> {
       method: "GET",
       credentials: "include",
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      // Don't cache the failure — let the next request retry the fetch.
+      csrfTokenPromise = null;
+      return null;
+    }
     const cookieMatch = document.cookie.match(/(?:^|;\s*)csrfToken=([^;]*)/);
-    return cookieMatch ? cookieMatch[1] : null;
+    if (!cookieMatch) {
+      // 200 but no cookie landed — don't cache it; retry on the next request.
+      csrfTokenPromise = null;
+      return null;
+    }
+    return cookieMatch[1];
   } catch {
+    // Don't cache the failure — let the next request retry the fetch.
+    csrfTokenPromise = null;
     return null;
   }
 }
@@ -60,6 +71,26 @@ function ensureCsrfToken(): Promise<string | null> {
     csrfTokenPromise = fetchCsrfToken();
   }
   return csrfTokenPromise;
+}
+
+/**
+ * Force a fresh CSRF token fetch. Resets the module-level cache so a failed
+ * initial fetch (e.g. network glitch before login) is retried instead of being
+ * stuck at null forever — otherwise every admin mutation would 403.
+ * Called after login and on logout so each session uses a fresh token.
+ */
+export async function refreshCsrfToken(): Promise<string | null> {
+  csrfTokenPromise = null;
+  return ensureCsrfToken();
+}
+
+/** Drop the cached CSRF token (client-side). Used on logout so the next login
+ * session fetches a brand-new token from the server. */
+export function clearCsrfToken(): void {
+  csrfTokenPromise = null;
+  if (typeof document !== "undefined") {
+    document.cookie = "csrfToken=; Max-Age=0; Path=/";
+  }
 }
 
 function getCookie(name: string): string | null {
@@ -98,7 +129,14 @@ async function request<T = unknown>(
   }
 
   if (method !== "GET") {
-    const csrf = getCookie("csrfToken");
+    let csrf = getCookie("csrfToken");
+    // Self-heal: if no CSRF cookie exists (e.g. initial fetch failed at page
+    // load, cookie expired mid-session, or was cleared server-side), fetch a
+    // fresh one now so the mutation isn't rejected with a 403.
+    if (!csrf) {
+      await refreshCsrfToken();
+      csrf = getCookie("csrfToken");
+    }
     if (csrf) {
       headers["x-csrf-token"] = csrf;
     }
@@ -163,7 +201,14 @@ async function requestRaw<T = unknown>(
   }
 
   if (method !== "GET") {
-    const csrf = getCookie("csrfToken");
+    let csrf = getCookie("csrfToken");
+    // Self-heal: if no CSRF cookie exists (e.g. initial fetch failed at page
+    // load, cookie expired mid-session, or was cleared server-side), fetch a
+    // fresh one now so the mutation isn't rejected with a 403.
+    if (!csrf) {
+      await refreshCsrfToken();
+      csrf = getCookie("csrfToken");
+    }
     if (csrf) {
       headers["x-csrf-token"] = csrf;
     }

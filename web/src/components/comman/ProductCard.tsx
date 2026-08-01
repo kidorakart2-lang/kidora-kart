@@ -1,5 +1,5 @@
 "use client";
-import { Heart, ShoppingCart, Star, Loader2, Dot } from "lucide-react";
+import { Heart, ShoppingCart, Star, Loader2, Dot, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -50,6 +50,19 @@ export default function ProductCard({ data }: { data: ProductData }) {
 
   const hasSecondaryImage = Boolean(data?.images && data.images.length > 0);
   const outOfStock = data.stock === 0;
+
+  // Quantity-tier pack deal — show a "Best Value" badge when a pack's per-unit
+  // price beats the base selling price (e.g. base ₹25, pack of 5 @ ₹100 → ₹20/unit).
+  const baseUnitPrice = data.discount_price ?? data.price;
+  // Round per-unit to whole rupees ONCE, then use that same value for both the
+  // comparison and the display — so the badge can never claim a price equal to
+  // or worse than the base (e.g. 24.8/unit rounds to 25 → not a real deal vs ₹25).
+  const bestPack = (data.variants ?? [])
+    .filter((v) => v.quantity > 1 && v.price > 0)
+    .map((v) => ({ ...v, perUnit: Math.round(v.price / v.quantity) }))
+    .filter((v) => baseUnitPrice > 0 && v.perUnit < baseUnitPrice)
+    .sort((a, b) => a.perUnit - b.perUnit)[0];
+  const packDealPerUnit = bestPack?.perUnit ?? null;
 
   useEffect(() => {
     if (!hasSecondaryImage || typeof window === "undefined") return;
@@ -294,6 +307,19 @@ export default function ProductCard({ data }: { data: ProductData }) {
                 title={data.name}
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
+            </div>
+          )}
+
+          {/* Best Value badge — quantity-tier pack with a better per-unit price */}
+          {packDealPerUnit != null && (
+            <div
+              className="absolute bottom-3 left-3 z-20 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] fw-cta shadow-md bg-gradient-to-r from-brand-600 to-brand-accent-500 text-white animate-in fade-in slide-in-from-bottom duration-300"
+              role="status"
+              aria-label={`Best value: ${packDealPerUnit} rupees per unit in packs`}
+            >
+              <Sparkles size={12} aria-hidden="true" />
+              <span>Best Value</span>
+              <span className="font-bold">₹{packDealPerUnit}/unit</span>
             </div>
           )}
 

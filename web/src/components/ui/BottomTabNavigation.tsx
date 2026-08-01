@@ -79,7 +79,7 @@ export function BottomTabNavigation() {
 
   return (
     <div
-      className={`block md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background shadow-lg border-t border-border duration-500 ${
+      className={`no-print block md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background shadow-lg border-t border-border duration-500 ${
         scroll ? "bottom-[-10%]" : "bottom-0"
       }`}
     >

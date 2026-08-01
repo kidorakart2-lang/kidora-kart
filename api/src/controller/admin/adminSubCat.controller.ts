@@ -118,14 +118,16 @@ export const destroy = async (
   response: Response,
 ): Promise<void> => {
   try {
-    const existing = await subCategory.findById(request.body.id).select("_id deletedAt").lean();
+    // Route is /delete/:id — id comes from the URL param.
+    const id = request.params.id;
+    const existing = await subCategory.findById(id).select("_id deletedAt").lean();
     if (!existing) {
       response.status(500).json({ _status: false, _message: "Sub-category not found", _data: null });
       return;
     }
     if (existing.deletedAt) {
       // Already soft-deleted → permanently delete
-      await subCategory.findByIdAndDelete(request.body.id);
+      await subCategory.findByIdAndDelete(id);
       cache.del("navigationData");
       cache.del("subCategory_men");
       cache.del("subCategory_women");
@@ -133,7 +135,7 @@ export const destroy = async (
       return;
     }
     await subCategory.updateOne(
-      { _id: request.body.id },
+      { _id: id },
       { $set: { deletedAt: new Date() } },
     );
     cache.del("navigationData");
@@ -158,7 +160,8 @@ export const details = async (
   response: Response,
 ): Promise<void> => {
   try {
-    const result = await subCategory.findById({ _id: request.body.id }).lean();
+    // Route is /details/:id — id comes from the URL param.
+    const result = await subCategory.findById({ _id: request.params.id }).lean();
     if (result) {
       response.status(200).json({
         _status: true,
@@ -258,8 +261,9 @@ export const changeStatus = async (
   response: Response,
 ): Promise<void> => {
   try {
+    // Route is /change-status/:id — id comes from the URL param.
     const result = await subCategory.updateMany(
-      { _id: request.body.id },
+      { _id: request.params.id },
       [{ $set: { status: { $not: "$status" } } }],
     );
 

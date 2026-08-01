@@ -11,6 +11,8 @@ interface ActionButtonsProps {
   onAddToCart: (e: React.FormEvent) => void;
   onWishlist: () => void;
   onBuyNow: () => void;
+  children?: React.ReactNode;
+  topChildren?: React.ReactNode;
 }
 
 export default function ActionButtons({
@@ -21,6 +23,8 @@ export default function ActionButtons({
   onAddToCart,
   onWishlist,
   onBuyNow,
+  children,
+  topChildren,
 }: ActionButtonsProps) {
   const isOutOfStock = stock <= 0;
 
@@ -31,6 +35,23 @@ export default function ActionButtons({
       transition={{ delay: 0.85, duration: 0.5 }}
       className="mt-auto space-y-3"
     >
+      {topChildren}
+
+      {/* Buy Now button — gradient */}
+      <motion.button
+        type="button"
+        onClick={onBuyNow}
+        disabled={isOutOfStock}
+        whileHover={!isOutOfStock ? { y: -2 } : {}}
+        whileTap={!isOutOfStock ? { scale: 0.98 } : {}}
+        className="w-full h-13 rounded-xl btn-gradient fw-cta flex items-center justify-center gap-2.5
+                 disabled:opacity-50 disabled:cursor-not-allowed
+                 transition-all duration-300 text-sm tracking-wider shadow-md hover:shadow-lg active:shadow-sm"
+      >
+        <Zap size={17} />
+        <span>Buy Now</span>
+      </motion.button>
+
       {/* Primary row: Add to Cart + Wishlist */}
       <div className="flex gap-3">
         <motion.button
@@ -94,20 +115,7 @@ export default function ActionButtons({
         </motion.button>
       </div>
 
-      {/* Buy Now button — gradient */}
-      <motion.button
-        type="button"
-        onClick={onBuyNow}
-        disabled={isOutOfStock}
-        whileHover={!isOutOfStock ? { y: -2 } : {}}
-        whileTap={!isOutOfStock ? { scale: 0.98 } : {}}
-        className="w-full h-13 rounded-xl btn-gradient fw-cta flex items-center justify-center gap-2.5
-                 disabled:opacity-50 disabled:cursor-not-allowed
-                 transition-all duration-300 text-sm tracking-wider shadow-md hover:shadow-lg active:shadow-sm"
-      >
-        <Zap size={17} />
-        <span>Buy Now</span>
-      </motion.button>
+      {children}
 
       {/* Stock indicator */}
       {!isOutOfStock && stock <= 5 && (

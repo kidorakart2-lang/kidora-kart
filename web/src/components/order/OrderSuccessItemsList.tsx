@@ -37,6 +37,12 @@ export default function OrderSuccessItemsList({
             </p>
             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
               <span>Qty: {item.quantity}</span>
+              {item.variantName && (
+                <>
+                  <span className="w-1 h-1 rounded-full bg-border" />
+                  <span className="text-brand-600 fw-cta">{item.variantName}</span>
+                </>
+              )}
               {item.colorId?.name && (
                 <>
                   <span className="w-1 h-1 rounded-full bg-border" />
@@ -62,11 +68,13 @@ export default function OrderSuccessItemsList({
           </div>
           <div className="text-right flex-shrink-0">
             <p className="text-base font-semibold text-brand-600">
-              ₹{item.priceAtPurchase * item.quantity}
+              ₹{item.subtotal ?? item.priceAtPurchase * item.quantity}
             </p>
-            <p className="text-[11px] text-muted-foreground">
-              ₹{item.priceAtPurchase} ea
-            </p>
+            {!item.variantName && (
+              <p className="text-[11px] text-muted-foreground">
+                ₹{item.priceAtPurchase} ea
+              </p>
+            )}
           </div>
         </div>
       ))}

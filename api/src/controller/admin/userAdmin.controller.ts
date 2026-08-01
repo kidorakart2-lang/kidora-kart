@@ -18,6 +18,7 @@ import {
   refreshTokenCookieOptions,
   clearAccessTokenCookie,
   clearRefreshTokenCookie,
+  clearCsrfTokenCookie,
   hashToken,
 } from "../../lib/tokens.js";
 
@@ -40,6 +41,9 @@ function clearSessionCookiesAdmin(res: Response): void {
   res.cookie("adminToken", "", clearAccessTokenCookie());
   res.cookie("adminToken_client", "", clearAccessTokenCookie());
   res.cookie("adminRefreshToken", "", clearRefreshTokenCookie());
+  // Drop the CSRF token too so the next login session starts fresh instead of
+  // reusing a stale token from the previous session.
+  res.cookie("csrfToken", "", clearCsrfTokenCookie());
 }
 
 export const login = async (req: Request, res: Response): Promise<void> => {

@@ -39,6 +39,8 @@ interface RateLimiters {
   trackShipment: RequestHandler;
   /** Public shipping estimate — moderate limit */
   shippingEstimate: RequestHandler;
+  /** Public reverse-geocode (checkout location autofill) — moderate limit */
+  reverseGeocode: RequestHandler;
 }
 
 /**
@@ -264,6 +266,17 @@ const rateLimiters: RateLimiters = {
     windowMs: 60 * 1000,
     max: 30,
     message: jsonMessage("Too many requests. Please try again in a minute."),
+  }),
+
+  /**
+   * Public reverse-geocode endpoint (checkout location autofill) —
+   * called once per checkout session, so a moderate limit is generous.
+   */
+  reverseGeocode: rateLimit({
+    ...defaults,
+    windowMs: 60 * 1000,
+    max: 10,
+    message: jsonMessage("Too many location requests. Please try again in a minute."),
   }),
 };
 

@@ -139,6 +139,32 @@ const productSchema = new Schema(
       required: [true, "Please enter a stock"],
       min: [0, "Stock cannot be negative"],
     },
+    // Buy Now variants — quantity tiers (e.g. "Pack of 5 @ ₹100") and
+    // option add-ons (e.g. "With Stand"). Stored as a pack price: for a
+    // quantity tier, `price` is the total for `quantity` units.
+    variants: [
+      {
+        name: {
+          type: String,
+          required: [true, "Variant name is required"],
+          trim: true,
+        },
+        quantity: {
+          type: Number,
+          required: [true, "Variant quantity is required"],
+          min: [1, "Variant quantity must be at least 1"],
+        },
+        price: {
+          type: Number,
+          required: [true, "Variant price is required"],
+          min: [0, "Variant price cannot be negative"],
+        },
+        mrp: {
+          type: Number,
+          default: null,
+        },
+      },
+    ],
     estimated_delivery_time: {
       type: String,
       required: [true, "Please enter a estimated delivery time"],

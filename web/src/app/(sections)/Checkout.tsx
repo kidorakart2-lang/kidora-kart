@@ -24,8 +24,15 @@ import { Button } from "@/components/ui/button";
 import LoadingOverlay from "@/components/comman/LoadingOverlay";
 import Personalized from "@/components/product/Personalized";
 import { getAuthToken } from "@/lib/cookies";
+import {
+  detectLocation,
+  isGeolocationSupported,
+  hasAutoDetectRanThisSession,
+  markAutoDetectRanThisSession,
+  type DetectedAddress,
+} from "@/lib/geolocation";
 import { openLoginModal } from "@/redux/features/uiSlice";
-import { removeFromCart } from "@/redux/features/cart";
+import { removeFromCart, setBuyNowItem } from "@/redux/features/cart";
 import { useProfileBootstrap } from "@/hooks/useProfileBootstrap";
 import type { CheckoutFormData, OrderSummaryCartItem, ProductData } from "@/types";
 import { ArrowLeft, Trash2, AlertTriangle } from "lucide-react";
@@ -71,6 +78,12 @@ export default function Checkout() {
   const [removingItems, setRemovingItems] = useState<Set<string>>(new Set());
   const [couponCode] = useState(null);
 
+  // Geolocation auto-fill state
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [locationFilled, setLocationFilled] = useState(false);
+  const autoDetectAttemptedRef = useRef(false);
+  const geolocationSupported = isGeolocationSupported();
+
   const logo = useSelector((state: RootState) => state.logo.logo);
   const purchaseType = searchParams.get("type") || "cart";
   const buyNowItem = useSelector((state: RootState) => state.cart.buyNowItem);
@@ -93,6 +106,9 @@ export default function Checkout() {
       return rawItems.map((item) => {
         const fetched = directProduct ?? undefined;
         const color = fetched?.colors?.find((c) => c._id === item.colorId);
+        const variant = item.variantId
+          ? fetched?.variants?.find((v) => v._id === item.variantId)
+          : undefined;
         return {
           _id: item.productId,
           product: (fetched ?? {
@@ -103,11 +119,14 @@ export default function Checkout() {
             slug: item.slug ?? "",
             stock: 0,
           }) as ProductData,
-          quantity: item.quantity,
+          quantity: variant ? variant.quantity : item.quantity,
           colorId: item.colorId ?? undefined,
           colorCode: color?.code,
           colorName: color?.name,
           isPersonalized: fetched?.isPersonalized ?? false,
+          variantId: item.variantId ?? undefined,
+          variantName: variant?.name ?? undefined,
+          variantPrice: variant?.price ?? undefined,
         };
       });
     }
@@ -126,6 +145,9 @@ export default function Checkout() {
         }) as ProductData,
         quantity: item.quantity,
         color: color ? { _id: color._id, code: color.code ?? "#000", name: color.name } : undefined,
+        variantId: undefined,
+        variantName: undefined,
+        variantPrice: undefined,
       };
     });
   }, [purchaseType, buyNowItem, cartItemsState, directProduct, productMap]);
@@ -147,7 +169,11 @@ export default function Checkout() {
   }, [purchaseType]);
 
   const totalAmount = cartItems?.reduce(
-    (total, item) => total + (item?.product?.discount_price || item?.product?.price || 0) * item.quantity,
+    (total, item) =>
+      total +
+      (item.variantPrice != null
+        ? item.variantPrice
+        : (item?.product?.discount_price || item?.product?.price || 0) * item.quantity),
     0,
   );
 
@@ -196,6 +222,73 @@ export default function Checkout() {
       sessionStorage.setItem("checkoutOrderData", JSON.stringify(orderData));
     }
   }, [orderData]);
+
+  // Merge a detected address into the form — only empty fields are filled,
+  // so anything the user already typed is never clobbered.
+  const applyDetectedAddress = (address: DetectedAddress) => {
+    setOrderData((prev) => ({
+      ...prev,
+      shippingAddress: {
+        ...prev.shippingAddress,
+        pincode: prev.shippingAddress.pincode || address.pincode || "",
+        city: prev.shippingAddress.city || address.city || "",
+        state: prev.shippingAddress.state || address.state || "",
+        area: prev.shippingAddress.area || address.area || "",
+        street: prev.shippingAddress.street || address.street || "",
+      },
+    }));
+    setLocationFilled(true);
+  };
+
+  // Auto-detect for guest checkout on entry (once per session).
+  // Logged-in users skip auto-detect — their profile address takes precedence —
+  // but can still use the manual "Detect Location" button.
+  useEffect(() => {
+    const isGuest = !isLoggedIn && !getAuthToken();
+    if (!isGuest) return;
+    if (hasAutoDetectRanThisSession()) return;
+    if (autoDetectAttemptedRef.current) return;
+
+    const sa = orderData.shippingAddress;
+    const hasAddress = sa.pincode || sa.city || sa.street || sa.area;
+    if (hasAddress) return;
+
+    autoDetectAttemptedRef.current = true;
+    markAutoDetectRanThisSession();
+
+    // Auto-detect is silent — it must not flash the manual button's
+    // "Detecting..." state, so we avoid setDetectingLocation here.
+    detectLocation().then((result) => {
+      // Silent no-op on all failure reasons (denied / unsupported / api / outside-india)
+      if (!result.ok) return;
+      applyDetectedAddress(result.address);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn]);
+
+  // Manual "Detect Location" — available to everyone (guests + logged-in users).
+  const handleDetectLocation = async () => {
+    if (detectingLocation) return;
+    setDetectingLocation(true);
+    const result = await detectLocation();
+    setDetectingLocation(false);
+
+    if (!result.ok) {
+      if (result.reason === "denied") {
+        toast.error("Location permission denied. Please enter your address manually.");
+      } else if (result.reason === "outside-india") {
+        toast.error("We only deliver within India. Please enter your address manually.");
+      } else if (result.reason === "unsupported") {
+        toast.error("Location detection is not supported on this device.");
+      } else {
+        toast.error("Could not detect your location. Please try again or enter it manually.");
+      }
+      return;
+    }
+
+    applyDetectedAddress(result.address);
+    toast.success("Location detected — address filled in. Please review it before paying.");
+  };
 
   const [showAddressPrompt, setShowAddressPrompt] = useState(false);
 
@@ -369,6 +462,7 @@ export default function Checkout() {
             productId: item.productId,
             colorId: item.colorId ?? undefined,
             quantity: item.quantity,
+            ...(item.variantId ? { variantId: item.variantId } : {}),
           }),
         ),
       }),
@@ -490,6 +584,48 @@ export default function Checkout() {
     }
   };
 
+  // Resolve the product slug for an error item — prefers the enriched cart
+  // item, falls back to the Buy Now selection (direct purchases).
+  const getProductSlug = (productId: string): string | null => {
+    const found = cartItems.find(
+      (item) => item.product?._id === productId,
+    );
+    if (found?.product?.slug) return found.product.slug;
+    if (buyNowItem?.productId === productId && buyNowItem.slug) {
+      return buyNowItem.slug;
+    }
+    return null;
+  };
+
+  // "Back to product" — used when a Buy Now variant becomes unavailable. The
+  // item lives in buyNowItem, not the cart, so the cart-only Remove action is
+  // meaningless here; instead, send the user to re-pick an offer.
+  const handleBackToProduct = (productId: string) => {
+    const slug = getProductSlug(productId);
+
+    // Clear the stale Buy Now selection so checkout doesn't retry the dead
+    // variant if the user returns or refreshes.
+    dispatch(
+      setBuyNowItem({
+        productId: null,
+        slug: null,
+        quantity: 1,
+        colorId: null,
+        variantId: null,
+        variantName: null,
+      }),
+    );
+    setAlert({ title: "", open: false, errors: undefined });
+
+    // Use replace, not push: the checkout entry was cleared, so browser Back
+    // must not return to a dead direct checkout.
+    if (slug) {
+      router.replace(`/product-details/${slug}`);
+    } else {
+      router.replace("/");
+    }
+  };
+
   // Handle removing an invalid item from cart
   const handleRemoveInvalidItem = async (productId: string) => {
     if (removingItems.has(productId)) return;
@@ -568,6 +704,18 @@ export default function Checkout() {
               shippingEstimate={shippingEstimate}
               isFetching={isFetching}
               onCheckPincode={() => refetch()}
+              geolocationSupported={geolocationSupported}
+              detectingLocation={detectingLocation}
+              locationFilled={locationFilled}
+              onDetectLocation={handleDetectLocation}
+              isLoggedIn={isLoggedIn}
+              onEmailClick={() => {
+                sessionStorage.setItem("checkoutOrderData", JSON.stringify(orderData));
+                localStorage.setItem("googleLoginReturnTo", `/checkout?type=${purchaseType}`);
+                setTimeout(() => {
+                  dispatch(openLoginModal());
+                }, 300);
+              }}
             />
 
             {purchaseType == "direct" &&
@@ -664,39 +812,62 @@ export default function Checkout() {
 
             {alert.errors && alert.errors.length > 0 ? (
               <div className="space-y-3 py-2">
-                <p className="text-sm text-muted-foreground">
-                  The following items in your cart have issues. You can remove them and continue with the remaining items.
-                </p>
+                {alert.errors.some((e) => e.type === "invalid_variant") ? (
+                  <p className="text-sm text-muted-foreground">
+                    A selected offer is no longer available. Head back to the product page to pick another option.
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    The following items in your cart have issues. You can remove them and continue with the remaining items.
+                  </p>
+                )}
                 <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {alert.errors.map((itemErr) => (
-                    <div
-                      key={itemErr.productId}
-                      className="flex items-center justify-between gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground truncate">
-                          {itemErr.message}
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRemoveInvalidItem(itemErr.productId)}
-                        disabled={removingItems.has(itemErr.productId)}
-                        className="flex-shrink-0 text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/50"
+                  {alert.errors.map((itemErr) => {
+                    const isInvalidVariant = itemErr.type === "invalid_variant";
+                    return (
+                      <div
+                        key={itemErr.productId}
+                        className="flex items-center justify-between gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm"
                       >
-                        {removingItems.has(itemErr.productId) ? (
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-destructive border-t-transparent" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-foreground truncate">
+                            {itemErr.message}
+                          </p>
+                        </div>
+                        {isInvalidVariant ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleBackToProduct(itemErr.productId)}
+                            className="flex-shrink-0 text-brand-600 hover:text-brand-700 border-brand-600/30 hover:border-brand-600/50"
+                          >
+                            <ArrowLeft className="h-4 w-4" />
+                            <span className="ml-1.5">Back to product</span>
+                          </Button>
                         ) : (
-                          <Trash2 className="h-4 w-4" />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRemoveInvalidItem(itemErr.productId)}
+                            disabled={removingItems.has(itemErr.productId)}
+                            className="flex-shrink-0 text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/50"
+                          >
+                            {removingItems.has(itemErr.productId) ? (
+                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-destructive border-t-transparent" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                            <span className="ml-1.5">Remove</span>
+                          </Button>
                         )}
-                        <span className="ml-1.5">Remove</span>
-                      </Button>
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  After removing items, you can try placing the order again.
+                  {alert.errors.some((e) => e.type === "invalid_variant")
+                    ? "Choose a different offer on the product page, then try again."
+                    : "After removing items, you can try placing the order again."}
                 </p>
               </div>
             ) : null}

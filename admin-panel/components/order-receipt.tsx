@@ -215,6 +215,11 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
                           </div>
                           <div>
                             <p className="font-medium">{item.name}</p>
+                            {item.variantName && (
+                              <p className="text-xs text-primary font-medium">
+                                {item.variantName}
+                              </p>
+                            )}
                             {item.colorId &&
                               typeof item.colorId === "object" &&
                               item.colorId.name && (
@@ -237,7 +242,7 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
                       <td className="py-4 px-2 text-right font-semibold">
                         ₹
                         {(
-                          item.priceAtPurchase * item.quantity
+                          item.subtotal ?? item.priceAtPurchase * item.quantity
                         )?.toLocaleString("en-IN")}
                       </td>
                     </tr>

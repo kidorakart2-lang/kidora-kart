@@ -48,8 +48,10 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
     const subtotal = cartItems.reduce(
       (sum, item) =>
         sum +
-        (item?.product?.discount_price || item?.product?.price) *
-          item?.quantity,
+        (item.variantPrice != null
+          ? item.variantPrice
+          : (item?.product?.discount_price || item?.product?.price) *
+            item?.quantity),
       0
     );
 
@@ -118,10 +120,19 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
                       {item.colorName}
                     </span>
                   )}
+                  {item.variantName && (
+                    <span className="text-xs text-brand-600 fw-cta bg-brand-50 border border-brand-200 rounded-full px-2 py-0.5 ml-1">
+                      {item.variantName}
+                    </span>
+                  )}
                 </p>
                 <p className="text-sm fw-body text-foreground mt-1">
-                  ₹{item?.product?.discount_price}
-                  {item?.product?.discount_price && (
+                  {item.variantPrice != null ? (
+                    <>₹{item.variantPrice.toLocaleString()}</>
+                  ) : (
+                    <>₹{item?.product?.discount_price}</>
+                  )}
+                  {!item.variantPrice && item?.product?.discount_price && (
                     <span className="ml-2 text-xs text-muted-foreground line-through">
                       ₹{item?.product?.price}
                     </span>
@@ -156,8 +167,10 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
               {cartItems.reduce(
                 (sum, item) =>
                   sum +
-                  (item?.product?.discount_price || item?.product?.price) *
-                    item?.quantity,
+                  (item.variantPrice != null
+                    ? item.variantPrice
+                    : (item?.product?.discount_price || item?.product?.price) *
+                      item?.quantity),
                 0
               )}
             </span>

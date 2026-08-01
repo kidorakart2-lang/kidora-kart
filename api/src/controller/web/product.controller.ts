@@ -9,7 +9,7 @@ import { success, fail } from "../../utils/responses.js";
 import { logger } from "../../lib/logger.js";
 
 const PRODUCT_SELECT =
-  "name slug images price image stock discount_price weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl giftImages colors material category subCategory subSubCategory description shortDescription";
+  "name slug images price image stock discount_price weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl giftImages colors material category subCategory subSubCategory description shortDescription variants";
 
 const POPULATE_CATEGORY = {
   path: "category",

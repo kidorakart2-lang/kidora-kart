@@ -20,11 +20,20 @@ export interface MaterialRef {
   name: string;
 }
 
+export interface ProductVariant {
+  _id?: string;
+  name: string;
+  quantity: number;
+  price: number;
+  mrp?: number | null;
+}
+
 export interface ProductData {
   _id: string;
   name: string;
   price: number;
   discount_price?: number;
+  variants?: ProductVariant[];
   createdAt?: string;
   image?: string;
   slug: string;
@@ -107,7 +116,9 @@ export interface DirectPurchaseItem {
   product: ProductData;
   colorCode: string;
   colorName: string;
-
+  variantId?: string;
+  variantName?: string;
+  variantPrice?: number;
 }
 
 export interface OrderSummaryCartItem {
@@ -119,6 +130,9 @@ export interface OrderSummaryCartItem {
   colorName?: string;
 
   isPersonalized?: boolean;
+  variantId?: string;
+  variantName?: string;
+  variantPrice?: number;
 }
 
 export interface NavigationData extends CategoryData {

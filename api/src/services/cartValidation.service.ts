@@ -4,6 +4,10 @@ export interface CartItemInput {
   productId: string;
   colorId: string;
   quantity: number;
+  /** Optional Buy Now variant (quantity tier / option add-on). When set,
+   *  the server derives price + quantity from the stored variant — the
+   *  client-supplied quantity/price are ignored (tamper-proof). */
+  variantId?: string;
 }
 
 export interface ValidatedItem {
@@ -18,11 +22,12 @@ export interface ValidatedItem {
   isPersonalized: boolean;
   priceAtPurchase: number;
   subtotal: number;
+  variantName?: string;
 }
 
 export interface ItemError {
   productId: string;
-  type: "deleted" | "inactive" | "invalid_color" | "insufficient_stock";
+  type: "deleted" | "inactive" | "invalid_color" | "insufficient_stock" | "invalid_variant";
   message: string;
   quantity: number;
   availableStock?: number;
@@ -63,7 +68,7 @@ export async function validateAndPriceCart(
     _id: { $in: productIds },
   })
     .select(
-      "name description image images code stock status isPersonalized price discount_price colors deletedAt",
+      "name description image images code stock status isPersonalized price discount_price colors deletedAt variants",
     )
     .lean();
 
@@ -145,19 +150,59 @@ export async function validateAndPriceCart(
       continue;
     }
 
-    if (product.stock < item.quantity) {
+    // ── Buy Now variant resolution (pack price, tamper-proof) ──
+    // When a variantId is present, the server derives quantity + price from
+    // the stored variant. The client-supplied quantity is overridden so a
+    // buyer can never manipulate pricing.
+    let resolvedQuantity = item.quantity;
+    let variantName: string | undefined;
+    let unitPrice = product.discount_price || product.price;
+    let packTotal: number | undefined;
+
+    if (item.variantId) {
+      const variants = (product.variants ?? []) as Array<{
+        _id: unknown;
+        name: string;
+        quantity: number;
+        price: number;
+      }>;
+      const variant = variants.find(
+        (v) => String(v._id) === String(item.variantId),
+      );
+
+      if (!variant) {
+        errors.push({
+          productId: item.productId,
+          type: "invalid_variant",
+          message: `The selected offer for "${product.name}" is no longer available. Please refresh and try again.`,
+          quantity: item.quantity,
+        });
+        continue;
+      }
+
+      resolvedQuantity = Math.max(1, Math.floor(Number(variant.quantity) || 1));
+      variantName = variant.name;
+      // Pack total price → per-unit price, float-safe (2 decimals).
+      unitPrice = Math.round((variant.price / resolvedQuantity) * 100) / 100;
+      // The pack price is the admin's authoritative number — subtotal must
+      // equal it exactly, even when per-unit rounding would drift (e.g. 3 @ ₹100).
+      packTotal = Math.round(Number(variant.price) * 100) / 100;
+    }
+
+    if (product.stock < resolvedQuantity) {
       errors.push({
         productId: item.productId,
         type: "insufficient_stock",
-        message: `Insufficient stock for "${product.name}". Available: ${product.stock}, requested: ${item.quantity}`,
-        quantity: item.quantity,
+        message: `Insufficient stock for "${product.name}". Available: ${product.stock}, requested: ${resolvedQuantity}`,
+        quantity: resolvedQuantity,
         availableStock: product.stock,
       });
       continue;
     }
 
-    const priceAtPurchase = product.discount_price || product.price;
-    const subtotal = priceAtPurchase * item.quantity;
+    const priceAtPurchase = unitPrice;
+    const subtotal =
+      packTotal != null ? packTotal : Math.round(priceAtPurchase * resolvedQuantity * 100) / 100;
 
     validItems.push({
       productId: String(product._id),
@@ -167,10 +212,11 @@ export async function validateAndPriceCart(
       image: product.image,
       images: product.images ?? [],
       sku: product.code,
-      quantity: item.quantity,
+      quantity: resolvedQuantity,
       isPersonalized: product.isPersonalized ?? false,
       priceAtPurchase,
       subtotal,
+      variantName,
     });
   }
 

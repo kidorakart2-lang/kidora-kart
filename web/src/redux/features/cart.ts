@@ -18,6 +18,8 @@ export interface CartState {
     slug: string | null;
     quantity: number;
     colorId: string | null;
+    variantId: string | null;
+    variantName: string | null;
   };
 }
 
@@ -30,6 +32,8 @@ const initialState: CartState = {
     slug: null,
     quantity: 1,
     colorId: null,
+    variantId: null,
+    variantName: null,
   },
 };
 
@@ -118,8 +122,8 @@ export const cartSlice = createSlice({
     setBuyNowItem: (state, action) => {
       // Strip any extra payload fields (e.g. "product", "colorCode", "colorName") —
       // persist only the lean shape so redux-persist doesn't bloat sessionStorage.
-      const { productId, slug, quantity, colorId } = action.payload;
-      state.buyNowItem = { productId, slug, quantity, colorId };
+      const { productId, slug, quantity, colorId, variantId = null, variantName = null } = action.payload;
+      state.buyNowItem = { productId, slug, quantity, colorId, variantId, variantName };
     },
     // Clear guest cart state (call after syncing to server)
     clearGuestCart: (state) => {
@@ -131,6 +135,8 @@ export const cartSlice = createSlice({
         slug: null,
         quantity: 1,
         colorId: null,
+        variantId: null,
+        variantName: null,
       };
     },
   },
@@ -144,6 +150,8 @@ export const cartSlice = createSlice({
         slug: null,
         quantity: 1,
         colorId: null,
+        variantId: null,
+        variantName: null,
       };
     });
   },

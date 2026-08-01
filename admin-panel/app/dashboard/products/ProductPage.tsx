@@ -140,7 +140,8 @@ export default function ProductsPage() {
       isBestSeller: dp.isBestSeller ?? false, isTopRated: dp.isTopRated ?? false,
       isUpsell: dp.isUpsell ?? false, isOnSale: dp.isOnSale ?? false,
       isPersonalized: dp.isPersonalized ?? false, isGift: dp.isGift ?? false,
-      order: dp.order, mainImage: null,
+      order: dp.order, variants: Array.isArray(dp.variants) ? dp.variants.map((v) => ({ ...v })) : [],
+      mainImage: null,
       mainImagePreview: dp.image || "",
       additionalImagePreviews: Array.isArray(dp.images) ? [...dp.images, ...Array(5 - dp.images.length).fill("")] : ["", "", "", "", ""],
       additionalImages: Array(5).fill(null),
@@ -177,6 +178,7 @@ export default function ProductsPage() {
       isUpsell: dp.isUpsell ?? false, isOnSale: dp.isOnSale ?? false,
       isPersonalized: dp.isPersonalized ?? false, isGift: dp.isGift ?? false,
       order: dp.order,
+      variants: Array.isArray(dp.variants) ? dp.variants.map((v) => ({ ...v })) : [],
       mainImage: null, mainImagePreview: "",
       additionalImages: Array(5).fill(null), additionalImagePreviews: ["", "", "", "", ""],
       giftImages: Array(5).fill(null), giftImagePreviews: ["", "", "", "", ""],
@@ -216,6 +218,13 @@ export default function ProductsPage() {
     if (selectedCategory.length === 0) { toast({ title: "Validation Error", description: "Please select at least one category", variant: "destructive" }); return; }
     if (selectedColors.length === 0) { toast({ title: "Validation Error", description: "Please select at least one color", variant: "destructive" }); return; }
     if (!editingProduct && !formData.mainImage) { toast({ title: "Validation Error", description: "Please select a main image", variant: "destructive" }); return; }
+    for (let i = 0; i < formData.variants.length; i++) {
+      const v = formData.variants[i];
+      if (!v.name?.trim()) { toast({ title: "Validation Error", description: `Variant ${i + 1}: name is required`, variant: "destructive" }); return; }
+      if (!Number.isInteger(Number(v.quantity)) || Number(v.quantity) < 1) { toast({ title: "Validation Error", description: `Variant ${i + 1} (${v.name}): quantity must be a whole number of at least 1`, variant: "destructive" }); return; }
+      if (isNaN(Number(v.price)) || Number(v.price) <= 0) { toast({ title: "Validation Error", description: `Variant ${i + 1} (${v.name}): pack price must be greater than 0`, variant: "destructive" }); return; }
+      if (v.mrp != null && !isNaN(Number(v.mrp)) && Number(v.mrp) < Number(v.price)) { toast({ title: "Validation Error", description: `Variant ${i + 1} (${v.name}): MRP must be greater than or equal to the pack price`, variant: "destructive" }); return; }
+    }
 
     const fd = editingProduct && initialFormData && initialSelections
       ? buildUpdateFormData(

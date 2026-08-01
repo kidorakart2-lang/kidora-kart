@@ -139,3 +139,18 @@ export function csrfCookieOptions() {
     path: "/",
   };
 }
+
+/**
+ * Clears the CSRF cookie. Called on admin logout so the next login session
+ * starts with a fresh token instead of reusing a stale one from the previous
+ * session (which would defeat rotation and could leave a bad token stuck).
+ */
+export function clearCsrfTokenCookie() {
+  return {
+    httpOnly: false,
+    secure: env.NODE_ENV === "production",
+    sameSite: "strict" as const,
+    maxAge: 0,
+    path: "/",
+  };
+}

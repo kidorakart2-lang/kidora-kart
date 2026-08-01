@@ -8,6 +8,8 @@ interface QuantitySelectorProps {
   stock: number;
   onIncrement: () => void;
   onDecrement: () => void;
+  /** When true, the stepper is read-only (e.g. a selected pack fixes the qty). */
+  locked?: boolean;
 }
 
 export default function QuantitySelector({
@@ -15,6 +17,7 @@ export default function QuantitySelector({
   stock,
   onIncrement,
   onDecrement,
+  locked = false,
 }: QuantitySelectorProps) {
   return (
     <motion.div
@@ -38,7 +41,7 @@ export default function QuantitySelector({
           <motion.button
             type="button"
             onClick={onDecrement}
-            disabled={quantity <= 1}
+            disabled={locked || quantity <= 1}
             whileTap={{ scale: 0.92 }}
             className="w-11 h-11 flex items-center justify-center text-muted-foreground
                      hover:bg-muted transition-colors duration-200
@@ -62,7 +65,7 @@ export default function QuantitySelector({
           <motion.button
             type="button"
             onClick={onIncrement}
-            disabled={quantity >= stock}
+            disabled={locked || quantity >= stock}
             whileTap={{ scale: 0.92 }}
             className="w-11 h-11 flex items-center justify-center text-muted-foreground
                      hover:bg-muted transition-colors duration-200
@@ -74,7 +77,7 @@ export default function QuantitySelector({
         </div>
 
         <span className="text-xs text-muted-foreground fw-body">
-          {stock} available
+          {locked ? "Pack size fixed" : `${stock} available`}
         </span>
       </div>
     </motion.div>

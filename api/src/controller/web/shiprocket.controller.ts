@@ -183,6 +183,8 @@ export const createShippingOrder = async (
         sku: item.sku || item.name.slice(0, 20) || "",
         quantity: item.quantity,
         priceAtPurchase: item.priceAtPurchase,
+        subtotal: item.subtotal,
+        variantName: item.variantName ?? undefined,
       })),
       paymentMethod: order.payment?.method === "cod" ? "COD" : "Prepaid",
       subtotal: order.pricing?.subtotal ?? 0,

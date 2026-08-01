@@ -95,7 +95,7 @@ export default function ImageZoom({ src, alt, isMobile }: { src: string; alt: st
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full overflow-hidden cursor-none"
+      className="relative w-full h-full cursor-none"
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsZoomed(true)}
       onMouseLeave={handleMouseLeave}

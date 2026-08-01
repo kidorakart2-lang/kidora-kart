@@ -45,6 +45,7 @@ interface LocalOrderItem {
   color?: { code: string; name: string };
   isPersonalized: boolean;
   personalizedName?: string;
+  variantName?: string;
 }
 
 const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
@@ -179,11 +180,7 @@ export default function MyOrders() {
 
         {isLoading ? (
           <div className="flex justify-center items-center py-20">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="w-12 h-12 border-4 border-border border-t-foreground rounded-full"
-            />
+            <Loader2 className="w-10 h-10 animate-spin text-foreground" />
           </div>
         ) : (
           <AnimatePresence mode="wait">
@@ -274,6 +271,11 @@ export default function MyOrders() {
                                 <p className="text-sm text-muted-foreground">
                                   Quantity: {item.quantity}
                                 </p>
+                                {item.variantName && (
+                                  <p className="text-sm text-brand-600 fw-cta">
+                                    🎁 {item.variantName}
+                                  </p>
+                                )}
                                 {/* Color display */}
                                 {item.color && (
                                   <p className="text-sm text-muted-foreground flex items-center gap-1">

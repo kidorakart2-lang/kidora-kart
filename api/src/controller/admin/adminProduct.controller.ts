@@ -26,6 +26,62 @@ const invalidateProductCaches = (): void => {
   cache.del("bestSellers");
 };
 
+interface ParsedVariant {
+  name: string;
+  quantity: number;
+  price: number;
+  mrp?: number | null;
+}
+
+/**
+ * Parse the `variants` field coming from the admin form. The form sends it as
+ * a JSON string (FormData has no nested arrays). Normalizes to a clean array
+ * and validates each row. Throws on invalid input.
+ */
+const parseVariants = (raw: unknown): ParsedVariant[] => {
+  let arr: unknown;
+  if (typeof raw === "string") {
+    if (!raw.trim()) return [];
+    try {
+      arr = JSON.parse(raw);
+    } catch {
+      throw new Error("Variants must be valid JSON");
+    }
+  } else {
+    arr = raw;
+  }
+
+  if (arr === undefined || arr === null) return [];
+  if (!Array.isArray(arr)) {
+    throw new Error("Variants must be an array");
+  }
+
+  const variants: ParsedVariant[] = [];
+  for (const item of arr) {
+    const v = (item ?? {}) as Record<string, unknown>;
+    const name = typeof v.name === "string" ? v.name.trim() : "";
+    const quantity = Number(v.quantity);
+    const price = Number(v.price);
+    const mrp = v.mrp == null || v.mrp === "" ? null : Number(v.mrp);
+
+    if (!name) {
+      throw new Error("Every variant needs a name");
+    }
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      throw new Error(`Variant "${name}" must have a quantity of at least 1`);
+    }
+    if (!Number.isFinite(price) || price <= 0) {
+      throw new Error(`Variant "${name}" must have a price greater than 0`);
+    }
+    if (mrp !== null && (!Number.isFinite(mrp) || mrp < price)) {
+      throw new Error(`Variant "${name}" MRP must be greater than or equal to its price`);
+    }
+
+    variants.push({ name, quantity, price, mrp });
+  }
+  return variants;
+};
+
 const collectValidationMessages = (err: unknown): string[] => {
   const errObj = err as Record<string, unknown>;
   if (errObj?.errors) {
@@ -135,6 +191,11 @@ export const create = async (
     const stockVal = Number(updateData.stock);
     if (isNaN(stockVal) || stockVal < 0) {
       throw new Error("Stock cannot be negative");
+    }
+
+    // ── Variants validation ──
+    if (updateData.variants !== undefined) {
+      updateData.variants = parseVariants(updateData.variants);
     }
 
     // ── Dimensions mutual validation ──
@@ -286,7 +347,7 @@ export const view = async (
     const [total, products] = await Promise.all([
       Product.countDocuments(query),
       Product.find(query)
-        .select("name slug image images giftImages price discount_price stock status description shortDescription weight code length height breadth minimumAge idealAge maximumAge type sku tags videoUrl estimated_delivery_time isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material createdAt order")
+        .select("name slug image images giftImages price discount_price stock status description shortDescription weight code length height breadth minimumAge idealAge maximumAge type sku tags videoUrl estimated_delivery_time isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material createdAt order variants")
         .sort(sort as string)
         .skip(skip)
         .limit(limit)
@@ -472,6 +533,11 @@ export const update = async (
       if (isNaN(stockVal) || stockVal < 0) {
         throw new Error("Stock cannot be negative");
       }
+    }
+
+    // ── Variants validation (only if field was actually sent) ──
+    if (updateData.variants !== undefined) {
+      updateData.variants = parseVariants(updateData.variants);
     }
 
     // ── Dimensions mutual validation (only if at least one dimension was sent) ──
@@ -768,7 +834,7 @@ export const getByCategory = async (
       ],
     })
       .populate(POPULATE_PRODUCT)
-      .select("name slug image images giftImages price discount_price stock status weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material order createdAt")
+      .select("name slug image images giftImages price discount_price stock status weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material order createdAt variants")
       .sort(sort)
       .limit(cappedLimit)
       .skip(skip)
@@ -837,7 +903,7 @@ export const getProductByFilter = async (
 
     const products = await Product.find(query)
       .populate(POPULATE_PRODUCT)
-      .select("name slug image images giftImages price discount_price stock weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material")
+      .select("name slug image images giftImages price discount_price stock weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material variants")
       .limit(Math.min(Number(limit), 100))
       .sort("-createdAt")
       .lean();

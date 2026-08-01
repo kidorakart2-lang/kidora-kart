@@ -55,6 +55,7 @@ const orderSchema = new Schema(
         },
         images: { type: [String], default: [] },
         sku: { type: String },
+        variantName: { type: String, default: null },
       },
     ],
     pricing: {

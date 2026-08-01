@@ -24,6 +24,7 @@ export type OrderItemInput = {
   addedFrom: string;
   images: string[];
   sku?: string;
+  variantName?: string | null;
 };
 
 /**

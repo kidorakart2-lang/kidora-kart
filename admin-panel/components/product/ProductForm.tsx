@@ -13,9 +13,28 @@ import { Separator } from "@/components/ui/separator";
 import NewMultiSelect from "../NewMultiSelect";
 import TagsInput from "../TagsInput";
 import AiAssistButton from "@/components/ai-assist-button";
-import { Cloud, ChevronDown, X, Sparkles, Loader2 } from "lucide-react";
-import type { ProductFormData, BooleanKeys } from "@/lib/types";
+import { Cloud, ChevronDown, X, Sparkles, Loader2, Plus } from "lucide-react";
+import type { ProductFormData, BooleanKeys, ProductVariant } from "@/lib/types";
 import { AGE_OPTIONS } from "@/lib/products-api";
+
+type VariantField = keyof Pick<ProductVariant, "name" | "quantity" | "price" | "mrp">;
+
+/** Update one field of a variant row (name as string, numbers as numbers). */
+const updateVariant = (
+  formData: ProductFormData,
+  setFormData: (d: ProductFormData | ((prev: ProductFormData) => ProductFormData)) => void,
+  index: number,
+  field: VariantField,
+  value: string,
+) => {
+  const variants = formData.variants.map((v, i) => {
+    if (i !== index) return v;
+    if (field === "name") return { ...v, name: value };
+    const num = value === "" ? null : Number(value);
+    return { ...v, [field]: num } as ProductVariant;
+  });
+  setFormData({ ...formData, variants });
+};
 
 interface ProductFormProps {
   formData: ProductFormData;
@@ -283,7 +302,115 @@ export default function ProductForm({
         </div>
       </FormSection>
 
-      {/* Section 6: Status Toggles */}
+      {/* Section 6: Buy Now Variants (quantity tiers & add-ons) */}
+      <FormSection title="Buy Now Variants (Offers)" defaultOpen={false}>
+        <div className="space-y-4 pb-4">
+          <p className="text-sm text-muted-foreground">
+            Optional pack offers shown on the product page (Buy Now only — not
+            available in cart). A pack like &ldquo;Pack of 5 @ ₹100&rdquo; lets
+            customers buy more for a better per-unit price.
+          </p>
+
+          {formData.variants.map((variant, index) => (
+            <div
+              key={index}
+              className="border border-border rounded-lg p-4 space-y-3 bg-muted/20"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">
+                  Variant {index + 1}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setFormData({
+                      ...formData,
+                      variants: formData.variants.filter((_, i) => i !== index),
+                    })
+                  }
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="col-span-2 space-y-1.5">
+                  <Label>Name *</Label>
+                  <Input
+                    value={variant.name}
+                    onChange={(e) =>
+                      updateVariant(formData, setFormData, index, "name", e.target.value)
+                    }
+                    placeholder="e.g. Pack of 5"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Quantity (pcs) *</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={variant.quantity}
+                    onChange={(e) =>
+                      updateVariant(formData, setFormData, index, "quantity", e.target.value)
+                    }
+                    placeholder="e.g. 5"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Pack Price (₹) *</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={variant.price}
+                    onChange={(e) =>
+                      updateVariant(formData, setFormData, index, "price", e.target.value)
+                    }
+                    placeholder="e.g. 100"
+                  />
+                </div>
+                <div className="col-span-2 lg:col-span-4 space-y-1.5">
+                  <Label>MRP (₹) — optional strikethrough</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={variant.mrp ?? ""}
+                    onChange={(e) =>
+                      updateVariant(formData, setFormData, index, "mrp", e.target.value)
+                    }
+                    placeholder="e.g. 125 (original pack price)"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setFormData({
+                ...formData,
+                variants: [
+                  ...formData.variants,
+                  { name: "", quantity: 1, price: 0, mrp: null },
+                ],
+              })
+            }
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Variant
+          </Button>
+        </div>
+      </FormSection>
+
+      {/* Section 7: Status Toggles */}
       <FormSection title="Status Toggles" defaultOpen={!isMobile}>
         <div className="space-y-4 pb-4">
           <div className="max-w-xs">
@@ -309,7 +436,7 @@ export default function ProductForm({
         </div>
       </FormSection>
 
-      {/* Section 7: Product Images */}
+      {/* Section 8: Product Images */}
       <FormSection title="Product Images" defaultOpen={!isMobile}>
         <div className="space-y-6 pb-4">
           <div className="space-y-2">
@@ -370,7 +497,7 @@ export default function ProductForm({
         </div>
       </FormSection>
 
-      {/* Section 8: Gift Images */}
+      {/* Section 9: Gift Images */}
       <FormSection title="Gift Images" defaultOpen={!isMobile}>
         <div className="space-y-4 pb-4">
           <p className="text-sm text-muted-foreground">Upload images related to gift packaging / presentation. Displayed below the product description.</p>

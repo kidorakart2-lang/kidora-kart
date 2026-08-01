@@ -15,11 +15,19 @@ interface ShippingAddressFormProps {
   shippingEstimate?: { estimatedCharge: number; courierName?: string; etd?: string } | null;
   isFetching: boolean;
   onCheckPincode: () => void;
+  geolocationSupported?: boolean;
+  detectingLocation?: boolean;
+  locationFilled?: boolean;
+  onDetectLocation?: () => void;
+  isLoggedIn?: boolean;
+  onEmailClick?: () => void;
 }
 
 export default function ShippingAddressForm({
   orderData, setOrderData, showAddressPrompt, setShowAddressPrompt,
   loadProfileAddress, shippingEstimate, isFetching, onCheckPincode,
+  geolocationSupported = false, detectingLocation = false, locationFilled = false,
+  onDetectLocation, isLoggedIn = false, onEmailClick,
 }: ShippingAddressFormProps) {
   const sa = orderData.shippingAddress;
   const update = (field: string, value: string) => setOrderData((prev) => ({
@@ -37,7 +45,32 @@ export default function ShippingAddressForm({
             <p className="text-xs text-muted-foreground mt-0.5">Enter your delivery address</p>
           </div>
         </div>
+        {geolocationSupported && onDetectLocation && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onDetectLocation}
+            disabled={detectingLocation}
+            className="shrink-0 border-brand-300 hover:bg-brand-50 hover:text-brand-700 transition-all"
+          >
+            {detectingLocation ? (
+              <><Loader2 size={14} className="animate-spin mr-1" />Detecting...</>
+            ) : (
+              <><MapPin size={14} className="mr-1" />Detect Location</>
+            )}
+          </Button>
+        )}
       </div>
+
+      {locationFilled && (
+        <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-start gap-3">
+          <MapPin className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+          <p className="text-sm text-emerald-700">
+            Location detected — we've filled in your address automatically. Please review and correct if needed.
+          </p>
+        </div>
+      )}
 
       {showAddressPrompt && (
         <div className="mb-6 p-4 bg-brand-50 border border-brand-200 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -54,7 +87,17 @@ export default function ShippingAddressForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Full Name *" value={sa.fullName} onChange={(v) => update("fullName", v)} />
-        <Field label="Email *" value={sa.email} onChange={(v) => update("email", v)} readonly />
+        {isLoggedIn ? (
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-muted-foreground">Email *</label>
+            <div className="w-full px-4 py-2.5 border border-border rounded-lg bg-muted/30 text-foreground">
+              {sa.email || "—"}
+            </div>
+            <p className="text-xs text-muted-foreground">Email from your account</p>
+          </div>
+        ) : (
+          <Field label="Email *" value={sa.email} onChange={(v) => update("email", v)} readonly onClick={onEmailClick} />
+        )}
         <div className="space-y-1">
           <label className="text-sm font-medium text-muted-foreground">Phone *</label>
           <div className="relative">
@@ -126,15 +169,18 @@ export default function ShippingAddressForm({
   );
 }
 
-function Field({ label, value, onChange, placeholder, readonly }: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string; readonly?: boolean;
+function Field({ label, value, onChange, placeholder, readonly, onClick }: {
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string; readonly?: boolean; onClick?: () => void;
 }) {
   return (
     <div className="space-y-1">
       <label className="text-sm font-medium text-muted-foreground">{label}</label>
       <input type="text" value={value} onChange={(e) => onChange(e.target.value)} readOnly={readonly}
-        placeholder={placeholder} required
-        className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all" />
+        placeholder={placeholder} required onClick={onClick}
+        className={`w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all ${readonly && onClick ? 'cursor-pointer bg-muted/50' : ''}`} />
+      {readonly && onClick && (
+        <p className="text-xs text-muted-foreground">Click to sign in and fill email</p>
+      )}
     </div>
   );
 }

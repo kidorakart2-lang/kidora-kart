@@ -62,6 +62,7 @@ export const createOrder = async (
         productId: string;
         quantity: number;
         colorId: string;
+        variantId?: string;
       }>;
       isPersonalizedName?: string;
       shippingAddress: {
@@ -151,6 +152,7 @@ export const createOrder = async (
       addedFrom: purchaseType === "cart" ? "cart" : "direct",
       images: vi.images,
       sku: vi.sku,
+      variantName: vi.variantName ?? null,
     }));
     const subtotal = validatedItems.reduce((sum, i) => sum + i.subtotal, 0);
 

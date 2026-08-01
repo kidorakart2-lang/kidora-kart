@@ -112,7 +112,9 @@ export const destroy = async (
   response: Response,
 ): Promise<void> => {
   try {
-    const existing = await category.findById(request.body.id)
+    // Route is /delete/:id — id comes from the URL param.
+    const id = request.params.id;
+    const existing = await category.findById(id)
       .select("_id deletedAt")
       .lean();
     if (!existing) {
@@ -121,14 +123,14 @@ export const destroy = async (
     }
     if (existing.deletedAt) {
       // Already soft-deleted → permanently delete
-      await category.findByIdAndDelete(request.body.id);
+      await category.findByIdAndDelete(id);
       cache.del("navigationData");
       response.status(200).json({ _status: true, _message: "Category permanently deleted", _data: null });
       return;
     }
     // Soft delete
     await category.updateOne(
-      { _id: request.body.id },
+      { _id: id },
       { $set: { deletedAt: new Date() } },
     );
     cache.del("navigationData");
@@ -151,7 +153,8 @@ export const details = async (
   response: Response,
 ): Promise<void> => {
   try {
-    const result = await category.findById({ _id: request.body.id }).lean();
+    // Route is /details/:id — id comes from the URL param.
+    const result = await category.findById({ _id: request.params.id }).lean();
     if (result) {
       response.status(200).json({
         _status: true,
@@ -252,8 +255,9 @@ export const changeStatus = async (
   response: Response,
 ): Promise<void> => {
   try {
+    // Route is /change-status/:id — id comes from the URL param.
     const result = await category.updateMany(
-      { _id: request.body.id },
+      { _id: request.params.id },
       [{ $set: { status: { $not: "$status" } } }],
     );
     cache.del("navigationData");

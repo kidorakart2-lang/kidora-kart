@@ -23,10 +23,11 @@ import ProductFaqSection from "@/components/product/ProductFaqSection";
 import ProductSpecifications from "@/components/product/ProductSpecifications";
 import ColorPicker from "@/components/product/ColorPicker";
 import QuantitySelector from "@/components/product/QuantitySelector";
+import VariantSelector from "@/components/product/VariantSelector";
 import ActionButtons from "@/components/product/ActionButtons";
 import ProductNotFound from "@/components/product/ProductNotFound";
 
-import type { ProductData } from "@/types";
+import type { ProductData, ProductVariant } from "@/types";
 
 const TRUST_BADGES = [
   { icon: Shield, label: "Secure Payment" },
@@ -49,6 +50,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
   const [selectedColor, setSelectedColor] = useState<string | null>(
     details?.colors?.[0]?._id || null
   );
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [showVideo, setShowVideo] = useState(false);
   const isMobile = useIsMobile();
 
@@ -136,16 +138,27 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
   const handleDecrement = () => setQuantity((prev) => Math.max(1, prev - 1));
 
   const handleBuyNow = async () => {
+    // A selected variant overrides quantity + price (server recomputes from DB,
+    // so this is purely a display/UX hint). Base product when no variant chosen.
+    const effectiveQuantity = selectedVariant ? selectedVariant.quantity : quantity;
     const buyNowItem: Record<string, unknown> = {
       productId: product._id,
       slug: product.slug,
-      quantity: quantity,
+      quantity: effectiveQuantity,
     };
     if (selectedColor) {
       buyNowItem.colorId = selectedColor;
     }
+    if (selectedVariant?._id) {
+      buyNowItem.variantId = selectedVariant._id;
+      buyNowItem.variantName = selectedVariant.name;
+    }
     dispatch(setBuyNowItem(buyNowItem));
     router.push("/checkout?type=direct");
+  };
+
+  const handleSelectVariant = (variant: ProductVariant) => {
+    setSelectedVariantId((prev) => (prev === variant._id ? null : (variant._id ?? null)));
   };
 
   const renderStars = (rating: number) =>
@@ -219,6 +232,19 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
     product.price && product.discount_price
       ? Math.round(((product.price - product.discount_price) / product.price) * 100)
       : 0;
+
+  const hasVariants = Array.isArray(product.variants) && product.variants.length > 0;
+
+  // Derive the selected variant by _id every render so a server-side refresh
+  // (details change) never leaves a stale variant object on screen.
+  const selectedVariant =
+    product.variants?.find((v) => v._id === selectedVariantId) ?? null;
+
+  // Per-unit price of the selected pack (for the "₹X per unit" hint).
+  const selectedVariantUnit =
+    selectedVariant && selectedVariant.quantity > 0
+      ? Math.round((selectedVariant.price / selectedVariant.quantity) * 100) / 100
+      : null;
 
   return (
     <main className="bg-gradient-to-b from-background via-background to-muted/30">
@@ -305,7 +331,31 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               className="mb-6"
             >
               <div className="flex items-baseline gap-4">
-                {product.discount_price ? (
+                {selectedVariant ? (
+                  <>
+                    <span
+                      className="text-4xl sm:text-5xl fw-heading tracking-tight"
+                      style={{
+                        background: "linear-gradient(135deg, var(--brand-price-1-from), var(--brand-price-1-via), var(--brand-price-1-to))",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}
+                    >
+                      ₹{selectedVariant.price.toLocaleString()}
+                    </span>
+                    <span className="text-xl sm:text-2xl text-muted-foreground line-through fw-body">
+                      ₹{(
+                        (selectedVariant.mrp ?? product.price * selectedVariant.quantity)
+                      ).toLocaleString()}
+                    </span>
+                    {selectedVariantUnit != null && (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs fw-cta bg-brand-accent-500/10 text-brand-accent-600 border border-brand-accent-200">
+                        ₹{selectedVariantUnit}/unit
+                      </span>
+                    )}
+                  </>
+                ) : product.discount_price ? (
                   <>
                     <span
                       className="text-4xl sm:text-5xl fw-heading tracking-tight"
@@ -348,9 +398,6 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             {/* Divider */}
             <div className="h-px bg-gradient-to-r from-border via-border/50 to-transparent mb-6" />
 
-            {/* Specifications */}
-            <ProductSpecifications product={product} />
-
             {/* Color Picker */}
             <ColorPicker
               colors={(product.colors ?? []) as ColorItem[]}
@@ -358,13 +405,16 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               onSelect={setSelectedColor}
             />
 
-            {/* Quantity */}
+            {/* TODO: QuantitySelector - may be used in future for custom quantity selection */}
+            {/*
             <QuantitySelector
-              quantity={quantity}
+              quantity={selectedVariant ? selectedVariant.quantity : quantity}
               stock={product.stock || 10}
+              locked={!!selectedVariant}
               onIncrement={handleIncrement}
               onDecrement={handleDecrement}
             />
+            */}
 
             {/* Action Buttons */}
             <ActionButtons
@@ -375,7 +425,30 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               onAddToCart={handleAddToCart}
               onWishlist={handleWishlist}
               onBuyNow={handleBuyNow}
-            />
+              topChildren={
+                hasVariants && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.55 }}
+                    className="mb-6"
+                  >
+                    <p className="text-sm fw-heading text-foreground mb-3">
+                      Special Offers <span className="text-xs font-normal text-muted-foreground">— applies to Buy Now</span>
+                    </p>
+                    <VariantSelector
+                      variants={product.variants ?? []}
+                      selectedVariant={selectedVariant}
+                      productStock={product.stock ?? 0}
+                      onSelect={handleSelectVariant}
+                    />
+                  </motion.div>
+                )
+              }
+            >
+              {/* Specifications */}
+              <ProductSpecifications product={product} />
+            </ActionButtons>
 
             {/* Trust Badges */}
             <motion.div
@@ -450,20 +523,20 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="bg-gradient-to-br from-amber-50/80 to-orange-50/80 dark:from-amber-950/20 dark:to-orange-950/20 rounded-2xl border border-amber-200/50 dark:border-amber-800/30 p-8 md:p-12 shadow-sm"
+            className="bg-background rounded-2xl border border-border p-8 md:p-12 shadow-sm"
           >
             <div className="flex items-center gap-3 mb-6">
               <motion.div
                 animate={{ rotate: [0, 8, -8, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               >
-                <Package size={24} className="text-amber-600" strokeWidth={1.5} />
+                <Package size={24} className="text-brand-600" strokeWidth={1.5} />
               </motion.div>
               <h2 className="text-2xl sm:text-3xl fw-heading text-foreground tracking-tight">
                 Gift Presentation
               </h2>
             </div>
-            <div className="h-px bg-gradient-to-r from-amber-200/50 via-amber-300/30 to-transparent mb-6" />
+            <div className="h-px bg-gradient-to-r from-brand-200/50 via-brand-300/30 to-transparent mb-6" />
             <p className="text-sm text-muted-foreground fw-body mb-6">
               Beautifully wrapped gift options for your loved ones
             </p>
@@ -475,7 +548,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.08, duration: 0.4 }}
-                  className="relative aspect-square rounded-xl overflow-hidden group cursor-pointer shadow-md border-2 border-amber-200/50 dark:border-amber-800/30"
+                  className="relative aspect-square rounded-xl overflow-hidden group cursor-pointer shadow-md border-2 border-border"
                 >
                   <img
                     src={img}

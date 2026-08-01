@@ -41,8 +41,11 @@ export default function OrderItemsList({ items, isGift, giftMessage }: OrderItem
               <h3 className="font-semibold text-foreground truncate">{item.name}</h3>
               <div className="flex items-center gap-4 mt-1 flex-wrap">
                 <span className="text-sm text-muted-foreground">Qty: {item.quantity}</span>
-                <span className="text-lg font-semibold text-foreground">₹{item.priceAtPurchase.toLocaleString("en-IN")}</span>
+                <span className="text-lg font-semibold text-foreground">₹{(item.subtotal ?? item.priceAtPurchase * item.quantity).toLocaleString("en-IN")}</span>
               </div>
+              {item.variantName && (
+                <p className="text-sm text-brand-600 fw-cta mt-1">🎁 {item.variantName}</p>
+              )}
               <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1">
                 <span>Color :</span>
                 <span

@@ -10,10 +10,13 @@ export interface OrderItem {
   name: string;
   quantity: number;
   priceAtPurchase: number;
+  /** Exact line total stored at order time (avoids per-unit rounding drift). */
+  subtotal?: number;
   colorId: { code: string; name: string };
 
   isPersonalized: boolean;
   personalizedName?: string;
+  variantName?: string;
 }
 
 export interface PaymentInfo {

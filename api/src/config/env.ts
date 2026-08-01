@@ -82,6 +82,10 @@ const envSchema = z.object({
 
   TURNSTILE_SECRET_KEY: z.string().optional(),
 
+  // LocationIQ reverse-geocoding — used by the checkout geolocation auto-fill.
+  // Optional: the feature is disabled gracefully when the key is missing.
+  LOCATIONIQ_API_KEY: z.string().min(1).optional(),
+
   REVALIDATE_SECRET: z.string().optional(),
 
   ENABLE_SWAGGER: z

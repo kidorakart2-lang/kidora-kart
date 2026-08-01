@@ -65,7 +65,9 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            // geolocation is intentionally NOT restricted — the checkout page
+            // uses the browser Geolocation API to auto-fill shipping addresses.
+            value: "camera=(), microphone=()",
           },
         ],
       },

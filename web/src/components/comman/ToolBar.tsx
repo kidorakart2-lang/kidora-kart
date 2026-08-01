@@ -32,7 +32,7 @@ const ToolBar = () => {
   }, []);
 
   return (
-    <div className="fixed bottom-20 right-6 z-50 flex flex-col gap-3 items-end">
+    <div className="no-print fixed bottom-20 right-6 z-50 flex flex-col gap-3 items-end">
       {/* Instagram Button */}
       <div
         className={`transform transition-all duration-500 ${

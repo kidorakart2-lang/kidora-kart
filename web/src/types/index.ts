@@ -20,6 +20,7 @@ export type {
 
 export type {
   ProductData,
+  ProductVariant,
   SubCategoryData,
   SubSubCategoryData,
   CategoryData,

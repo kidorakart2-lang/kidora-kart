@@ -39,7 +39,7 @@ const handlers: Record<JobType, (payload: JobPayload) => Promise<void>> = {
 
   "update-profile": async (payload) => {
     const { userId, updates } = payload as UpdateProfilePayload;
-    if (Object.keys(updates).length > 0) {
+    if (updates && typeof updates === "object" && Object.keys(updates).length > 0) {
       await User.updateOne({ _id: userId }, { $set: updates });
     }
   },

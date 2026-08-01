@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { api, ApiClientError } from "@/lib/api";
+import { api, ApiClientError, refreshCsrfToken } from "@/lib/api";
 import { useAdminLogo } from "@/hooks/useAdminLogo";
 
 export default function LoginPage() {
@@ -24,13 +24,11 @@ export default function LoginPage() {
     try {
       await api.post("/api/admin/user/login", { email, password });
 
-      // Re-fetch CSRF token after successful login so subsequent
-      // mutation requests have a fresh CSRF cookie.
-      try {
-        await fetch("/api/admin/csrf-token", { credentials: "include" });
-      } catch {
-        // CSRF refresh is best-effort — the existing token may still be valid
-      }
+      // Re-fetch CSRF token after successful login so subsequent mutation
+      // requests have a fresh CSRF cookie. This resets the module-level cache,
+      // so even if the initial fetch failed at page load (network glitch) the
+      // admin is not stuck with every mutation returning 403.
+      await refreshCsrfToken();
 
       toast({
         title: "Login successful",
