@@ -7,6 +7,41 @@ bluehawk1711@gmail.com
 ## Admin Password - 
 1234567890
 
+## Repository & Branch Workflow
+
+The production code lives in a dedicated GitHub repository, separate from the original toy-store repo (which is kept as `origin` for history only).
+
+| Remote | URL | Purpose |
+|--------|-----|---------|
+| `production` | `https://github.com/jewellerywalaonline-oss/jewellery-walla-monorepo.git` | **Canonical production repo** for the jewellery store |
+| `origin` | `https://github.com/kidorakart2-lang/kidora-kart` | Legacy toy-store repo (kept for history, not used) |
+
+### Branch Workflow
+
+| Branch | Base | Purpose |
+|--------|------|---------|
+| `main` | `production/main` | **Stable production code** — deploy-ready, always green |
+| `test` | `production/test` | **Testing branch** — try out new code before it goes to production |
+| `jewellery-walla-prod` | local dev branch | Active development branch (currently used for local work) |
+
+**Typical flow:**
+
+1. Develop on `jewellery-walla-prod` (local) and push to `production/test` when you want it tested.
+2. After testing on `test`, fast-forward/merge into `production/main` for release.
+3. `main` is always the code that is (or will be) deployed.
+
+```bash
+# Push development branch to the test branch for testing
+git push production jewellery-walla-prod:test
+
+# After testing, promote to main
+git push production test:main
+```
+
+> Both `main` and `test` on `production` currently point to the same production build commit
+> (`fa59d39`) — the branch split exists so future test-only changes can live on `test` without
+> touching `main`.
+
 ## Projects
 
 | Package | Stack | Description | Port |

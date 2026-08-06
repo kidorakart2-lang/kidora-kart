@@ -2,6 +2,11 @@
 
 > **Extended to include:** Account lockout, cookie name separation, DB job queue, env var extraction, home page validation, text search migration
 
+> 🗂️ **Repository moved.** Production code now lives in a dedicated repo at
+> `https://github.com/jewellerywalaonline-oss/jewellery-walla-monorepo.git` (remote name: `production`).
+> The old `origin` (kidora-kart) is kept for history only. Branch workflow: `main` = stable
+> production code, `test` = testing branch for new code (see `readme.md` → *Repository & Branch Workflow*).
+
 > ⚠️ **Historical log.** This document records past work. Since it was written, the `jewellery-walla` branch has changed significantly — some files referenced below **no longer exist**:
 > - **Shiprocket integration removed** (`api/src/controller/web/shiprocket.controller.ts`, `api/src/lib/shiprocket.ts`, shipping routes) — shipping is now in-house only (admin order status + delivery OTP).
 > - **AI agent feature not included** on this branch (only the Gemini product-description/content helpers remain).
