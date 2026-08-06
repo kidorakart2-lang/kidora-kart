@@ -211,7 +211,7 @@ export default async function RootLayout({
         <meta name="geo.placename" content={siteConfig.address.city} />
         <meta name="geo.position" content={`${siteConfig.address.geo.lat};${siteConfig.address.geo.lng}`} />
         <meta name="ICBM" content={`${siteConfig.address.geo.lat}, ${siteConfig.address.geo.lng}`} />
-        <link rel="icon" href="/logo.ico" />
+        <link rel="icon" href="/favicon.ico" />
         <meta name="theme-color" content={siteConfig.themeColor} />
         <meta name="msapplication-TileColor" content={siteConfig.themeColor} />
       </head>

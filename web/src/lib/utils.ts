@@ -250,7 +250,6 @@ export const defaultMetadata = {
   },
   icons: {
     icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.png",
   },
   manifest: "/site.webmanifest",
 };
