@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: ProductDetailsPageProps) {
   }
 
   const productUrl = `${siteConfig.url}/product-details/${slug}`;
-  const productImage = product.image || `${siteConfig.url}/images/og-image.jpg`;
+  const productImage = product.image || `${siteConfig.url}/og-image.jpg`;
   const price = product.discount_price || product.price;
   const currency = "INR";
   const availability =
@@ -122,7 +122,7 @@ export async function generateMetadata({ params }: ProductDetailsPageProps) {
 }
 
 export async function generateProductSchema(product: ProductData, productUrl: string) {
-  const productImage = product.image || `${siteConfig.url}/images/og-image.jpg`;
+  const productImage = product.image || `${siteConfig.url}/og-image.jpg`;
   const price = product.discount_price || product.price;
   const currency = "INR";
   const availability =
