@@ -132,7 +132,7 @@ export default function OrderSuccess() {
       {/* ══════════════════════════════════════════════════════════════ */}
       {phase !== "reveal" && (
         <motion.div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-900 overflow-hidden"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-amber-600 via-amber-700 to-amber-900 overflow-hidden"
           initial={{ y: 0 }}
           animate={
             phase === "slideUp"
@@ -142,8 +142,8 @@ export default function OrderSuccess() {
         >
           {/* Ambient blobs */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute -top-20 -left-20 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl" />
-            <div className="absolute top-1/3 -right-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+            <div className="absolute -top-20 -left-20 w-72 h-72 bg-amber-400/10 rounded-full blur-3xl" />
+            <div className="absolute top-1/3 -right-20 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
           </div>
 
           {/* Lottie / Fallback */}
@@ -178,7 +178,7 @@ export default function OrderSuccess() {
              <h1 className="text-3xl md:text-4xl fw-heading text-white mb-2">
               Order Placed!
             </h1>
-            <p className="text-emerald-100/80">
+            <p className="text-amber-100/80">
               Confirming your order...
             </p>
             <Badge className="mt-3 bg-white/15 text-white border-white/20 px-4 py-1.5 text-xs font-mono">
@@ -218,9 +218,9 @@ export default function OrderSuccess() {
               damping: 18,
               delay: 0.2,
             }}
-            className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center shadow-lg shadow-emerald-200/50"
+            className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center shadow-lg shadow-amber-200/50"
           >
-            <Check className="w-8 h-8 text-emerald-600" strokeWidth={3} />
+            <Check className="w-8 h-8 text-amber-600" strokeWidth={3} />
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
@@ -411,8 +411,8 @@ export default function OrderSuccess() {
                     </div>
                     {order.pricing.discount?.amount > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-emerald-600">Discount</span>
-                        <span className="text-emerald-600">
+                        <span className="text-amber-600">Discount</span>
+                        <span className="text-amber-600">
                           -₹{order.pricing.discount.amount}
                         </span>
                       </div>
@@ -430,7 +430,7 @@ export default function OrderSuccess() {
                   {/* Total */}
                   <div className="flex justify-between items-baseline pt-4">
                     <span className="font-semibold text-foreground">Total</span>
-                    <span className="text-2xl font-bold text-brand-600">
+                    <span className="text-2xl fw-heading text-brand-600">
                       ₹{order.pricing.total}
                     </span>
                   </div>
@@ -450,7 +450,7 @@ export default function OrderSuccess() {
                     </div>
                     {order.payment.codAdvance &&
                       order.pricing.advance > 0 && (
-                        <p className="text-xs text-emerald-600 mt-1 ml-6">
+                        <p className="text-xs text-amber-600 mt-1 ml-6">
                           Advance paid: ₹{order.pricing.advance}
                         </p>
                       )}

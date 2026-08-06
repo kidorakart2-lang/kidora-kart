@@ -1,8 +1,5 @@
 import { Lato } from "next/font/google";
 import "./globals.css";
-import "./themes/minimal.css";
-import "./themes/brown.css";
-import "./themes/monochrome.css";
 import "@/index.css";
 import { Client } from "@/redux/provider/Client";
 import { Toaster } from "sonner";
@@ -20,7 +17,6 @@ import ThemeColorMeta from "@/components/comman/ThemeColorMeta";
 import dynamic from "next/dynamic";
 
 const MotionProvider = dynamic(() => import("@/components/MotionProvider"));
-const DevThemeToggle = dynamic(() => import("@/components/comman/DevThemeToggle"));
 
 const lato = Lato({
   subsets: ["latin"],
@@ -33,7 +29,7 @@ const lato = Lato({
 export const metadata = {
   ...defaultMetadata,
   title: {
-    default: `${siteConfig.name} - Online Toy Store in ${siteConfig.address.city} | Toys & Games`,
+    default: `${siteConfig.name} - Online Jewellery Store in ${siteConfig.address.city} | Rings, Necklaces & More`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -239,7 +235,6 @@ export default async function RootLayout({
             <RequirementModal />
             <PhoneNumberModal />
             <CookieConsent />
-            <DevThemeToggle />
           </MotionProvider>
         </Client>
         </Suspense>

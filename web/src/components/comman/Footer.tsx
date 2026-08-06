@@ -45,12 +45,14 @@ interface NavCategory {
 const FEATURES = [
   { Icon: Truck, title: "Free Shipping", desc: "On orders over ₹1000" },
   { Icon: Shield, title: "Secure Payment", desc: "100% Protected" },
-  { Icon: Award, title: "Certified Quality", desc: "Safe & Tested" },
+  { Icon: Award, title: "Certified Quality", desc: "Hallmarked & Tested" },
   { Icon: Heart, title: "Lifetime Support", desc: "24/7 Customer Care" },
 ];
 
 const HELP_LINKS = [
   { label: "Track Order", href: "/order-track" },
+  { label: "Our Story", href: "/story" },
+  { label: "About Us", href: "/about" },
   { label: "FAQ", href: "/faq" },
   { label: "Contact Us", href: "/contact-us" },
   { label: "Size Guide", href: "/our-policy?query=size-guide" },
@@ -77,7 +79,8 @@ export default function Footer({
 
   const fetchFeaturedProducts = async () => {
     try {
-      const res = await fetch(        "/api/website/product/featured-for-footer",
+      const res = await fetch(
+        "/api/website/product/featured-for-footer",
       );
       const data = await res.json();
       setFeaturedProducts(data._data);
@@ -102,9 +105,9 @@ export default function Footer({
   return (
     <footer className="bg-section text-muted-foreground border-t border-border">
       {/* ── Features Bar ──────────────────────────────────────────────── */}
-      <div className="border-b border-border bg-[color-mix(in_srgb,var(--brand-primary)_6%,transparent)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="border-b border-border bg-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {FEATURES.map(({ Icon, title, desc }) => (
               <div
                 key={title}
@@ -128,28 +131,27 @@ export default function Footer({
       </div>
 
       {/* ── Main Footer ───────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
-        {/* ── Top row: Brand + Categories ──────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 mb-10">
-          {/* Brand column */}
-          <div className="lg:col-span-4">
-            <Link href="/" className="inline-block mb-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-6">
+          {/* Brand & Social — 2 cols */}
+          <div className="sm:col-span-2 lg:col-span-2">
+            <Link href="/" className="relative group inline-block mb-4">
               <Image
                 src={logo || "/images/logo.webp"}
                 alt={siteConfig.name}
                 width={120}
                 height={40}
-                className="h-10 w-auto"
+                className="h-10 w-auto transition-transform duration-300 group-hover:scale-105"
               />
             </Link>
-            <p className="text-sm text-muted-foreground mb-5 max-w-sm leading-relaxed">
-              Discover endless fun with our exciting collection of toys and
-              games. Shop with confidence — every order is backed by our
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm leading-relaxed">
+              Discover timeless elegance with our handcrafted collection of
+              jewellery. Shop with confidence — every order is backed by our
               quality promise.
             </p>
 
             {/* Social */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2">
               {[
                 {
                   Icon: InstagramIcon,
@@ -185,104 +187,46 @@ export default function Footer({
                 </Button>
               ))}
             </div>
-
-            {/* Featured Products */}
-            {featuredProducts.length > 0 && (
-              <div>
-                <h4 className="fw-heading text-sm text-foreground mb-3 uppercase tracking-wider">
-                  Featured Products
-                </h4>
-                <div className="space-y-2.5">
-                  {featuredProducts.map((product: FeaturedProduct) => (
-                    <Link
-                      key={product._id}
-                      href={`/product-details/${product.slug}`}
-                      className="flex items-center gap-3 p-2 rounded-lg border border-border hover:border-[var(--brand-primary)] transition-all duration-200 group bg-background/40"
-                    >
-                      <div className="relative w-14 h-14 flex-shrink-0 rounded-md overflow-hidden bg-muted">
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          fill
-                          sizes="56px"
-                          className="object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h5 className="fw-body text-sm text-foreground truncate group-hover:text-[var(--brand-primary-dark)] transition-colors">
-                          {product.name}
-                        </h5>
-                        <p className="text-sm fw-body text-[var(--brand-primary-dark)] flex items-center">
-                          <IndianRupee size={12} /> {product.discount_price}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* ── Categories column ──────────────────────────────────────── */}
-          <div className="lg:col-span-8">
-            <h3 className="fw-heading text-sm text-foreground uppercase tracking-widest mb-6 border-b-2 border-[var(--brand-primary)] pb-2 inline-block">
-              Shop by Category
+          {/* Shop — subcategories */}
+          <div className="sm:col-span-1 lg:col-span-1">
+            <h3 className="fw-heading text-sm text-foreground uppercase tracking-widest mb-4 border-b-2 border-[var(--brand-primary)] pb-2 inline-block">
+              Shop
             </h3>
-
-            {categories && categories.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-7">
-                {categories.map((cat: NavCategory) => (
-                  <div key={cat.slug}>
-                    {/* Category heading */}
+            <ul className="space-y-2.5 text-sm">
+              {categories
+                ?.flatMap((item: NavCategory) => item.subCategories ?? [])
+                .slice(0, 10)
+                .map((subCategory: NavSubCategory, idx: number) => (
+                  <li key={subCategory.slug ?? idx}>
                     <Link
-                      href={`/category/${cat.slug}`}
-                      className="fw-heading text-sm text-foreground hover:text-[var(--brand-primary-dark)] transition-colors inline-flex items-center gap-1 mb-2"
+                      href={`/category/${subCategory.slug}`}
+                      className="text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:translate-x-1 inline-block transition-all duration-200"
                     >
-                      {cat.name || cat.slug}
+                      {subCategory.name}
                     </Link>
-
-                    {/* Subcategory list */}
-                    {cat.subCategories && cat.subCategories.length > 0 && (
-                      <ul className="space-y-1.5 mt-1">
-                        {cat.subCategories.map((sub: NavSubCategory) => (
-                          <li key={sub.slug}>
-                            <Link
-                              href={`/category/${cat.slug}/${sub.slug}`}
-                              className="text-sm text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:pl-1 inline-block transition-all duration-200"
-                            >
-                              {sub.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
+                  </li>
                 ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Categories loading...
-              </p>
-            )}
+              {(!categories || categories.length === 0) && (
+                <li className="text-xs text-muted-foreground">
+                  Categories loading...
+                </li>
+              )}
+            </ul>
           </div>
-        </div>
 
-        {/* ── Divider ─────────────────────────────────────────────────── */}
-        <div className="border-t border-border" />
-
-        {/* ── Bottom row: Help + Policies + Contact ────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 pt-8">
           {/* Help */}
-          <div className="sm:col-span-1 lg:col-span-3">
-            <h4 className="fw-heading text-sm text-foreground uppercase tracking-widest mb-4">
+          <div className="sm:col-span-1 lg:col-span-1">
+            <h3 className="fw-heading text-sm text-foreground uppercase tracking-widest mb-4 border-b-2 border-[var(--brand-primary)] pb-2 inline-block">
               Help
-            </h4>
+            </h3>
             <ul className="space-y-2.5 text-sm">
               {HELP_LINKS.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:pl-1 inline-block transition-all duration-200"
+                    className="text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:translate-x-1 inline-block transition-all duration-200"
                   >
                     {link.label}
                   </Link>
@@ -292,16 +236,16 @@ export default function Footer({
           </div>
 
           {/* Policies */}
-          <div className="sm:col-span-1 lg:col-span-3">
-            <h4 className="fw-heading text-sm text-foreground uppercase tracking-widest mb-4">
+          <div className="sm:col-span-1 lg:col-span-1">
+            <h3 className="fw-heading text-sm text-foreground uppercase tracking-widest mb-4 border-b-2 border-[var(--brand-primary)] pb-2 inline-block">
               Policies
-            </h4>
+            </h3>
             <ul className="space-y-2.5 text-sm">
               {POLICY_LINKS.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:pl-1 inline-block transition-all duration-200"
+                    className="text-muted-foreground hover:text-[var(--brand-primary-dark)] hover:translate-x-1 inline-block transition-all duration-200"
                   >
                     {link.label}
                   </Link>
@@ -310,13 +254,13 @@ export default function Footer({
             </ul>
           </div>
 
-          {/* Contact */}
-          <div className="sm:col-span-2 lg:col-span-6">
-            <h4 className="fw-heading text-sm text-foreground uppercase tracking-widest mb-4">
-              Get in Touch
-            </h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
-              <li className="flex items-start gap-3">
+          {/* Contact + Featured */}
+          <div className="sm:col-span-2 lg:col-span-1">
+            <h3 className="fw-heading text-sm text-foreground uppercase tracking-widest mb-4 border-b-2 border-[var(--brand-primary)] pb-2 inline-block">
+              Contact
+            </h3>
+            <ul className="space-y-3 text-sm text-muted-foreground mb-6">
+              <li className="flex items-start gap-2">
                 <Phone className="w-4 h-4 mt-0.5 flex-shrink-0 text-[var(--brand-primary-dark)]" />
                 <a
                   href={`tel:${siteConfig.contact.phone}`}
@@ -325,7 +269,7 @@ export default function Footer({
                   {siteConfig.contact.mobile}
                 </a>
               </li>
-              <li className="flex items-start gap-3">
+              <li className="flex items-start gap-2">
                 <Mail className="w-4 h-4 mt-0.5 flex-shrink-0 text-[var(--brand-primary-dark)]" />
                 <a
                   href={`mailto:${siteConfig.contact.email}`}
@@ -334,7 +278,7 @@ export default function Footer({
                   {siteConfig.contact.email}
                 </a>
               </li>
-              <li className="flex items-start gap-3">
+              <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-[var(--brand-primary-dark)]" />
                 <a
                   href={siteConfig.address.googleMapsUrl}
@@ -346,6 +290,40 @@ export default function Footer({
                 </a>
               </li>
             </ul>
+
+            {/* Featured Products */}
+            {featuredProducts.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="fw-heading text-sm text-foreground mb-3 uppercase tracking-wider">
+                  Featured Products
+                </h4>
+                {featuredProducts.map((product: FeaturedProduct) => (
+                  <Link
+                    key={product._id}
+                    href={`/product-details/${product.slug}`}
+                    className="flex items-center gap-3 p-2 rounded-lg border border-border hover:border-[var(--brand-primary)] hover:shadow-md transition-all duration-200 group bg-background/40"
+                  >
+                    <div className="relative w-14 h-14 flex-shrink-0 rounded-md overflow-hidden bg-muted">
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        sizes="56px"
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h5 className="fw-body text-sm text-foreground truncate group-hover:text-[var(--brand-primary-dark)] transition-colors">
+                        {product.name}
+                      </h5>
+                      <p className="text-sm fw-body text-[var(--brand-primary-dark)] flex items-center">
+                        <IndianRupee size={12} /> {product.discount_price}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

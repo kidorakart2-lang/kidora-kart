@@ -1,6 +1,8 @@
-# Kidora Kart — Category Hierarchy
+# Jewellery Walla — Category Hierarchy
 
-> Simplified category hierarchy focused on basic kids toys.
+> Simplified category hierarchy for a jewellery e-commerce store.
+> Categories are managed at runtime through the admin panel (`/dashboard/categories`).
+> The legacy `scripts/seed-categories.js` seeder has been removed.
 
 ---
 
@@ -8,127 +10,133 @@
 
 | # | Name | Slug | Order | Description |
 |---|------|------|-------|-------------|
-| 1 | Soft Toys & Dolls | soft-toys-dolls | 1 | Plush toys, teddy bears, dolls and accessories |
-| 2 | Educational Toys | educational-toys | 2 | STEM kits, puzzles, and learning aids |
-| 3 | Action Figures & Playsets | action-figures-playsets | 3 | Action figures, building sets, and playsets |
-| 4 | Outdoor & Sports | outdoor-sports | 4 | Ride-ons, sports equipment, and outdoor play |
-| 5 | Arts & Crafts | arts-crafts | 5 | Drawing, painting, and creative activity sets |
-| 6 | Board Games & Puzzles | board-games-puzzles | 6 | Family games, card games, and jigsaw puzzles |
+| 1 | Rings | rings | 1 | Solitaires, couple rings, gold & silver rings |
+| 2 | Necklaces | necklaces | 2 | Gold, silver, temple & layered necklaces |
+| 3 | Earrings | earrings | 3 | Studs, drops & danglers, jhumkas, hoops |
+| 4 | Bangles | bangles | 4 | Gold bangles, silver bangles, kadas |
+| 5 | Bracelets | bracelets | 5 | Chain & beaded bracelets |
+| 6 | Pendants & Chains | pendants-chains | 6 | Gold/silver chains and pendants |
+| 7 | Mangalsutra | mangalsutra | 7 | Gold & diamond mangalsutra |
+| 8 | Bridal Sets | bridal-sets | 8 | Necklace sets, earrings & bangles for brides |
+| 9 | Men's Jewellery | mens-jewellery | 9 | Chains, rings & bracelets for men |
+| 10 | Personalised Jewellery | personalised-jewellery | 10 | Name necklaces, initial rings, custom engraving |
+| 11 | Gift Items | gift-items | 11 | Jewellery boxes & gift sets |
 
 ---
 
 ## Sub-Categories (Level 2)
 
-### 1. Soft Toys & Dolls
+### 1. Rings
 
 | Name | Slug | Order |
 |------|------|-------|
-| Teddy Bears | teddy-bears | 1 |
-| Character Plush | character-plush | 2 |
-| Baby Dolls | baby-dolls | 3 |
-| Puppets | puppets | 4 |
+| Solitaire Rings | solitaire-rings | 1 |
+| Couple Rings | couple-rings | 2 |
+| Gold Rings | gold-rings | 3 |
+| Silver Rings | silver-rings | 4 |
 
-### 2. Educational Toys
-
-| Name | Slug | Order |
-|------|------|-------|
-| STEM Kits | stem-kits | 1 |
-| Puzzles | puzzles | 2 |
-| Flash Cards & Books | flash-cards-books | 3 |
-| Math & Logic Games | math-logic-games | 4 |
-
-### 3. Action Figures & Playsets
+### 2. Necklaces
 
 | Name | Slug | Order |
 |------|------|-------|
-| Superhero Figures | superhero-figures | 1 |
-| Building Sets | building-sets | 2 |
-| Vehicle Playsets | vehicle-playsets | 3 |
+| Gold Necklaces | gold-necklaces | 1 |
+| Silver Necklaces | silver-necklaces | 2 |
+| Temple Necklaces | temple-necklaces | 3 |
+| Layered Necklaces | layered-necklaces | 4 |
 
-### 4. Outdoor & Sports
-
-| Name | Slug | Order |
-|------|------|-------|
-| Sports Equipment | sports-equipment | 1 |
-| Water Toys | water-toys | 2 |
-| Ride-Ons | ride-ons | 3 |
-| Play Tents & Tunnels | play-tents-tunnels | 4 |
-
-### 5. Arts & Crafts
+### 3. Earrings
 
 | Name | Slug | Order |
 |------|------|-------|
-| Drawing & Coloring | drawing-coloring | 1 |
-| Clay & Modeling | clay-modeling | 2 |
-| DIY Craft Kits | diy-craft-kits | 3 |
-| Painting Sets | painting-sets | 4 |
+| Studs | studs | 1 |
+| Drops & Danglers | drops-danglers | 2 |
+| Jhumkas | jhumkas | 3 |
+| Hoops | hoops | 4 |
 
-### 6. Board Games & Puzzles
+### 4. Bangles
 
 | Name | Slug | Order |
 |------|------|-------|
-| Family Board Games | family-board-games | 1 |
-| Card Games | card-games | 2 |
-| Jigsaw Puzzles | jigsaw-puzzles | 3 |
+| Gold Bangles | gold-bangles | 1 |
+| Silver Bangles | silver-bangles | 2 |
+| Kada | kada | 3 |
+
+### 5. Bracelets
+
+| Name | Slug | Order |
+|------|------|-------|
+| Chain Bracelets | chain-bracelets | 1 |
+| Beaded Bracelets | beaded-bracelets | 2 |
+
+### 6. Pendants & Chains
+
+| Name | Slug | Order |
+|------|------|-------|
+| Gold Chains | gold-chains | 1 |
+| Silver Chains | silver-chains | 2 |
+| Pendants | pendants | 3 |
+
+### 7. Mangalsutra
+
+| Name | Slug | Order |
+|------|------|-------|
+| Gold Mangalsutra | gold-mangalsutra | 1 |
+| Diamond Mangalsutra | diamond-mangalsutra | 2 |
+
+### 8. Bridal Sets
+
+| Name | Slug | Order |
+|------|------|-------|
+| Bridal Necklace Sets | bridal-necklace-sets | 1 |
+| Bridal Earrings | bridal-earrings | 2 |
+| Bridal Bangles | bridal-bangles | 3 |
+
+### 9. Men's Jewellery
+
+| Name | Slug | Order |
+|------|------|-------|
+| Men's Chains | mens-chains | 1 |
+| Men's Rings | mens-rings | 2 |
+| Men's Bracelets | mens-bracelets | 3 |
+
+### 10. Personalised Jewellery
+
+| Name | Slug | Order |
+|------|------|-------|
+| Name Necklaces | name-necklaces | 1 |
+| Initial Rings | initial-rings | 2 |
+| Custom Engraving | custom-engraving | 3 |
+
+### 11. Gift Items
+
+| Name | Slug | Order |
+|------|------|-------|
+| Jewellery Boxes | jewellery-boxes | 1 |
+| Jewellery Gift Sets | jewellery-gift-sets | 2 |
 
 ---
 
 ## Sub-Sub-Categories (Level 3)
 
-### 2.2 Puzzles
-
-| Name | Slug | Order |
-|------|------|-------|
-| Wooden Puzzles | wooden-puzzles | 1 |
-| Floor Puzzles | floor-puzzles | 2 |
-| 3D Puzzles | 3d-puzzles | 3 |
-| Alphabet & Number Puzzles | alphabet-number-puzzles | 4 |
-
-### 3.1 Superhero Figures
-
-| Name | Slug | Order |
-|------|------|-------|
-| Marvel Action Figures | marvel-action-figures | 1 |
-| DC Action Figures | dc-action-figures | 2 |
-| Movie Character Figures | movie-character-figures | 3 |
-
-### 3.2 Building Sets
-
-| Name | Slug | Order |
-|------|------|-------|
-| Classic Building Blocks | classic-building-blocks | 1 |
-| Magnetic Building Sets | magnetic-building-sets | 2 |
-| Construction Fort Kits | construction-fort-kits | 3 |
-
-### 4.1 Sports Equipment
-
-| Name | Slug | Order |
-|------|------|-------|
-| Cricket Sets | cricket-sets | 1 |
-| Football & Soccer | football-soccer | 2 |
-| Basketball Sets | basketball-sets | 3 |
-
-### 6.1 Family Board Games
-
-| Name | Slug | Order |
-|------|------|-------|
-| Classic Board Games | classic-board-games | 1 |
-| Educational Board Games | educational-board-games | 2 |
-| Party Games | party-games | 3 |
-
-### 6.2 Card Games
-
-| Name | Slug | Order |
-|------|------|-------|
-| Memory Card Games | memory-card-games | 1 |
-| Matching Games | matching-games | 2 |
-| UNO & Party Card Games | uno-party-card-games | 3 |
+| Parent Sub-Category | Name | Slug | Order |
+|--------------------|------|------|-------|
+| Solitaire Rings | Diamond Solitaires | diamond-solitaires | 1 |
+| Solitaire Rings | Gold Solitaires | gold-solitaires | 2 |
+| Jhumkas | Traditional Jhumkas | traditional-jhumkas | 1 |
+| Jhumkas | Contemporary Jhumkas | contemporary-jhumkas | 2 |
+| Gold Necklaces | Antique Gold Necklaces | antique-gold-necklaces | 1 |
+| Gold Necklaces | Modern Gold Necklaces | modern-gold-necklaces | 2 |
+| Men's Chains | Rope Chains | rope-chains | 1 |
+| Men's Chains | Curb Chains | curb-chains | 2 |
+| Men's Chains | Bold Link Chains | bold-link-chains | 3 |
+| Jewellery Gift Sets | Birthday Gift Sets | birthday-gift-sets | 1 |
+| Jewellery Gift Sets | Anniversary Gift Sets | anniversary-gift-sets | 2 |
 
 ---
 
-## Summary
+## Notes
 
-- **6** Top-level categories
-- **22** Sub-categories
-- **19** Sub-sub-categories
-- **Total: 47** hierarchical nodes
+- The seeder relies on the API's slug generation, so names map to slugs
+  automatically (dashes, lowercased, special characters stripped).
+- All categories support sub-categories; only select branches define a
+  third level (sub-sub-categories).

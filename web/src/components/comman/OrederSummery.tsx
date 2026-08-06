@@ -120,6 +120,11 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
                       {item.colorName}
                     </span>
                   )}
+                  {(item.sizeName || item.size?.name) && (
+                    <span className="text-xs text-brand-600 fw-cta bg-brand-50 border border-brand-200 rounded-full px-2 py-0.5 ml-1">
+                      Size: {item.sizeName || item.size?.name}
+                    </span>
+                  )}
                   {item.variantName && (
                     <span className="text-xs text-brand-600 fw-cta bg-brand-50 border border-brand-200 rounded-full px-2 py-0.5 ml-1">
                       {item.variantName}

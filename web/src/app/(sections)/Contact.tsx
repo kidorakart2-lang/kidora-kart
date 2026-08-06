@@ -155,9 +155,9 @@ export default function ContactPage() {
             <Card className="border-border shadow-lg">
               <CardContent className="p-8">
                 {isSubmitted && (
-                  <Alert className="mb-6 bg-green-50 border-green-200 anim-fill-both anim-name-fade-in anim-name-slide-top anim-duration-500">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <AlertDescription className="text-green-800">
+                  <Alert className="mb-6 bg-amber-50 border-amber-200 anim-fill-both anim-name-fade-in anim-name-slide-top anim-duration-500">
+                    <CheckCircle2 className="h-4 w-4 text-amber-600" />
+                    <AlertDescription className="text-amber-800">
                       Thank you! Your message has been sent successfully. We'll
                       respond within 24 hours.
                     </AlertDescription>

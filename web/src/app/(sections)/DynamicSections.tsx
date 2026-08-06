@@ -6,7 +6,6 @@ import {
   getHomeSections,
   getWebsiteBanners,
   fetchProducts,
-  fetchProductsBySearch,
   fetchTestimonials,
   type HomeSection,
 } from "@/lib/home-data";
@@ -36,6 +35,9 @@ const VideoSection = dynamic(() => import("./VideoSection").then((m) => ({ defau
   loading: () => <div className="h-[65vh] bg-muted animate-pulse mx-auto" />,
 });
 const BentoGrid = dynamic(() => import("@/components/bento"), {
+  loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
+});
+const ProductsTab = dynamic(() => import("./ProductsTab"), {
   loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
 });
 
@@ -110,20 +112,9 @@ async function DynamicSection({ section }: { section: HomeSection }) {
     }
 
     case "products-tab": {
-      const searchTerms = ((cfg.searchTerms as string) ?? "action-figures,board-games,puzzles")
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
-      // We render a simplified version since the TabProducts component
-      // expects specific data structure. For dynamic sections, we
-      // render Slider components per search term.
-      return (
-        <>
-          {searchTerms.map((term) => (
-            <ProductsTabSection key={term} searchTerm={term} heading={cfg.heading as string} />
-          ))}
-        </>
-      );
+      const searchTerms = (cfg.searchTerms as string | undefined) ?? undefined;
+      const heading = (cfg.heading as string | undefined) ?? undefined;
+      return <ProductsTab heading={heading} searchTerms={searchTerms} />;
     }
 
     case "shop-by-price":
@@ -165,7 +156,7 @@ async function DynamicSection({ section }: { section: HomeSection }) {
     case "bento-grid": {
       const heading = cfg.heading as string | undefined;
       const layout = cfg.layout as string | undefined;
-      const cells = cfg.cells as { image?: string; title?: string; subtitle?: string; linkType?: string; linkTarget?: string; linkExternalUrl?: string }[] | undefined;
+      const cells = cfg.cells as { image?: string; title?: string; subtitle?: string; linkType?: string; linkTarget?: string; linkExternalUrl?: string; sourceType?: string }[] | undefined;
       if (!cells || cells.length === 0) return null;
       return <BentoGrid heading={heading} layout={layout} cells={cells} />;
     }
@@ -184,20 +175,6 @@ async function DynamicSection({ section }: { section: HomeSection }) {
     default:
       return null;
   }
-}
-
-// ── Helper: Products tab section ──
-
-async function ProductsTabSection({
-  searchTerm,
-  heading,
-}: {
-  searchTerm: string;
-  heading?: string;
-}) {
-  const products = await fetchProductsBySearch(searchTerm);
-  if (!products || products.length === 0) return null;
-  return <Slider data={products} heading={heading || searchTerm} />;
 }
 
 // ── Banner helper ──

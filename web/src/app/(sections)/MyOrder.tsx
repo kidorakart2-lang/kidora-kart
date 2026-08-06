@@ -43,6 +43,7 @@ interface LocalOrderItem {
   quantity: number;
   priceAtPurchase: number;
   color?: { code: string; name: string };
+  sizeId?: { _id?: string; name: string; value?: string } | string | null;
   isPersonalized: boolean;
   personalizedName?: string;
   variantName?: string;
@@ -117,8 +118,8 @@ export default function MyOrders() {
   const statusColors: Record<string, string> = {
     pending: "bg-muted text-muted-foreground border-border",
     confirmed: "bg-muted text-muted-foreground border-border",
-    shipped: "bg-blue-50 text-blue-700 border-blue-200",
-    delivered: "bg-green-100 text-green-800 border-green-300",
+    shipped: "bg-rose-50 text-rose-700 border-rose-200",
+    delivered: "bg-amber-100 text-amber-800 border-amber-300",
     cancelled: "bg-muted text-muted-foreground border-border",
     payment_failed: "bg-red-100 text-red-800 border-red-300",
   };
@@ -274,6 +275,17 @@ export default function MyOrders() {
                                 {item.variantName && (
                                   <p className="text-sm text-brand-600 fw-cta">
                                     🎁 {item.variantName}
+                                  </p>
+                                )}
+                                {/* Size display */}
+                                {item.sizeId && (
+                                  <p className="text-sm text-muted-foreground">
+                                    Size:{" "}
+                                    <span className="font-medium text-foreground">
+                                      {typeof item.sizeId === "string"
+                                        ? item.sizeId
+                                        : item.sizeId?.name}
+                                    </span>
                                   </p>
                                 )}
                                 {/* Color display */}

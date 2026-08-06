@@ -15,15 +15,15 @@ import type { ColorItem, MaterialItem } from "@/types";
 // export const revalidate = 3600;
 
 export const metadata = {
-  title: `Shop Toys Online - ${siteConfig.name} | Toys & Games Collection`,
-  description: `Browse our extensive collection of toys and games in Jodhpur. Shop action figures, dolls, educational toys, board games, puzzles, and more. Fun and quality toys for kids of all ages.`,
-  keywords: `buy toys online jodhpur, kids toys collection, toy shop, children gifts, educational toys, ${siteConfig.categories.join(
+  title: `Shop Jewellery Online - ${siteConfig.name} | Handcrafted Collection`,
+  description: `Browse our extensive collection of handcrafted jewellery in Jodhpur. Shop rings, earrings, necklaces, bangles, and more. Elegant designs crafted with care for every occasion.`,
+  keywords: `buy jewellery online jodhpur, gold jewellery collection, jewellery shop, bridal jewellery, gift jewellery, ${siteConfig.categories.join(
     ", "
   )}`,
   openGraph: {
-    title: `Shop Toys Online - ${siteConfig.name}`,
+    title: `Shop Jewellery Online - ${siteConfig.name}`,
     description:
-      "Explore our curated collection of toys and games. From educational to fun-filled play.",
+      "Explore our curated collection of handcrafted jewellery. From classic to contemporary designs.",
     url: `${siteConfig.url}/category`,
     type: "website",
   },
@@ -241,7 +241,7 @@ async function CategoryContent({
       : subCategorySlug
       ? subCategorySlug.replace(/[-0-9]/g, " ")
       : categorySlug.replace(/[-0-9]/g, " "),
-    description: `Shop ${subSubCategorySlug || subCategorySlug || categorySlug} toy collection at ${siteConfig.name}. Browse our curated selection of toys and games.`,
+    description: `Shop ${subSubCategorySlug || subCategorySlug || categorySlug} jewellery collection at ${siteConfig.name}. Browse our curated selection of handcrafted jewellery.`,
     url: `${siteConfig.url}/category/${slug.join("/")}`,
     breadcrumb: { "@type": "BreadcrumbList", itemListElement: breadcrumbItems },
     mainEntity: {

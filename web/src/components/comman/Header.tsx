@@ -18,22 +18,13 @@ import { siteConfig } from "@/lib/utils";
 import AnnouncementBar from "./AnnouncementBar";
 import MobileNav from "./MobileNav";
 import DesktopNav from "./DesktopNav";
-import SearchPanel from "./SearchPanel";
+import { SearchBar } from "./SearchBar";
 import IconGroup from "./IconGroup";
 import type { CategoryItem } from "./header-types";
 
 interface HeaderProps {
   navigationData: UiNavigationData;
 }
-
-const pagesLinks = [
-  { name: "Home", href: "/" },
-  { name: "Contact Us", href: "/contact-us" },
-  { name: "Track Order", href: "/order-track" },
-  { name: "FAQ", href: "/faq" },
-  { name: "Terms & Conditions", href: "/terms-and-condition" },
-  { name: "Our Policy", href: "/our-policy" },
-];
 
 export default function Header({ navigationData }: HeaderProps) {
   const [isOffcanvasOpen, setIsOffcanvasOpen] = useState(false);
@@ -164,15 +155,6 @@ export default function Header({ navigationData }: HeaderProps) {
             })) ?? [],
         })) ?? [],
     }));
-    cats.push({
-      name: "Pages",
-      slug: "pages",
-      subCategories: pagesLinks.map((p) => ({
-        name: p.name,
-        slug: p.href,
-        subSubCategories: [],
-      })),
-    });
     return cats;
   }, [navigationData]);
 
@@ -180,47 +162,68 @@ export default function Header({ navigationData }: HeaderProps) {
     <>
       <AnnouncementBar />
 
-      <header
-        className={`sticky top-0 left-0 z-[190] w-full bg-background/95 backdrop-blur border-b border-border transition-[box-shadow] duration-500  ${
-          isScrolled ? "shadow-sm" : ""
-        }`}
-      >
+      <header className="w-full bg-background/95 z-[190] sticky top-0 left-0 shadow-lg border-b border-[color-mix(in_srgb,var(--brand-primary)_15%,transparent)]">
+        {/* ── Row 1: Logo + Search + Icons ── */}
         <div
-          className={`flex items-center gap-4 md:gap-6 px-4 md:px-6 w-full transition-[padding] duration-200 ${
-            isScrolled ? "py-2" : "py-4"
+          className={`w-full border-b border-[color-mix(in_srgb,var(--brand-primary)_15%,transparent)] bg-background/95 transition-all duration-500 ${
+            isScrolled ? "py-2 shadow-md" : "py-4"
           }`}
         >
-          <button
-            className="md:hidden shrink-0 grid place-items-center size-9 -ml-1.5 rounded-lg hover:bg-muted text-foreground transition-colors"
-            aria-label="Open navigation menu"
-            onClick={() => setIsOffcanvasOpen(true)}
-          >
-            <Menu size={22} />
-          </button>
+          <div className="flex items-center justify-between px-4 md:px-6 w-full">
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden shrink-0 grid place-items-center size-10 -ml-1.5 rounded-xl hover:bg-[color-mix(in_srgb,var(--brand-primary)_8%,transparent)] text-foreground transition-colors"
+              aria-label="Open navigation menu"
+              onClick={() => setIsOffcanvasOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
 
-          <Link href="/" className="shrink-0 flex items-center">
-            <Image
-              src={logo || "/images/logo.webp"}
-              alt={siteConfig.name}
-              width={140}
-              height={140}
-              className={`w-auto object-contain transition-all duration-200 ${isScrolled ? "h-9" : "h-11"}`}
+            {/* Logo */}
+            <Link href="/" className="group shrink-0">
+              <Image
+                src={logo || "/images/logo.webp"}
+                alt={siteConfig.name}
+                width={100}
+                height={100}
+                className={`w-auto object-contain cursor-pointer transition-all duration-500 group-hover:scale-105 ${
+                  isScrolled ? "h-8" : "h-12"
+                }`}
+              />
+            </Link>
+
+            {/* Desktop Search */}
+            <div className="hidden lg:block flex-1 px-6">
+              <SearchBar className="w-full max-w-xl mx-auto" inputId="header-search-inline" />
+            </div>
+
+            {/* Icons */}
+            <IconGroup
+              isSearchOpen={isSearchOpen}
+              onToggleSearch={() => setIsSearchOpen((v) => !v)}
+              cartCount={cartCount}
+              wishlistCount={wishlistCount}
+              isLoggedIn={isLoggedIn}
+              user={user}
             />
-          </Link>
+          </div>
 
-          <DesktopNav categories={allCategories} />
-
-          <IconGroup
-            isSearchOpen={isSearchOpen}
-            onToggleSearch={() => setIsSearchOpen((v) => !v)}
-            cartCount={cartCount}
-            wishlistCount={wishlistCount}
-            isLoggedIn={isLoggedIn}
-            user={user}
-          />
+          {/* Mobile Search Bar */}
+          <div
+            ref={searchRef}
+            id="mobile-search-bar"
+            className={`w-full lg:hidden transition-all duration-300 ${
+              isSearchOpen
+                ? "opacity-100 px-4 mt-3 mb-2"
+                : "max-h-0 opacity-0 overflow-hidden"
+            }`}
+          >
+            <SearchBar className="relative" inputId="header-search-mobile" />
+          </div>
         </div>
 
-        <SearchPanel ref={searchRef} isOpen={isSearchOpen} />
+        {/* ── Row 2: Category Navbar ── */}
+        <DesktopNav categories={allCategories} />
       </header>
 
       <MobileNav

@@ -6,6 +6,7 @@ import SubCategory from "../../models/subCategory.js";
 import { logger } from "../../lib/logger.js";
 import SubSubCategory from "../../models/subSubCategory.js";
 import Color from "../../models/color.js";
+import Size from "../../models/size.js";
 import { uploadToR2, deleteFromR2, getPublicUrlBase } from "../../lib/cloudflare.js";
 import { generateUniqueSlug } from "../../lib/slugFunc.js";
 import cache from "../../lib/cache.js";
@@ -13,6 +14,7 @@ import cache from "../../lib/cache.js";
 const POPULATE_PRODUCT = [
   { path: "colors", select: "name code" },
   { path: "material", select: "name" },
+  { path: "sizes", select: "name" },
   { path: "category", select: "name slug" },
   { path: "subCategory", select: "name slug" },
   { path: "subSubCategory", select: "name slug" },
@@ -157,7 +159,7 @@ export const create = async (
         String(now.getMonth() + 1).padStart(2, "0") +
         String(now.getDate()).padStart(2, "0");
       const random = crypto.randomUUID().replace(/-/g, "").substring(0, 8).toUpperCase();
-      updateData.sku = `TOY-${yymmdd}-${random}`;
+      updateData.sku = `JWL-${yymmdd}-${random}`;
     }
 
     // ── Price & discount price mutual validation ──
@@ -173,18 +175,6 @@ export const create = async (
     const discountVal = Number(updateData.discount_price);
     if (!isNaN(priceVal) && !isNaN(discountVal) && discountVal > priceVal) {
       throw new Error("Discount price must be less than or equal to the original price");
-    }
-
-    // ── Age validation ──
-    const minAge = Number(updateData.minimumAge);
-    const maxAge = Number(updateData.maximumAge);
-    if (!isNaN(minAge) && !isNaN(maxAge) && minAge >= maxAge) {
-      throw new Error("Minimum age must be less than maximum age");
-    }
-
-    const idealAge = Number(updateData.idealAge);
-    if (!isNaN(idealAge) && !isNaN(minAge) && !isNaN(maxAge) && (idealAge < minAge || idealAge > maxAge)) {
-      throw new Error("Ideal age must be between minimum age and maximum age");
     }
 
     // ── Stock validation ──
@@ -258,6 +248,17 @@ export const create = async (
         const colorExists = await Color.findById(colorId as string).select("_id").lean();
         if (!colorExists) {
           throw new Error(`Color with ID ${colorId} not found`);
+        }
+      }
+    }
+
+    // ── Sizes validation ──
+    if (updateData.sizes) {
+      const sizeIds = Array.isArray(updateData.sizes) ? updateData.sizes : [updateData.sizes];
+      for (const sizeId of sizeIds) {
+        const sizeExists = await Size.findById(sizeId as string).select("_id").lean();
+        if (!sizeExists) {
+          throw new Error(`Size with ID ${sizeId} not found`);
         }
       }
     }
@@ -347,7 +348,7 @@ export const view = async (
     const [total, products] = await Promise.all([
       Product.countDocuments(query),
       Product.find(query)
-        .select("name slug image images giftImages price discount_price stock status description shortDescription weight code length height breadth minimumAge idealAge maximumAge type sku tags videoUrl estimated_delivery_time isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material createdAt order variants")
+        .select("name slug image images giftImages price discount_price stock status description shortDescription weight code length height breadth purity sizes type sku tags videoUrl estimated_delivery_time isFeatured isNewArrival isBestSeller isOnSale isUpsell category subCategory subSubCategory colors material createdAt order variants")
         .sort(sort as string)
         .skip(skip)
         .limit(limit)
@@ -415,7 +416,7 @@ export const update = async (
     const removeGiftImagesUrl: string[] = (updateData.removeGiftImagesUrl as string[]) ?? [];
 
     const existingProduct = await Product.findOne({ _id: id, deletedAt: null })
-      .select("name images giftImages videoUrl category subCategory subSubCategory slug")
+      .select("name images giftImages videoUrl category subCategory subSubCategory sizes slug")
       .lean();
     if (!existingProduct) {
       throw new Error("Product not found");
@@ -510,20 +511,6 @@ export const update = async (
       const discountVal = Number(updateData.discount_price);
       if (!isNaN(priceVal) && !isNaN(discountVal) && discountVal > priceVal) {
         throw new Error("Discount price must be less than or equal to the original price");
-      }
-    }
-
-    // ── Age validation (only if fields were actually sent) ──
-    if (updateData.minimumAge !== undefined || updateData.maximumAge !== undefined || updateData.idealAge !== undefined) {
-      const minAge = Number(updateData.minimumAge);
-      const maxAge = Number(updateData.maximumAge);
-      if (!isNaN(minAge) && !isNaN(maxAge) && minAge >= maxAge) {
-        throw new Error("Minimum age must be less than maximum age");
-      }
-
-      const idealAge = Number(updateData.idealAge);
-      if (!isNaN(idealAge) && !isNaN(minAge) && !isNaN(maxAge) && (idealAge < minAge || idealAge > maxAge)) {
-        throw new Error("Ideal age must be between minimum age and maximum age");
       }
     }
 
@@ -659,6 +646,31 @@ export const update = async (
           const colorExists = await Color.findById(colorId);
           if (!colorExists) {
             throw new Error(`Color with ID ${colorId} not found`);
+          }
+        }
+      }
+    }
+
+    // ── Sizes validation (only if field was actually sent) ──
+    if (updateData.sizes !== undefined) {
+      const sizeIds = Array.isArray(updateData.sizes)
+        ? updateData.sizes
+        : [updateData.sizes];
+      const existingSizeIds: string[] = existingProduct.sizes
+        ? Array.isArray(existingProduct.sizes)
+          ? (existingProduct.sizes as Array<{ toString(): string }>).map((s) => s.toString())
+          : [(existingProduct.sizes as { toString(): string }).toString()]
+        : [];
+
+      const sizesChanged =
+        JSON.stringify(sizeIds.sort()) !==
+        JSON.stringify(existingSizeIds.sort());
+
+      if (sizesChanged) {
+        for (const sizeId of sizeIds) {
+          const sizeExists = await Size.findById(sizeId);
+          if (!sizeExists) {
+            throw new Error(`Size with ID ${sizeId} not found`);
           }
         }
       }
@@ -834,7 +846,7 @@ export const getByCategory = async (
       ],
     })
       .populate(POPULATE_PRODUCT)
-      .select("name slug image images giftImages price discount_price stock status weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material order createdAt variants")
+      .select("name slug image images giftImages price discount_price stock status weight length height breadth purity sizes type sku tags videoUrl category subCategory subSubCategory colors material order createdAt variants")
       .sort(sort)
       .limit(cappedLimit)
       .skip(skip)
@@ -903,7 +915,7 @@ export const getProductByFilter = async (
 
     const products = await Product.find(query)
       .populate(POPULATE_PRODUCT)
-      .select("name slug image images giftImages price discount_price stock weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl category subCategory subSubCategory colors material variants")
+      .select("name slug image images giftImages price discount_price stock weight length height breadth purity sizes type sku tags videoUrl category subCategory subSubCategory colors material variants")
       .limit(Math.min(Number(limit), 100))
       .sort("-createdAt")
       .lean();

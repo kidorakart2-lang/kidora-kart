@@ -8,6 +8,8 @@ export interface CartItemInput {
    *  the server derives price + quantity from the stored variant — the
    *  client-supplied quantity/price are ignored (tamper-proof). */
   variantId?: string;
+  /** Optional jewellery size (ring size, bangle size, etc.). */
+  sizeId?: string;
 }
 
 export interface ValidatedItem {
@@ -23,6 +25,8 @@ export interface ValidatedItem {
   priceAtPurchase: number;
   subtotal: number;
   variantName?: string;
+  /** Jewellery size selected at purchase time (null when not applicable). */
+  sizeId?: string | null;
 }
 
 export interface ItemError {
@@ -207,6 +211,7 @@ export async function validateAndPriceCart(
     validItems.push({
       productId: String(product._id),
       colorId: item.colorId,
+      sizeId: item.sizeId ?? null,
       name: product.name,
       description: product.description ?? "",
       image: product.image,

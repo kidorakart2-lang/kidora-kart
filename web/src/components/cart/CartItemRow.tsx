@@ -64,6 +64,13 @@ export default function CartItemRow({
                   <span className="text-xs text-muted-foreground">{item.color.name}</span>
                 </div>
               )}
+
+              {/* Size indicator */}
+              {item.size?.name && (
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  Size: <span className="font-medium text-foreground">{item.size.name}</span>
+                </p>
+              )}
             </div>
 
             <button

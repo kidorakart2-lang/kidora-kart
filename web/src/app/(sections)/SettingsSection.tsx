@@ -158,7 +158,7 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
                     </span>
                   )}
                   {data?.isEmailVerified && (
-                    <CheckCircle size={16} className="text-green-600" />
+                    <CheckCircle size={16} className="text-amber-600" />
                   )}
                 </p>
                 <p className="text-sm text-muted-foreground">

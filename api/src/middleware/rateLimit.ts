@@ -35,10 +35,6 @@ interface RateLimiters {
   orderRead: RequestHandler;
   /** Public product listing endpoints — generous limit to prevent scraping */
   publicProducts: RequestHandler;
-  /** Public tracking endpoint — stricter limit to prevent abuse */
-  trackShipment: RequestHandler;
-  /** Public shipping estimate — moderate limit */
-  shippingEstimate: RequestHandler;
   /** Public reverse-geocode (checkout location autofill) — moderate limit */
   reverseGeocode: RequestHandler;
 }
@@ -168,18 +164,6 @@ const rateLimiters: RateLimiters = {
   }),
 
   /**
-   * Public tracking endpoint — rate limited per IP to prevent abuse.
-   * 15 requests per minute is enough for normal manual tracking
-   * but prevents automated scraping via the public endpoint.
-   */
-  trackShipment: rateLimit({
-    ...defaults,
-    windowMs: 60 * 1000,
-    max: 15,
-    message: jsonMessage("Too many tracking requests. Please try again in a minute."),
-  }),
-
-  /**
    * Admin login — strict limit to prevent brute-force attacks.
    * 10 attempts per 15 minutes is reasonable for a single admin.
    */
@@ -258,14 +242,6 @@ const rateLimiters: RateLimiters = {
     windowMs: 60 * 1000,
     max: 60,
     message: jsonMessage("Too many requests. Please slow down."),
-  }),
-
-  /** Shipping estimate — also public, moderate limit */
-  shippingEstimate: rateLimit({
-    ...defaults,
-    windowMs: 60 * 1000,
-    max: 30,
-    message: jsonMessage("Too many requests. Please try again in a minute."),
   }),
 
   /**

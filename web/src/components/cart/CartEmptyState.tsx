@@ -33,7 +33,7 @@ export default function CartEmptyState() {
             Your Cart is Empty
           </h2>
           <p className="text-muted-foreground fw-body text-sm leading-relaxed max-w-sm mx-auto">
-            Looks like you haven&apos;t added anything yet. Explore our collection of toys and games to find something special!
+            Looks like you haven&apos;t added anything yet. Explore our collection of handcrafted jewellery to find something special!
           </p>
         </div>
 

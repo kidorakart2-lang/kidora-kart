@@ -78,26 +78,6 @@ export async function fetchProducts(
   }
 }
 
-export async function fetchProductsBySearch(
-  term: string,
-): Promise<any[]> {
-  "use cache";
-  cacheLife("search");
-  cacheTag(TAG_PRODUCTS);
-
-  try {
-    const res = await serverFetch(
-      `/api/website/product/get-by-search?search=${encodeURIComponent(term)}&limit=8`,
-      { timeout: 5000 },
-    );
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data._data ?? [];
-  } catch {
-    return [];
-  }
-}
-
 // ── Testimonials ───────────────────────────────────────────────────────
 
 export async function fetchTestimonials(): Promise<any> {

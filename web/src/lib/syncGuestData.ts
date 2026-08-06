@@ -25,6 +25,7 @@ export async function syncGuestCartToServer(token: string, guestCartItems: CartS
             productId: item.productId,
             quantity: item.quantity,
             colorId: item.colorId,
+            sizeId: item.sizeId,
           }),
         }
       );

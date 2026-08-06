@@ -37,6 +37,12 @@ const productSchema = new Schema(
         required: [true, "Please Enter A Material"],
       },
     ],
+    sizes: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "sizes",
+      },
+    ],
     category: [
       {
         type: Schema.Types.ObjectId,
@@ -81,25 +87,10 @@ const productSchema = new Schema(
       type: Number,
       default: null,
     },
-    minimumAge: {
-      type: Number,
-      default: null,
-    },
-    idealAge: {
-      type: Number,
-      default: null,
-      validate: {
-        validator: function (this: any, value: number) {
-          // Skip validation if any age field is null/undefined
-          if (value == null || this.minimumAge == null || this.maximumAge == null) return true;
-          return value >= this.minimumAge && value <= this.maximumAge;
-        },
-        message: "Ideal age must be between minimum age and maximum age",
-      },
-    },
-    maximumAge: {
-      type: Number,
-      default: null,
+    purity: {
+      type: String,
+      required: [true, "Please enter a purity"],
+      trim: true,
     },
     type: {
       type: String,
@@ -235,7 +226,6 @@ productSchema.index({ deletedAt: 1, status: 1, discount_price: 1, order: -1, cre
 
 // Common indexes
 productSchema.index({ name: 1 });
-productSchema.index({ code: 1 }, { unique: true, sparse: true });
 productSchema.index({ order: -1, createdAt: -1 });
 
 // Full-text search index for product search

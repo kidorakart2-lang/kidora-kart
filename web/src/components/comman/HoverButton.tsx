@@ -14,17 +14,13 @@ export default function HoverButton({ href, label, color }: HoverButtonProps) {
     <Link href={href}>
       <button
         type="button"
-        className="group inline-flex items-center gap-3 rounded-full border-2 px-8 py-4 fw-cta text-sm uppercase tracking-wider transition-all duration-300 hover:text-white active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-section"
-        style={{
-          borderColor: color,
-          color: color,
-          ["--tw-ring-color" as string]: color,
-        }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.backgroundColor = color)
-        }
-        onMouseLeave={(e) =>
-          (e.currentTarget.style.backgroundColor = "transparent")
+        className="group inline-flex items-center gap-3 rounded-full border-2 px-8 py-4 fw-cta text-sm uppercase tracking-wider text-[var(--btn-color)] transition-all duration-300 hover:bg-[var(--btn-color)] hover:text-white active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-section"
+        style={
+          {
+            borderColor: color,
+            "--btn-color": color,
+            "--tw-ring-color": color,
+          } as React.CSSProperties
         }
       >
         View All {label}

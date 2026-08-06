@@ -1,8 +1,11 @@
 # Admin Panel UI/UX Audit — Plan
 
+> **Status:** Historical UI/UX audit plan. Re-verified on the `jewellery-walla` branch — items marked ✅ below are already fixed; the rest remain open. **Line numbers in the remaining items may have drifted** — treat them as approximate anchors.
+
 ## Critical (Must Fix)
 
-### C1. Hardcoded Colors That Break Theme System
+### C1. Hardcoded Colors That Break Theme System — ✅ Fixed
+> **Status:** ✅ Fixed — both error pages now use `bg-destructive/10` / `text-destructive`.
 **Files:** `app/error.tsx:19,49`, `app/dashboard/error.tsx:23,54`
 
 Both error pages use hardcoded `bg-red-100` and `text-red-600` — looks broken in dark/monochrome themes.
@@ -17,7 +20,8 @@ Both error pages use hardcoded `bg-red-100` and `text-red-600` — looks broken 
   <AlertCircle className="h-10 w-10 text-destructive" />
 ```
 
-### C2. Product Status Badge Hardcoded Colors
+### C2. Product Status Badge Hardcoded Colors — ✅ Fixed
+> **Status:** ✅ Fixed — badges now use `bg-emerald-500/10 text-emerald-600` / `bg-destructive/10 text-destructive` (line ~345).
 **File:** `app/dashboard/products/ProductPage.tsx:876-880`
 
 ```tsx
@@ -30,7 +34,8 @@ active: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
 inactive: "bg-destructive/10 text-destructive border-destructive/20",
 ```
 
-### C3. Sidebar Doesn't Close on Mobile After Navigation
+### C3. Sidebar Doesn't Close on Mobile After Navigation — ✅ Fixed
+> **Status:** ✅ Fixed — links close the mobile sheet (`setMobileSheetOpen(false)` on click).
 **File:** `components/sidebar.tsx:146-163`
 
 No `onClick` handler to close the sheet after tapping a link on mobile.
@@ -48,14 +53,16 @@ const linkContent = (
   >
 ```
 
-### C4. Duplicated Nav Definitions with Mismatched Names
+### C4. Duplicated Nav Definitions with Mismatched Names — ✅ Fixed
+> **Status:** ✅ Fixed — a single shared `lib/nav-items.ts` constant is used by both sidebar and header.
 **Files:** `components/sidebar.tsx:75` vs `components/header.tsx:55`
 
 Sidebar says "AI Responses", header says "AI Helpers". Two independent `menuItems` arrays.
 
 **Fix:** Extract a single shared `NAV_ITEMS` constant and import in both files.
 
-### C5. Dead/Misleading Revenue Chart Component
+### C5. Dead/Misleading Revenue Chart Component — ✅ Fixed
+> **Status:** ✅ Fixed — `revenue-chart.tsx` is no longer imported anywhere (`dashboard-charts.tsx` is the real chart).
 **File:** `components/revenue-chart.tsx:24-31`
 
 Contains hardcoded mock data. If imported anywhere, it misleads users. `dashboard-charts.tsx` is the real one.
@@ -66,7 +73,8 @@ Contains hardcoded mock data. If imported anywhere, it misleads users. `dashboar
 
 ## Important (Should Fix)
 
-### I1. Orders Page Uses useState/useEffect Instead of React Query
+### I1. Orders Page Uses useState/useEffect Instead of React Query — ✅ Fixed
+> **Status:** ✅ Fixed — `Orders.tsx` now uses `useQuery` / `useMutation` like the products page.
 **File:** `app/dashboard/orders/Orders.tsx:79-113`
 
 Unlike products and dashboard, orders manually manages loading state — no caching, no background refetch.

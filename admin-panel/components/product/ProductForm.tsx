@@ -12,10 +12,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Separator } from "@/components/ui/separator";
 import NewMultiSelect from "../NewMultiSelect";
 import TagsInput from "../TagsInput";
-import AiAssistButton from "@/components/ai-assist-button";
-import { Cloud, ChevronDown, X, Sparkles, Loader2, Plus } from "lucide-react";
+// AI-assisted writing is disabled for Jewellery Walla — re-enable by uncommenting.
+// import AiAssistButton from "@/components/ai-assist-button";
+import { Cloud, ChevronDown, X, Plus } from "lucide-react";
 import type { ProductFormData, BooleanKeys, ProductVariant } from "@/lib/types";
-import { AGE_OPTIONS } from "@/lib/products-api";
 
 type VariantField = keyof Pick<ProductVariant, "name" | "quantity" | "price" | "mrp">;
 
@@ -49,6 +49,8 @@ interface ProductFormProps {
   setSelectedColors: (v: string[]) => void;
   selectedMaterials: string[];
   setSelectedMaterials: (v: string[]) => void;
+  selectedSizes: string[];
+  setSelectedSizes: (v: string[]) => void;
   removeImagesUrl: string[];
   toggleRemoveImagesUrl: (url: string) => void;
   removeGiftImagesUrl: string[];
@@ -58,6 +60,7 @@ interface ProductFormProps {
   subSubCategories: { _id: string; name: string }[];
   colors: { _id: string; name: string; code: string }[];
   materials: { _id: string; name: string }[];
+  sizes: { _id: string; name: string }[];
   tagLoading: boolean;
   handleAutoTag: () => void;
   handleMainImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -106,9 +109,10 @@ export default function ProductForm({
   selectedSubSubCategory, setSelectedSubSubCategory,
   selectedColors, setSelectedColors,
   selectedMaterials, setSelectedMaterials,
+  selectedSizes, setSelectedSizes,
   removeImagesUrl, toggleRemoveImagesUrl,
   removeGiftImagesUrl, toggleRemoveGiftImagesUrl,
-  categories, subCategories, subSubCategories, colors, materials,
+  categories, subCategories, subSubCategories, colors, materials, sizes,
   tagLoading, handleAutoTag,
   handleMainImageChange, handleAdditionalImageChange,
   handleGiftImageChange,
@@ -144,30 +148,18 @@ export default function ProductForm({
         <div className="space-y-2 pb-4">
           <div className="flex items-center justify-between">
             <Label htmlFor="description">Full Description *</Label>
-            <AiAssistButton
-              context={{
-                name: formData.name,
-                category: selectedCategory.length ? categories.filter((c) => selectedCategory.includes(c._id)).map((c) => c.name).join(", ") : "",
-                material: selectedMaterials.length ? materials.filter((m) => selectedMaterials.includes(m._id)).map((m) => m.name).join(", ") : "",
-                type: formData.type, weight: formData.weight, price: formData.price,
-              }}
-              onResult={(text) => setFormData({ ...formData, description: text })}
-            />
+            {/* AI generate-with-AI button disabled for Jewellery Walla */}
+            {/* <AiAssistButton ... description ... /> */}
           </div>
           <Textarea id="description" value={formData.description} onChange={u("description")} placeholder="Enter full description" className="min-h-[120px]" required />
         </div>
         <div className="space-y-2 pt-4 border-t">
           <div className="flex items-center justify-between">
             <Label htmlFor="shortDescription">Short Description</Label>
-            <AiAssistButton
-              context={{ name: formData.name, category: selectedCategory.length ? categories.filter((c) => selectedCategory.includes(c._id)).map((c) => c.name).join(", ") : "", material: selectedMaterials.length ? materials.filter((m) => selectedMaterials.includes(m._id)).map((m) => m.name).join(", ") : "", type: formData.type, price: formData.price }}
-              onResult={(text) => setFormData({ ...formData, shortDescription: text })}
-              label="Generate Short Desc"
-              endpoint="/api/admin/ai/generate-short-description"
-            />
+            {/* AI generate-with-AI button disabled for Jewellery Walla */}
+            {/* <AiAssistButton ... short description ... /> */}
           </div>
-          <p className="text-xs text-muted-foreground">A concise 1-2 sentence summary shown on product cards and search results.</p>
-          <Input id="shortDescription" value={formData.shortDescription} onChange={u("shortDescription")} placeholder="e.g. A fun and educational building set for curious young minds" />
+          <p className="text-xs text-muted-foreground">A concise 1-2 sentence summary shown on product cards and search results.</p>            <Input id="shortDescription" value={formData.shortDescription} onChange={u("shortDescription")} placeholder="e.g. An elegant handcrafted gold necklace for festive occasions" />
         </div>
       </FormSection>
 
@@ -197,10 +189,8 @@ export default function ProductForm({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>Tags</Label>
-              <Button type="button" variant="outline" size="sm" disabled={!formData.name || tagLoading} onClick={handleAutoTag} className="gap-2">
-                {tagLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                {tagLoading ? "Generating..." : "Auto-tag with AI"}
-              </Button>
+              {/* AI auto-tag button disabled for Jewellery Walla */}
+              {/* <Button ... Auto-tag with AI ... /> */}
             </div>
             <div className="max-w-md">
               <TagsInput value={formData.tags} onChange={(tags) => setFormData({ ...formData, tags })} placeholder="Type a tag and press Enter" label="Product Tags" />
@@ -239,12 +229,12 @@ export default function ProductForm({
               className={!editingProduct ? "bg-muted/50 cursor-not-allowed" : ""}
             />
             {!editingProduct && (
-              <p className="text-xs text-muted-foreground">SKU is auto-generated server-side (format: <span className="font-mono">TOY-YYMMDD-XXXX</span>). You can edit it after creating the product.</p>
+              <p className="text-xs text-muted-foreground">SKU is auto-generated server-side (format: <span className="font-mono">JW-YYMMDD-XXXX</span>). You can edit it after creating the product.</p>
             )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="type">Type</Label>
-            <Input id="type" value={formData.type} onChange={u("type")} placeholder="e.g. Educational, Puzzle, Outdoor" />
+            <Input id="type" value={formData.type} onChange={u("type")} placeholder="e.g. Necklace, Ring, Bangles, Earrings" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="videoUrl">Video URL</Label>
@@ -285,20 +275,22 @@ export default function ProductForm({
         </div>
       </FormSection>
 
-      {/* Section 5: Age */}
-      <FormSection title="Age" defaultOpen={!isMobile}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-4">
-          {(["minimumAge", "idealAge", "maximumAge"] as const).map((field) => (
-            <div key={field} className="space-y-2">
-              <Label htmlFor={field}>{field === "minimumAge" ? "Minimum" : field === "idealAge" ? "Ideal" : "Maximum"} Age</Label>
-              <Select value={formData[field]} onValueChange={(val) => setFormData({ ...formData, [field]: val })}>
-                <SelectTrigger id={field}><SelectValue placeholder={`Select ${field.replace("Age", "")} age`} /></SelectTrigger>
-                <SelectContent>
-                  {AGE_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
-          ))}
+      {/* Section 5: Purity & Sizes */}
+      <FormSection title="Purity & Sizes" defaultOpen={!isMobile}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
+          <div className="space-y-2">
+            <Label htmlFor="purity">Purity</Label>
+            <Select value={formData.purity} onValueChange={(val) => setFormData({ ...formData, purity: val })}>
+              <SelectTrigger id="purity"><SelectValue placeholder="Select purity (e.g. 22K, 18K, 916 Hallmark)" /></SelectTrigger>
+              <SelectContent>
+                {["24K (999)", "22K (916)", "21K (875)", "18K (750)", "14K (585)", "Silver 925", "Silver 999"].map((opt) => (<SelectItem key={opt} value={opt}>{opt}</SelectItem>))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Sizes</Label>
+            <NewMultiSelect category={sizes} categoryId={selectedSizes} setCategoryId={setSelectedSizes} placeholder="Select sizes..." />
+          </div>
         </div>
       </FormSection>
 
@@ -477,12 +469,12 @@ export default function ProductForm({
               ))}
             </div>
           </div>
-          {formData.additionalImagePreviews?.some((url) => url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com"}/`)) && (
+          {formData.additionalImagePreviews?.some((url) => url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.jewellerywalla.com"}/`)) && (
             <div className="space-y-2">
               <Label>Images to Remove</Label>
               <div className="flex flex-col space-y-2">
                 {formData.additionalImagePreviews?.map((url, index) =>
-                  url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com"}/`) && (
+                  url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.jewellerywalla.com"}/`) && (
                     <div key={index} className="flex items-center space-x-2">
                       <input type="text" value={url} readOnly className="flex-1 border border-input rounded px-2 py-1 bg-background text-sm" />
                       <button type="button" onClick={() => toggleRemoveImagesUrl(url)} className="bg-destructive text-white rounded px-2 py-1 text-sm hover:bg-destructive/90">
@@ -517,12 +509,12 @@ export default function ProductForm({
               </div>
             ))}
           </div>
-          {formData.giftImagePreviews?.some((url) => url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com"}/`)) && (
+          {formData.giftImagePreviews?.some((url) => url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.jewellerywalla.com"}/`)) && (
             <div className="space-y-2">
               <Label>Gift Images to Remove</Label>
               <div className="flex flex-col space-y-2">
                 {formData.giftImagePreviews?.map((url, index) =>
-                  url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com"}/`) && (
+                  url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.jewellerywalla.com"}/`) && (
                     <div key={index} className="flex items-center space-x-2">
                       <input type="text" value={url} readOnly className="flex-1 border border-input rounded px-2 py-1 bg-background text-sm" />
                       <button type="button" onClick={() => toggleRemoveGiftImagesUrl(url)} className="bg-destructive text-white rounded px-2 py-1 text-sm hover:bg-destructive/90">

@@ -1,6 +1,6 @@
 # Admin Panel — Next.js Dashboard
 
-Next.js 16 admin dashboard with shadcn/ui components for managing the Kidora Kart e-commerce platform.
+Next.js 16 admin dashboard with shadcn/ui components for managing the Jewellery Walla e-commerce platform.
 
 ## Tech Stack
 
@@ -62,7 +62,7 @@ admin-panel/
 
 | Command | Description |
 |---------|-------------|
-| `pnpm dev` | Start dev server with Turbopack |
+| `pnpm dev` | Start dev server on **port 3000** with Turbopack (`next dev -p 3000 --turbopack`) |
 | `pnpm build` | Production build |
 | `pnpm start` | Start production server |
 | `pnpm typecheck` | TypeScript check |
@@ -79,23 +79,27 @@ admin-panel/
 
 ## Environment Variables
 
-Copy `admin-panel/.env.example` to `.env.local`:
+Environment variables live in the **gitignored `admin-panel/.env`** file (there is no committed example for the admin panel):
 
 ```
 NEXT_PUBLIC_BACKEND_URL=http://localhost:5000/
-NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
-REVALIDATE_SECRET=your-random-secret-here
-NEXT_PUBLIC_SUPPORT_EMAIL=support@kidorakart.com
-NEXT_PUBLIC_CDN_HOST=cdn.kidorakart.com
+NEXT_PUBLIC_FRONTEND_URL=http://localhost:3001
+NEXT_PUBLIC_REVALIDATE_SECRET=your-random-secret-here
+NEXT_PUBLIC_SUPPORT_EMAIL=support@jewellerywalla.com
+NEXT_PUBLIC_CDN_HOST=cdn.jewellerywalla.com
 ```
 
 | Variable | Description |
 |----------|-------------|
 | `NEXT_PUBLIC_BACKEND_URL` | Backend API base URL for all CRUD requests |
-| `NEXT_PUBLIC_FRONTEND_URL` | Web frontend URL for cache revalidation POSTs |
-| `REVALIDATE_SECRET` | Shared secret with web frontend — sent as `Authorization: Bearer` to `/api/revalidate` |
+| `NEXT_PUBLIC_FRONTEND_URL` | **Web storefront URL (`:3001`)** — where the cache revalidation POSTs go. Must point at the storefront, not this admin panel. |
+| `NEXT_PUBLIC_REVALIDATE_SECRET` | Shared secret with the web storefront — sent as `Authorization: Bearer` to `/api/revalidate`. Must match the web app's `REVALIDATE_SECRET`. |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | Support email displayed in order receipts |
 | `NEXT_PUBLIC_CDN_HOST` | CDN hostname for image URL validation |
+
+## Cache Invalidation
+
+After every successful CRUD operation the admin panel calls `invalidateCache([...tags])` (`lib/invalidate-cache.ts`), which POSTs to `{NEXT_PUBLIC_FRONTEND_URL}/api/revalidate` with `Authorization: Bearer <NEXT_PUBLIC_REVALIDATE_SECRET>`. `next.config.ts` also rewrites `/api/revalidate` to the storefront so it isn't proxied to the API backend. See the root `readme.md` → *Cache Invalidation* for the full diagram.
 | `AI_PROVIDER` | **Backend-only.** AI provider: `"gemini"` (default) or `"openrouter"`. See `api/.env.example` |
 | `OPENROUTER_API_KEY` | **Backend-only.** OpenRouter API key (required when `AI_PROVIDER=openrouter`). See `api/.env.example` |
 | `OPENROUTER_MODEL` | **Backend-only.** OpenRouter model ID, e.g. `"openrouter/free"` (default). See `api/.env.example` |

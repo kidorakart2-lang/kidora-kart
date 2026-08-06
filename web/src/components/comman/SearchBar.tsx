@@ -63,12 +63,14 @@ export const SearchBar = ({ className, inputId }: SearchBarProps) => {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.currentTarget;
-    const formElements = form.elements as HTMLFormControlsCollection & {
-      search: HTMLInputElement;
-    };
-    const searchValue = formElements.search.value;
-    router.push(`/category/shop-by-category?q=${searchValue}`);
+    // The vanish-input field id is configurable (inputId prop), so resolve the
+    // input directly instead of relying on form.elements.search.
+    const input = e.currentTarget.querySelector(
+      "input",
+    ) as HTMLInputElement | null;
+    const searchValue = input?.value.trim() ?? "";
+    if (!searchValue) return;
+    router.push(`/category/shop-by-category?q=${encodeURIComponent(searchValue)}`);
   };
   const suggestionVariants: Variants = {
     open: {
@@ -93,9 +95,9 @@ export const SearchBar = ({ className, inputId }: SearchBarProps) => {
     <div className={`relative ${className}`}>
       <PlaceholdersAndVanishInput
         placeholders={[
-          "Search for Toys",
-          "Buy Educational Toys",
-          "Search for action figures",
+          "Search for Jewellery",
+          "Gold Necklaces & Chains",
+          "Search for rings & earrings",
           "Find Gift Items",
         ]}
         onSubmit={handleSubmit}
@@ -103,7 +105,7 @@ export const SearchBar = ({ className, inputId }: SearchBarProps) => {
       />
       <Search
         size={20}
-        className="hidden md:block absolute left-9 top-1/2 -translate-y-1/2 text-[var(--brand-primary-dark)] pointer-events-none"
+        className="hidden md:block absolute left-3 top-1/2 -translate-y-1/2 text-[var(--brand-primary-dark)] pointer-events-none"
       />
 
       {isSuggestionsOpen && (

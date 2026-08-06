@@ -3,149 +3,16 @@
 > **Generated:** July 27, 2026
 > **Scope:** Shiprocket implementation, Product system, Dynamic Home Page system, SEO
 
----
-
-## 1. Shiprocket Implementation
-
-### 🔴 High Priority
-
-#### 1.1 Webhook Signature Verification Missing
-**File:** `api/src/controller/web/shiprocket.controller.ts` (shiprocketWebhook handler)
-
-The webhook endpoint `POST /api/website/shipping/webhook` accepts payloads **without any signature verification**. Shiprocket's API v2 supports configuring a webhook **Secret Key** in the dashboard, which Shiprocket uses to HMAC-sign payloads.
-
-**Risk:** An attacker could send fake "Delivered" or "Cancelled" status updates, manipulating order states without authorization.
-
-**Recommendation:**
-- Configure a Secret Key in Shiprocket Dashboard → Settings → API → Webhooks
-- Verify the HMAC signature in the webhook handler before processing any payload
-- Reject requests with missing or invalid signatures
-
-#### 1.2 Dimensions Hardcoded in Shiprocket Payload
-**File:** `api/src/lib/shiprocket.ts` (buildShiprocketOrderPayload, line ~310)
-
-```typescript
-length: 20,
-breadth: 15,
-height: 10,
-```
-
-These dimensions are hardcoded. The product model has `length`, `breadth`, and `height` fields, but they're never passed to the Shiprocket payload.
-
-**Risk:** Incorrect dimensions could cause Shiprocket to calculate wrong shipping charges or reject heavy packages if actual dimensions exceed these defaults.
-
-**Recommendation:** Calculate dimensions from actual product data when available (sum of max dimensions across all items).
-
-#### 1.3 Weight Conversion from String — Silent Fallback to 0.5kg
-**File:** `api/src/controller/web/shiprocket.controller.ts` (createShippingOrder, line ~72)
-
-```typescript
-const parsed = parseFloat(doc.weight || "0.5") / 1000;
-weightMap.set(id, isNaN(parsed) ? 0.5 : parsed);
-```
-
-The product `weight` field is stored as a **string** (required: true). `parseFloat()` will silently return `NaN` for non-numeric strings like `"500g"` or `"0.5 kg"`. The fallback is 0.5kg.
-
-**Risk:** If admin enters weight as `"500 grams"` instead of `"500"`, the shipment weight defaults to 0.5kg regardless of actual weight. This could cause incorrect shipping charges or courier rejection.
-
-**Recommendation:**
-- Add a sanitization/parsing function for weight input (strip non-numeric characters before storing)
-- Or add validation on the product schema to ensure weight is a numeric string
-
-#### 1.4 Shiprocket Token Security — In-Memory Cache Only
-**File:** `api/src/lib/shiprocket.ts` (getToken)
-
-The Shiprocket API token is cached in-memory only. If the server restarts, it must re-authenticate. If the token is compromised during the 9-day window, there's no mechanism to revoke it without changing credentials.
-
-**Risk:** No persistence across restarts means the first request after every restart is slower (must authenticate). No token rotation or revocation.
-
-**Recommendation:**
-- Consider caching the token in Redis or the database for persistence across restarts
-- Add token rotation logic that refreshes every few days regardless of expiry
+> ⚠️ **HISTORICAL AUDIT — superseded.** Statuses below were accurate as of July 27, 2026. The `jewellery-walla` branch has since:
+> - **Removed the entire Shiprocket integration** (shipping is in-house only) — Section 1 and items 5.2 / 5.5 no longer apply.
+> - **Rebranded to Jewellery Walla** (web storefront `:3001`, admin panel `:3000`).
+> - **Fixed after this audit**: account lockout (7.1.1), cookie-name separation (7.1.2), DB-backed job queue (7.8.1), Organization/WebSite JSON-LD (4.3), text search (2.2), home-page section validation (3.1), `STORE_PICKUP_PINCODE` (5.1).
 
 ---
 
-### 🟠 Medium Priority
+## 1. Shiprocket Implementation — ✅ REMOVED
 
-#### 1.5 Unused Shiprocket Library Methods (Dead Code)
-**File:** `api/src/lib/shiprocket.ts`
-
-The following methods are defined but **never exposed as API endpoints** or called anywhere:
-
-| Method | Purpose |
-|--------|---------|
-| `assignAwb()` | Manually assign AWB to shipment |
-| `generateManifest()` | Generate manifest PDF |
-| `printManifest()` | Print manifest |
-| `printInvoice()` | Print invoice PDF (separate from `generateInvoice`) |
-| `printLabel()` | Print label PDF (separate from `generateLabel`) |
-
-**Risk:** Dead code increases maintenance burden and potential confusion.
-
-**Recommendation:** Either expose these as admin API endpoints or remove them.
-
-#### 1.6 No NDR (Non-Delivery Report) Handling
-**File:** `api/src/controller/web/shiprocket.controller.ts` (shiprocketWebhook)
-
-Shiprocket can send NDR (Non-Delivery Report) statuses like `"NDR"`, `"RTO"` (already handled), `"Undelivered"`, `"Attempt Failed"`. These are not handled explicitly.
-
-**Risk:** Orders stuck in "attempted but undelivered" state will not be updated unless manually processed.
-
-**Recommendation:** Add handling for NDR statuses — set order status to a new `"delivery_attempt_failed"` state, notify admin, allow customer to update address/contact info.
-
-#### 1.7 No Bulk Shipping Operations
-**File:** `api/src/routes/web/shiprocket.routes.ts`
-
-There's no endpoint to create shipments for multiple orders at once, or to generate manifests for bulk shipping preparation.
-
-**Recommendation:** Add a batch endpoint like `POST /api/website/shipping/bulk-create` that accepts an array of orderIds.
-
-#### 1.8 Pickup Location "primary" — No Validation
-**File:** `api/src/controller/web/shiprocket.controller.ts` (createShippingOrder)
-
-```typescript
-pickupLocation: pickupLocation || "primary",
-```
-
-If the admin provides a pickup location name that doesn't exist in Shiprocket, the call will fail with an ambiguous error.
-
-**Recommendation:** Fetch actual pickup locations and validate the provided name against them before creating the shipment.
-
-#### 1.9 COD Payment Status Updated Twice on Webhook Delivery
-**File:** `api/src/controller/web/shiprocket.controller.ts` (shiprocketWebhook, lines ~830-848)
-
-For COD orders:
-1. The webhook handler sets `payment.status = "completed"` and `payment.paidAt = new Date()`
-2. The `trackShippingOrder` function ALSO sets `payment.status = "completed"` when it detects delivery
-
-If both fire, the order is double-modified (though this is harmless — both set the same values).
-
-**Recommendation:** Add idempotency checks so the webhook handler skips payment update if already completed.
-
-#### 1.10 `trackShipment` Response Ambiguity
-**File:** `api/src/controller/web/shiprocket.controller.ts` (trackShippingOrder, line ~170)
-
-```typescript
-const trackInfo = trackingResult?.tracking_data ?? null;
-```
-
-If `trackingResult` is `null` or undefined (e.g., Shiprocket API down), the tracking endpoint returns with generic data. No error is surfaced to the user.
-
-**Recommendation:** If `trackingResult` is null/undefined, return a clear error message saying tracking is temporarily unavailable, along with the order's stored tracking URL as fallback.
-
----
-
-### 🟢 Low Priority
-
-#### 1.11 No Rate Limiter on Label/Invoice Regeneration
-**File:** `api/src/routes/web/shiprocket.routes.ts`
-
-The `/label` and `/invoice` endpoints don't have rate limiters, unlike the tracking and estimate endpoints.
-
-#### 1.12 No Audit Log for Shipping Actions
-**File:** `api/src/controller/web/shiprocket.controller.ts`
-
-Shipping operations like create, cancel, RTO, pickup, label/invoice regeneration are not logged to the audit log system (if one exists).
+> **Superseded:** The entire Shiprocket integration was removed from this branch. Shipping is **in-house only** (flat fee at checkout + admin-managed order status + delivery OTP). All 12 findings below (webhook signature verification, hardcoded dimensions, weight parsing, token caching, dead methods, NDR handling, bulk operations, pickup-location validation, COD double payment update, tracking ambiguity, missing rate limiters, missing audit logs) are **no longer applicable** — no Shiprocket code, routes, or env vars remain.
 
 ---
 
@@ -342,16 +209,17 @@ Each product page should have a unique `<meta name="description">` tag. The curr
 **Recommendation:** Ensure product detail pages dynamically generate meta descriptions from the product's `shortDescription` or `description` field.
 
 #### 4.3 No JSON-LD Structured Data on Homepage
+**Status:** ✅ Partially fixed — Organization (`Store`) + WebSite JSON-LD are now rendered in `web/src/app/layout.tsx`; LocalBusiness is still not emitted as a separate schema.
 **Files:** `web/src/app/layout.tsx`, `web/src/app/page.tsx`
 
-The site lacks:
+The site lacked:
 - **Organization JSON-LD** (name, logo, contact, address)
 - **WebSite JSON-LD** (search URL, site name)
-- **LocalBusiness JSON-LD** for local SEO (Jodhpur-based toy shop)
+- **LocalBusiness JSON-LD** for local SEO (Jodhpur-based jewellery store)
 
 The layout.tsx has metadata but no JSON-LD structured data script tags.
 
-**Risk:** Search engines can't understand the business context. Local SEO (Jodhpur toy shop) is weakened. Rich results (knowledge panel, sitelinks search box) won't appear.
+**Risk:** Search engines can't understand the business context. Local SEO (Jodhpur jewellery store) is weakened. Rich results (knowledge panel, sitelinks search box) won't appear.
 
 **Recommendation:** Add JSON-LD structured data to the layout using Next.js's `Script` component with `id` for organization, website, and local business schemas.
 
@@ -417,20 +285,20 @@ No explicit `loading="lazy"` or `fetchpriority` attributes on below-the-fold ima
 
 #### 5.1 Shipping Estimate Uses Hardcoded Fallback Pincode
 **Status:** ✅ Fixed July 28, 2026
-**Files:** `api/src/config/env.ts`, `api/src/controller/web/shiprocket.controller.ts`, `api/src/controller/web/order.controller.ts`
+**Files:** `api/src/config/env.ts`, `api/src/controller/web/order.controller.ts`
 
-Added `STORE_PICKUP_PINCODE` env var (default: `342005`). Replaced all 4 hardcoded `"342005"` references in shiprocket.controller.ts and order.controller.ts with `env.STORE_PICKUP_PINCODE`.
+Added `STORE_PICKUP_PINCODE` env var (default: `342005`). Replaced the hardcoded `"342005"` references in `order.controller.ts` with `env.STORE_PICKUP_PINCODE` (the shiprocket controller no longer exists).
 
-#### 5.2 No Synchronization Between Manual Delivery Marking and Shiprocket
+#### 5.2 No Synchronization Between Manual Delivery Marking and Shiprocket — ✅ N/A (removed)
 **File:** `api/src/controller/admin/adminOrder.controller.ts` (delieverOrder)
 
-When an admin manually marks an order as delivered (`POST /api/admin/orders/deliever/order`), it doesn't update Shiprocket's tracking status. The tracking API will still show the order as "In Transit" even though the admin marked it delivered.
+**No longer applicable** — the Shiprocket integration was removed. Delivery is fully in-house: the admin marks orders `delivered` and there is no external tracking API to keep in sync.
 
 #### 5.3 Product Stock Deduction Doesn't Account for Cancelled Order Restoration
 When an order is cancelled, stock is restored. But if the product was also purchased by another customer between the original order and cancellation, the restored stock could exceed the original (though this is temporary and corrected by the next purchase). More critically, if the product was soft-deleted between order and cancellation, the stock increment on a deleted product could cause issues.
 
 #### 5.4 Order Status Transition Integrity — Race Conditions
-When Shiprocket webhook marks an order as "Delivered" and an admin simultaneously processes a refund, the following can happen:
+When a webhook (e.g. Razorpay payment capture) or an admin action updates an order while another admin processes a refund, the following can happen:
 - Webhook sets `status: "delivered"` and `payment.status: "completed"` (for COD)
 - Admin refund sets `status: "refunded"` and `payment.status: "refunded"`
 - The final state depends on which write happens last — **last-write-wins with no conflict detection**
@@ -439,16 +307,12 @@ When Shiprocket webhook marks an order as "Delivered" and an admin simultaneousl
 
 **Recommendation:** Add a status transition guard that rejects certain transitions (e.g., can't go from "delivered" to "refunded" without an intermediate "refund_initiated" state). Use Mongoose's `$set` with specific field updates instead of overwriting the entire document.
 
-#### 5.5 Partial Failure Recovery — Shiprocket Create Order vs Shipment
-When creating a shipment (Stage 3 in the flow), the system makes 4 sequential Shiprocket API calls:
-1. Create order → 2. Create shipment → 3. Generate label → 4. Generate invoice
+#### 5.5 Partial Failure Recovery — Shiprocket Create Order vs Shipment — ✅ N/A (removed)
 
-If step 1 succeeds but step 2 fails, the Shiprocket order is created (orphaned) but our DB doesn't have the `shiprocketOrderId`. The admin can retry, but Shiprocket may reject the duplicate `order_id`.
-
-**Recommendation:** Persist `shiprocketOrderId` to DB **immediately** after step 1 succeeds, before attempting steps 2-4. If subsequent steps fail, the admin can retry with the known Shiprocket order ID.
+**No longer applicable** — the Shiprocket flow (create order → shipment → label → invoice) was removed.
 
 #### 5.6 No Atomicity Across System Boundaries
-Order operations span multiple systems (our DB → Razorpay → Shiprocket), but there's no distributed transaction or compensation mechanism. If payment verification succeeds but shipment creation fails days later, there's no automated rollback path.
+Order operations span multiple systems (our DB → Razorpay), but there's no distributed transaction or compensation mechanism. If payment verification succeeds but a later step (refund, stock) fails, there's no automated rollback path.
 
 ---
 
@@ -464,9 +328,9 @@ Order operations span multiple systems (our DB → Razorpay → Shiprocket), but
 ### Top 5 Most Critical Items
 
 1. **Product: Slug has no unique index** (2.1) — Duplicate slugs make products inaccessible via URL. Quick fix with high impact.
-2. **Shiprocket: Webhook has no security** (1.1) — No HMAC signature verification on webhook endpoint. Orders can be spoofed.
+2. ~~**Shiprocket: Webhook has no security** (1.1)~~ — **Superseded**: the Shiprocket integration was removed.
 3. **Home Page: Section config completely unvalidated** (3.1) — TypeScript `Mixed` type allows any invalid config to be saved, potentially breaking the homepage.
-4. **SEO: No JSON-LD structured data** (4.3) — Missing Organization, Website, and LocalBusiness schemas for rich search results.
+4. **SEO: No JSON-LD structured data** (4.3) — ✅ Fixed (Organization + WebSite schemas added to the layout).
 5. **Cross-system: Order status transition integrity** (5.4) — Race conditions between webhook status updates and admin actions can leave orders in inconsistent states.
 
 ---
@@ -1113,8 +977,8 @@ The order controller was likely written before the standard response format was 
 
 ### Top New Critical Items from Section 7
 
-1. **Auth: No account lockout** (7.1.1) — IP-only rate limiting doesn't protect against distributed brute-force attacks on admin accounts.
-2. **Reviews: Ratings not recalculated** (7.9.5) — Product star ratings show stale data after new reviews are added.
+1. **Auth: No account lockout** (7.1.1) — ✅ Fixed (exponential-backoff lockout added to user + admin login).
+2. **Reviews: Ratings not recalculated** (7.9.5) — ✅ Fixed (DB job queue recalculates ratings on review create).
 3. **Middleware: No global error handler** (7.4.1) — Unhandled async errors could crash the server or leak stack traces.
-4. **Auth: Dual cookies with same name** (7.1.2) — httpOnly cookie could be overwritten by non-httpOnly variant.
-5. **Queue: No persistence** (7.8.1) — Critical jobs (email, stock restoration) lost on server restart.
+4. **Auth: Dual cookies with same name** (7.1.2) — ✅ Fixed (httpOnly `userToken`/`adminToken` vs client `*_client` variants).
+5. **Queue: No persistence** (7.8.1) — ✅ Fixed (MongoDB-backed job queue with retry + startup recovery).

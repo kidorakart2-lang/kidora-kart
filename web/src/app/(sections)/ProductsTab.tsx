@@ -2,7 +2,7 @@ import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductCard from "@/components/comman/ProductCard";
 import HoverButton from "@/components/comman/HoverButton";
-import { Zap, Dices, Boxes, Sparkles } from "lucide-react";
+import { Gem, Crown, CircleDot, Sparkles } from "lucide-react";
 
 import type { ProductData } from "@/types";
 import { getProducts } from "@/lib/get-products";
@@ -21,50 +21,81 @@ async function getNavCategories(): Promise<import("@/types").CategoryData[]> {
 }
 
 const TIER_COLORS = [
-  "var(--brand-card-3-icon)", // action figures — green
-  "var(--brand-card-5-icon)", // board games — sky
-  "var(--brand-card-1-icon)", // building blocks — gold
+  "var(--brand-card-1-icon)", // gold
+  "var(--brand-card-2-icon)", // coral
+  "var(--brand-card-5-icon)", // sky
+  "var(--brand-card-3-icon)", // grass
 ] as const;
 
-export default async function ProductsTab() {
-  const [actionFiguresData, boardGamesData, buildingBlocksData, categories] =
-    await Promise.all([
-      getProducts("action-figures"),
-      getProducts("board-games"),
-      getProducts("building-blocks"),
-      getNavCategories(),
-    ]);
+const TIER_ICONS = [Gem, Crown, CircleDot, Sparkles] as const;
 
-  const tabItems = [
-    {
-      value: "action-figures",
-      label: "Action Figures",
-      data: actionFiguresData,
-      icon: Zap,
-      color: TIER_COLORS[0],
-    },
-    {
-      value: "board-games",
-      label: "Board Games",
-      data: boardGamesData,
-      icon: Dices,
-      color: TIER_COLORS[1],
-    },
-    {
-      value: "building-blocks",
-      label: "Building Blocks",
-      data: buildingBlocksData,
-      icon: Boxes,
-      color: TIER_COLORS[2],
-    },
-  ];
+// Default tab set used when the section is rendered without config
+// (e.g. the static homepage layout). The dynamic home-page section passes
+// its own comma-separated searchTerms instead.
+const DEFAULT_TABS = [
+  { value: "earrings", label: "Earrings" },
+  { value: "necklace", label: "Necklaces" },
+  { value: "bracelet", label: "Bracelets" },
+];
+
+interface ProductsTabProps {
+  heading?: string;
+  /** Comma-separated search terms — each becomes a tab (dynamic home section). */
+  searchTerms?: string;
+}
+
+export default async function ProductsTab({
+  heading,
+  searchTerms,
+}: ProductsTabProps = {}) {
+  const termsInput = searchTerms?.trim();
+  const hasDynamicTerms = !!termsInput;
+
+  const rawTerms = hasDynamicTerms
+    ? Array.from(
+        new Set(
+          termsInput
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean),
+        ),
+      )
+    : DEFAULT_TABS.map((t) => t.value);
+
+  if (rawTerms.length === 0) return null;
+
+  // Title-case each word so multi-word search terms read nicely
+  // e.g. "gold-necklaces" → "Gold Necklaces", "bridal sets" → "Bridal Sets"
+  const toTitleCase = (term: string) =>
+    term
+      .split(/[-\s]+/)
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
+
+  const labels = hasDynamicTerms
+    ? rawTerms.map(toTitleCase)
+    : DEFAULT_TABS.map((t) => t.label);
+
+  const [dataResults, categories] = await Promise.all([
+    Promise.all(rawTerms.map((term) => getProducts(term))),
+    getNavCategories(),
+  ]);
+
+  const tabItems = rawTerms.map((term, i) => ({
+    value: term,
+    label: labels[i],
+    data: dataResults[i],
+    icon: TIER_ICONS[i % TIER_ICONS.length],
+    color: TIER_COLORS[i % TIER_COLORS.length],
+  }));
 
   return (
     <section className="py-16 lg:py-20 relative overflow-hidden bg-section">
       <div className="section-container relative z-10">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="section-heading relative inline-block mb-4">
-            Our Products Collection
+            {heading || "Our Products Collection"}
             <svg
               viewBox="0 0 120 12"
               className="absolute -bottom-3 left-1/2 h-3 w-28 -translate-x-1/2"
@@ -81,8 +112,8 @@ export default async function ProductsTab() {
             </svg>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base lg:text-lg fw-body leading-relaxed mt-6">
-            Discover our exciting collection of toys and games, designed to
-            bring joy and learning to every child&apos;s day.
+            Discover our exquisite collection of handcrafted jewellery,
+            designed to bring timeless elegance to every occasion.
           </p>
         </div>
 

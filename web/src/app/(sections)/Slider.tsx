@@ -5,7 +5,7 @@ import "swiper/css";
 import "swiper/css/effect-coverflow";
 import ProductCard from "@/components/comman/ProductCard";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
@@ -23,9 +23,27 @@ const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: st
     <section className="relative py-10 overflow-hidden bg-section" id={heading}>
       <div className="section-container">
         <div className="text-center mb-14">
-          <h2 className="text-4xl md:text-5xl fw-heading tracking-wide section-heading mb-4">
-            {heading}
-          </h2>
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
+            <h2 className="text-4xl md:text-5xl font-serif tracking-wide section-heading">
+              {heading}
+            </h2>
+            <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <div
+              className="w-12 h-0.5 bg-gradient-to-r from-transparent"
+              style={{ backgroundImage: `linear-gradient(to right, transparent, var(--brand-primary))` }}
+            />
+            <div
+              className="w-8 h-1.5 rounded-full shadow-lg"
+              style={{ backgroundColor: "var(--brand-primary)", boxShadow: "0 4px 6px -1px color-mix(in srgb, var(--brand-primary) 30%, transparent)" }}
+            />
+            <div
+              className="w-12 h-0.5 bg-gradient-to-l from-transparent"
+              style={{ backgroundImage: `linear-gradient(to left, transparent, var(--brand-primary))` }}
+            />
+          </div>
         </div>
 
         <div className="py-8 relative">
@@ -49,7 +67,7 @@ const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: st
               768: { slidesPerView: 3, spaceBetween: 24 },
               1024: { slidesPerView: 4, spaceBetween: 20 },
             }}
-            className="!overflow-visible toys-swiper"
+            className="!overflow-visible jewelry-swiper"
           >
             {data.map((item) => (
               <SwiperSlide key={item._id}>
@@ -68,6 +86,7 @@ const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: st
             >
               <span className="relative flex items-center gap-2">
                 VIEW MORE
+                <Sparkles className="w-4 h-4" />
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
               </span>
             </Button>

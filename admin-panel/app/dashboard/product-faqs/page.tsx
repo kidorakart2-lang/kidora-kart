@@ -14,7 +14,8 @@ import { Drawer } from "@/components/drawer"
 import { ExportButtons } from "@/components/export-buttons"
 import { AlertDialogUse } from "@/components/alert-dialog"
 import { Plus, Pencil, Trash2, Eye, EyeOff, Search, X, CopyPlus } from "lucide-react"
-import AiAssistButton from "@/components/ai-assist-button"
+// AI-assisted writing is disabled for Jewellery Walla — re-enable by uncommenting.
+// import AiAssistButton from "@/components/ai-assist-button"
 import { ErrorState } from "@/components/ui/error-state"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
@@ -365,9 +366,7 @@ export default function ProductFAQsPage() {
                 <Input placeholder={`Question ${i + 1}`} value={entry.question} onChange={(e) => updateEntry(i, "question", e.target.value)} required disabled={isPending} />
                 <div className="flex items-start gap-2">
                   <Textarea placeholder={`Answer ${i + 1}`} value={entry.answer} onChange={(e) => updateEntry(i, "answer", e.target.value)} required rows={2} className="flex-1" disabled={isPending} />
-                  {entry.question.trim() && (
-                    <AiAssistButton context={{ name: products.filter((p) => selectedProductIds.includes(p._id)).map((p) => p.name || p.productName || p.title || "").filter(Boolean).join(", ") || "Product", question: entry.question }} onResult={(text) => updateEntry(i, "answer", text)} label="Generate Answer" endpoint="/api/admin/ai/generate-faq-answer" />
-                  )}
+                  {/* AI generate-with-AI button disabled for Jewellery Walla */}
                 </div>
                 <Input type="number" placeholder="Order" value={entry.order} onChange={(e) => updateEntry(i, "order", Number.parseInt(e.target.value) || 1)} min="1" className="w-24" disabled={isPending} />
               </div>

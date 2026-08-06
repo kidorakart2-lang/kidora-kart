@@ -286,8 +286,7 @@ function PickupPincodeEditor({
           <div>
             <p className="font-medium text-foreground">Store Pickup Pincode</p>
             <p className="text-xs text-muted-foreground">
-              Used as fallback for shipping estimates when Shiprocket pickup
-              locations are unavailable
+              Origin pincode used for in-house shipping & delivery handling
             </p>
           </div>
         </div>

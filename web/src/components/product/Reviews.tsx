@@ -7,7 +7,7 @@ const reviews = [
     rating: 5,
     date: "1 month ago",
     comment:
-      "Absolutely love this toy! The quality is fantastic, and it looks even more fun in person.",
+      "Absolutely love this piece! The craftsmanship is fantastic, and it looks even more stunning in person.",
     avatar: "/images/image1.jpg",
   },
   {
@@ -16,7 +16,7 @@ const reviews = [
     rating: 4,
     date: "2 months ago",
     comment:
-      "Great toy, perfect for hours of play. The colors are vibrant and my kids absolutely love it!",
+      "Beautiful jewellery, perfect for special occasions. The finish is exquisite and I get compliments every time I wear it!",
     avatar: "/images/image2.jpg",
   },
 ];

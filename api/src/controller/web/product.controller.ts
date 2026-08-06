@@ -9,7 +9,7 @@ import { success, fail } from "../../utils/responses.js";
 import { logger } from "../../lib/logger.js";
 
 const PRODUCT_SELECT =
-  "name slug images price image stock discount_price weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl giftImages colors material category subCategory subSubCategory description shortDescription variants";
+  "name slug images price image stock discount_price weight length height breadth purity sizes type sku tags videoUrl giftImages colors material category subCategory subSubCategory description shortDescription variants";
 
 const POPULATE_CATEGORY = {
   path: "category",
@@ -43,6 +43,13 @@ const POPULATE_MATERIAL = {
   options: { sort: { order: -1 } },
 } as const;
 
+const POPULATE_SIZES = {
+  path: "sizes",
+  select: "name",
+  match: { deletedAt: null, status: true },
+  options: { sort: { order: -1 } },
+} as const;
+
 const POPULATE_CATEGORY_GIFT = {
   path: "category",
   match: {
@@ -69,7 +76,180 @@ const PRODUCT_POPULATE = [
   POPULATE_SUBSUBCATEGORY,
   POPULATE_COLORS,
   POPULATE_MATERIAL,
+  POPULATE_SIZES,
 ];
+
+
+// ─── Search ranking helpers ──────────────────────────────────────────────
+// Search candidates are fetched once (bounded) so getBySearch and
+// getProductByFilter share the same relevance ranking.
+const SEARCH_CANDIDATE_CAP = 200; // max candidate ids fetched for ranking
+const SEARCH_ESCAPE_RE = /[.*+?^${}()|[\]\\]/g;
+
+const escapeRegex = (str: string): string =>
+  str.replace(SEARCH_ESCAPE_RE, "\\$&");
+
+/**
+ * Build typo-tolerant word-start prefixes for a search word: the exact
+ * first-4-letter prefix plus single-character deletion and adjacent
+ * transposition variants. This lets misspellings inside the first letters
+ * still match the real product word (e.g. "earing" → "ear", "rign" → "ring",
+ * "chian" → "chai", "banlge" → "ban"). Used only by the regex fallback and
+ * the JS scorer — never by the $text stage.
+ */
+function fuzzyPrefixes(word: string): string[] {
+  const base = word.toLowerCase().slice(0, 4);
+  const out = new Set<string>([base]);
+  if (base.length >= 2) {
+    // single-character deletion
+    for (let i = 0; i < base.length; i++) {
+      out.add(base.slice(0, i) + base.slice(i + 1));
+    }
+    // adjacent transposition
+    for (let i = 0; i < base.length - 1; i++) {
+      out.add(
+        base.slice(0, i) + base.charAt(i + 1) + base.charAt(i) + base.slice(i + 2),
+      );
+    }
+  }
+  return [...out].filter((p) => p.length >= 2);
+}
+
+/**
+ * Returns up to 'limit' product _ids ranked by relevance for 'searchWords'.
+ * Two stages (deduplicated):
+ *   1. Weighted MongoDB $text search (name:10, tags:5, shortDescription:3,
+ *      description:1) — fast candidate discovery backed by the weighted index.
+ *   2. Regex fallback for partial / misspelled terms ($text has no prefix or
+ *      fuzzy support) — typo-tolerant word-boundary prefix matches against
+ *      name / tags only (descriptions use different wording and add noise).
+ * All candidates are then re-scored in JS (exact per-word > prefix, name >
+ * tags > shortDescription) so multi-word queries rank products matching the
+ * most terms first, regardless of raw textScore quirks. Only active products
+ * are considered. 'extraFilters' are ANDed in.
+ */
+function relevanceScore(
+  doc: { name?: unknown; tags?: unknown; shortDescription?: unknown },
+  lowerWords: string[],
+): number {
+  const name = String(doc.name ?? "").toLowerCase();
+  const shortDescription = String(doc.shortDescription ?? "").toLowerCase();
+  const tags = (Array.isArray(doc.tags) ? doc.tags : []).map((tag) =>
+    String(tag).toLowerCase(),
+  );
+
+  let score = 0;
+  for (const word of lowerWords) {
+    const inName = name.includes(word);
+    const inTags = tags.some((tag) => tag.includes(word));
+    const inShort = shortDescription.includes(word);
+
+    if (inName) score += 120;
+    else if (inTags) score += 60;
+    else if (inShort) score += 30;
+
+    const prefix = word.slice(0, Math.min(word.length, 4));
+    if (prefix.length >= 2) {
+      if (!inName && name.includes(prefix)) score += 70;
+      else if (!inTags && tags.some((tag) => tag.includes(prefix))) score += 35;
+      else if (!inShort && shortDescription.includes(prefix)) score += 15;
+      else {
+        // Typo tolerance: none of the exact-prefix checks matched — accept a
+        // fuzzy prefix variant (single deletion / transposition of the first
+        // 4 letters) so "earing"→"ear", "rign"→"ring", "chian"→"chai" work.
+        for (const variant of fuzzyPrefixes(word)) {
+          const variantRe = new RegExp("\\b" + escapeRegex(variant), "i");
+          if (variantRe.test(name)) { score += 40; break; }
+          if (tags.some((tag) => variantRe.test(String(tag)))) { score += 20; break; }
+        }
+      }
+    }
+  }
+  // Slight bonus for the final search word matching the name — it is often
+  // the category term (e.g. 'earrings' in 'gold earrings'), which surfaces
+  // the intended product type above equal-weight competitors.
+  if (lowerWords.length > 1) {
+    const lastWord = lowerWords[lowerWords.length - 1] as string;
+    if (lastWord.length > 1 && name.includes(lastWord)) score += 30;
+  }
+
+  return score;
+}
+
+async function searchProductCandidates(
+  searchWords: string[],
+  limit: number,
+  extraFilters: Record<string, unknown> = {},
+): Promise<string[]> {
+  const baseFilter: Record<string, unknown> = {
+    deletedAt: null,
+    status: "active",
+    ...extraFilters,
+  };
+  const lowerWords = searchWords.map((word) => word.toLowerCase());
+  const scored = new Map<string, number>();
+  const CANDIDATE_SELECT = "name tags shortDescription";
+
+  // Stage 1 — weighted $text (fast, index-backed candidate discovery)
+  if (searchWords.length > 0) {
+    const textLimit = Math.min(Math.max(limit * 6, 40), 400);
+    const textResults = await Product.find(
+      { $text: { $search: searchWords.join(" ") }, ...baseFilter },
+      // 'score' ($meta textScore) is never read in JS but MUST stay in the
+      // projection — MongoDB requires it to allow the .sort({ score: meta })
+      // above. Candidates are re-ranked later by relevanceScore().
+      { _id: 1, name: 1, tags: 1, shortDescription: 1, score: { $meta: "textScore" } },
+    )
+      .sort({ score: { $meta: "textScore" } })
+      .limit(textLimit)
+      .lean();
+
+    for (const doc of textResults) {
+      const score = relevanceScore(doc, lowerWords);
+      if (score > 0) scored.set(String(doc._id), score);
+    }
+  }
+
+  // Stage 2 — partial/fuzzy regex fallback (only when $text under-delivers)
+  if (scored.size < Math.max(limit * 2, 10)) {
+    // Fuzzy fallback searches ONLY title data (name + tags) — descriptions
+    // use different wording and only add noise to typo matching.
+    const prefixVariants = new Set<string>();
+    for (const word of searchWords) {
+      for (const variant of fuzzyPrefixes(word)) prefixVariants.add(variant);
+    }
+
+    if (prefixVariants.size > 0) {
+      const regexes = [...prefixVariants].map(
+        (prefix) => new RegExp("\\b" + escapeRegex(prefix), "i"),
+      );
+      const regexFilter: Record<string, unknown> = {
+        $or: [
+          { name: { $in: regexes } },
+          { tags: { $in: regexes } },
+        ],
+        ...baseFilter,
+      };
+
+      const regexResults = await Product.find(regexFilter)
+        .select(CANDIDATE_SELECT)
+        .limit(Math.min(limit * 8, 400))
+        .lean();
+
+      for (const doc of regexResults) {
+        const id = String(doc._id);
+        if (scored.has(id)) continue;
+        const score = relevanceScore(doc, lowerWords);
+        if (score > 0) scored.set(id, score);
+      }
+    }
+  }
+
+  return [...scored.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([id]) => id);
+}
 
 export const getOne = async (req: Request, res: Response): Promise<Response> => {
   try {
@@ -195,9 +375,8 @@ export const getProductByFilter = async (
 
     const priceFrom = q.priceFrom ? Number(q.priceFrom) : undefined;
     const priceTo = q.priceTo ? Number(q.priceTo) : undefined;
-    const ageFrom = q.ageFrom ? Number(q.ageFrom) : undefined;
-    const ageTo = q.ageTo ? Number(q.ageTo) : undefined;
     const searchQuery = q.searchQuery as string | undefined;
+    let searchWordList: string[] = [];
     const limit = q.limit ? Number(q.limit) : 20;
     const page = q.page ? Number(q.page) : 1;
 
@@ -268,7 +447,7 @@ export const getProductByFilter = async (
       const effectiveSearchWords =
         searchWords.length > 0 ? searchWords : [trimmedSearch];
 
-      query.$text = { $search: effectiveSearchWords.join(" ") };
+      searchWordList = effectiveSearchWords;
     }
 
     if (isFeatured !== undefined) query.isFeatured = isFeatured;
@@ -333,16 +512,64 @@ export const getProductByFilter = async (
       query.discount_price = { $lte: Number(priceTo) };
     }
 
-    if (ageFrom !== undefined || ageTo !== undefined) {
-      const effectiveAgeFrom = ageFrom ?? 0;
-      const effectiveAgeTo = ageTo ?? 18;
-      // Products whose age range overlaps the selected filter range
-      query.minimumAge = { $lte: effectiveAgeTo };
-      query.maximumAge = { $gte: effectiveAgeFrom };
-    }
-
     const cappedLimit = Math.min(Number(limit), 100);
     const skip = Math.max(0, (Number(page) - 1) * cappedLimit);
+
+    // Relevance-ranked search path: candidates come from the weighted $text
+    // search plus a partial/fuzzy regex fallback (searchProductCandidates),
+    // then the remaining filters apply on top. Ordering follows candidate rank.
+    if (searchWordList.length > 0) {
+      const candidateIds = await searchProductCandidates(
+        searchWordList,
+        SEARCH_CANDIDATE_CAP,
+        query, // respect category/price/color/material filters during discovery
+      );
+
+      if (candidateIds.length === 0) {
+        return success(res, [], "Products Found", 200, {
+          _pagination: {
+            total: 0,
+            page: Number(page),
+            limit: cappedLimit,
+            totalPages: 0,
+          },
+        });
+      }
+
+      const filteredQuery: Record<string, unknown> = {
+        ...query,
+        _id: { $in: candidateIds },
+      };
+
+      const [total, docs] = await Promise.all([
+        Product.countDocuments(filteredQuery),
+        Product.find(filteredQuery)
+          .populate(PRODUCT_POPULATE)
+          .select(PRODUCT_SELECT)
+          .lean(),
+      ]);
+
+      const idOrder = new Map(
+        candidateIds.map((id, index): [string, number] => [id, index]),
+      );
+      const ordered = docs
+        .slice()
+        .sort(
+          (a, b) =>
+            (idOrder.get(String(a._id)) ?? Number.MAX_SAFE_INTEGER) -
+            (idOrder.get(String(b._id)) ?? Number.MAX_SAFE_INTEGER),
+        );
+      const pageItems = ordered.slice(skip, skip + cappedLimit);
+
+      return success(res, pageItems, "Products Found", 200, {
+        _pagination: {
+          total,
+          page: Number(page),
+          limit: cappedLimit,
+          totalPages: Math.ceil(total / cappedLimit),
+        },
+      });
+    }
 
     const [total, products] = await Promise.all([
       Product.countDocuments(query),
@@ -572,25 +799,36 @@ export const tabProducts = async (
         "Tab products fetched successfully",
       );
     }
-    const [goldMat, silverMat] = await Promise.all([
-      Material.findOne({
+    // Collect ALL gold/silver-family materials (e.g. "Gold", "Pure Gold",
+    // "Rough Gold") instead of a single findOne — findOne with a loose regex
+    // returns the first natural-order match (e.g. "Pure Gold") which may have
+    // no products, leaving the gold/silver tabs empty.
+    const [goldMats, silverMats] = await Promise.all([
+      Material.find({
         name: { $regex: "gold", $options: "i" },
         status: true,
         deletedAt: null,
       }).select("_id"),
-      Material.findOne({
+      Material.find({
         name: { $regex: "silver", $options: "i" },
         status: true,
         deletedAt: null,
       }).select("_id"),
     ]);
 
-    if (!goldMat || !silverMat) {
+    if (goldMats.length === 0 || silverMats.length === 0) {
       throw new Error("Gold or silver material not found");
     }
 
+    const goldMatIds = goldMats.map((m) => m._id);
+    const silverMatIds = silverMats.map((m) => m._id);
+
     const [goldProducts, silverProducts, giftProducts] = await Promise.all([
-      Product.find({ deletedAt: null, status: "active", material: goldMat._id })
+      Product.find({
+        deletedAt: null,
+        status: "active",
+        material: { $in: goldMatIds },
+      })
         .populate(POPULATE_MATERIAL)
         .populate(POPULATE_CATEGORY)
         .populate(POPULATE_SUBCATEGORY)
@@ -601,7 +839,11 @@ export const tabProducts = async (
         .limit(4)
         .lean(),
 
-      Product.find({ deletedAt: null, status: "active", material: silverMat._id })
+      Product.find({
+        deletedAt: null,
+        status: "active",
+        material: { $in: silverMatIds },
+      })
         .populate(POPULATE_MATERIAL)
         .populate(POPULATE_CATEGORY)
         .populate(POPULATE_SUBCATEGORY)
@@ -706,24 +948,34 @@ export const getBySearch = async (
       .split(/\s+/)
       .filter((word) => word.length > 1 && !stopWords.has(word.toLowerCase()));
 
-    const searchPhrase = (cleanWords.length > 0 ? cleanWords : [trimmedSearch]).join(" ");
+    const searchWords = cleanWords.length > 0 ? cleanWords : [trimmedSearch];
 
-    const products = await Product.find(
-      {
-        $text: { $search: searchPhrase },
-        deletedAt: null,
-        status: "active",
-      },
-      // Include text relevance score for potential relevance-based sorting
-      { score: { $meta: "textScore" } },
-    )
+    const ids = await searchProductCandidates(searchWords, parsedLimit);
+    if (ids.length === 0) {
+      return success(res, [], "Products fetched successfully");
+    }
+
+    const idOrder = new Map(
+      ids.map((id, index): [string, number] => [id, index]),
+    );
+    const products = await Product.find({
+      _id: { $in: ids },
+      deletedAt: null,
+      status: "active",
+    })
       .populate(PRODUCT_POPULATE)
       .select(PRODUCT_SELECT)
-      .sort({ score: { $meta: "textScore" } })
-      .limit(parsedLimit)
       .lean();
 
-    return success(res, products, "Products fetched successfully");
+    const ordered = products
+      .map((p) => ({
+        product: p,
+        order: idOrder.get(String(p._id)) ?? Number.MAX_SAFE_INTEGER,
+      }))
+      .sort((a, b) => a.order - b.order)
+      .map(({ product }) => product);
+
+    return success(res, ordered, "Products fetched successfully");
   } catch (err) {
     logger.error({ err }, "Search error");
     return fail(

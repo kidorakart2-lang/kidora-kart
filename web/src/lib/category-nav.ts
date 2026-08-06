@@ -3,7 +3,7 @@ import type { CategoryData } from "@/types";
 /**
  * Builds a category page href from the redux navigation data.
  *
- * If `preferred` is provided (e.g. a tab key like "action-figures"), it tries to
+ * If `preferred` is provided (e.g. a tab key like "gold-necklaces"), it tries to
  * match a category or sub-category by slug/name before falling back to the
  * first available category+sub-category. This replaces the old generic
  * `/category/shop-by-category` links with real, crawlable category pages.

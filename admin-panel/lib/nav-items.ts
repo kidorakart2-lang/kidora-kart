@@ -16,6 +16,7 @@ import {
   ShoppingBag,
   Tags,
   MessageCircle,
+  Ruler,
   type LucideIcon,
 } from "lucide-react";
 import type { LucideIcon as LucideIconType } from "lucide-react";
@@ -63,6 +64,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "Sub Categories", href: "/dashboard/sub-category", icon: Tags },
       { label: "Sub Sub Categories", href: "/dashboard/sub-sub-category", icon: Tags },
       { label: "Materials & Colors", href: "/dashboard/materials", icon: Palette },
+      { label: "Sizes", href: "/dashboard/sizes", icon: Ruler },
     ],
   },
   {
@@ -88,8 +90,13 @@ export const NAV_SECTIONS: NavSection[] = [
     label: "System",
     icon: Sparkles,
     items: [
-      { label: "AI Agent", href: "/dashboard/ai-agent", icon: Sparkles, target: "_blank" },
-      { label: "AI Responses", href: "/dashboard/ai-responses", icon: History },
+      // ── AI (disabled for Jewellery Walla) ──
+      // The autonomous AI agent chat and AI-generated response history are
+      // intentionally hidden on this branch. To re-enable: uncomment the items
+      // below (and the API route mount in `api/src/server.ts`, marked with the
+      // same comment).
+      // { label: "AI Agent", href: "/dashboard/ai-agent", icon: Sparkles, target: "_blank" },
+      // { label: "AI Responses", href: "/dashboard/ai-responses", icon: History },
       { label: "Audit Log", href: "/dashboard/audit-log", icon: History },
       { label: "Settings", href: "/dashboard/settings", icon: LayoutDashboard },
     ],

@@ -9,7 +9,7 @@ import type { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
 export const metadata = {
   title: `My Wishlist - ${siteConfig.name}`,
   description:
-    "Save your favorite toys and games to your wishlist for easy access later.",
+    "Save your favorite jewellery pieces to your wishlist for easy access later.",
   robots: {
     index: false,
     follow: true,

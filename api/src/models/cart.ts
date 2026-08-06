@@ -27,6 +27,11 @@ const cartSchema = new Schema(
           ref: "colors",
           default: null,
         },
+        size: {
+          type: Schema.Types.ObjectId,
+          ref: "sizes",
+          default: null,
+        },
       },
     ],
   },

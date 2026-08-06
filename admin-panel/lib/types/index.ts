@@ -27,6 +27,7 @@ export interface OrderItem {
   isPersonalized: boolean;
   personalizedName?: string;
   colorId?: { name?: string; _id?: string };
+  sizeId?: { name?: string; _id?: string } | string | null;
   variantName?: string;
 }
 
@@ -58,11 +59,6 @@ export interface OrderData {
     estimatedDelivery?: string;
     trackingNumber?: string;
     trackingUrl?: string;
-    shiprocketOrderId?: number;
-    shiprocketShipmentId?: number;
-    rtoRequested?: boolean;
-    rtoOrderId?: number;
-    rtoStatus?: string;
   };
   payment?: {
     status?: string;
@@ -96,9 +92,8 @@ export interface Product {
   length?: number;
   height?: number;
   breadth?: number;
-  minimumAge?: number;
-  idealAge?: number;
-  maximumAge?: number;
+  purity?: string;
+  sizes?: Array<{ _id: string; name: string } | string>;
   type?: string;
   sku?: string;
   tags?: string[];
@@ -165,6 +160,15 @@ export interface ColorItem {
   _id: string;
   name: string;
   code: string;
+  order: number;
+  status: boolean;
+  createdAt?: string;
+}
+
+export interface SizeItem {
+  _id: string;
+  name: string;
+  value?: string;
   order: number;
   status: boolean;
   createdAt?: string;
@@ -288,9 +292,8 @@ export interface ProductFormData {
   length: string;
   height: string;
   breadth: string;
-  minimumAge: string;
-  idealAge: string;
-  maximumAge: string;
+  purity: string;
+  sizes: string[];
   type: string;
   sku: string;
   tags: string[];

@@ -30,25 +30,6 @@ const iconMap: Record<string, typeof Gem> = {
   Sparkle,
 };
 
-// Toy-box palette — one candy color per card, cycled by index.
-// Uses CSS custom properties from the theme so colors adapt in dark mode.
-const TOY_TOKENS = [
-  { icon: "var(--brand-card-2-icon)", soft: "var(--brand-card-2-bg)" },  // coral
-  { icon: "var(--brand-card-5-icon)", soft: "var(--brand-card-5-bg)" },  // sky
-  { icon: "var(--brand-card-1-icon)", soft: "var(--brand-card-1-bg)" },  // amber
-  { icon: "var(--brand-card-3-icon)", soft: "var(--brand-card-3-bg)" },  // grass
-] as const;
-
-// Alternating resting tilts so the row reads like toys set down on a
-// shelf, not a rigid grid. motion-safe: keeps this off for users who
-// have reduced motion enabled.
-const TILTS = [
-  "motion-safe:-rotate-2",
-  "motion-safe:rotate-1",
-  "motion-safe:-rotate-1",
-  "motion-safe:rotate-2",
-];
-
 type WhyChooseUsData = {
   _id: string;
   image: string;
@@ -64,53 +45,34 @@ const WhyChooseUsItem = ({
   index: number;
 }) => {
   const IconComponent = iconMap[item.image] || Gem;
-  const palette = TOY_TOKENS[index % TOY_TOKENS.length];
-  const tilt = TILTS[index % TILTS.length];
+  const accent = (index % 4) + 1;
 
   return (
-    <div
-      className={`group relative ${tilt} transition-transform duration-300 ease-out motion-safe:hover:rotate-0 motion-safe:hover:-translate-y-1.5`}
+    <Card
+      className={`card-hover group border bg-card-accent-${accent}`}
+      style={{ borderColor: `var(--brand-card-${accent}-ring)` }}
     >
-      <Card
-        className="relative overflow-visible rounded-[28px] border-2 bg-card pt-9 transition-shadow duration-300"
-        style={{
-          borderColor: palette.soft,
-          boxShadow: `0 10px 0 0 color-mix(in srgb, ${palette.icon} 35%, transparent)`,
-        }}
-      >
-        {/* Icon badge, popped above the card edge like a block stud */}
-        <div className="absolute -top-8 left-1/2 -translate-x-1/2">
-          <div
-            className="flex h-16 w-16 items-center justify-center rounded-2xl ring-4 ring-background transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
-            style={{ backgroundColor: palette.icon }}
-          >
-            <IconComponent size={28} className="text-white" strokeWidth={2} />
-          </div>
-          {/* two little studs either side, echoing a toy brick */}
+      <CardContent className="relative z-10 flex flex-col items-center p-6 text-center sm:p-8">
+        <div className="relative mb-5 rounded-full bg-background/60 p-4 shadow-sm">
+          <IconComponent
+            size={32}
+            className={`text-card-accent-${accent}`}
+            strokeWidth={1.5}
+          />
+          {/* Sparkle accent on hover */}
           <span
-            className="absolute -top-1.5 left-1"
-            style={{ color: palette.icon }}
-          >
-            <span className="block h-2 w-2 rounded-full bg-current opacity-60" />
-          </span>
-          <span
-            className="absolute -top-1.5 right-1"
-            style={{ color: palette.icon }}
-          >
-            <span className="block h-2 w-2 rounded-full bg-current opacity-60" />
-          </span>
+            className="absolute -top-1 -right-1 h-2 w-2 rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+            style={{ backgroundColor: `var(--brand-card-${accent}-icon)` }}
+          />
         </div>
-
-        <CardContent className="flex flex-col items-center px-6 pb-8 pt-2 text-center sm:px-7">
-          <h3 className="fw-heading mb-2 text-base font-bold text-foreground md:text-lg">
-            {item.title}
-          </h3>
-          <p className="fw-body text-xs leading-relaxed text-muted-foreground sm:text-sm">
-            {item.description}
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+        <h3 className="fw-heading mb-2 text-base font-bold text-foreground md:text-lg">
+          {item.title}
+        </h3>
+        <p className="fw-body text-xs leading-relaxed text-muted-foreground sm:text-sm">
+          {item.description}
+        </p>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -119,7 +81,7 @@ const WhyChooseUsContent = async () => {
   const features: WhyChooseUsData[] = data;
 
   return (
-    <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 sm:gap-y-14 lg:grid-cols-4 lg:gap-x-8">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
       {features?.map((item, index) => (
         <WhyChooseUsItem key={item._id} item={item} index={index} />
       ))}
@@ -128,21 +90,19 @@ const WhyChooseUsContent = async () => {
 };
 
 const SkeletonCard = ({ index }: { index: number }) => {
-  const palette = TOY_TOKENS[index % TOY_TOKENS.length];
+  const accent = (index % 4) + 1;
   return (
-    <div className="relative pt-9">
-      <div
-        className="rounded-[28px] border-2 bg-muted/20 pb-8 pt-2"
-        style={{ borderColor: palette.soft }}
-      >
-        <div className="absolute -top-8 left-1/2 -translate-x-1/2">
-          <Skeleton className="h-16 w-16 rounded-2xl" />
-        </div>
-        <div className="flex flex-col items-center gap-3 px-6 pt-9">
-          <Skeleton className="h-4 w-28" />
-          <Skeleton className="h-3 w-36" />
-          <Skeleton className="h-3 w-24" />
-        </div>
+    <div
+      className={`rounded-2xl border bg-card-accent-${accent} p-6 sm:p-8`}
+      style={{ borderColor: `var(--brand-card-${accent}-ring)` }}
+    >
+      <div className="mb-5 flex justify-center">
+        <Skeleton className="h-16 w-16 rounded-full" />
+      </div>
+      <div className="flex flex-col items-center gap-3">
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-4 w-40" />
+        <Skeleton className="h-3 w-36" />
       </div>
     </div>
   );
@@ -154,38 +114,62 @@ const WhyChooseUs = () => {
       className="relative w-full overflow-hidden bg-section py-12 lg:py-20"
       aria-labelledby="why-choose-us"
     >
+      {/* Decorative glows */}
+      <div
+        className="absolute top-10 left-10 h-32 w-32 rounded-full opacity-40 blur-3xl"
+        style={{ backgroundColor: "var(--brand-card-1-bg)" }}
+      />
+      <div
+        className="absolute right-10 bottom-10 h-40 w-40 rounded-full opacity-40 blur-3xl"
+        style={{ backgroundColor: "var(--brand-card-2-bg)" }}
+      />
+
       <div className="section-container relative z-10">
-        <div className="mb-14 text-center lg:mb-20">
-          <h2
-            id="why-choose-us"
-            className="section-heading relative inline-block mb-4"
-          >
-            Why Choose Us
-            {/* hand-drawn squiggle underline — the section's signature mark */}
-            <svg
-              viewBox="0 0 120 12"
-              className="absolute -bottom-3 left-1/2 h-3 w-28 -translate-x-1/2"
-              style={{ color: "var(--brand-card-2-icon)" }}
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M2 8 Q 20 1 40 7 T 78 6 T 118 4"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            </svg>
-          </h2>
-          <p className="section-subheading mt-6">
-            Experience excellence in every aspect of your toy shopping
+        <div className="mb-12 text-center lg:mb-16">
+          <div className="mb-4 inline-flex items-center gap-2">
+            <Sparkles
+              className="h-5 w-5 animate-pulse"
+              style={{ color: "var(--brand-primary)" }}
+            />
+            <h2 id="why-choose-us" className="section-heading">
+              Why Choose Us
+            </h2>
+            <Sparkles
+              className="h-5 w-5 animate-pulse"
+              style={{ color: "var(--brand-primary)" }}
+            />
+          </div>
+
+          <div className="mb-4 flex items-center justify-center gap-2">
+            <div
+              className="h-0.5 w-16 bg-gradient-to-r from-transparent"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, transparent, var(--brand-primary))",
+              }}
+            />
+            <div
+              className="h-3 w-3 rounded-full"
+              style={{ backgroundColor: "var(--brand-primary)" }}
+            />
+            <div
+              className="h-0.5 w-16 bg-gradient-to-l from-transparent"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to left, transparent, var(--brand-primary))",
+              }}
+            />
+          </div>
+
+          <p className="section-subheading">
+            Experience excellence in every aspect of your jewellery shopping
             experience
           </p>
         </div>
 
         <Suspense
           fallback={
-            <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 sm:gap-y-14 lg:grid-cols-4 lg:gap-x-8">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
               {[...Array(4)].map((_, i) => (
                 <SkeletonCard key={i} index={i} />
               ))}

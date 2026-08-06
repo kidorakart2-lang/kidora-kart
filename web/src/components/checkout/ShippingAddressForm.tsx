@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { INDIAN_STATES, siteConfig } from "@/lib/utils";
-import { MapPin, Loader2, Truck } from "lucide-react";
+import { MapPin, Loader2 } from "lucide-react";
 import type { CheckoutFormData } from "@/types";
 
 interface ShippingAddressFormProps {
@@ -12,9 +12,6 @@ interface ShippingAddressFormProps {
   showAddressPrompt: boolean;
   setShowAddressPrompt: (v: boolean) => void;
   loadProfileAddress: () => void;
-  shippingEstimate?: { estimatedCharge: number; courierName?: string; etd?: string } | null;
-  isFetching: boolean;
-  onCheckPincode: () => void;
   geolocationSupported?: boolean;
   detectingLocation?: boolean;
   locationFilled?: boolean;
@@ -25,7 +22,7 @@ interface ShippingAddressFormProps {
 
 export default function ShippingAddressForm({
   orderData, setOrderData, showAddressPrompt, setShowAddressPrompt,
-  loadProfileAddress, shippingEstimate, isFetching, onCheckPincode,
+  loadProfileAddress,
   geolocationSupported = false, detectingLocation = false, locationFilled = false,
   onDetectLocation, isLoggedIn = false, onEmailClick,
 }: ShippingAddressFormProps) {
@@ -64,9 +61,9 @@ export default function ShippingAddressForm({
       </div>
 
       {locationFilled && (
-        <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-start gap-3">
-          <MapPin className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
-          <p className="text-sm text-emerald-700">
+        <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-start gap-3">
+          <MapPin className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+          <p className="text-sm text-amber-700">
             Location detected — we've filled in your address automatically. Please review and correct if needed.
           </p>
         </div>
@@ -113,37 +110,8 @@ export default function ShippingAddressForm({
           <div className="flex gap-2">
             <input type="text" value={sa.pincode} onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 6); update("pincode", v); }}
               className="flex-1 px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all" maxLength={6} required placeholder="Enter 6-digit pincode" />
-            <Button type="button" variant="outline" size="sm" onClick={onCheckPincode} disabled={sa.pincode.length !== 6}
-              className="shrink-0 border-brand-300 hover:bg-brand-50 hover:text-brand-700 transition-all">
-              {isFetching ? <><Loader2 size={14} className="animate-spin mr-1" />Checking</> : <><MapPin size={14} className="mr-1" />Check</>}
-            </Button>
           </div>
         </div>
-
-        {/* Shipping Estimate */}
-        {isFetching && !shippingEstimate ? (
-          <div className="col-span-full -mt-2">
-            <div className="border border-border rounded-xl p-4 animate-pulse">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2.5"><div className="w-4 h-4 rounded bg-muted-foreground/20" /><div className="h-4 w-28 rounded bg-muted-foreground/20" /></div>
-                <div className="h-5 w-36 rounded-full bg-muted-foreground/20" />
-              </div>
-              <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-border"><div className="w-3 h-3 rounded bg-muted-foreground/20" /><div className="h-3 w-40 rounded bg-muted-foreground/20" /></div>
-            </div>
-          </div>
-        ) : shippingEstimate ? (
-          <div className={`col-span-full -mt-2`}>
-            <div className={`bg-brand-50 border border-brand-200 rounded-xl p-4 transition-all hover:shadow-sm ${isFetching ? "opacity-60" : ""}`}>
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2.5"><Truck className="w-4 h-4 text-brand-600" /><span className="text-sm font-semibold text-brand-900">₹{shippingEstimate.estimatedCharge} shipping</span></div>
-                {shippingEstimate.etd && <span className="text-xs text-brand-700 bg-brand-100 px-2.5 py-1 rounded-full font-medium">Est. delivery {shippingEstimate.etd}</span>}
-              </div>
-              {shippingEstimate.courierName && (
-                <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-brand-200/60"><MapPin className="w-3 h-3 text-brand-500" /><span className="text-xs text-brand-600">{shippingEstimate.courierName}</span></div>
-              )}
-            </div>
-          </div>
-        ) : null}
 
         <Field label="Street (House No, Building) *" value={sa.street} onChange={(v) => update("street", v)} />
         <Field label="Area *" value={sa.area} onChange={(v) => update("area", v)} placeholder="E.g., Near Central Park" />

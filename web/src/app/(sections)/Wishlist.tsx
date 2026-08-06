@@ -31,6 +31,9 @@ export default function Wishlist({
   wishlist: WishlistProduct[] | { items: WishlistProduct[] } | null;
 }) {
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  // Mirror of the server-fetched wishlist so removals update the UI instantly
+  // instead of waiting for the prop / next refetch.
+  const [localWishlist, setLocalWishlist] = useState(wishlist);
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -47,6 +50,7 @@ export default function Wishlist({
   const { productMap, isLoading: guestProductsLoading } = useProductsByIds(wishlistIds);
 
   useEffect(() => {
+    setLocalWishlist(wishlist);
     if (!wishlist) return;
     dispatch(setWishlist(wishlist));
   }, [wishlist, dispatch]);
@@ -69,7 +73,7 @@ export default function Wishlist({
   }, [hasServerData, reduxWishlistItems, productMap]);
 
   const displayItems: WishlistDisplayItem[] = hasServerData
-    ? (Array.isArray(wishlist) ? wishlist : (wishlist?.items ?? [])).map((item) => ({
+    ? (Array.isArray(localWishlist) ? localWishlist : (localWishlist?.items ?? [])).map((item) => ({
         _id: item._id,
         name: item.name,
         image: item.image ?? "/placeholder.svg",
@@ -97,8 +101,14 @@ export default function Wishlist({
       });
       const responseData = await response.json();
       if (response.ok || responseData._status) {
-        // Optimistically remove from Redux
+        // Optimistically remove from Redux and the local server-data mirror
         dispatch(removeFromWishlist({ _id: id }));
+        setLocalWishlist((prev) => {
+          if (!prev) return prev;
+          const items = Array.isArray(prev) ? prev : prev.items ?? [];
+          const next = items.filter((i) => String(i._id) !== String(id));
+          return Array.isArray(prev) ? next : { ...prev, items: next };
+        });
         toast.success(responseData._message);
       } else {
         toast.error(responseData._message);
@@ -135,7 +145,7 @@ export default function Wishlist({
               Your Wishlist is Empty
             </h2>
             <p className="text-muted-foreground text-sm fw-body leading-relaxed">
-              Save your favorite items and create your dream collection. Start exploring our toys!
+              Save your favorite pieces and create your dream collection. Start exploring our jewellery!
             </p>
           </div>
 
@@ -295,7 +305,7 @@ function WishlistCard({
             {item.stock} left
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 bg-emerald-500/90 text-white text-[10px] fw-cta px-1.5 py-0.5 rounded-full shadow-lg backdrop-blur-sm">
+          <span className="inline-flex items-center gap-1 bg-amber-500/90 text-white text-[10px] fw-cta px-1.5 py-0.5 rounded-full shadow-lg backdrop-blur-sm">
             <span className="w-1 h-1 bg-white rounded-full" />
             In Stock
           </span>

@@ -63,20 +63,20 @@ interface SiteConfig {
   googleVerification: string;
 }
 
-// SEO Configuration for Kidora Kart
+// SEO Configuration for Jewellery Walla
 export const siteConfig: SiteConfig = {
-  name: "Kidora Kart",
-  legalName: "Kidora Kart Private Limited",
+  name: "Jewellery Walla",
+  legalName: "Jewellery Walla Private Limited",
   description:
-    "India's favorite online toy shop in Jodhpur offering a wide range of toys, games, and gifts for kids of all ages. Discover educational toys, action figures, dolls, board games, and more.",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.kidorakart.com",
-  domain: process.env.NEXT_PUBLIC_SITE_URL || "kidorakart.com",
+    "Premium jewellery store in Jodhpur offering all types of jewellery for men and women. Discover unique designs, traditional craftsmanship, rings, necklaces, earrings and more.",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.jewellerywalla.com",
+  domain: process.env.NEXT_PUBLIC_SITE_URL || "jewellerywalla.com",
 
   contact: {
-    email: process.env.NEXT_PUBLIC_BUSINESS_EMAIL || "info@kidorakart.com",
-    phone: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+91-6378643867",
-    mobile: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+91-6378643867",
-    whatsapp: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+916378643867",
+    email: process.env.NEXT_PUBLIC_BUSINESS_EMAIL || "info@jewellerywalla.com",
+    phone: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+91-291-1234567",
+    mobile: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+91-9876543210",
+    whatsapp: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+919876543210",
     countryCode: "+91",
   },
 
@@ -95,38 +95,39 @@ export const siteConfig: SiteConfig = {
 
   social: {
     instagram:
-      "https://www.instagram.com/kidorakart/",
-    facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL || "https://facebook.com/kidorakart",
-    twitter: process.env.NEXT_PUBLIC_TWITTER_URL || "https://twitter.com/kidorakart",
-    pinterest: process.env.NEXT_PUBLIC_PINTEREST_URL || "https://pinterest.com/kidorakart",
-    youtube: process.env.NEXT_PUBLIC_YOUTUBE_URL || "https://youtube.com/@kidorakart",
+      "https://www.instagram.com/jewellery__wala_?igsh=MTBqdHI5cjYyMjZsMA==",
+    facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL || "https://facebook.com/jewellerywalla",
+    twitter: process.env.NEXT_PUBLIC_TWITTER_URL || "https://twitter.com/jewellerywalla",
+    pinterest: process.env.NEXT_PUBLIC_PINTEREST_URL || "https://pinterest.com/jewellerywalla",
+    youtube: process.env.NEXT_PUBLIC_YOUTUBE_URL || "https://youtube.com/@jewellerywalla",
   },
 
   business: {
-    foundedYear: "2024",
-    priceRange: "₹99 - ₹9999",
+    foundedYear: "2020",
+    priceRange: "₹200 - ₹50000",
     hoursWeekday: "10:00 AM - 10:00 PM",
     hoursWeekend: "10:00 AM - 10:00 PM",
   },
 
   themeColor: "#F58E00", // SSR fallback — overridden at runtime by ClientThemeColor from --brand-500 CSS var
-  twitterHandle: "@kidorakart",
+  twitterHandle: "@jewellerywalla",
   googleVerification: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "",
 
   categories: [
-    "Action Figures",
-    "Dolls & Playsets",
-    "Educational Toys",
-    "Board Games",
-    "Puzzles",
-    "Remote Control Toys",
-    "Building Blocks",
-    "Soft Toys",
-    "Cars & Vehicles",
-    "Musical Toys",
-    "Outdoor Play",
-    "Art & Craft",
-    "Pretend Play",
+    "Rings",
+    "Necklaces",
+    "Earrings",
+    "Bracelets",
+    "Bangles",
+    "Pendants",
+    "Chains",
+    "Mangalsutra",
+    "Nose Pins",
+    "Anklets",
+    "Bridal Sets",
+    "Men's Jewellery",
+    "Women's Jewellery",
+    "Personalised Jewellery",
     "Gift Items",
   ],
 };
@@ -201,7 +202,7 @@ export const getThemeColor = (): string => {
 export const defaultMetadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} - Online Toy Store in ${siteConfig.address.city} | Shop Toys & Games Online`,
+    default: `${siteConfig.name} - Online Jewellery Store in ${siteConfig.address.city} | Rings, Necklaces & More`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -217,7 +218,7 @@ export const defaultMetadata = {
     type: "website" as const,
     locale: "en_IN" as const,
     url: siteConfig.url,
-    title: `${siteConfig.name} - Online Toy Store in ${siteConfig.address.city}`,
+    title: `${siteConfig.name} - Online Jewellery Store in ${siteConfig.address.city}`,
     description: siteConfig.description,
     siteName: siteConfig.name,
     images: [
@@ -231,7 +232,7 @@ export const defaultMetadata = {
   },
   twitter: {
     card: "summary_large_image" as const,
-    title: `${siteConfig.name} - Online Toy Store in Jodhpur`,
+    title: `${siteConfig.name} - Online Jewellery Store in Jodhpur`,
     description: siteConfig.description,
     images: [`${siteConfig.url}/og-image.jpg`],
     creator: siteConfig.twitterHandle,

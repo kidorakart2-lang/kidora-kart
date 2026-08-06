@@ -1,6 +1,6 @@
 # Web — Storefront
 
-Next.js 16 customer-facing storefront for the Kidora Kart e-commerce platform.
+Next.js 16 customer-facing storefront for the Jewellery Walla e-commerce platform.
 
 ## Tech Stack
 
@@ -62,7 +62,7 @@ web/src/
 
 | Command | Description |
 |---------|-------------|
-| `pnpm dev` | Start dev server |
+| `pnpm dev` | Start dev server on **port 3001** (`next dev -p 3001`) |
 | `pnpm build` | Production build (includes sitemap generation) |
 | `pnpm start` | Start production server |
 | `pnpm typecheck` | TypeScript check (`tsc --noEmit`) |
@@ -107,20 +107,25 @@ The persist whitelist is `["cart", "wishlist", "auth"]`. Auth tokens are strippe
 
 ## Cache Invalidation Flow
 
-The admin panel triggers cache purges via a shared `/api/revalidate` endpoint:
+The admin panel triggers cache purges via the shared `/api/revalidate` endpoint on **this app (`:3001`)**:
 
 ```
 POST /api/revalidate
-{
-  "secret": "<REVALIDATE_SECRET>",   // shared env variable
-  "tags": ["products", "homepage"]   // cache tags to invalidate
-}
+Authorization: Bearer <REVALIDATE_SECRET>
+Content-Type: application/json
+
+{ "tags": ["products", "homepage"] }
 ```
 
-1. **Admin CRUD** → calls `invalidateCache([tag1, tag2, ...])` in `@/lib/invalidate-cache.ts`
-2. **POSTs to `/api/revalidate`** with the shared `REVALIDATE_SECRET`
-3. **Server calls `revalidateTag(tag)`** for each tag, purging Next.js Data Cache
+1. **Admin CRUD** → calls `invalidateCache([tag1, tag2, ...])` in the admin panel's `@/lib/invalidate-cache.ts`, which fetches `{FRONTEND_URL}/api/revalidate` (`NEXT_PUBLIC_FRONTEND_URL`, must point here — `http://localhost:3001`)
+2. **Authenticates with `Authorization: Bearer <REVALIDATE_SECRET>`** — the secret is never sent in the body (matching this app's `REVALIDATE_SECRET` env var)
+3. **Server calls `revalidateTag(tag, profile)`** for each tag, purging the Next.js Data Cache
 4. **Tags are defined** in `@/lib/revalidation-tags.ts` with constants like `TAG_PRODUCTS`, `TAG_CATEGORIES`, `TAG_HOMEPAGE`, and scoped helpers like `productTag(id)`, `categoryTag(slug)`, `brandTag(slug)`
+
+**Other details:**
+- `GET /api/revalidate` is **public** and returns a version stamp — the client-side `CacheInvalidationProvider` (via `useCacheInvalidation.ts`) polls it every 30s and invalidates React Query caches when the stamp changes.
+- The route's `next.config.ts` adds CORS headers (`Access-Control-Allow-Origin: *`, `POST, OPTIONS`) so the admin panel's cross-origin fetch from `:3000` works.
+- The admin panel's `next.config.ts` rewrites `/api/revalidate` to this app so it isn't proxied to the API backend.
 
 This is how admin edits to products, banners, categories, or homepage sections instantly reflect on the storefront without a full redeploy.
 
@@ -132,7 +137,7 @@ The app uses a two-tier theming system — shadcn/ui semantic tokens + brand-spe
 
 | Variable | Light | Dark | Purpose |
 |----------|-------|------|---------|
-| `--brand-primary` | `#d97706` (amber-600) | `#fbbf24` (amber-400) | Primary accent, headings, CTAs |
+| `--brand-primary` | `#b45309` / `#d4af37` (gold) | `#fbbf24` (amber-400) | Primary accent, headings, CTAs |
 | `--brand-secondary` | `#e11d48` (rose-600) | `#fb7185` (rose-400) | Secondary accent |
 | `--brand-heading` | `#d97706` | `#fbbf24` | Heading color |
 | `--brand-primary-dark` | `#b45309` | `#f59e0b` | Hover/active states |
@@ -181,12 +186,12 @@ The app uses a two-tier theming system — shadcn/ui semantic tokens + brand-spe
 
 ## Environment Variables
 
-Copy `web/.env.example` to `.env.local`:
+Environment variables live in the **gitignored `web/.env`** file (there is no committed example for web):
 
 ```
 NEXT_PUBLIC_API_URL=http://localhost:5000/
 REVALIDATE_SECRET=your-random-secret-here
-NEXT_PUBLIC_CDN_HOST=cdn.kidorakart.com
+NEXT_PUBLIC_CDN_HOST=cdn.jewellerywalla.com
 ```
 
 | Variable | Description |

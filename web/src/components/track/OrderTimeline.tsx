@@ -30,7 +30,7 @@ function getStatusIcon(status: string) {
 function getStatusColor(status: string, isActive: boolean, isCompleted: boolean) {
   if (status === "cancelled" || status === "payment_failed") return "bg-destructive text-destructive-foreground";
   if (isActive) return "bg-foreground text-background";
-  if (isCompleted) return "bg-emerald-500 text-background";
+  if (isCompleted) return "bg-amber-500 text-background";
   return "bg-muted text-muted-foreground";
 }
 
@@ -71,7 +71,7 @@ export default function OrderTimeline({ status, statusHistory, isCancelled, isPa
                 initial={{ width: 0 }}
                 animate={{ width: getProgressWidth(status) }}
                 transition={{ duration: 1, ease: "easeOut" }}
-                className="h-full bg-emerald-500"
+                className="h-full bg-amber-500"
               />
             </div>
             {STATUSES.map((s, index) => {

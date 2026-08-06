@@ -11,8 +11,6 @@ interface FilterParams {
   materialIds: string[];
   priceFrom: number | null;
   priceTo: number | null;
-  ageFrom: number | null;
-  ageTo: number | null;
   quickFilter: string | null;
   searchQuery: string | null;
 }
@@ -47,8 +45,6 @@ function buildFilterParams(filter: FilterParams, page: number): string {
   if (filter.materialIds.length > 0) params.set("materialIds", filter.materialIds.join(","));
   if (filter.priceFrom != null) params.set("priceFrom", String(filter.priceFrom));
   if (filter.priceTo != null) params.set("priceTo", String(filter.priceTo));
-  if (filter.ageFrom != null) params.set("ageFrom", String(filter.ageFrom));
-  if (filter.ageTo != null) params.set("ageTo", String(filter.ageTo));
 
   params.set("page", String(page));
   params.set("limit", String(PRODUCTS_PER_PAGE));

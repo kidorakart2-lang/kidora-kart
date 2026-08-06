@@ -276,9 +276,9 @@ className="px-6 py-3 btn-gradient rounded-full fw-cta text-sm uppercase tracking
                 >
                   {/* Verified Badge */}
                   {review.verified && (
-                    <div className="absolute top-4 right-4 flex items-center gap-1 px-3 py-1 bg-green-50 rounded-full border border-green-200">
-                      <Shield size={12} className="text-green-600" />
-                      <span className="text-xs text-green-700 fw-body">
+                    <div className="absolute top-4 right-4 flex items-center gap-1 px-3 py-1 bg-amber-50 rounded-full border border-amber-200">
+                      <Shield size={12} className="text-amber-600" />
+                      <span className="text-xs text-amber-700 fw-body">
                         Verified
                       </span>
                     </div>
@@ -388,10 +388,10 @@ className="px-6 py-3 btn-gradient rounded-full fw-cta text-sm uppercase tracking
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", delay: 0.2 }}
-                      className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6"
+                      className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6"
                     >
                       <Check
-                        className="w-10 h-10 text-green-500"
+                        className="w-10 h-10 text-amber-500"
                         strokeWidth={2}
                       />
                     </motion.div>

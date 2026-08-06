@@ -93,12 +93,12 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
                 />
               ) : (
                 <div className="w-full h-full bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-sm">T</span>
+                  <span className="text-primary-foreground font-bold text-sm">J</span>
                 </div>
               )}
             </div>
             <span className="font-bold text-lg text-sidebar-foreground">
-              Kidora Kart
+              Jewellery Walla
             </span>
           </div>
         )}

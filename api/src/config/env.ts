@@ -9,15 +9,15 @@ const envSchema = z.object({
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
 
-  APP_URL: z.string().url().default("http://localhost:3000"),
-  FRONTEND_URL: z.string().url().default("http://localhost:3000"),
+  APP_URL: z.string().url().default("http://localhost:3001"),
+  FRONTEND_URL: z.string().url().default("http://localhost:3001"),
 
   MY_GMAIL: z.string().email().optional(),
   MY_GMAIL_PASSWORD: z.string().optional(),
   EMAIL_FROM_NAME: z.string().optional(),
-  SUPPORT_EMAIL: z.string().email().default("support@kidorakart.com"),
-  CDN_HOST: z.string().default("cdn.kidorakart.com"),
-  APP_NAME: z.string().default("Kidora Kart"),
+  SUPPORT_EMAIL: z.string().email().default("support@jewellerywalla.com"),
+  CDN_HOST: z.string().default("cdn.jewellerywalla.com"),
+  APP_NAME: z.string().default("Jewellery Walla"),
 
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 
@@ -65,10 +65,6 @@ const envSchema = z.object({
     .string()
     .default("http://localhost:3000,http://localhost:3001")
     .transform((val) => val.split(",").map((s) => s.trim())),
-
-  SHIPROCKET_EMAIL: z.string().email().optional(),
-  SHIPROCKET_PASSWORD: z.string().optional(),
-  SHIPROCKET_TOKEN: z.string().optional(), // Cached JWT — service regenerates on 401
 
   STORE_PICKUP_PINCODE: z.string().default("342005"),
 

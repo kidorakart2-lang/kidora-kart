@@ -10,8 +10,8 @@ interface SuggestionItem {
 }
 
 const SUGGESTIONS: SuggestionItem[] = [
-  { icon: Plus, label: "Create a product", prompt: "Create a new product for my toy store" },
-  { icon: Pencil, label: "Write a description", prompt: "Write a product description for a toy" },
+  { icon: Plus, label: "Create a product", prompt: "Create a new product for my jewellery store" },
+  { icon: Pencil, label: "Write a description", prompt: "Write a product description for a jewellery piece" },
   { icon: Globe, label: "Search my store", prompt: "Search for existing products in my store" },
 ];
 

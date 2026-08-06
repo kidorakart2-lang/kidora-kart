@@ -14,6 +14,7 @@ export interface RefundResponse {
 export type OrderItemInput = {
   productId: string;
   colorId: string;
+  sizeId?: string | null;
   name: string;
   description?: string;
   quantity: number;

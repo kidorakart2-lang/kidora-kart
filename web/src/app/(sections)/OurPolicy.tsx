@@ -16,7 +16,7 @@ const OurPolicy = () => {
     {
       title: "Quality Assurance",
       description:
-        `At ${siteConfig.name}, we are committed to providing our customers with the highest quality toys. Each product is carefully curated and inspected to ensure it meets our strict quality standards before reaching you.`,
+        `At ${siteConfig.name}, we are committed to providing our customers with the highest quality jewellery. Each piece is carefully curated and inspected to ensure it meets our strict quality standards before reaching you.`,
       icon: Shield,
     },
     {
@@ -91,7 +91,7 @@ const OurPolicy = () => {
         >
           <div className="flex items-center gap-3 mb-4">
             <RefreshCw className="w-6 h-6 text-muted-foreground" />
-            <h2 className="text-2xl font-semibold text-foreground">
+            <h2 className="text-2xl fw-heading text-foreground">
               Refund & Cancellation Policy
             </h2>
           </div>
@@ -131,7 +131,7 @@ const OurPolicy = () => {
             <div className="bg-muted border border-border rounded-lg p-4 pl-7">
               <p className="text-sm text-muted-foreground leading-relaxed">
                 <strong className="text-foreground">Note:</strong> For personalized or custom
-                toy orders, cancellations may not be available once
+                jewellery orders, cancellations may not be available once
                 production has begun. Please contact us immediately if you need
                 to make changes.
               </p>
@@ -148,7 +148,7 @@ const OurPolicy = () => {
         >
           <div className="flex items-center gap-3 mb-4">
             <Lock className="w-6 h-6 text-muted-foreground" />
-            <h2 className="text-2xl font-semibold text-foreground">
+            <h2 className="text-2xl fw-heading text-foreground">
               Cookie & Data Usage Policy
             </h2>
           </div>
@@ -182,8 +182,8 @@ const OurPolicy = () => {
               <strong className="text-foreground">
                 100% Quality Guaranteed
               </strong>
-              , ensuring safety and quality in every item. All our toys meet
-              the highest safety standards for your child's enjoyment.
+              , ensuring authenticity and quality in every piece. All our
+              jewellery is hallmarked and certified for your peace of mind.
             </p>
           </div>
         </motion.div>
@@ -194,7 +194,7 @@ const OurPolicy = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <h2 className="text-2xl font-semibold text-foreground mb-6">
+          <h2 className="text-2xl fw-heading text-foreground mb-6">
             Additional Information
           </h2>
 
@@ -207,9 +207,9 @@ const OurPolicy = () => {
                 </h3>
               </div>
               <p className="text-muted-foreground leading-relaxed pl-7">
-                Unsure about which toy is right for your child? Contact our
-                customer service for assistance in finding the perfect toy
-                for any age group.
+                Unsure about which jewellery size fits you best? Contact our
+                customer service for assistance in finding the perfect fit
+                for any occasion.
               </p>
             </div>
 
@@ -221,9 +221,9 @@ const OurPolicy = () => {
                 </h3>
               </div>
               <p className="text-muted-foreground leading-relaxed pl-7">
-                Looking for something special? We offer custom toy and gift
-                options. Contact us to discuss your needs and we'll help find
-                the perfect present.
+                Looking for something special? We offer custom jewellery and gift
+                options. Contact us to discuss your needs and we'll craft
+                the perfect piece.
               </p>
             </div>
           </div>

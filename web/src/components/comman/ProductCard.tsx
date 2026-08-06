@@ -1,5 +1,5 @@
 "use client";
-import { Heart, ShoppingCart, Star, Loader2, Dot, Sparkles } from "lucide-react";
+import { Heart, ShoppingCart, Star, Loader2, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -39,10 +39,6 @@ export default function ProductCard({ data }: { data: ProductData }) {
 
   const displayPrice = data?.price;
   const displayCurrentPrice = data?.discount_price;
-  const discountPercentage =
-    displayPrice && displayCurrentPrice
-      ? Math.round(((displayPrice - displayCurrentPrice) / displayPrice) * 100)
-      : 0;
   const savings =
     displayPrice && displayCurrentPrice
       ? displayPrice - displayCurrentPrice
@@ -262,18 +258,6 @@ export default function ProductCard({ data }: { data: ProductData }) {
           onMouseEnter={() => handleImageHover(true)}
           onMouseLeave={() => handleImageHover(false)}
         >
-          {/* Discount sticker — tilted like a price sticker on packaging */}
-          {discountPercentage > 0 && (
-            <div
-              className="absolute top-3 left-3 z-20 -rotate-6 bg-brand-accent-500 text-white px-2.5 py-1 rounded-lg text-[11px] fw-cta shadow-md flex items-center gap-0.5 animate-in fade-in slide-in-from-left duration-300"
-              role="status"
-              aria-label={`${discountPercentage} percent discount`}
-            >
-              <Dot className="size-4 -ml-1 animate-ping" aria-hidden="true" />
-              {discountPercentage}% OFF
-            </div>
-          )}
-
           {/* Main image */}
           <div
             className={`absolute inset-0 transition-[opacity,transform] duration-300 ease-out ${
@@ -436,7 +420,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
                   size={12}
                   className={
                     i < Math.round(data.rating!)
-                      ? "fill-yellow-400 text-yellow-400"
+                      ? "fill-amber-400 text-amber-400"
                       : "fill-muted text-muted"
                   }
                 />

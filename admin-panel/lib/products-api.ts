@@ -9,14 +9,9 @@ export function isValidVideoUrl(url: string): boolean {
   return YOUTUBE_RE.test(url) || VIMEO_RE.test(url) || DIRECT_VIDEO_RE.test(url);
 }
 
-export const AGE_OPTIONS = Array.from({ length: 19 }, (_, i) => ({
-  value: String(i),
-  label: i === 0 ? "0 (Newborn)" : `${i} Years`,
-}));
-
 export const INITIAL_FORM_STATE: ProductFormData = {
   name: "", description: "", shortDescription: "", weight: "", length: "",
-  height: "", breadth: "", minimumAge: "", idealAge: "", maximumAge: "",
+  height: "", breadth: "", purity: "", sizes: [],
   type: "", sku: "", tags: [], videoUrl: "", code: "", price: "",
   discount_price: "", stock: "", estimated_delivery_time: "", status: "draft",
   isFeatured: false, isNewArrival: false, isBestSeller: false, isTopRated: false,
@@ -32,6 +27,10 @@ export async function fetchColors(): Promise<{ _id: string; name: string; code: 
 
 export async function fetchMaterials(): Promise<{ _id: string; name: string }[]> {
   try { return (await api.post("/api/admin/material/view", {})) || []; } catch { return []; }
+}
+
+export async function fetchSizes(): Promise<{ _id: string; name: string }[]> {
+  try { return (await api.post("/api/admin/size/view", {})) || []; } catch { return []; }
 }
 
 export async function fetchCategories(): Promise<{ _id: string; name: string }[]> {
@@ -90,9 +89,7 @@ export function buildProductFormData(
   if (formData.length) fd.append("length", formData.length);
   if (formData.height) fd.append("height", formData.height);
   if (formData.breadth) fd.append("breadth", formData.breadth);
-  if (formData.minimumAge) fd.append("minimumAge", formData.minimumAge);
-  if (formData.idealAge) fd.append("idealAge", formData.idealAge);
-  if (formData.maximumAge) fd.append("maximumAge", formData.maximumAge);
+  if (formData.purity) fd.append("purity", formData.purity);
   if (formData.type) fd.append("type", formData.type);
   if (formData.sku) fd.append("sku", formData.sku);
   if (formData.tags.length > 0) formData.tags.forEach((tag) => fd.append("tags[]", tag));
@@ -117,6 +114,7 @@ export function buildProductFormData(
   selectedSubSubCategory.forEach((ssc) => fd.append("subSubCategory[]", ssc));
   selectedColors.forEach((c) => fd.append("colors[]", c));
   selectedMaterials.forEach((m) => fd.append("material[]", m));
+  formData.sizes.forEach((s) => fd.append("sizes[]", s));
   if (formData.mainImage) fd.append("image", formData.mainImage);
   formData.additionalImages?.forEach((file) => { if (file) fd.append("images", file); });
   formData.giftImages?.forEach((file) => { if (file) fd.append("giftImages", file); });
@@ -172,7 +170,7 @@ export function buildUpdateFormData(
   // Compare scalar fields (string, number, boolean) and include if changed
   const scalarFields: (keyof ProductFormData)[] = [
     "name", "description", "shortDescription", "weight", "length", "height",
-    "breadth", "minimumAge", "idealAge", "maximumAge", "type", "sku",
+    "breadth", "purity", "type", "sku",
     "videoUrl", "code", "price", "discount_price", "stock",
     "estimated_delivery_time", "status", "order",
     "isFeatured", "isNewArrival", "isBestSeller", "isTopRated",
@@ -190,6 +188,11 @@ export function buildUpdateFormData(
   // Tags array
   if (JSON.stringify(formData.tags) !== JSON.stringify(initialData.tags)) {
     formData.tags.forEach((tag) => fd.append("tags[]", tag));
+  }
+
+  // Sizes array — compare JSON and include only when changed
+  if (JSON.stringify(formData.sizes) !== JSON.stringify(initialData.sizes)) {
+    formData.sizes.forEach((s) => fd.append("sizes[]", s));
   }
 
   // Multi-select arrays

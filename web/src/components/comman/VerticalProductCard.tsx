@@ -263,7 +263,7 @@ export default function VerticalProductCard({ data }: VerticalProductCardProps) 
                       size={14}
                       className={
                         i < Math.round(data.rating!)
-                          ? "fill-yellow-400 text-yellow-400"
+                          ? "fill-amber-400 text-amber-400"
                           : "fill-muted text-muted"
                       }
                     />

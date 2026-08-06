@@ -28,6 +28,7 @@ export interface CartApiItem {
   product: ProductData;
   quantity: number;
   color: { _id: string; code: string; name: string };
+  size?: { _id: string; name: string } | null;
 }
 
 interface CartApiData {
@@ -46,6 +47,7 @@ function serverItemToSlice(item: CartApiItem): CartSliceItem {
     slug: item.product.slug as string ?? null,
     quantity: item.quantity ?? 1,
     colorId: (item.color?._id as string) ?? null,
+    sizeId: item.size?._id ? String(item.size._id) : null,
     isGuest: false,
   };
 }
@@ -133,8 +135,10 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
         code: string;
       }>;
       const color = (fetched?.colors ?? []).find((c) => c._id === item.colorId);
+      const sizes = (fetched?.sizes ?? []) as Array<{ _id: string; name: string }>;
+      const size = sizes.find((s) => s._id === item.sizeId);
       return {
-        _id: `${item.productId}_${item.colorId ?? ""}`,
+        _id: `${item.productId}_${item.colorId ?? ""}_${item.sizeId ?? ""}`,
         product: {
           _id: item.productId,
           name: product.name,
@@ -144,6 +148,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
           slug: product.slug,
           stock: product.stock ?? 0,
           colors: fetched?.colors ?? [],
+          sizes: fetched?.sizes ?? [],
         } as ProductData,
         quantity: item.quantity,
         color: {
@@ -151,6 +156,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
           code: color?.code ?? "#000",
           name: color?.name ?? "",
         },
+        size: size ? { _id: size._id, name: size.name } : undefined,
       } as CartApiItem;
     });
 
@@ -174,11 +180,14 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
     if (newQuantity < 1) return;
 
     if (isGuestView) {
-      const [productId, colorId] = id.split("_");
-      dispatch(updateCartQuantity({ productId, quantity: newQuantity, colorId: colorId || null }));
+      // Guest cart item ids are `${productId}_${colorId ?? ""}_${sizeId ?? ""}`
+      const parts = id.split("_");
+      const productId = parts[0];
+      const colorId = parts[1] || null;
+      const sizeId = parts.slice(2).join("_") || null;
+      dispatch(updateCartQuantity({ productId, quantity: newQuantity, colorId, sizeId: sizeId || null }));
       return;
     }
-
     setLoading(true);
     try {
       const response = await fetch(`/api/website/cart/items/update/${id}`, {
@@ -203,8 +212,12 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
   const removeItem = async (id: string) => {
     if (isGuestView) {
-      const [productId, colorId] = id.split("_");
-      dispatch(removeFromCart({ productId, colorId: colorId || null }));
+      // Guest cart item ids are `${productId}_${colorId ?? ""}_${sizeId ?? ""}`
+      const parts = id.split("_");
+      const productId = parts[0];
+      const colorId = parts[1] || null;
+      const sizeId = parts.slice(2).join("_") || null;
+      dispatch(removeFromCart({ productId, colorId, sizeId: sizeId || null }));
       return;
     }
 

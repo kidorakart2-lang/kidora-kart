@@ -43,14 +43,14 @@ const ToolBar = () => {
       >
         <button
           onClick={handleInstagramClick}
-          className="group relative bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 text-white rounded-full p-3 shadow-2xl transition-all duration-300 hover:shadow-pink-500/50 hover:scale-110 active:scale-95 overflow-hidden"
+          className="group relative bg-gradient-to-tr from-amber-400 via-rose-500 to-rose-600 text-white rounded-full p-3 shadow-2xl transition-all duration-300 hover:shadow-rose-500/50 hover:scale-110 active:scale-95 overflow-hidden"
           aria-label="Chat on Instagram"
         >
           {/* Animated background gradient */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-purple-600 via-pink-500 to-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-rose-600 via-rose-500 to-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
           {/* Pulse effect */}
-          <div className="absolute inset-0 rounded-full bg-pink-400 animate-ping opacity-20" />
+          <div className="absolute inset-0 rounded-full bg-rose-400 animate-ping opacity-20" />
 
           <Instagram className="w-5 h-5 relative z-10" />
         </button>
@@ -66,11 +66,11 @@ const ToolBar = () => {
       >
         <button
           onClick={handleWhatsAppClick}
-          className="group relative bg-green-500 hover:bg-green-600 text-white rounded-full p-3 shadow-2xl transition-all duration-300 hover:shadow-green-500/50 hover:scale-110 active:scale-95 overflow-hidden"
+          className="group relative bg-amber-500 hover:bg-amber-600 text-white rounded-full p-3 shadow-2xl transition-all duration-300 hover:shadow-amber-500/50 hover:scale-110 active:scale-95 overflow-hidden"
           aria-label="Chat on WhatsApp"
         >
           {/* Ripple effect on hover */}
-          <div className="absolute inset-0 rounded-full bg-green-400 scale-0 group-hover:scale-150 transition-transform duration-500 opacity-30" />
+          <div className="absolute inset-0 rounded-full bg-amber-400 scale-0 group-hover:scale-150 transition-transform duration-500 opacity-30" />
 
           <svg
             className="w-5 h-5 relative z-10"
@@ -85,13 +85,13 @@ const ToolBar = () => {
       {/* Main Toggle Button */}
       <button
         onClick={handleToggle}
-        className={`relative bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-full p-3 shadow-2xl transition-all duration-300 hover:shadow-purple-500/50 hover:scale-105 active:scale-95 ${
+        className={`relative bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white rounded-full p-3 shadow-2xl transition-all duration-300 hover:shadow-rose-500/50 hover:scale-105 active:scale-95 ${
           isExpanded ? "rotate-45" : "rotate-0"
         }`}
         aria-label="Toggle social media menu"
       >
         {/* Glow effect */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-400 to-rose-500 blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
 
         <div className="relative z-10">
           {isExpanded ? (

@@ -48,12 +48,13 @@ const FullVideoSection = () => {
           >
             {/* Decorative Line */}
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-[2px] bg-background/60"></div>
+              <div className="w-12 h-[2px] bg-gradient-to-r from-brand-400 to-brand-600"></div>
+              <Sparkles className="w-5 h-5 text-brand-400" />
             </div>
 
             {/* Heading */}
             <motion.h2
-              className="text-3xl md:text-5xl lg:text-6xl fw-heading mb-6 leading-[1.2]"
+              className="text-3xl md:text-5xl lg:text-6xl font-serif mb-6 leading-[1.2] text-background"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}

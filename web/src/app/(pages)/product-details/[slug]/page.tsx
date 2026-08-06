@@ -51,17 +51,17 @@ export async function generateMetadata({ params }: ProductDetailsPageProps) {
       ? "https://schema.org/InStock"
       : "https://schema.org/OutOfStock";
 
-  const categoryName = product.category?.[0]?.name || "toy";
+  const categoryName = product.category?.[0]?.name || "jewellery";
   const localKeywords = [
     product.name,
     categoryName,
     `${categoryName} in ${siteConfig.address.city}`,
     `${siteConfig.address.city} ${categoryName}`,
-    `${siteConfig.address.city} toy store`,
-    "buy toys online",
-    `toys ${siteConfig.address.city}`,
-    `kids toys ${siteConfig.address.city}`,
-    `shop toys ${siteConfig.address.city}`,
+    `${siteConfig.address.city} jewellery store`,
+    "buy jewellery online",
+    `jewellery ${siteConfig.address.city}`,
+    `gold jewellery ${siteConfig.address.city}`,
+    `shop jewellery ${siteConfig.address.city}`,
     siteConfig.name,
     ...(product.tags || []),
   ].join(", ");
@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: ProductDetailsPageProps) {
     product.description ||
     `Buy ${product.name} from ${
       siteConfig.name
-    }, your trusted toy store in ${siteConfig.address.city}, ${siteConfig.address.state}. ${
+    }, your trusted jewellery store in ${siteConfig.address.city}, ${siteConfig.address.state}. ${
       product.short_description || ""
     } Shop premium quality ${categoryName} at the best prices in ${siteConfig.address.city}.`;
 
@@ -104,7 +104,7 @@ export async function generateMetadata({ params }: ProductDetailsPageProps) {
       title: `${product.name} | ${siteConfig.name}`,
       description:
         product.description ||
-        `Buy ${product.name} from ${siteConfig.address.city}'s trusted toy store.`,
+        `Buy ${product.name} from ${siteConfig.address.city}'s trusted jewellery store.`,
       images: [productImage],
     },
     robots: {

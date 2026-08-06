@@ -63,7 +63,7 @@ export default function LoginPage() {
         {/* Brand text */}
         <div className="absolute bottom-8 lg:bottom-12 left-0 right-0 text-center z-10 animate-in fade-in duration-1000 delay-500">
           <p className="text-slate-400 text-xs lg:text-sm tracking-[0.2em] uppercase font-light">
-            Kidora Kart — Admin Dashboard
+            Jewellery Walla — Admin Dashboard
           </p>
         </div>
       </div>
@@ -176,7 +176,7 @@ export default function LoginPage() {
 
           {/* Footer */}
           <p className="text-center text-xs text-muted-foreground/60 mt-10 animate-in fade-in duration-500 delay-700">
-            &copy; {new Date().getFullYear()} Kidora Kart. All rights reserved.
+            &copy; {new Date().getFullYear()} Jewellery Walla. All rights reserved.
           </p>
         </div>
       </div>

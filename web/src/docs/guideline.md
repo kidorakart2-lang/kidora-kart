@@ -1,4 +1,4 @@
-# Web Development Guidelines — Kidora Kart
+# Web Development Guidelines — Jewellery Walla
 
 ## Project Structure
 

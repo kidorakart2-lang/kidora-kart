@@ -13,6 +13,7 @@ export interface OrderItem {
   /** Exact line total stored at order time (avoids per-unit rounding drift). */
   subtotal?: number;
   colorId: { code: string; name: string };
+  sizeId?: { _id?: string; name: string; value?: string } | string | null;
 
   isPersonalized: boolean;
   personalizedName?: string;

@@ -9,17 +9,10 @@ import { hashOtp } from "../../lib/jwt.js";
 import { env } from "../../config/env.js";
 import { logger } from "../../lib/logger.js";
 import { enqueue } from "../../lib/jobQueue.js";
-import { getStorePickupPincode } from "../../lib/storeSettings.js";
 import {
   validateAndPriceCart,
   CartValidationError,
 } from "../../services/cartValidation.service.js";
-import {
-  checkServiceability,
-  getPickupLocations,
-  cancelOrderOrRto as shiprocketCancelOrRto,
-  requestReturnOrder as shiprocketRequestRto,
-} from "../../lib/shiprocket.js";
 import { generateOTP, generatePackageId, type RefundResponse, type OrderItemInput } from "./order.helpers.js";
 import {
   handleRefundCreated,
@@ -63,6 +56,7 @@ export const createOrder = async (
         quantity: number;
         colorId: string;
         variantId?: string;
+        sizeId?: string;
       }>;
       isPersonalizedName?: string;
       shippingAddress: {
@@ -116,7 +110,7 @@ export const createOrder = async (
         cart.items.map((ci) => ({
           productId: String(ci.product),
           colorId: String(ci.color),
-
+          sizeId: ci.size ? String(ci.size) : undefined,
           quantity: ci.quantity,
         })),
       );
@@ -142,6 +136,7 @@ export const createOrder = async (
     const orderItems: OrderItemInput[] = validatedItems.map((vi) => ({
       productId: vi.productId,
       colorId: vi.colorId,
+      sizeId: vi.sizeId ?? null,
       name: vi.name,
       description: vi.description,
       quantity: vi.quantity,
@@ -162,69 +157,8 @@ export const createOrder = async (
         ? 0
         : Math.round(subtotal * (env.AUTO_DISCOUNT_PERCENT / 100));
 
-    // ── Shipping charge: prefer frontend estimate, fall back to Shiprocket, then ₹50 ──
-    let finalShippingCharge = shippingCharge;
-    let finalCourier = shippingCourier;
-    let finalEtd = shippingEtd;
-
-    if (finalShippingCharge == null) {
-      // Frontend didn't provide an estimate — try Shiprocket server-side
-      try {
-        const deliveryPincode = shippingAddress?.pincode;
-        if (deliveryPincode && deliveryPincode.length === 6) {
-          // Fetch product weights from DB to calculate total weight
-          const productIds = [...new Set(validatedItems.map((vi) => vi.productId))];
-          const products = await Product.find({ _id: { $in: productIds } })
-            .select("weight")
-            .lean();
-          const weightMap = new Map<string, number>(
-            products.map((p) => [String(p._id), Number((p as { weight?: string }).weight ?? 0)]),
-          );
-          let totalWeightKg = 0;
-          for (const vi of validatedItems) {
-            const weightGrams = weightMap.get(vi.productId) ?? 0;
-            totalWeightKg += (weightGrams * vi.quantity) / 1000;
-          }
-          // Minimum weight of 0.1 kg to avoid zero-weight errors
-          if (totalWeightKg < 0.1) totalWeightKg = 0.5;
-
-          // Get store pickup pincode from DB settings (fallback to env)
-          const locations = await getPickupLocations();
-          const pickupData = (locations as { data?: { pickup_locations?: Array<{ pincode: string }> } })?.data;
-          const pickupLocations = pickupData?.pickup_locations;
-          const dbFallbackPincode = await getStorePickupPincode();
-          let pickupPincode = dbFallbackPincode;
-          if (pickupLocations && pickupLocations.length > 0) {
-            pickupPincode = pickupLocations[0]!.pincode;
-          }
-
-          const serviceability = await checkServiceability(
-            pickupPincode,
-            deliveryPincode,
-            totalWeightKg,
-            false,
-          );
-
-          // Shiprocket GET endpoints nest data inside a `data` key
-          const serviceabilityData = (serviceability as { data?: { available_courier_companies?: Array<{ courier_name: string; rate: number; etd: string }> } })?.data;
-          const couriers = serviceabilityData?.available_courier_companies;
-
-          if (couriers && couriers.length > 0) {
-            const cheapest = couriers.reduce(
-              (min, c) => (c.rate < min.rate ? c : min),
-              couriers[0]!,
-            );
-            finalShippingCharge = cheapest.rate;
-            finalCourier = cheapest.courier_name;
-            finalEtd = cheapest.etd;
-          }
-        }
-      } catch (shiprocketError) {
-        logger.warn(shiprocketError, "Shiprocket estimate fallback failed, using default ₹50");
-      }
-    }
-
-    const shipping = finalShippingCharge ?? env.DEFAULT_SHIPPING_FEE;
+    // ── Shipping charge: prefer frontend-provided charge, else flat default fee ──
+    const shipping = shippingCharge ?? env.DEFAULT_SHIPPING_FEE;
     const giftWrapCharges = giftWrap ? env.DEFAULT_GIFT_WRAP_FEE : 0;
     const total = subtotal - discount + shipping + giftWrapCharges;
     const codAdvance = isCodAdvance
@@ -312,11 +246,11 @@ export const createOrder = async (
       giftWrapCharges,
       status: "pending",
       payment: { status: "pending" },
-      ...(finalCourier || finalEtd
+      ...(shippingCourier || shippingEtd
         ? {
             shipping: {
-              carrier: finalCourier || "",
-              estimatedDelivery: finalEtd && !isNaN(Date.parse(finalEtd)) ? new Date(finalEtd) : undefined,
+              carrier: shippingCourier || "",
+              estimatedDelivery: shippingEtd && !isNaN(Date.parse(shippingEtd)) ? new Date(shippingEtd) : undefined,
             },
           }
         : {}),
@@ -866,6 +800,7 @@ export const getOrderById = async (
       .populate("items.productId", "name images slug")
       .select("-payment.razorpay.signature") // TODO: frontend OrderData uses createdAt, updatedAt for display
       .populate("items.colorId", "name code")
+      .populate("items.sizeId", "name value")
       .lean();
 
     if (!order) {
@@ -900,6 +835,7 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
     const order = await Order.findOne(filter)
       .populate("items.productId", "name images slug")
       .populate("items.colorId", "name code")
+      .populate("items.sizeId", "name value")
       .select("-payment.razorpay.signature") // TODO: frontend OrderData uses createdAt, updatedAt for display
       .lean();
 
@@ -980,8 +916,15 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
       } else {
       try {
         // O9: Fetch Razorpay payment state before issuing refund
+        // Validate the stored ID before calling the API — stale/garbage IDs (e.g.
+        // from migrated data or a different key) make Razorpay return a 400.
         const paymentId = order.payment?.razorpay?.paymentId;
-        if (paymentId) {
+        if (paymentId && !/^pay_[A-Za-z0-9]+$/.test(paymentId)) {
+          logger.warn(
+            { orderId: order.orderId, paymentId },
+            "Refund skipped — stored Razorpay payment ID is invalid",
+          );
+        } else if (paymentId) {
           try {
             const rzpPayment = await razorpay.payments.fetch(paymentId) as { status?: string };
             if (rzpPayment.status !== "captured") {
@@ -1004,7 +947,7 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
         };
             }
           } catch (rzpError) {
-            logger.error(rzpError, "Razorpay payment fetch failed");
+            logger.warn({ orderId: order.orderId, paymentId }, "Razorpay payment fetch failed; refund skipped — payment ID is not valid on this account");
           }
         }
       } catch (error) {
@@ -1260,6 +1203,7 @@ export const getAllOrders = async (
       .sort({ createdAt: -1 }) // TODO: frontend OrderData uses createdAt, updatedAt for display
       .populate("items.productId", "name images slug")
       .populate("items.colorId", "name")
+      .populate("items.sizeId", "name value")
       .select("-payment.razorpay.signature")
       .lean();
 
@@ -1627,11 +1571,9 @@ export const cancelOrderByAdmin = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const { orderId, reason, autoRto } = req.body as {
+  const { orderId, reason } = req.body as {
     orderId: string;
     reason?: string;
-    /** If true, automatically attempt RTO if Shiprocket cancellation fails */
-    autoRto?: boolean;
   };
   try {
     const order = await Order.findOne({ orderId });
@@ -1640,58 +1582,7 @@ export const cancelOrderByAdmin = async (
       return;
     }
 
-    // ── Step 1: Handle Shiprocket cancellation if order has been shipped ──
-    let shiprocketAction: "cancelled" | "rto" | "none" | "failed" = "none";
-    const shiprocketOrderId = order.shipping?.shiprocketOrderId;
-
-    if (shiprocketOrderId) {
-      try {
-        const cancelResult = await shiprocketCancelOrRto([shiprocketOrderId]);
-
-        if (cancelResult.cancelled) {
-          logger.info({ orderId, shiprocketOrderId }, "Admin cancel: Shiprocket order cancelled successfully");
-          shiprocketAction = "cancelled";
-        } else if (cancelResult.needsRto && autoRto) {
-          // Cancellation failed because shipment is in transit — attempt RTO
-          logger.info({ orderId, shiprocketOrderId }, "Admin cancel: Shiprocket cancel failed, attempting RTO");
-          const rtoResult = await shiprocketRequestRto(shiprocketOrderId);
-
-          if (rtoResult.status_code === 1) {
-            shiprocketAction = "rto";
-            order.shipping = {
-              ...order.shipping,
-              rtoRequested: true,
-              rtoOrderId: rtoResult.rto_order_id,
-              rtoStatus: rtoResult.rto_status || "initiated",
-            } as typeof order.shipping;
-            logger.info({ orderId, rtoOrderId: rtoResult.rto_order_id }, "Admin cancel: RTO initiated");
-          } else {
-            logger.warn({ orderId, rtoResult }, "Admin cancel: RTO failed");
-            shiprocketAction = "failed";
-          }
-        } else if (cancelResult.needsRto) {
-          // Cancellation failed, RTO available but not auto — tell the admin
-          res.status(409).json({
-            success: false,
-            message: "Shipment has already been picked up by the courier. Cannot cancel directly. Use the RTO endpoint to have the package returned.",
-            data: {
-              needsRto: true,
-              shiprocketOrderId,
-              shiprocketMessage: cancelResult.message,
-            },
-          });
-          return;
-        } else {
-          logger.warn({ orderId, shiprocketOrderId, cancelResult }, "Admin cancel: Shiprocket cancellation failed");
-          shiprocketAction = "failed";
-        }
-      } catch (srErr) {
-        logger.error({ err: srErr, orderId }, "Admin cancel: Shiprocket error during cancellation");
-        // Continue with local cancellation even if Shiprocket fails
-      }
-    }
-
-    // ── Step 2: Handle refund if payment was made ──
+    // ── Step 1: Handle refund if payment was made ──
     if (order.payment?.status !== "pending") {
       const refundAmount = order.pricing?.total ?? 0;
 
@@ -1700,7 +1591,12 @@ export const cancelOrderByAdmin = async (
       } else {
         try {
           const paymentId = order.payment?.razorpay?.paymentId;
-          if (paymentId) {
+          if (paymentId && !/^pay_[A-Za-z0-9]+$/.test(paymentId)) {
+            logger.warn(
+              { orderId: order.orderId, paymentId },
+              "Admin cancel: refund skipped — stored Razorpay payment ID is invalid",
+            );
+          } else if (paymentId) {
             try {
               const rzpPayment = await razorpay.payments.fetch(paymentId) as { status?: string };
               if (rzpPayment.status !== "captured") {
@@ -1723,7 +1619,7 @@ export const cancelOrderByAdmin = async (
                 };
               }
             } catch (rzpError) {
-              logger.error(rzpError, "Razorpay payment fetch failed");
+              logger.warn({ orderId: order.orderId, paymentId }, "Razorpay payment fetch failed; refund skipped — payment ID is not valid on this account");
             }
           }
         } catch (error) {
@@ -1737,7 +1633,7 @@ export const cancelOrderByAdmin = async (
       }
     }
 
-    // ── Step 3: Restore stock ──
+    // ── Step 2: Restore stock ──
     try {
       for (const item of order.items) {
         await Product.findByIdAndUpdate(item.productId, {
@@ -1748,7 +1644,7 @@ export const cancelOrderByAdmin = async (
       logger.error(stockError, "Failed to restore stock during admin cancel");
     }
 
-    // ── Step 4: Update local order status ──
+    // ── Step 3: Update local order status ──
     order.status = "cancelled";
     order.cancellation = {
       ...(order.cancellation ?? {}),
@@ -1758,20 +1654,9 @@ export const cancelOrderByAdmin = async (
     };
     await order.save();
 
-    const shiprocketMsg =
-      shiprocketAction === "cancelled"
-        ? " Shipment also cancelled on Shiprocket."
-        : shiprocketAction === "rto"
-          ? " RTO (Return to Origin) has been initiated on Shiprocket."
-          : "";
-
     res.status(200).json({
       success: true,
-      message: `Order cancelled successfully.${shiprocketMsg}`,
-      data: {
-        shiprocketAction,
-        shiprocketOrderId: shiprocketAction !== "none" ? shiprocketOrderId : undefined,
-      },
+      message: "Order cancelled successfully",
     });
 
     sendEmail(order.shippingAddress?.email ?? "", "orderCancelled", {

@@ -7,36 +7,36 @@ import { Playfair_Display, Montserrat } from 'next/font/google';
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
 const montserrat = Montserrat({ subsets: ['latin'], variable: '--font-montserrat' });
 
-const PopularToys = () => {
+const PopularJewellery = () => {
   const items = [
     {
       id: 1,
-      title: "Action Heroes",
-      subtitle: "Adventure",
-      img: "/images/action-heroes.jpg",
+      title: "Bridal Choker",
+      subtitle: "Traditional",
+      img: "/images/bridal-chokar.jpg",
     },
     {
       id: 2,
-      title: "Building Blocks",
-      subtitle: "Creative",
-      img: "/images/building-blocks.jpg",
+      title: "Bangles",
+      subtitle: "Royalty",
+      img: "/images/bangles.jpg",
     },
     {
       id: 3,
-      title: "Board Games",
-      subtitle: "Fun",
-      img: "/images/board-games.jpg",
+      title: "Earrings",
+      subtitle: "Temple",
+      img: "/images/earring.jpg",
     },
     {
       id: 4,
-      title: "Soft Toys",
-      subtitle: "Cuddly",
-      img: "/images/soft-toys.jpg",
+      title: "Rings",
+      subtitle: "Exquisite",
+      img: "/images/ring.jpg",
     },
   ];
 
   return (
-    <section className={`py-16 bg-background ${montserrat.className}`} aria-label="Popular Toys">
+    <section className={`py-16 bg-background ${montserrat.className}`} aria-label="Popular Jewellery Collections">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -45,10 +45,10 @@ const PopularToys = () => {
         className="text-center mb-12 px-4"
       >
         <h2 className={`${playfair.variable} font-playfair text-3xl md:text-4xl font-bold text-foreground tracking-wide relative inline-block`}>
-          Popular Toys
+          Popular Collections
           <span className="absolute left-0 right-0 h-1 bg-brand-500 w-24 mx-auto bottom-[-10px] rounded-full"></span>
         </h2>
-        <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">Discover our favorite collection of toys and games, chosen to spark imagination and bring hours of fun.</p>
+        <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">Discover our favorite collection of handcrafted jewellery, chosen to add timeless elegance to every moment.</p>
       </motion.div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-8 lg:px-16 max-w-7xl mx-auto">
@@ -67,7 +67,7 @@ const PopularToys = () => {
               <div className="overflow-hidden h-80 md:h-96">
                 <Image
                   src={item.img}
-                  alt={`${item.title} Toys`}
+                  alt={`${item.title} Jewellery`}
                   width={400}
                   height={500}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -101,4 +101,4 @@ const PopularToys = () => {
   );
 };
 
-export default PopularToys;
+export default PopularJewellery;

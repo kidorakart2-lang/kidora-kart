@@ -75,13 +75,17 @@ export default function GenderCategorySection({
       <div className="w-full max-w-[100vw] mx-auto py-10 px-4 overflow-hidden">
         <div className="text-center mb-12 relative">
           <div className="inline-block relative">
-            <h2 className="text-4xl md:text-5xl fw-heading mb-3 tracking-wide text-foreground">
+            <h2 className="text-4xl md:text-5xl font-serif font-light mb-3 tracking-wide text-gradient-brand">
               {heading || "Explore Our Collection"}
             </h2>
+            <span
+              className="absolute bottom-[-10px] left-1/2 transform -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent"
+              style={{ backgroundImage: `linear-gradient(to right, transparent, var(--brand-primary), transparent)` }}
+            />
           </div>
 
-          <p className="text-muted-foreground mt-6 fw-body tracking-widest text-sm md:text-base">
-            Shop by Category
+          <p className="text-muted-foreground mt-8 font-light tracking-widest text-sm md:text-base">
+            Explore our collection
           </p>
         </div>
 
@@ -161,13 +165,18 @@ export default function GenderCategorySection({
     <div className="w-full max-w-[100vw] mx-auto py-10 px-4 overflow-hidden">
       <div className="text-center mb-12 relative">
         <div className="inline-block relative">
-          <h2 className="text-4xl md:text-5xl fw-heading mb-3 tracking-wide text-foreground">
+          <h2 className="text-4xl md:text-5xl font-serif font-light mb-3 tracking-wide text-gradient-brand">
             {heading || result[0].name}
           </h2>
+          <span
+            className="absolute bottom-[-10px] left-1/2 transform -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent"
+            style={{ backgroundImage: `linear-gradient(to right, transparent, var(--brand-primary), transparent)` }}
+          />
         </div>
 
-        <p className="text-muted-foreground mt-6 fw-body tracking-widest text-sm md:text-base">            Shop by Category
-          </p>
+        <p className="text-muted-foreground mt-8 font-light tracking-widest text-sm md:text-base">
+          Explore our collection
+        </p>
       </div>
 
       {result.map((category) => (

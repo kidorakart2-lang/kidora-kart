@@ -1,4 +1,4 @@
-# Design System — Kidora Kart
+# Design System — Jewellery Walla
 
 > **Theme-swap target**: Change only the CSS variable values in `globals.css` `:root` / `.dark` blocks to re-skin the entire site.
 

@@ -56,7 +56,7 @@ export default function OrderSummaryPanel({
               <span className="text-muted-foreground">Shipping</span>
               <span className="fw-heading text-foreground">
                 {shipping === 0 ? (
-                  <span className="text-emerald-600">Free</span>
+                  <span className="text-amber-600">Free</span>
                 ) : (
                   `₹${shipping.toFixed(2)}`
                 )}
@@ -116,8 +116,8 @@ export default function OrderSummaryPanel({
               <span>Secure checkout via Razorpay</span>
             </div>
             <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
-              <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-                <Truck size={13} className="text-emerald-600" strokeWidth={2} />
+              <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                <Truck size={13} className="text-amber-600" strokeWidth={2} />
               </div>
               <span>Free shipping on orders over ₹499</span>
             </div>

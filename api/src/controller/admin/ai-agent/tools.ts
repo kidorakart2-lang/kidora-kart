@@ -514,7 +514,7 @@ export const agentTools: Record<string, ToolDefinition> = {
 
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 10000);
-        const resp = await fetch(url, { signal: controller.signal, headers: { "User-Agent": "KidoraKart-Admin/1.0 (AI agent; internal use)", Accept: "text/html,text/plain,*/*" } });
+        const resp = await fetch(url, { signal: controller.signal, headers: { "User-Agent": "JewelleryWalla-Admin/1.0 (AI agent; internal use)", Accept: "text/html,text/plain,*/*" } });
         clearTimeout(timeout);
         if (!resp.ok) return { error: `Failed to fetch URL: ${resp.status} ${resp.statusText}` };
         const text = await resp.text();

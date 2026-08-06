@@ -46,7 +46,7 @@ export default function CancellationDetails({ cancellation }: CancellationDetail
             <div className="border-t border-border my-3" />
             <div className="flex justify-between">
               <span className="text-muted-foreground">Refund Status</span>
-              <span className={`font-medium ${cancellation.refundStatus === "completed" ? "text-emerald-600" : cancellation.refundStatus === "failed" ? "text-destructive" : "text-foreground"}`}>
+              <span className={`font-medium ${cancellation.refundStatus === "completed" ? "text-amber-600" : cancellation.refundStatus === "failed" ? "text-destructive" : "text-foreground"}`}>
                 {cancellation.refundStatus.charAt(0).toUpperCase() + cancellation.refundStatus.slice(1)}
               </span>
             </div>

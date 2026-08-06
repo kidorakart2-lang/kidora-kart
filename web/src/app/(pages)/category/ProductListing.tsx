@@ -33,7 +33,7 @@ export default function ProductListing() {
   const observerTarget = useRef<HTMLDivElement | null>(null);
   const isOpen = useSelector((state: RootState) => state.ui.isSidebarOpen);
   const dispatch = useDispatch();
-  const { category, color, material, priceFrom, priceTo, ageFrom, ageTo, quickFilter } =
+  const { category, color, material, priceFrom, priceTo, quickFilter } =
     useSelector((state: RootState) => state.filters);
 
   // ── Filter params (memoized to avoid stale closures) ────────────────
@@ -45,11 +45,9 @@ export default function ProductListing() {
     materialIds: material,
     priceFrom,
     priceTo,
-    ageFrom,
-    ageTo,
     quickFilter,
     searchQuery: search,
-  }), [categorySlug, subCategorySlug, subSubCategorySlug, color, material, priceFrom, priceTo, ageFrom, ageTo, category, quickFilter, search]);
+  }), [categorySlug, subCategorySlug, subSubCategorySlug, color, material, priceFrom, priceTo, category, quickFilter, search]);
 
   // ── React Query infinite scroll ────────────────────────────────────
   const {

@@ -13,20 +13,16 @@ import {
   Loader2, RefreshCw, Phone, Mail, Search, Printer,
 } from "lucide-react";
 import { toast } from "sonner";
-import { getAuthToken } from "@/lib/cookies";
 import OrderTimeline from "@/components/track/OrderTimeline";
 import OrderItemsList from "@/components/track/OrderItemsList";
 import OrderSummaryCard from "@/components/track/OrderSummaryCard";
 import CancellationDetails from "@/components/track/CancellationDetails";
 import PrintInvoice from "@/components/track/PrintInvoice";
-import ShiprocketTrackingStatus, { type ShiprocketTrackingData } from "@/components/track/ShiprocketTrackingStatus";
 
 export default function OrderTracking() {
   const [orderNumber, setOrderNumber] = useState("");
   const [searchOrderId, setSearchOrderId] = useState<string>("");
   const [retryLoading, setRetryLoading] = useState(false);
-  const [trackingData, setTrackingData] = useState<{ shiprocketTracking?: ShiprocketTrackingData; currentStatus?: string } | null>(null);
-  const [trackingLoading, setTrackingLoading] = useState(false);
 
   const searchParams = useSearchParams();
   const urlOrderId = searchParams?.get("orderId") || "";
@@ -93,7 +89,7 @@ export default function OrderTracking() {
         key: keyId,
         amount: amount * 100,
         currency: currency,
-        name: "Kidora Kart",
+        name: "Jewellery Walla",
         description: `Order ${orderIdVal}`,
         order_id: razorpayOrderId,
         prefill: {
@@ -140,35 +136,6 @@ export default function OrderTracking() {
     }
   };
 
-  // ── Fetch Shiprocket tracking data when order has tracking info ──
-  useEffect(() => {
-    if (effectiveOrderId && orderDetails?.order?.shipping?.trackingNumber) {
-      fetchShiprocketTracking(effectiveOrderId);
-    } else {
-      setTrackingData(null);
-    }
-  }, [effectiveOrderId, orderDetails?.order?.shipping?.trackingNumber]);
-
-  const fetchShiprocketTracking = async (orderId: string) => {
-    setTrackingLoading(true);
-    try {
-      const token = getAuthToken();
-      const res = await fetch(`/api/website/shipping/track/${orderId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const json = await res.json() as { success: boolean; data?: { shiprocketTracking?: ShiprocketTrackingData; currentStatus?: string } };
-        if (json.success && json.data) {
-          setTrackingData(json.data);
-        }
-      }
-    } catch {
-      // Tracking fetch failed silently
-      setTrackingData(null);
-    }
-    setTrackingLoading(false);
-  };
-
   const handleTrackOrder = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (orderNumber.trim()) {
@@ -201,7 +168,7 @@ export default function OrderTracking() {
           className="text-center"
         >
           <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-foreground mb-2">Order Not Found</h2>
+          <h2 className="text-2xl fw-heading text-foreground mb-2">Order Not Found</h2>
           <p className="text-muted-foreground mb-6">
             We couldn&apos;t find an order with that ID. Please check and try again.
           </p>
@@ -295,24 +262,14 @@ export default function OrderTracking() {
                   Order {orderDetails?.order?.orderId}
                 </h1>
 
-                {/* AWB / Tracking Number — prominent badge */}
+                {/* Tracking Number — prominent badge (optional, set by admin) */}
                 {orderDetails?.order?.shipping?.trackingNumber && (
-                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500/10 to-indigo-600/5 text-indigo-700 px-4 py-2 rounded-xl border border-indigo-200 shadow-sm mb-3">
-                    <Package className="w-4 h-4 text-indigo-500" />
-                    <span className="font-semibold text-sm">AWB:</span>
+                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-500/10 to-rose-600/5 text-rose-700 px-4 py-2 rounded-xl border border-rose-200 shadow-sm mb-3">
+                    <Package className="w-4 h-4 text-rose-500" />
+                    <span className="font-semibold text-sm">Tracking ID:</span>
                     <span className="font-mono font-bold text-sm tracking-wide">
                       {orderDetails.order.shipping.trackingNumber}
                     </span>
-                    {orderDetails?.order?.shipping?.trackingUrl && (
-                      <a
-                        href={orderDetails.order.shipping.trackingUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs font-medium text-indigo-700 hover:text-indigo-900 underline ml-2"
-                      >
-                        Track on Shiprocket →
-                      </a>
-                    )}
                   </div>
                 )}
 
@@ -356,8 +313,8 @@ export default function OrderTracking() {
                     transition={{ delay: 0.15, duration: 0.4 }}
                     className="mb-2"
                   >
-                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500/10 to-emerald-600/5 text-emerald-700 px-4 py-2 rounded-xl border border-emerald-200 shadow-sm">
-                      <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/10 to-amber-600/5 text-amber-700 px-4 py-2 rounded-xl border border-amber-200 shadow-sm">
+                      <CheckCircle className="w-4 h-4 text-amber-500" />
                       <span className="font-semibold text-sm">
                         Delivered:
                       </span>
@@ -400,8 +357,8 @@ export default function OrderTracking() {
                   Print
                 </button>
                 {orderDetails?.order?.shipping?.carrier && orderDetails?.order?.status !== "delivered" && !isCancelled && (
-                  <div className="bg-blue-50 px-3 py-2 rounded-xl border border-blue-200" title={`Courier: ${orderDetails.order.shipping.carrier}`}>
-                    <p className="font-semibold flex items-center gap-1.5 text-blue-700 text-xs whitespace-nowrap">
+                  <div className="bg-rose-50 px-3 py-2 rounded-xl border border-rose-200" title={`Courier: ${orderDetails.order.shipping.carrier}`}>
+                    <p className="font-semibold flex items-center gap-1.5 text-rose-700 text-xs whitespace-nowrap">
                       <Truck className="w-3.5 h-3.5" />
                       {orderDetails.order.shipping.carrier}
                     </p>
@@ -416,8 +373,8 @@ export default function OrderTracking() {
                   </div>
                 )}
                 {isDelivered && (
-                  <div className="bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200">
-                    <p className="font-semibold flex items-center gap-2 text-emerald-700">
+                  <div className="bg-amber-50 px-4 py-2 rounded-xl border border-amber-200">
+                    <p className="font-semibold flex items-center gap-2 text-amber-700">
                       <CheckCircle className="w-5 h-5" />
                       Delivered Successfully
                     </p>
@@ -498,16 +455,16 @@ export default function OrderTracking() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
-              className="bg-background rounded-2xl p-4 sm:p-6 shadow-sm border border-emerald-200"
+              className="bg-background rounded-2xl p-4 sm:p-6 shadow-sm border border-amber-200"
             >
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-emerald-600" />
-                  <span className="font-semibold text-emerald-700">
+                  <CheckCircle className="w-5 h-5 text-amber-600" />
+                  <span className="font-semibold text-amber-700">
                     Delivered On:
                   </span>
                 </div>
-                <span className="font-semibold text-emerald-600">
+                <span className="font-semibold text-amber-600">
                   {new Date(
                     orderDetails?.order?.statusHistory?.find(
                       (s) => s.status === "delivered"
@@ -653,20 +610,20 @@ export default function OrderTracking() {
                     {orderDetails?.order?.shipping?.carrier && (
                       <>
                         {/* Shipping Estimate — richer details */}
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-50/50 p-4 rounded-xl border-l-4 border-blue-400">
-                          <p className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                        <div className="bg-gradient-to-br from-rose-50 to-rose-50/50 p-4 rounded-xl border-l-4 border-rose-400">
+                          <p className="text-sm font-semibold text-rose-900 mb-2 flex items-center gap-2">
                             <Truck className="w-4 h-4" />
                             Shipping Estimate
                           </p>
                           <div className="space-y-1.5 text-sm">
                             <div className="flex items-center justify-between">
-                              <span className="text-blue-600">Courier Partner</span>
-                              <span className="font-medium text-blue-900">{orderDetails.order.shipping.carrier}</span>
+                              <span className="text-rose-600">Courier Partner</span>
+                              <span className="font-medium text-rose-900">{orderDetails.order.shipping.carrier}</span>
                             </div>
                             {orderDetails.order.shipping.estimatedDelivery && (
                               <div className="flex items-center justify-between">
-                                <span className="text-blue-600">Estimated Delivery</span>
-                                <span className="font-semibold text-blue-800">
+                                <span className="text-rose-600">Estimated Delivery</span>
+                                <span className="font-semibold text-rose-800">
                                   {new Date(orderDetails.order.shipping.estimatedDelivery).toLocaleDateString("en-IN", {
                                     weekday: "short",
                                     year: "numeric",
@@ -679,72 +636,6 @@ export default function OrderTracking() {
                           </div>
                         </div>
 
-                        {/* Live Shiprocket Tracking */}
-                        {orderDetails?.order?.shipping?.trackingNumber && (
-                          <div className="bg-gradient-to-br from-indigo-50 to-indigo-50/50 p-4 rounded-xl border-l-4 border-indigo-400">
-                            <p className="text-sm font-semibold text-indigo-900 mb-2 flex items-center gap-2">
-                              <Package className="w-4 h-4" />
-                              Shipment Tracking
-                            </p>
-
-                            <div className="space-y-1.5 text-sm">
-                              <div className="flex items-center justify-between">
-                                <span className="text-indigo-600">AWB Number</span>
-                                <span className="font-mono font-bold text-indigo-900">
-                                  {orderDetails.order.shipping.trackingNumber}
-                                </span>
-                              </div>
-
-                              {orderDetails.order.shipping.carrier && (
-                                <div className="flex items-center justify-between">
-                                  <span className="text-indigo-600">Courier</span>
-                                  <span className="font-medium text-indigo-800">{orderDetails.order.shipping.carrier}</span>
-                                </div>
-                              )}
-
-                              {orderDetails.order.shipping.shippedAt && (
-                                <div className="flex items-center justify-between">
-                                  <span className="text-indigo-600">Shipped On</span>
-                                  <span className="font-medium text-indigo-800">
-                                    {new Date(orderDetails.order.shipping.shippedAt).toLocaleDateString("en-IN", {
-                                      year: "numeric",
-                                      month: "short",
-                                      day: "numeric",
-                                    })}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-
-                            {trackingLoading && (
-                              <div className="animate-pulse flex items-center gap-2 text-xs text-indigo-600 mt-2">
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                                Fetching tracking updates...
-                              </div>
-                            )}
-
-                            {trackingData && (
-                              <div className="mt-2 pt-2 border-t border-indigo-200">
-                                <ShiprocketTrackingStatus
-                                  shiprocketTracking={trackingData.shiprocketTracking ?? null}
-                                  currentStatus={trackingData.currentStatus ?? "Pending"}
-                                />
-                              </div>
-                            )}
-
-                            {orderDetails?.order?.shipping?.trackingUrl && (
-                              <a
-                                href={orderDetails.order.shipping.trackingUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-xs font-medium text-indigo-700 hover:text-indigo-900 underline mt-2"
-                              >
-                                <Truck className="w-3 h-3" />
-                                Track on Shiprocket →
-                              </a>
-                            )}
-                          </div>
-                        )}
                       </>
                     )}
                   </div>
@@ -753,11 +644,11 @@ export default function OrderTracking() {
 
               {/* Customer's own order note */}
               {orderDetails?.order?.notes?.customer && (
-                <div className="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-400">
-                  <p className="text-sm font-medium text-blue-900 mb-1">
+                <div className="bg-rose-50 p-4 rounded-xl border-l-4 border-rose-400">
+                  <p className="text-sm font-medium text-rose-900 mb-1">
                     Your Note
                   </p>
-                  <p className="text-sm text-blue-700">
+                  <p className="text-sm text-rose-700">
                     {orderDetails?.order?.notes?.customer}
                   </p>
                 </div>

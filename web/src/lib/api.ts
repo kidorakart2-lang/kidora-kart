@@ -10,6 +10,7 @@ export interface FetchedProduct {
   stock: number;
   isPersonalized?: boolean;
   colors?: { _id: string; name: string; code?: string }[];
+  sizes?: { _id: string; name: string }[];
   giftImages?: string[];
   variants?: { _id?: string; name: string; quantity: number; price: number; mrp?: number | null }[];
 }

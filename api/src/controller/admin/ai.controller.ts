@@ -58,7 +58,7 @@ async function generateContent(input: {
 
   // ── FAQ Answer Generation ────────────────────────────────────────
   if (question && page === "faq-answer") {
-    const system = `You are a helpful product support assistant for a toy store.
+    const system = `You are a helpful product support assistant for a jewellery store.
 Output ONLY the answer to the question. Never include planning, reasoning, word counts, suggestions, or any commentary outside the answer.
 Write in plain, helpful language. No emojis. No bullet points. No markdown formatting.
 Keep the answer concise — 2 to 4 sentences.`;
@@ -71,7 +71,7 @@ Question: ${question}`;
   }
 
   // ── Product Description Generation ────────────────────────────────
-  const system = `You are a senior e-commerce copywriter for a toy store.
+  const system = `You are a senior e-commerce copywriter for a jewellery store.
 Output ONLY the product description. Never include planning, reasoning, word counts, suggestions, or any commentary outside the description.
 Write in plain, natural language. No emojis. No bullet points. No asterisks or markdown formatting.
 Separate paragraphs with a blank line (double newline).
@@ -272,7 +272,7 @@ export const generateFaqAnswer = async (
       return res.status(503).json(NOT_CONFIGURED);
     }
 
-    const system = `You are a helpful product support assistant for a toy store.
+    const system = `You are a helpful product support assistant for a jewellery store.
 Output ONLY the answer to the question. Never include planning, reasoning, word counts, suggestions, or any commentary outside the answer.
 Write in plain, helpful language. No emojis. No bullet points. No markdown formatting.
 Keep the answer concise — 2 to 4 sentences.`;
@@ -336,7 +336,7 @@ export const generateGeneralFaqAnswer = async (
       return res.status(503).json(NOT_CONFIGURED);
     }
 
-    const system = `You are a helpful customer support writer for a toy store.
+    const system = `You are a helpful customer support writer for a jewellery store.
 Output ONLY the answer to the question. Never include planning, reasoning, word counts, or any commentary outside the answer.
 Write in plain, helpful language. No emojis. No bullet points. No markdown formatting.
 Keep the answer informative but concise — 2 to 5 sentences.`;
@@ -406,7 +406,7 @@ export const generateShortDescription = async (
       return res.status(503).json(NOT_CONFIGURED);
     }
 
-    const system = `You are a senior e-commerce copywriter for a toy store.
+    const system = `You are a senior e-commerce copywriter for a jewellery store.
 Output ONLY the short description. Never include planning, reasoning, word counts, or any commentary outside the description.
 Write in plain, natural language. No emojis. No bullet points. No markdown formatting.
 Keep it to 1-2 concise sentences (15-30 words).
@@ -481,7 +481,7 @@ export const generateProductTags = async (
     }
 
     const systemPrompt =
-      "You are an e-commerce SEO specialist for a toy store. Return ONLY a comma-separated list of tags, nothing else.";
+      "You are an e-commerce SEO specialist for a jewellery store. Return ONLY a comma-separated list of tags, nothing else.";
 
     const userPrompt = `Generate 5-10 relevant, single-word or short-phrase tags for the following product.
 
@@ -490,9 +490,9 @@ Description: ${description || "N/A"}
 
 Rules:
 - Each tag should be lowercase, single words preferred.
-- Tags should describe: the toy type, material, age group, skill developed, occasion, and key features.
+- Tags should describe: the jewellery type, material, purity, occasion, and key features.
 - No duplicates.
-- Example output: "wooden, educational, puzzle, 3-5 years, montessori, gift"`;
+- Example output: "gold, ring, solitaire, bridal, 22k, gift"`;
 
     const text = await generateWithProvider(systemPrompt, userPrompt);
 

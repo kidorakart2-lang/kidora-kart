@@ -3,7 +3,7 @@ import { siteConfig } from "@/lib/utils";
 
 const pageTitle = "Track Your Order";
 const pageDescription =
-  `Track your toy order with ${siteConfig.name}. Check the status of your order and get real-time updates.`;
+  `Track your jewellery order with ${siteConfig.name}. Check the status of your order and get real-time updates.`;
 
 export const metadata = {
   title: `${pageTitle} | ${siteConfig.name}`,

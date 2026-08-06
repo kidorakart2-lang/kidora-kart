@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { Star, Package, Truck, Shield, RotateCcw, Sparkles } from "lucide-react";
+import { Star, Package, Truck, Shield, RotateCcw, Sparkles, Check, Gem, Gift } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 import ProductReviews from "@/components/product/product-reviews";
 import ImageSlider from "@/components/product/image-slider";
@@ -50,9 +50,13 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
   const [selectedColor, setSelectedColor] = useState<string | null>(
     details?.colors?.[0]?._id || null
   );
+  const [selectedSize, setSelectedSize] = useState<string | null>(
+    details?.sizes?.[0]?._id || null
+  );
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [showVideo, setShowVideo] = useState(false);
   const isMobile = useIsMobile();
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (details && Object.keys(details).length > 0) {
@@ -149,6 +153,11 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
     if (selectedColor) {
       buyNowItem.colorId = selectedColor;
     }
+    const selectedSizeObj = product.sizes?.find((s) => s._id === selectedSize);
+    if (selectedSize) {
+      buyNowItem.sizeId = selectedSize;
+      buyNowItem.sizeName = selectedSizeObj?.name || null;
+    }
     if (selectedVariant?._id) {
       buyNowItem.variantId = selectedVariant._id;
       buyNowItem.variantName = selectedVariant.name;
@@ -163,16 +172,21 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
 
   const renderStars = (rating: number) =>
     Array.from({ length: 5 }).map((_, i) => (
-      <Star
+      <motion.div
         key={i}
-        size={15}
-        className={
-          i < Math.floor(rating || 4)
-            ? "fill-amber-400 text-amber-400"
-            : "fill-muted text-muted"
-        }
-        strokeWidth={1.5}
-      />
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: i * 0.08 }}
+      >
+        <Star
+          size={16}
+          className={
+            i < Math.floor(rating || 4)
+              ? "fill-brand-400 text-brand-400"
+              : "text-muted-foreground"
+          }
+        />
+      </motion.div>
     ));
 
   const allImages: string[] = useMemo(
@@ -183,6 +197,25 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
     [product]
   );
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 },
+    },
+  };
+
   const cartObj: Record<string, unknown> = {
     productId: product._id,
     slug: product.slug,
@@ -191,6 +224,10 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
   // Only include colorId if a color is actually selected
   if (selectedColor) {
     cartObj.colorId = selectedColor;
+  }
+  // Only include sizeId if a size is actually selected
+  if (selectedSize) {
+    cartObj.sizeId = selectedSize;
   }
 
   const handleAddToCart = async (e: React.FormEvent) => {
@@ -246,108 +283,113 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
       ? Math.round((selectedVariant.price / selectedVariant.quantity) * 100) / 100
       : null;
 
-  return (
-    <main className="bg-gradient-to-b from-background via-background to-muted/30">
-      {/* ── Breadcrumb area ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <Breadcrumb
-          items={[
-            {
-              label: product.category?.[0]?.name || "Toys",
-              href: `/category/${product.category?.[0]?.slug || ""}`,
-            },
-            ...(product.subCategory?.[0]?.name
-              ? [
-                  {
-                    label: product.subCategory[0].name,
-                    href: `/category/${product.category?.[0]?.slug || ""}/${product.subCategory[0].slug}`,
-                  },
-                ]
-              : []),
-          ]}
-        />
-      </div>
+  // Gold gradient price text (jewellery showcase)
+  const goldPriceClass = {
+    background: "linear-gradient(135deg, var(--brand-price-1-from), var(--brand-price-1-via), var(--brand-price-1-to))",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
+  } as const;
 
-      {/* ── Product hero section ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14">
+  return (
+    <main className="py-8 sm:py-12 bg-gradient-to-b from-background via-background to-muted/30">
+      <motion.div
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 mb-16">
           {/* ── Left: Images ── */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <ImageSlider
-              images={allImages}
-              productName={product.name}
-              isNewArrival={product.isNewArrival ?? false}
-              isMobile={isMobile}
-              videoUrl={product.videoUrl}
-              showVideo={showVideo}
-              onShowVideo={() => setShowVideo((prev) => !prev)}
-            />
+          <motion.div variants={itemVariants} className="space-y-4">
+            <div className="relative">
+              <ImageSlider
+                images={allImages}
+                productName={product.name}
+                isNewArrival={product.isNewArrival ?? false}
+                isMobile={isMobile}
+                videoUrl={product.videoUrl}
+                showVideo={showVideo}
+                onShowVideo={() => setShowVideo((prev) => !prev)}
+              />
+            </div>
           </motion.div>
 
           {/* ── Right: Product Info (sticky on desktop) ── */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="flex flex-col lg:sticky lg:top-28 lg:self-start"
-          >
-            {/* Category tag */}
+          <div className="flex flex-col p-2 lg:sticky lg:top-28 lg:self-start">
+            {/* Breadcrumb (restored inside the info column) */}
+            <motion.div variants={itemVariants}>
+              <Breadcrumb
+                items={[
+                  {
+                    label: product.category?.[0]?.name || "Jewellery",
+                    href: `/category/${product.category?.[0]?.slug || ""}`,
+                  },
+                  ...(product.subCategory?.[0]?.name
+                    ? [
+                        {
+                          label: product.subCategory[0].name,
+                          href: `/category/${product.category?.[0]?.slug || ""}/${product.subCategory[0].slug}`,
+                        },
+                      ]
+                    : []),
+                ]}
+              />
+            </motion.div>
+
+            {/* Category pill */}
             {product.category?.[0]?.name && (
-              <span className="inline-flex self-start items-center gap-1 px-3 py-1 rounded-full text-[11px] fw-cta uppercase tracking-wider bg-brand-100 text-brand-800 mb-3">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="inline-flex self-start items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] fw-cta uppercase tracking-wider bg-brand-100 text-brand-800 mb-4"
+              >
                 <Sparkles size={12} />
                 {product.category[0].name}
-              </span>
+              </motion.div>
             )}
 
-            {/* Title */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl fw-heading text-foreground leading-tight tracking-tight mb-4">
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="text-4xl lg:text-5xl fw-heading text-foreground mb-5 leading-tight tracking-tight"
+            >
               {product.name}
-            </h1>
+            </motion.h1>
 
             {/* Rating row */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="flex items-center gap-3 mb-5"
+              transition={{ delay: 0.25 }}
+              className="flex items-center gap-4 mb-7"
             >
-              <div className="flex items-center gap-0.5">
+              <div className="flex items-center gap-1">
                 {renderStars(product.rating ?? 0)}
               </div>
+              <div className="h-4 w-px bg-muted-foreground" />
               <span className="text-sm text-muted-foreground fw-body">
-                {product.reviewCount || 0} reviews
+                {product.reviewCount || 0} Reviews
               </span>
             </motion.div>
 
             {/* Price */}
             <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-              className="mb-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.35 }}
+              className="mb-8"
             >
-              <div className="flex items-baseline gap-4">
+              <div className="flex items-baseline gap-4 mb-1 flex-wrap">
                 {selectedVariant ? (
                   <>
-                    <span
-                      className="text-4xl sm:text-5xl fw-heading tracking-tight"
-                      style={{
-                        background: "linear-gradient(135deg, var(--brand-price-1-from), var(--brand-price-1-via), var(--brand-price-1-to))",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        backgroundClip: "text",
-                      }}
-                    >
+                    <span className="text-5xl fw-heading tracking-tight" style={goldPriceClass}>
                       ₹{selectedVariant.price.toLocaleString()}
                     </span>
-                    <span className="text-xl sm:text-2xl text-muted-foreground line-through fw-body">
-                      ₹{(
-                        (selectedVariant.mrp ?? product.price * selectedVariant.quantity)
-                      ).toLocaleString()}
+                    <span className="text-muted-foreground text-2xl line-through fw-body">
+                      ₹{(selectedVariant.mrp ?? product.price * selectedVariant.quantity).toLocaleString()}
                     </span>
                     {selectedVariantUnit != null && (
                       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs fw-cta bg-brand-accent-500/10 text-brand-accent-600 border border-brand-accent-200">
@@ -357,18 +399,10 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                   </>
                 ) : product.discount_price ? (
                   <>
-                    <span
-                      className="text-4xl sm:text-5xl fw-heading tracking-tight"
-                      style={{
-                        background: "linear-gradient(135deg, var(--brand-price-1-from), var(--brand-price-1-via), var(--brand-price-1-to))",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        backgroundClip: "text",
-                      }}
-                    >
+                    <span className="text-5xl fw-heading tracking-tight" style={goldPriceClass}>
                       ₹{product.discount_price.toLocaleString()}
                     </span>
-                    <span className="text-xl sm:text-2xl text-muted-foreground line-through fw-body">
+                    <span className="text-muted-foreground text-2xl line-through fw-body">
                       ₹{product.price.toLocaleString()}
                     </span>
                     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs fw-cta bg-brand-accent-500/10 text-brand-accent-600 border border-brand-accent-200">
@@ -376,7 +410,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                     </span>
                   </>
                 ) : (
-                  <span className="text-4xl sm:text-5xl fw-heading text-foreground tracking-tight">
+                  <span className="text-5xl fw-heading text-foreground tracking-tight">
                     ₹{product.price?.toLocaleString() || "N/A"}
                   </span>
                 )}
@@ -386,17 +420,22 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             {/* Short Description */}
             {(product.shortDescription || product.short_description) && (
               <motion.p
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-base text-muted-foreground fw-body leading-relaxed mb-7"
+                transition={{ delay: 0.4 }}
+                className="text-base text-muted-foreground fw-body leading-relaxed mb-6"
               >
                 {product.shortDescription || product.short_description}
               </motion.p>
             )}
 
             {/* Divider */}
-            <div className="h-px bg-gradient-to-r from-border via-border/50 to-transparent mb-6" />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.45 }}
+              className="h-px bg-gradient-to-r from-transparent via-brand-200/60 to-transparent mb-6"
+            />
 
             {/* Color Picker */}
             <ColorPicker
@@ -405,8 +444,51 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               onSelect={setSelectedColor}
             />
 
-            {/* TODO: QuantitySelector - may be used in future for custom quantity selection */}
-            {/*
+            {/* Size Picker */}
+            {(product.sizes?.length ?? 0) > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="mb-8"
+              >
+                <div className="flex items-center gap-2 mb-3.5">
+                  <div className="w-1 h-4 rounded-full bg-brand-500" />
+                  <h3 className="text-sm uppercase tracking-[0.2em] text-muted-foreground fw-heading">
+                    Size
+                  </h3>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {product.sizes?.map((size) => (
+                    <motion.button
+                      key={size._id}
+                      type="button"
+                      onClick={() => setSelectedSize(size._id)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`px-4 py-2 rounded-full border text-sm transition-all ${
+                        selectedSize === size._id
+                          ? "border-brand-600 bg-brand-50 text-brand-700 fw-heading"
+                          : "border-border text-muted-foreground hover:border-brand-300 fw-body"
+                      }`}
+                    >
+                      {size.name}
+                      {selectedSize === size._id && (
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="ml-2 inline-flex"
+                        >
+                          <Check size={14} className="text-brand-600" />
+                        </motion.span>
+                      )}
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Quantity (restored — locked when a pack variant is selected) */}
             <QuantitySelector
               quantity={selectedVariant ? selectedVariant.quantity : quantity}
               stock={product.stock || 10}
@@ -414,9 +496,8 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               onIncrement={handleIncrement}
               onDecrement={handleDecrement}
             />
-            */}
 
-            {/* Action Buttons */}
+            {/* Action Buttons (with Special Offers → Buy Now variants) */}
             <ActionButtons
               loading={loading}
               wishlistLoading={wishlistLoading}
@@ -445,10 +526,10 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                   </motion.div>
                 )
               }
-            >
-              {/* Specifications */}
-              <ProductSpecifications product={product} />
-            </ActionButtons>
+            />
+
+            {/* Specifications (restored below the buttons) */}
+            <ProductSpecifications product={product} />
 
             {/* Trust Badges */}
             <motion.div
@@ -476,111 +557,153 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.1 }}
-                className="mt-4 flex items-center gap-2.5 text-sm text-muted-foreground fw-body bg-muted/50 rounded-xl px-4 py-3 border border-border"
+                className="mt-5 flex items-center gap-3 text-base text-muted-foreground fw-body"
               >
-                <Truck size={15} className="text-brand-600 shrink-0" strokeWidth={1.5} />
-                <span>Expected delivery in <strong className="text-foreground fw-heading">{product.estimated_delivery_time}</strong></span>
+                <Truck size={18} className="text-brand-600 shrink-0" strokeWidth={1.5} />
+                <span>
+                  Expected delivery in{" "}
+                  <strong className="text-foreground fw-heading">{product.estimated_delivery_time}</strong>
+                </span>
               </motion.div>
             )}
-          </motion.div>
+          </div>
         </div>
-      </div>
 
-      {/* ── Personalized section ── */}
-      {product?.isPersonalized && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-          <Personalized />
-        </div>
-      )}
+        {/* ── Personalized section ── */}
+        {product?.isPersonalized && (
+          <div className="mb-12">
+            <Personalized />
+          </div>
+        )}
 
-      {/* ── Description ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+        {/* ── Description (restored glow-orb card) ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="bg-background rounded-2xl border border-border p-8 md:p-12 shadow-sm"
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-12"
         >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-1 h-6 rounded-full bg-brand-500" />
-            <h2 className="text-2xl sm:text-3xl fw-heading text-foreground tracking-tight">
-              Description
-            </h2>
-          </div>
-          <div className="h-px bg-gradient-to-r from-brand-200/50 via-brand-300/30 to-transparent mb-6" />
-          <div className="text-foreground leading-relaxed text-base fw-body whitespace-pre-line max-w-4xl">
-            {product.description}
+          <div className="bg-background/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-12 border border-white/80 relative overflow-hidden rounded-2xl">
+            <motion.div
+              aria-hidden
+              animate={reduceMotion ? undefined : {
+                rotate: [0, 360],
+                scale: [1, 1.05, 1],
+              }}
+              transition={{
+                rotate: { duration: 25, repeat: Infinity, ease: "linear" },
+                scale: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+              }}
+              className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-brand-100/20 to-brand-200/20 rounded-full blur-3xl"
+            />
+
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-5">
+                <motion.div
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                >
+                  <Gem size={22} className="text-brand-600" strokeWidth={1.5} />
+                </motion.div>
+                <h2 className="text-3xl fw-heading text-foreground tracking-tight">
+                  Description
+                </h2>
+              </div>
+
+              <div className="h-px bg-gradient-to-r from-brand-200/50 via-brand-300/50 to-transparent mb-6" />
+
+              <div className="text-foreground leading-loose text-base fw-body whitespace-pre-line">
+                {product.description}
+              </div>
+            </div>
           </div>
         </motion.div>
-      </section>
 
-      {/* ── Gift Images Gallery ── */}
-      {product.giftImages && product.giftImages.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+        {/* ── Gift Images Gallery (restored warm card) ── */}
+        {product.giftImages && product.giftImages.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="bg-background rounded-2xl border border-border p-8 md:p-12 shadow-sm"
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="mb-12"
           >
-            <div className="flex items-center gap-3 mb-6">
+            <div className="bg-gradient-to-br from-brand-50/80 to-brand-accent-50/80 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-12 border border-brand-100/80 relative overflow-hidden rounded-2xl">
               <motion.div
-                animate={{ rotate: [0, 8, -8, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <Package size={24} className="text-brand-600" strokeWidth={1.5} />
-              </motion.div>
-              <h2 className="text-2xl sm:text-3xl fw-heading text-foreground tracking-tight">
-                Gift Presentation
-              </h2>
-            </div>
-            <div className="h-px bg-gradient-to-r from-brand-200/50 via-brand-300/30 to-transparent mb-6" />
-            <p className="text-sm text-muted-foreground fw-body mb-6">
-              Beautifully wrapped gift options for your loved ones
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {product.giftImages.map((img, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.08, duration: 0.4 }}
-                  className="relative aspect-square rounded-xl overflow-hidden group cursor-pointer shadow-md border-2 border-border"
-                >
-                  <img
-                    src={img}
-                    alt={`${product.name} gift presentation ${index + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </motion.div>
-              ))}
+                aria-hidden
+                animate={reduceMotion ? undefined : {
+                  rotate: [0, 360],
+                  scale: [1, 1.05, 1],
+                }}
+                transition={{
+                  rotate: { duration: 25, repeat: Infinity, ease: "linear" },
+                  scale: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+                }}
+                className="absolute -bottom-20 -left-20 w-64 h-64 bg-gradient-to-br from-brand-200/20 to-brand-accent-200/20 rounded-full blur-3xl"
+              />
+
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <motion.div
+                    animate={{ rotate: [0, 5, -5, 0] }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    <Gift size={24} className="text-brand-600" strokeWidth={1.5} />
+                  </motion.div>
+                  <h2 className="text-3xl fw-heading text-foreground tracking-tight">
+                    Gift Presentation
+                  </h2>
+                </div>
+
+                <div className="h-px bg-gradient-to-r from-brand-200/50 via-brand-300/50 to-transparent mb-6" />
+
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {product.giftImages.map((img, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="relative aspect-square rounded-xl overflow-hidden group cursor-pointer shadow-md border-2 border-white/60"
+                    >
+                      <img
+                        src={img}
+                        alt={`${product.name} gift presentation ${index + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </div>
           </motion.div>
-        </section>
-      )}
+        )}
 
-      {/* ── Product FAQs ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-        <ProductFaqSection productId={product._id} />
-      </div>
+        {/* ── Product FAQs ── */}
+        <div className="mb-12">
+          <ProductFaqSection productId={product._id} />
+        </div>
 
-      {/* ── Related Products ── */}
-      <div className="mb-12">
-        <RelatedProducts
-          id={product._id}
-          subCategory={(product.subCategory ?? []).map((c) => c._id)}
-          subSubCategory={(product.subSubCategory ?? []).map((c) => c._id)}
-        />
-      </div>
+        {/* ── Related Products ── */}
+        <div className="mb-12">
+          <RelatedProducts
+            id={product._id}
+            subCategory={(product.subCategory ?? []).map((c) => c._id)}
+            subSubCategory={(product.subSubCategory ?? []).map((c) => c._id)}
+          />
+        </div>
 
-      {/* ── Reviews ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        {/* ── Reviews ── */}
         <ProductReviews productId={product._id} />
-      </div>
+      </motion.div>
     </main>
   );
 }

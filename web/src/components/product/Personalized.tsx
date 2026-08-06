@@ -247,10 +247,10 @@ export default function PremiumPersonalized() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="flex items-center justify-center gap-2 p-3 bg-green-50 rounded-2xl border border-green-200"
+                className="flex items-center justify-center gap-2 p-3 bg-amber-50 rounded-2xl border border-amber-200"
               >
-                <Check className="w-5 h-5 text-green-600" />
-                <span className="text-sm text-green-700 font-light">
+                <Check className="w-5 h-5 text-amber-600" />
+                <span className="text-sm text-amber-700 font-light">
                   Your personalization has been saved
                 </span>
               </motion.div>

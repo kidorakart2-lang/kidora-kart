@@ -2,7 +2,7 @@
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { IndianRupee, X, Flame, Star, Trophy, Baby } from "lucide-react";
+import { IndianRupee, X, Flame, Star, Trophy } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef } from "react";
 import {
@@ -10,7 +10,6 @@ import {
   toggleColor,
   toggleMaterial,
   setPriceRange,
-  setAgeRange,
   resetFilters,
   setQuickFilter,
 } from "@/redux/features/filters";
@@ -46,13 +45,6 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
     priceTo: filters.priceTo || 100000,
   });
 
-  // Local state for age slider
-  const [localAge, setLocalAge] = useState({
-    ageFrom: filters.ageFrom ?? 0,
-    ageTo: filters.ageTo ?? 18,
-  });
-  const ageDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const handleCheckboxChange = (type: string, value: string) => {
     if (type === "category") {
       dispatch(toggleCategory(value));
@@ -85,12 +77,6 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
         priceTo: localPrice.priceTo,
       })
     );
-    dispatch(
-      setAgeRange({
-        ageFrom: localAge.ageFrom,
-        ageTo: localAge.ageTo,
-      })
-    );
   };
 
   const clearFilters = () => {
@@ -98,13 +84,8 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;
     }
-    if (ageDebounceRef.current) {
-      clearTimeout(ageDebounceRef.current);
-      ageDebounceRef.current = null;
-    }
     dispatch(resetFilters());
     setLocalPrice({ priceFrom: 0, priceTo: 100000 });
-    setLocalAge({ ageFrom: 0, ageTo: 18 });
   };
 
   // Close on overlay click
@@ -291,42 +272,6 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
                 <span className="bg-brand-50 px-2 py-1 rounded flex items-center ">
                   <IndianRupee size={16} />
                   {localPrice.priceTo.toLocaleString()}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Age Range Filter */}
-          <div className="space-y-3 pb-4">
-            <Label className="text-base font-semibold text-brand-900 flex items-center gap-2">
-              <Baby size={16} className="text-brand-600" />
-              Age Range
-            </Label>
-            <div className="px-2">
-              <Slider
-                min={0}
-                max={18}
-                step={1}
-                value={[localAge.ageFrom, localAge.ageTo]}
-                onValueChange={(value) => {
-                  setLocalAge({ ageFrom: value[0], ageTo: value[1] });
-                  if (ageDebounceRef.current) {
-                    clearTimeout(ageDebounceRef.current);
-                  }
-                  ageDebounceRef.current = setTimeout(() => {
-                    dispatch(
-                      setAgeRange({ ageFrom: value[0], ageTo: value[1] })
-                    );
-                  }, 500);
-                }}
-                className="w-full bg-brand-50"
-              />
-              <div className="flex justify-between mt-3 text-sm font-medium text-brand-700">
-                <span className="bg-brand-50 px-2 py-1 rounded">
-                  {localAge.ageFrom !== 0 ? `${localAge.ageFrom}+` : "0+"}
-                </span>
-                <span className="bg-brand-50 px-2 py-1 rounded">
-                  {localAge.ageTo !== 18 ? `Up to ${localAge.ageTo}` : "18+"}
                 </span>
               </div>
             </div>

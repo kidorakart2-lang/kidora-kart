@@ -1,6 +1,6 @@
-# Kidora Kart — Monorepo
+# Jewellery Walla — Monorepo
 
-A full-stack toy e-commerce platform built with pnpm workspaces.
+A full-stack jewellery e-commerce platform built with pnpm workspaces.
 
 ## Admin Email - 
 bluehawk1711@gmail.com
@@ -12,16 +12,26 @@ bluehawk1711@gmail.com
 | Package | Stack | Description | Port |
 |---------|-------|-------------|------|
 | `api/` | Express 5 + MongoDB (Mongoose) + TypeScript | REST API backend with JWT auth, Razorpay payments, Cloudflare R2 storage | `:5000` |
-| `web/` | Next.js 16 + TypeScript | Customer-facing storefront with cart, checkout, auth, wishlist | `:3000` |
-| `admin-panel/` | Next.js 16 + shadcn/ui + TypeScript | Admin dashboard for orders, products, users, CMS management | `:3001` |
+| `web/` | Next.js 16 + TypeScript | Customer-facing storefront with cart, checkout, auth, wishlist | `:3001` |
+| `admin-panel/` | Next.js 16 + shadcn/ui + TypeScript | Admin dashboard for orders, products, users, CMS management | `:3000` |
+
+## Local Ports
+
+| Service | Port | Notes |
+|---------|------|-------|
+| API backend | `5000` | Express API (`/api/website/*`, `/api/admin/*`) |
+| Admin panel | `3000` | `next dev -p 3000 --turbopack` |
+| Web storefront | `3001` | `next dev -p 3001` |
+
+> The **admin panel runs on `:3000` and the web storefront on `:3001`** — these two must never be swapped: the admin panel's `NEXT_PUBLIC_FRONTEND_URL` must point at the storefront (`http://localhost:3001`) so its `/api/revalidate` calls reach the web app.
 
 ## Getting Started
 
 ```bash
 pnpm install
 pnpm --filter api run dev          # Start API (port 5000)
-pnpm --filter web run dev          # Start storefront (port 3000)
-pnpm --filter admin-panel run dev  # Start admin panel (port 3001)
+pnpm --filter web run dev          # Start storefront (port 3001)
+pnpm --filter admin-panel run dev  # Start admin panel (port 3000)
 ```
 
 ## Scripts
@@ -49,9 +59,13 @@ Each project has its own `.env` (gitignored). Copy `.env.example` in each packag
 
 | File | Key Vars |
 |------|----------|
-| `api/.env` | `MONGODB_URI`, `JWT_SECRET`, `RAZORPAY_KEY_*`, `CLOUDFLARE_*`, `GOOGLE_CLIENT_*`, `GMAIL_*`, `SUPPORT_EMAIL`, `CDN_HOST`, `STORE_PICKUP_PINCODE` |
-| `web/.env.local` | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `REVALIDATE_SECRET`, `NEXT_PUBLIC_CDN_HOST` |
-| `admin-panel/.env.local` | `NEXT_PUBLIC_BACKEND_URL`, `NEXT_PUBLIC_FRONTEND_URL`, `REVALIDATE_SECRET`, `NEXT_PUBLIC_SUPPORT_EMAIL`, `NEXT_PUBLIC_CDN_HOST` |
+| `api/.env` | `NEW_DB_URL`, `JWT_SECRET`, `RAZORPAY_KEY_*`, `CLOUDFLARE_*`, `GOOGLE_CLIENT_*`, `GMAIL_*`, `SUPPORT_EMAIL`, `CDN_HOST`, `STORE_PICKUP_PINCODE`, `FRONTEND_URL` |
+| `web/.env` | `NEXT_PUBLIC_API_URL`, `REVALIDATE_SECRET`, `NEXT_PUBLIC_CDN_HOST` |
+| `admin-panel/.env` | `NEXT_PUBLIC_BACKEND_URL`, `NEXT_PUBLIC_FRONTEND_URL`, `NEXT_PUBLIC_REVALIDATE_SECRET`, `NEXT_PUBLIC_SUPPORT_EMAIL`, `NEXT_PUBLIC_CDN_HOST` |
+
+> All `.env` files are **gitignored** (only `api/.env.example` is committed as a reference).
+>
+> `web/.env` and `admin-panel/.env` must share the **same** `REVALIDATE_SECRET` value (see [Cache Invalidation](#cache-invalidation) below).
 
 > API calls from web and admin panel go through Next.js rewrites (relative `/api/` paths),
 > so httpOnly cookies work cross-origin. Backend URL only used server-side for direct fetches.
@@ -62,11 +76,34 @@ Brand identity is env-ified via shared variables:
 
 | Variable | Default | Used By |
 |----------|---------|---------|
-| `APP_NAME` | `Kidora Kart` | API (email templates, order ID prefix, email subjects) |
-| `SUPPORT_EMAIL` | `support@kidorakart.com` | API (email templates), admin-panel (order receipt) |
-| `CDN_HOST` | `cdn.kidorakart.com` | API (image URLs), admin-panel (image validation), web (CSP/image sources) |
-| `EMAIL_FROM_NAME` | `Kidora Kart` | API (email sender display name) |
-| `STORE_PICKUP_PINCODE` | `342005` | API (shipping estimate fallback pincode for Shiprocket) |
+| `APP_NAME` | `Jewellery Walla` | API (email templates, order ID prefix, email subjects) |
+| `SUPPORT_EMAIL` | `support@jewellerywalla.com` | API (email templates), admin-panel (order receipt) |
+| `CDN_HOST` | `cdn.jewellerywalla.com` | API (image URLs), admin-panel (image validation), web (CSP/image sources) |
+| `EMAIL_FROM_NAME` | `Jewellery Walla` | API (email sender display name) |
+| `STORE_PICKUP_PINCODE` | `342005` | API (origin pincode for in-house shipping & delivery) |
+
+## Cache Invalidation
+
+The admin panel invalidates the storefront's Next.js Data Cache through a shared `/api/revalidate` endpoint on the **web app** (`:3001`).
+
+```
+Admin panel (:3000)                          Web storefront (:3001)
+      │                                          │
+      ├─ POST /api/revalidate ─────────────────►  ├─ verifies Authorization: Bearer <REVALIDATE_SECRET>
+      │   (rewritten to http://localhost:3001)    ├─ revalidateTag(tag) for each tag
+      │   Authorization: Bearer <secret>          └─ bumps in-memory version stamp
+      │
+      └─ (browser-side fetch, same origin →       GET /api/revalidate (public) — storefront's
+         proxied by admin next.config.ts)           CacheInvalidationProvider polls every 30s and
+                                                   invalidates React Query caches when the version
+                                                   stamp changes
+```
+
+- **Secret**: `REVALIDATE_SECRET` on the web server and `NEXT_PUBLIC_REVALIDATE_SECRET` in the admin panel's env — both must be **identical**. Sent as `Authorization: Bearer <secret>`, never in the body.
+- **Ports**: the admin panel must know the storefront URL — `NEXT_PUBLIC_FRONTEND_URL` (`admin-panel/.env`, default `http://localhost:3001`). A rewrite in `admin-panel/next.config.ts` routes `/api/revalidate` to the storefront so it isn't proxied to the API backend.
+- **CORS**: the web app returns `Access-Control-Allow-Origin: *` + `POST, OPTIONS` for `/api/revalidate` so the admin panel's browser-side fetch works cross-origin.
+- **GET is public** — it only returns the version stamp for the storefront's React Query cache watcher.
+- `web/src/app/api/revalidate/route.ts` maps tags to `cacheLife()` profiles (`products`, `homepage`, `categories`, …) defined in `web/src/lib/cache-config.ts`.
 
 ## Deploying the API Server
 
@@ -97,14 +134,14 @@ Add for each environment:
 
 | Environment | Redirect URI |
 |-------------|-------------|
-| Development | `http://localhost:3000/auth/google/callback` |
+| Development | `http://localhost:3001/auth/google/callback` |
 | Production | `https://<YOUR_FRONTEND_DOMAIN>/auth/google/callback` |
 
 ### Authorized JavaScript Origins
 
 | Environment | Origin |
 |-------------|--------|
-| Development | `http://localhost:3000` |
+| Development | `http://localhost:3001` |
 | Production | `https://<YOUR_FRONTEND_DOMAIN>` |
 
 ### OAuth Flow Summary
@@ -139,7 +176,7 @@ Frontend                              Backend                             Google
 |----------|-------|---------|
 | `GOOGLE_CLIENT_ID` | `api/.env` | Backend OAuth client identification |
 | `GOOGLE_CLIENT_SECRET` | `api/.env` | Backend OAuth client secret |
-| `FRONTEND_URL` | `api/.env` | Base URL for the redirect URI (e.g., `https://kidorakart.com`) |
+| `FRONTEND_URL` | `api/.env` | Base URL for the redirect URI, email links, CORS (e.g., `https://jewellerywalla.com`) — must point at the **web storefront** |
 
 > The `web/.env.local` also needs the same `GOOGLE_CLIENT_ID` as `NEXT_PUBLIC_GOOGLE_CLIENT_ID` for the frontend Google Identity Services library.
 

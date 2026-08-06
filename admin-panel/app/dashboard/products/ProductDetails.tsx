@@ -25,9 +25,7 @@ export interface ProductData {
   length?: number;
   height?: number;
   breadth?: number;
-  minimumAge?: number;
-  idealAge?: number;
-  maximumAge?: number;
+  purity?: string;
   type?: string;
   sku?: string;
   tags?: string[];
@@ -345,20 +343,19 @@ export default function ProductDetails({ product }: { product: ProductData }) {
                   </a>
                 </div>
               )}
-              {(product.minimumAge != null || product.maximumAge != null) && (
+              {product.purity && (
                 <div>
-                  <h3 className="text-sm font-medium text-foreground">Age Range</h3>
+                  <h3 className="text-sm font-medium text-foreground">Purity</h3>
                   <p className="mt-1 text-sm text-muted-foreground flex items-center">
-                    <Tag className="w-4 h-4 mr-2" /> {product.minimumAge != null ? `${product.minimumAge}` : "0"}{" "}-
-                    {" "}{product.maximumAge != null ? `${product.maximumAge}` : "18"} Years
+                    <Tag className="w-4 h-4 mr-2" /> {product.purity}
                   </p>
                 </div>
               )}
-              {product.idealAge != null && (
+              {product.sizes && product.sizes.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium text-foreground">Ideal Age</h3>
+                  <h3 className="text-sm font-medium text-foreground">Sizes</h3>
                   <p className="mt-1 text-sm text-muted-foreground flex items-center">
-                    <Tag className="w-4 h-4 mr-2" /> {product.idealAge} Years
+                    <Tag className="w-4 h-4 mr-2" /> {product.sizes.map((s) => s.name).join(", ")}
                   </p>
                 </div>
               )}

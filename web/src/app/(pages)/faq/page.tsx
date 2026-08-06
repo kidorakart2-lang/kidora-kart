@@ -8,11 +8,11 @@ import SimpleLoading from "@/components/comman/SimpleLoading";
 
 export const metadata = {
   title: `FAQ - Frequently Asked Questions | ${siteConfig.name}`,
-  description: `Find answers to common questions about ${siteConfig.name}. Learn about our toys, shipping, returns, and more. Get help with your toy shopping.`,
-  keywords: `toys faq, toy questions, kids toys care, toy shipping, toy returns, ${siteConfig.name} help`,
+  description: `Find answers to common questions about ${siteConfig.name}. Learn about our jewellery, shipping, returns, and more. Get help with your jewellery shopping.`,
+  keywords: `jewellery faq, jewellery questions, gold care, jewellery shipping, jewellery returns, ${siteConfig.name} help`,
   openGraph: {
     title: `FAQ - ${siteConfig.name}`,
-    description: "Get answers to all your toy shopping questions.",
+    description: "Get answers to all your jewellery shopping questions.",
     url: `${siteConfig.url}/faq`,
     type: "website",
   },

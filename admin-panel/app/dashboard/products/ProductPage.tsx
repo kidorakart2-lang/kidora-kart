@@ -19,7 +19,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import ProductForm from "@/components/product/ProductForm";
-import { fetchColors, fetchMaterials, fetchCategories, fetchSubCategories, fetchSubSubCategories, fetchProducts, deleteProduct, changeProductStatus, saveProduct, restoreProduct, buildProductFormData, buildUpdateFormData, INITIAL_FORM_STATE, isValidVideoUrl } from "@/lib/products-api";
+import { fetchColors, fetchMaterials, fetchSizes, fetchCategories, fetchSubCategories, fetchSubSubCategories, fetchProducts, deleteProduct, changeProductStatus, saveProduct, restoreProduct, buildProductFormData, buildUpdateFormData, INITIAL_FORM_STATE, isValidVideoUrl } from "@/lib/products-api";
 import type { Product, ProductFormData } from "@/lib/types";
 import { Plus, IndianRupee, Video } from "lucide-react";
 
@@ -30,6 +30,7 @@ export default function ProductsPage() {
   const [selectedSubSubCategory, setSelectedSubSubCategory] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [removeImagesUrl, setRemoveImagesUrl] = useState<string[]>([]);
   const [removeGiftImagesUrl, setRemoveGiftImagesUrl] = useState<string[]>([]);
   // Snapshots for partial-update tracking
@@ -54,6 +55,7 @@ export default function ProductsPage() {
 
   const { data: colors = [] } = useQuery({ queryKey: ["colors"], queryFn: fetchColors, staleTime: 5 * 60 * 1000 });
   const { data: materials = [] } = useQuery({ queryKey: ["materials"], queryFn: fetchMaterials, staleTime: 5 * 60 * 1000 });
+  const { data: sizes = [] } = useQuery({ queryKey: ["sizes"], queryFn: fetchSizes, staleTime: 5 * 60 * 1000 });
   const { data: categories = [] } = useQuery({ queryKey: ["categories"], queryFn: fetchCategories, staleTime: 5 * 60 * 1000 });
   const { data: subCategories = [] } = useQuery({ queryKey: ["subCategories"], queryFn: fetchSubCategories, staleTime: 5 * 60 * 1000 });
   const { data: subSubCategories = [] } = useQuery({ queryKey: ["subSubCategories"], queryFn: fetchSubSubCategories, staleTime: 5 * 60 * 1000 });
@@ -114,12 +116,15 @@ export default function ProductsPage() {
       toast({ title: `Product ${editingProduct ? "updated" : "created"} successfully` });
       setDrawerOpen(false); setEditingProduct(null);
       setSelectedCategory([]); setSelectedSubCategory([]); setSelectedSubSubCategory([]);
-      setSelectedColors([]); setSelectedMaterials([]);
+      setSelectedColors([]); setSelectedMaterials([]); setSelectedSizes([]);
       setFormData(INITIAL_FORM_STATE); setRemoveImagesUrl([]); setRemoveGiftImagesUrl([]);
       setInitialFormData(null); setInitialSelections(null);
     },
     onError: (error: Error) => toast({ title: "Error saving product", description: error.message, variant: "destructive" }),
   });
+
+  const mapIds = (items: Array<{ _id: string } | string> | undefined) =>
+    Array.isArray(items) ? items.map((i) => typeof i === "string" ? i : i._id).filter(Boolean) : [];
 
   const handleEdit = (product: Product) => {
     const dp = { ...product };
@@ -128,9 +133,8 @@ export default function ProductsPage() {
       name: dp.name, price: String(dp.price), stock: String(dp.stock), weight: dp.weight,
       length: dp.length != null ? String(dp.length) : "", height: dp.height != null ? String(dp.height) : "",
       breadth: dp.breadth != null ? String(dp.breadth) : "",
-      minimumAge: dp.minimumAge != null ? String(dp.minimumAge) : "",
-      idealAge: dp.idealAge != null ? String(dp.idealAge) : "",
-      maximumAge: dp.maximumAge != null ? String(dp.maximumAge) : "",
+      purity: dp.purity || "",
+      sizes: mapIds(dp.sizes),
       type: dp.type || "", sku: dp.sku || "", tags: dp.tags || [], videoUrl: dp.videoUrl || "",
       code: dp.code, discount_price: String(dp.discount_price), description: dp.description,
       shortDescription: dp.shortDescription || "",
@@ -148,8 +152,6 @@ export default function ProductsPage() {
       giftImagePreviews: Array.isArray(dp.giftImages) ? [...dp.giftImages, ...Array(5 - dp.giftImages.length).fill("")] : ["", "", "", "", ""],
       giftImages: Array(5).fill(null),
     });
-    const mapIds = (items: Array<{ _id: string } | string> | undefined) =>
-      Array.isArray(items) ? items.map((i) => typeof i === "string" ? i : i._id).filter(Boolean) : [];
     const cats = mapIds(dp.category);
     const subs = mapIds(dp.subCategory);
     const subsubs = mapIds(dp.subSubCategory);
@@ -160,14 +162,15 @@ export default function ProductsPage() {
     setSelectedSubSubCategory(subsubs);
     setSelectedColors(cols);
     setSelectedMaterials(mats);
+    const sizesIds = mapIds(dp.sizes);
+    setSelectedSizes(sizesIds);
     // Snapshot for partial-update tracking (built inline, not from stale formData state)
     setInitialFormData({
       name: dp.name, price: String(dp.price), stock: String(dp.stock), weight: dp.weight,
       length: dp.length != null ? String(dp.length) : "", height: dp.height != null ? String(dp.height) : "",
       breadth: dp.breadth != null ? String(dp.breadth) : "",
-      minimumAge: dp.minimumAge != null ? String(dp.minimumAge) : "",
-      idealAge: dp.idealAge != null ? String(dp.idealAge) : "",
-      maximumAge: dp.maximumAge != null ? String(dp.maximumAge) : "",
+      purity: dp.purity || "",
+      sizes: [...sizesIds],
       type: dp.type || "", sku: dp.sku || "", tags: [...(dp.tags || [])], videoUrl: dp.videoUrl || "",
       code: dp.code, discount_price: String(dp.discount_price), description: dp.description,
       shortDescription: dp.shortDescription || "",
@@ -201,14 +204,6 @@ export default function ProductsPage() {
     if (!isNaN(priceNum) && priceNum <= 0) { toast({ title: "Validation Error", description: "Price must be greater than 0", variant: "destructive" }); return; }
     const discountNum = parseFloat(formData.discount_price);
     if (!isNaN(priceNum) && !isNaN(discountNum) && discountNum > priceNum) { toast({ title: "Validation Error", description: "Discount price must be less than or equal to the original price", variant: "destructive" }); return; }
-    if (formData.minimumAge && formData.maximumAge) {
-      const mn = parseInt(formData.minimumAge, 10), mx = parseInt(formData.maximumAge, 10);
-      if (!isNaN(mn) && !isNaN(mx) && mn >= mx) { toast({ title: "Validation Error", description: "Minimum age must be less than maximum age", variant: "destructive" }); return; }
-    }
-    if (formData.idealAge && formData.minimumAge && formData.maximumAge) {
-      const ia = parseInt(formData.idealAge, 10), mn = parseInt(formData.minimumAge, 10), mx = parseInt(formData.maximumAge, 10);
-      if (!isNaN(ia) && !isNaN(mn) && !isNaN(mx) && (ia < mn || ia > mx)) { toast({ title: "Validation Error", description: "Ideal age must be between minimum age and maximum age", variant: "destructive" }); return; }
-    }
     if (formData.videoUrl && !isValidVideoUrl(formData.videoUrl)) { toast({ title: "Validation Error", description: "Video URL must be a valid YouTube, Vimeo, or direct video link (.mp4, .webm, etc.)", variant: "destructive" }); return; }
     const stockNum = parseInt(formData.stock, 10);
     if (isNaN(stockNum) || stockNum < 0) { toast({ title: "Validation Error", description: "Stock cannot be negative", variant: "destructive" }); return; }
@@ -242,7 +237,7 @@ export default function ProductsPage() {
   const closeDrawer = useCallback(() => {
     setDrawerOpen(false); setEditingProduct(null);
     setSelectedCategory([]); setSelectedSubCategory([]); setSelectedSubSubCategory([]);
-    setSelectedColors([]); setSelectedMaterials([]);
+    setSelectedColors([]); setSelectedMaterials([]); setSelectedSizes([]);
     setFormData(INITIAL_FORM_STATE); setRemoveImagesUrl([]); setRemoveGiftImagesUrl([]);
     setInitialFormData(null); setInitialSelections(null);
   }, []);
@@ -403,10 +398,11 @@ export default function ProductsPage() {
           selectedSubSubCategory={selectedSubSubCategory} setSelectedSubSubCategory={setSelectedSubSubCategory}
           selectedColors={selectedColors} setSelectedColors={setSelectedColors}
           selectedMaterials={selectedMaterials} setSelectedMaterials={setSelectedMaterials}
+          selectedSizes={selectedSizes} setSelectedSizes={setSelectedSizes}
           removeImagesUrl={removeImagesUrl} toggleRemoveImagesUrl={toggleRemoveImagesUrl}
           removeGiftImagesUrl={removeGiftImagesUrl} toggleRemoveGiftImagesUrl={toggleRemoveGiftImagesUrl}
           categories={categories} subCategories={subCategories} subSubCategories={subSubCategories}
-          colors={colors} materials={materials}
+          colors={colors} materials={materials} sizes={sizes}
           tagLoading={tagLoading} handleAutoTag={handleAutoTag}
           handleMainImageChange={handleMainImageChange} handleAdditionalImageChange={handleAdditionalImageChange}
           handleGiftImageChange={handleGiftImageChange}

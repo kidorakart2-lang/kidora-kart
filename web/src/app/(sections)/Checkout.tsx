@@ -11,7 +11,6 @@ import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "@/redux/store/store";
 import OrederSummery from "@/components/comman/OrederSummery";
 import { useProductsByIds, useProduct } from "@/lib/useProduct";
-import { useShippingEstimate } from "@/lib/useShippingEstimate";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -109,6 +108,9 @@ export default function Checkout() {
         const variant = item.variantId
           ? fetched?.variants?.find((v) => v._id === item.variantId)
           : undefined;
+        const size = item.sizeId
+          ? fetched?.sizes?.find((s) => s._id === item.sizeId)
+          : undefined;
         return {
           _id: item.productId,
           product: (fetched ?? {
@@ -127,14 +129,19 @@ export default function Checkout() {
           variantId: item.variantId ?? undefined,
           variantName: variant?.name ?? undefined,
           variantPrice: variant?.price ?? undefined,
+          sizeId: item.sizeId ?? null,
+          sizeName: size?.name ?? item.sizeName ?? null,
         };
       });
     }
     return cartItemsState.map((item) => {
       const fetched = item.productId ? productMap.get(item.productId) : undefined;
       const color = fetched?.colors?.find((c) => c._id === item.colorId);
+      const size = item.sizeId
+        ? fetched?.sizes?.find((s) => s._id === item.sizeId)
+        : undefined;
       return {
-        _id: `${item.productId}_${item.colorId ?? ""}`,
+        _id: `${item.productId}_${item.colorId ?? ""}_${item.sizeId ?? ""}`,
         product: (fetched ?? {
           _id: item.productId,
           name: "Loading...",
@@ -148,6 +155,9 @@ export default function Checkout() {
         variantId: undefined,
         variantName: undefined,
         variantPrice: undefined,
+        size: size ? { _id: size._id, name: size.name } : undefined,
+        sizeId: item.sizeId ?? null,
+        sizeName: size?.name ?? null,
       };
     });
   }, [purchaseType, buyNowItem, cartItemsState, directProduct, productMap]);
@@ -291,29 +301,6 @@ export default function Checkout() {
   };
 
   const [showAddressPrompt, setShowAddressPrompt] = useState(false);
-
-  // Build stable items array for the shipping estimate query
-  const estimateItems = useMemo(
-    () =>
-      cartItems
-        .filter((item) => !!item.product?._id)
-        .map((item) => ({
-          productId: item.product!._id,
-          quantity: item.quantity || 1,
-        })),
-    [cartItems],
-  );
-
-  // React Query handles caching, dedup, auto-fetch on pincode change,
-  // AbortController cleanup, and background refetching.
-  const {
-    data: shippingEstimate,
-    isFetching,
-    refetch,
-  } = useShippingEstimate(
-    orderData.shippingAddress.pincode,
-    estimateItems,
-  );
 
   // Helper to load address from profile
   const loadProfileAddress = () => {
@@ -463,14 +450,12 @@ export default function Checkout() {
             colorId: item.colorId ?? undefined,
             quantity: item.quantity,
             ...(item.variantId ? { variantId: item.variantId } : {}),
+            ...(item.sizeId ? { sizeId: item.sizeId } : {}),
           }),
         ),
       }),
         isCodAdvance,
         idempotencyKey: idempotencyKeyRef.current,
-        shippingCharge: shippingEstimate?.estimatedCharge,
-        shippingCourier: shippingEstimate?.courierName,
-        shippingEtd: shippingEstimate?.etd,
       };
 
       const createOrderResponse = await createOrder(orderPayload);
@@ -493,7 +478,7 @@ export default function Checkout() {
         key: keyId,
         amount: amount * 100, // Amount in paise
         currency: currency,
-        name: "Kidora Kart",
+        name: "Jewellery Walla",
         description: `Order #${orderId}`,
         image: logo || "/images/logo.webp", // Your logo
         order_id: razorpayOrderId,
@@ -613,6 +598,8 @@ export default function Checkout() {
         colorId: null,
         variantId: null,
         variantName: null,
+        sizeId: null,
+        sizeName: null,
       }),
     );
     setAlert({ title: "", open: false, errors: undefined });
@@ -701,9 +688,6 @@ export default function Checkout() {
               showAddressPrompt={showAddressPrompt}
               setShowAddressPrompt={setShowAddressPrompt}
               loadProfileAddress={loadProfileAddress}
-              shippingEstimate={shippingEstimate}
-              isFetching={isFetching}
-              onCheckPincode={() => refetch()}
               geolocationSupported={geolocationSupported}
               detectingLocation={detectingLocation}
               locationFilled={locationFilled}
@@ -782,7 +766,6 @@ export default function Checkout() {
                   type={purchaseType}
                   orderData={orderData}
                   coupon={couponCode}
-                  shippingEstimate={shippingEstimate}
                 />
 
                 <PaymentOptions

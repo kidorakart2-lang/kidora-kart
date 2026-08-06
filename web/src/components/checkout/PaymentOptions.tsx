@@ -55,7 +55,7 @@ export default function PaymentOptions({ onPayOnline, onCashOnDelivery, loading 
       <div className="bg-background rounded-xl p-5 shadow-sm border border-brand-100 mt-6">
         <div className="grid grid-cols-3 gap-4">
           {[
-            { icon: Shield, label: "Secure Payment", color: "text-green-600", bg: "bg-green-100" },
+            { icon: Shield, label: "Secure Payment", color: "text-amber-600", bg: "bg-amber-100" },
             { icon: RotateCcw, label: "Easy Returns", color: "text-brand-600", bg: "bg-brand-100" },
             { icon: Truck, label: "Fast Shipping", color: "text-brand-600", bg: "bg-brand-100" },
           ].map(({ icon: Icon, label, color, bg }) => (

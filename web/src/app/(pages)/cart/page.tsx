@@ -7,7 +7,7 @@ import { serverFetch } from "@/lib/server-fetch";
 
 export const metadata = {
   title: `Shopping Cart - ${siteConfig.name}`,
-  description: "Review your selected toys and games and proceed to checkout.",
+  description: "Review your selected jewellery pieces and proceed to checkout.",
   robots: {
     index: false,
     follow: true,

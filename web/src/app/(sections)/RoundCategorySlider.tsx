@@ -9,14 +9,6 @@ import type { CategoryData, SubCategoryData } from "@/types";
 import "swiper/css";
 import Link from "next/link";
 
-const TOY_PALETTE = [
-  "var(--brand-card-2-icon)", // coral
-  "var(--brand-card-5-icon)", // sky
-  "var(--brand-card-1-icon)", // amber
-  "var(--brand-card-3-icon)", // grass
-  "var(--brand-card-4-icon)", // plum
-] as const;
-
 export default function RoundCategorySlider({ heading }: { heading?: string }) {
   const navigation = useSelector((state: RootState) => state.ui.navigation);
   const categories = (navigation as { _data?: CategoryData[] })?._data ?? [];
@@ -34,25 +26,22 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
   return (
     <section className="w-full py-8 md:py-10 bg-section">
       <div className="text-center mb-10 mt-4">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl fw-heading tracking-wide text-foreground relative inline-block mb-3">
-          {heading || "Discover Our Collection"}
-          <svg
-            viewBox="0 0 120 12"
-            className="absolute -bottom-3 left-1/2 h-3 w-28 -translate-x-1/2"
-            style={{ color: "var(--brand-primary)" }}
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M2 8 Q 20 1 40 7 T 78 6 T 118 4"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
+        <div className="inline-flex items-center justify-center gap-3 mb-2">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl text-gradient-brand relative inline-block font-serif tracking-wide">
+            {heading || "Discover Our Collection"}
+            <span
+              className="absolute bottom-[-12px] left-1/2 transform -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent"
+              style={{ backgroundImage: `linear-gradient(to right, transparent, var(--brand-primary), transparent)` }}
             />
-          </svg>
-        </h2>
-        <p className="text-sm sm:text-base text-muted-foreground fw-body tracking-widest mt-5">
-          Fun for Kids of All Ages
+            <span
+              className="absolute bottom-[-16px] left-1/2 transform -translate-x-1/2 w-2 h-2 rotate-45 shadow-lg"
+              style={{ backgroundColor: "var(--brand-primary)" }}
+            />
+          </h2>
+        </div>
+
+        <p className="text-sm sm:text-base text-muted-foreground font-light tracking-widest italic mt-4">
+          Timeless Elegance, Crafted for You
         </p>
       </div>
 
@@ -77,45 +66,43 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
             }}
             className="category-swiper !pb-3"
           >
-            {allSubCategories.map((subCat, index) => {
-              const ring = TOY_PALETTE[index % TOY_PALETTE.length];
-              return (
-                <SwiperSlide key={subCat._id}>
-                  <Link href={`/category/${subCat.parentSlug}/${subCat.slug}`}>
-                    <article
-                      className="group relative w-full flex flex-col items-center cursor-pointer pb-3"
-                      itemScope
-                      itemType="https://schema.org/Thing"
+            {allSubCategories.map((subCat) => (
+              <SwiperSlide key={subCat._id}>
+                <Link href={`/category/${subCat.parentSlug}/${subCat.slug}`}>
+                  <article
+                    className="group relative w-full aspect-square flex flex-col items-center cursor-pointer pb-3"
+                    itemScope
+                    itemType="https://schema.org/Thing"
+                  >
+                    <div
+                      className="relative w-full h-full overflow-hidden rounded-full transition-transform duration-300 motion-safe:group-hover:-translate-y-1 motion-safe:group-hover:rotate-3"
+                      style={{
+                        border: "2px solid var(--brand-border, color-mix(in srgb, var(--brand-primary) 50%, transparent))",
+                        boxShadow: "0 6px 14px -4px color-mix(in srgb, var(--brand-primary) 40%, transparent)",
+                      }}
                     >
-                      <div
-                        className="relative w-full aspect-square overflow-hidden rounded-full  transition-transform duration-300 motion-safe:group-hover:-translate-y-1 motion-safe:group-hover:rotate-3"
-                        style={{
-                          borderColor: ring,
-                          boxShadow: `0 3px 0 0 ${ring}`,
-                        }}
-                      >
-                        <Image
-                          src={subCat.image ?? ""}
-                          alt={subCat.name}
-                          fill
-                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          className="object-cover rounded-full"
-                          itemProp="image"
-                        />
-                      </div>
+                      <Image
+                        src={subCat.image ?? ""}
+                        alt={subCat.name}
+                        fill
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        className="object-cover rounded-full"
+                        itemProp="image"
+                      />
 
-                      <span
-                        className="mt-3 inline-flex max-w-full items-center rounded-full border-2 bg-card px-3 py-1 text-xs sm:text-sm font-semibold text-foreground shadow-sm truncate"
-                        style={{ borderColor: ring }}
-                        itemProp="name"
-                      >
-                        {subCat.name}
-                      </span>
-                    </article>
-                  </Link>
-                </SwiperSlide>
-              );
-            })}
+                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-full transition-colors duration-300 group-hover:bg-black/20">
+                        <p
+                          className="text-base sm:text-lg md:text-xl font-semibold text-white text-center px-2 drop-shadow-lg"
+                          itemProp="name"
+                        >
+                          {subCat.name}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                </Link>
+              </SwiperSlide>
+            ))}
           </Swiper>
         )}
       </div>

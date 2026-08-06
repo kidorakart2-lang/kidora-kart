@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com",
+        hostname: process.env.NEXT_PUBLIC_CDN_HOST || "cdn.jewellerywalla.com",
       },
       {
         protocol: "https",
@@ -47,7 +47,7 @@ const nextConfig: NextConfig = {
     const backendUrl =
       process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/";
     const frontendUrl =
-      process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+      process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3001";
     return [
       // Route /api/revalidate to the web frontend (for cache invalidation)
       // so it doesn't get proxied to the backend API server.

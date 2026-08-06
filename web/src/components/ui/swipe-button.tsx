@@ -107,7 +107,7 @@ export function SwipeButton({
           "focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:outline-none dark:focus-visible:ring-brand-600 dark:focus-visible:ring-offset-brand-900",
           "disabled:pointer-events-none",
           isValidated &&
-            "w-[calc(100%-6px)] cursor-default bg-emerald-500 opacity-100 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-500"
+            "w-[calc(100%-6px)] cursor-default bg-amber-500 opacity-100 hover:bg-amber-500 dark:bg-amber-500 dark:hover:bg-amber-500"
         )}
         style={{
           width: isValidated ? `calc(100% - ${gap * 2}px)` : "36px",

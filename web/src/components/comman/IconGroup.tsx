@@ -54,7 +54,7 @@ export default function IconGroup({
     <div className="flex items-center gap-1 shrink-0 ml-auto md:ml-0">
       <button
         id="search-toggle-button"
-        className={`grid place-items-center size-9 rounded-lg transition-colors ${
+        className={`lg:hidden grid place-items-center size-9 rounded-lg transition-colors ${
           isSearchOpen
             ? "bg-muted text-foreground"
             : "text-foreground/80 hover:bg-muted hover:text-foreground"
@@ -120,7 +120,7 @@ export default function IconGroup({
               <UserIcon size={19} />
             )}
             {isLoggedIn && (
-              <span className="absolute -top-0.5 -right-0.5 size-2.5 bg-emerald-500 rounded-full border-2 border-background" />
+              <span className="absolute -top-0.5 -right-0.5 size-2.5 bg-amber-500 rounded-full border-2 border-background" />
             )}
           </button>
         </DropdownMenuTrigger>

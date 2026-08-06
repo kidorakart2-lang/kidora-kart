@@ -9,6 +9,12 @@ export interface MaterialItem {
   name: string;
 }
 
+export interface SizeItem {
+  _id: string;
+  name: string;
+  value?: string;
+}
+
 export interface CategoryRef {
   _id: string;
   name: string;
@@ -55,9 +61,8 @@ export interface ProductData {
   length?: number;
   height?: number;
   breadth?: number;
-  minimumAge?: number;
-  idealAge?: number;
-  maximumAge?: number;
+  purity?: string;
+  sizes?: SizeItem[];
   type?: string;
   sku?: string;
   tags?: string[];
@@ -119,6 +124,8 @@ export interface DirectPurchaseItem {
   variantId?: string;
   variantName?: string;
   variantPrice?: number;
+  sizeId?: string | null;
+  sizeName?: string | null;
 }
 
 export interface OrderSummaryCartItem {
@@ -133,6 +140,9 @@ export interface OrderSummaryCartItem {
   variantId?: string;
   variantName?: string;
   variantPrice?: number;
+  size?: { _id: string; name: string };
+  sizeId?: string | null;
+  sizeName?: string | null;
 }
 
 export interface NavigationData extends CategoryData {

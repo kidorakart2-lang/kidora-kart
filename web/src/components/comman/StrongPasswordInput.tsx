@@ -23,7 +23,7 @@ function getStrokeColorClass(p: number) {
   if (p <= 0) return "stroke-transparent";
   if (p <= 0.35) return "stroke-red-500";
   if (p <= 0.7) return "stroke-brand-500";
-  return "stroke-teal-400";
+  return "stroke-amber-400";
 }
 
 function AnimatedCheckmarkCircle({ progress }: { progress: number }) {
@@ -47,7 +47,7 @@ function AnimatedCheckmarkCircle({ progress }: { progress: number }) {
         />
         <motion.circle
           cx="10" cy="10" r={CIRCLE_RADIUS}
-          className="fill-teal-400"
+          className="fill-amber-400"
           style={{ originX: "10px", originY: "10px" }}
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: isComplete ? 1 : 0, opacity: isComplete ? 1 : 0 }}
@@ -129,7 +129,7 @@ export default function StrongPasswordInput({
               <div
                 key={index}
                 className={`flex items-center gap-2 text-sm transition-colors duration-200 ${
-                  isValid ? "text-emerald-500 font-medium" : "text-muted-foreground"
+                  isValid ? "text-amber-500 font-medium" : "text-muted-foreground"
                 }`}
               >
                 <div className="flex items-center justify-center w-3.5 h-3.5">
@@ -137,7 +137,7 @@ export default function StrongPasswordInput({
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="flex items-center justify-center w-3 h-3 rounded-full bg-emerald-500 text-background"
+                      className="flex items-center justify-center w-3 h-3 rounded-full bg-amber-500 text-background"
                     >
                       <Check className="size-2.5 shrink-0" strokeWidth={3} />
                     </motion.div>

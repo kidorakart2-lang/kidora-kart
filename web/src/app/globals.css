@@ -138,17 +138,17 @@
   --brand-card-2-icon: oklch(0.60 0.18 20);
   --brand-card-2-ring: oklch(0.892 0.058 10.001);
 
-  --brand-card-3-bg: oklch(0.979 0.021 166.113);
-  --brand-card-3-icon: oklch(0.70 0.18 150);
-  --brand-card-3-ring: oklch(0.901 0.058 154.194);
+  --brand-card-3-bg: oklch(0.973 0.02 62);
+  --brand-card-3-icon: oklch(0.55 0.13 48);
+  --brand-card-3-ring: oklch(0.9 0.07 62);
 
-  --brand-card-4-bg: oklch(0.977 0.013 308.299);
-  --brand-card-4-icon: oklch(0.62 0.24 300);
-  --brand-card-4-ring: oklch(0.897 0.059 305.03);
+  --brand-card-4-bg: oklch(0.972 0.012 8);
+  --brand-card-4-icon: oklch(0.62 0.22 18);
+  --brand-card-4-ring: oklch(0.9 0.06 12);
 
-  --brand-card-5-bg: oklch(0.965 0.03 231);
-  --brand-card-5-icon: oklch(0.65 0.14 240);
-  --brand-card-5-ring: oklch(0.85 0.08 231);
+  --brand-card-5-bg: oklch(0.97 0.02 75);
+  --brand-card-5-icon: oklch(0.55 0.14 50);
+  --brand-card-5-ring: oklch(0.9 0.07 70);
 
   --brand-50: #fffbeb;
   --brand-100: #fef3c7;
@@ -175,20 +175,20 @@
   --brand-accent-950: #4c0519;
 
   --brand-price-1-from: #fbbf24;
-  --brand-price-1-via: #eab308;
+  --brand-price-1-via: #f59e0b;
   --brand-price-1-to: #d97706;
 
-  --brand-price-2-from: #c084fc;
-  --brand-price-2-via: #d946ef;
-  --brand-price-2-to: #9333ea;
+  --brand-price-2-from: #fb7185;
+  --brand-price-2-via: #f43f5e;
+  --brand-price-2-to: #e11d48;
 
-  --brand-price-3-from: #fb7185;
-  --brand-price-3-via: #ec4899;
-  --brand-price-3-to: #e11d48;
+  --brand-price-3-from: #fde68a;
+  --brand-price-3-via: #fbbf24;
+  --brand-price-3-to: #f59e0b;
 
-  --brand-price-4-from: #34d399;
-  --brand-price-4-via: #14b8a6;
-  --brand-price-4-to: #059669;
+  --brand-price-4-from: #fda4af;
+  --brand-price-4-via: #fb7185;
+  --brand-price-4-to: #f43f5e;
 }
 
 .dark {
@@ -247,17 +247,17 @@
   --brand-card-2-icon: oklch(0.85 0.12 10);
   --brand-card-2-ring: oklch(0.35 0.06 10);
 
-  --brand-card-3-bg: oklch(0.25 0.06 160);
-  --brand-card-3-icon: oklch(0.85 0.12 160);
-  --brand-card-3-ring: oklch(0.35 0.06 160);
+  --brand-card-3-bg: oklch(0.25 0.06 70);
+  --brand-card-3-icon: oklch(0.85 0.12 70);
+  --brand-card-3-ring: oklch(0.35 0.06 70);
 
-  --brand-card-4-bg: oklch(0.25 0.06 300);
-  --brand-card-4-icon: oklch(0.85 0.12 300);
-  --brand-card-4-ring: oklch(0.35 0.06 300);
+  --brand-card-4-bg: oklch(0.25 0.06 12);
+  --brand-card-4-icon: oklch(0.85 0.12 12);
+  --brand-card-4-ring: oklch(0.35 0.06 12);
 
-  --brand-card-5-bg: oklch(0.25 0.06 231);
-  --brand-card-5-icon: oklch(0.80 0.12 240);
-  --brand-card-5-ring: oklch(0.35 0.06 231);
+  --brand-card-5-bg: oklch(0.25 0.06 60);
+  --brand-card-5-icon: oklch(0.80 0.12 60);
+  --brand-card-5-ring: oklch(0.35 0.06 60);
 
   --brand-50: #2d1f00;
   --brand-100: #3d2b00;
@@ -338,7 +338,7 @@
     box-shadow: 0 0 20px color-mix(in srgb, var(--brand-primary) 30%, transparent);
   }
 
-  /* ── Chunky "toy block" drop shadows, keyed to brand-card tiers ── */
+  /* ── Chunky "jewellery box" drop shadows, keyed to brand-card tiers ── */
   .shadow-chunky-1 { box-shadow: 0 6px 0 0 var(--brand-card-1-icon); }
   .shadow-chunky-2 { box-shadow: 0 6px 0 0 var(--brand-card-2-icon); }
   .shadow-chunky-3 { box-shadow: 0 6px 0 0 var(--brand-card-3-icon); }

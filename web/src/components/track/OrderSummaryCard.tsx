@@ -40,8 +40,8 @@ export default function OrderSummaryCard({ pricing, isCodAdvance }: OrderSummary
         </div>
         {pricing.discount?.amount != null && pricing.discount.amount > 0 && (
           <div className="flex justify-between text-sm">
-            <span className="text-emerald-600">Discount</span>
-            <span className="text-emerald-600">-₹{pricing.discount.amount.toLocaleString("en-IN")}</span>
+            <span className="text-amber-600">Discount</span>
+            <span className="text-amber-600">-₹{pricing.discount.amount.toLocaleString("en-IN")}</span>
           </div>
         )}
         {isCodAdvance && pricing.advance != null && (

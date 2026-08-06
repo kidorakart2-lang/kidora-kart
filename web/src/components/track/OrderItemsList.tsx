@@ -67,12 +67,12 @@ export default function OrderItemsList({ items, isGift, giftMessage }: OrderItem
         ))}
       </div>
       {isGift && giftMessage && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 p-4 bg-rose-50 border-l-4 border-rose-400 rounded-r-lg">
           <div className="flex items-start gap-2">
-            <Gift className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <Gift className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-blue-900">Gift Order</p>
-              <p className="text-sm text-blue-700 mt-1"><span className="font-medium">Message:</span> {giftMessage}</p>
+              <p className="font-semibold text-rose-900">Gift Order</p>
+              <p className="text-sm text-rose-700 mt-1"><span className="font-medium">Message:</span> {giftMessage}</p>
             </div>
           </div>
         </motion.div>
