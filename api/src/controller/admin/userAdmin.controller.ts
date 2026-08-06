@@ -198,7 +198,7 @@ export const getFullDetails = async (
         .select("-payment.razorpay.signature")
         .lean(),
       Wishlist.find({ user: req.params.id })
-        .populate("products", "name price discount_price images slug stock")
+        .populate("products", "name price discount_price image images slug stock")
         .lean(),
       Reviews.find({ userId: req.params.id })
         .populate("productId", "name images slug")

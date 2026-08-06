@@ -357,7 +357,7 @@ function DataTableContent<T extends BaseItem>({
             ) : (
               paginatedData.map((item, rowIndex) => (
                 <TableRow
-                  key={String(item._id)}
+                  key={item._id != null ? String(item._id) : `row-${rowIndex}`}
                   className="transition-all duration-200 hover:bg-muted/50 animate-in fade-in slide-in-from-left"
                   style={{ animationDelay: `${rowIndex * 30}ms` }}
                 >

@@ -144,8 +144,8 @@ export function Header() {
             />
             {bar && result.length > 0 && (
               <ul className="absolute z-50 bg-popover border border-border rounded-md mt-1 w-full shadow-lg">
-                {result.map((item, i) => (
-                  <li key={i} className="border-b border-border last:border-b-0">
+                {result.map((item) => (
+                  <li key={item.href} className="border-b border-border last:border-b-0">
                     <Link
                       onClick={() => setBar(false)}
                       href={item.href}

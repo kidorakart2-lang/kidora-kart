@@ -57,7 +57,7 @@ interface ProductReviewsProps {
 }
 
 export default function ProductReviews({ productId }: ProductReviewsProps) {
-  const [expandedReview, setExpandedReview] = useState<number | null>(null);
+  const [expandedReview, setExpandedReview] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     comment: "",
@@ -76,7 +76,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
     const fetchReviews = async () => {
       try {
         setLoading(true);
-        const data = await api.postRaw<{ _data?: Review[]; _rating?: number }>("/api/website/review/get/" + productId, { productId });
+        const data = await api.getRaw<{ _data?: Review[]; _rating?: number }>("/api/website/review/get/" + productId);
         setReviews(data._data || []);
         setAverageRating(data._rating || 0);
     } catch (error) {
@@ -347,14 +347,14 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
           </motion.div>
 
           <motion.div variants={containerVariants} className="space-y-4">
-            {reviews.map((review, i) => (
+            {reviews.map((review) => (
               <motion.div
-                key={i}
+                key={review._id}
                 variants={itemVariants}
                 whileHover={{ x: 8 }}
                 className="p-6 bg-background/60 backdrop-blur-sm rounded-2xl border border-amber-100/50 hover:border-amber-200 transition-all cursor-pointer"
                 onClick={() =>
-                  setExpandedReview(expandedReview === i ? null : i)
+                  setExpandedReview(expandedReview === review._id ? null : (review._id ?? null))
                 }
               >
                 <div className="flex items-start justify-between mb-3">

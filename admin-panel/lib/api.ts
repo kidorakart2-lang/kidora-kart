@@ -274,6 +274,11 @@ export const api = {
     return requestRaw<T>("POST", url, body, tokenOverride);
   },
 
+  /** Like get() but returns the full response JSON without extracting `_data`. */
+  getRaw<T = unknown>(url: string, tokenOverride?: string): Promise<T> {
+    return requestRaw<T>("GET", url, undefined, tokenOverride);
+  },
+
   patch<T = unknown>(url: string, body?: unknown, tokenOverride?: string): Promise<T> {
     return request<T>("PATCH", url, body, tokenOverride);
   },

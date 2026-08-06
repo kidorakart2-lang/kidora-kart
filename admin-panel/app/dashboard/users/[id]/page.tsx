@@ -401,7 +401,7 @@ export default function page() {
                       >
                         <div className="w-20 h-20 flex-shrink-0">
                           <img
-                            src={product.image || "/placeholder-product.jpg"}
+                            src={product.images?.[0] || product.image || "/placeholder-product.jpg"}
                             alt={product.name}
                             className="w-full h-full object-cover rounded"
                           />
