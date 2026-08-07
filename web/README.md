@@ -69,6 +69,18 @@ web/src/
 | `pnpm lighthouse` | Run Lighthouse CI baseline (requires `pnpm build && pnpm start` first) |
 | `pnpm lint` | Run TypeScript check |
 
+## Deployment (Vercel)
+
+```bash
+pnpm install --frozen-lockfile
+pnpm build
+```
+
+> **Important for hosted platforms (Vercel):** this project is **pnpm-only**.
+> - Set the Install preset to pnpm; `postbuild` (next-sitemap) runs automatically after `next build`.
+> - `pnpm-lock.yaml` **must stay in sync** with `package.json` — Vercel's frozen-lockfile install fails with `ERR_PNPM_OUTDATED_LOCKFILE` when they drift. Regenerate with `pnpm install` after any dependency change and commit both.
+> - Ensure the env vars above are configured in the platform dashboard (they are not committed).
+
 ## Quality Tooling
 
 - **Lighthouse CI** (`lighthouserc.js`) — Desktop preset, single run. Reports saved to `lhci_reports/`.

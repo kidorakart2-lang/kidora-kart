@@ -5,8 +5,7 @@ import "swiper/css";
 import "swiper/css/effect-coverflow";
 import ProductCard from "@/components/comman/ProductCard";
 import Link from "next/link";
-import { Sparkles, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Sparkles, ArrowRight } from "lucide-react";import { Button } from "@/components/ui/button";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
 import type { CategoryData } from "@/types";
@@ -20,12 +19,12 @@ const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: st
   if (!data || !Array.isArray(data) || data.length === 0) return null;
 
   return (
-    <section className="relative py-8 overflow-hidden bg-section" id={heading}>
+    <section className="relative py-4 overflow-hidden bg-section" id={heading}>
       <div className="section-container">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
+        <div className="text-center mb-6">
+          <div className="flex items-center justify-center gap-2 mb-3">
             <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
-            <h2 className="text-4xl md:text-5xl font-serif tracking-wide section-heading">
+            <h2 className="text-2xl md:text-3xl font-serif tracking-wide section-heading">
               {heading}
             </h2>
             <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
@@ -77,7 +76,7 @@ const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: st
           </Swiper>
         </div>
 
-        <div className="text-center mt-8">
+        <div className="text-center mt-4">
           <Link href={viewMoreHref}>
             <Button
               variant="gradient"
@@ -86,7 +85,6 @@ const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: st
             >
               <span className="relative flex items-center gap-2">
                 VIEW MORE
-                <Sparkles className="w-4 h-4" />
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
               </span>
             </Button>

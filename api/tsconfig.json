@@ -27,7 +27,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "skipLibCheck": true,
-    "incremental": true,
     "outDir": "dist",
     "rootDir": "src",
     "noEmit": true,

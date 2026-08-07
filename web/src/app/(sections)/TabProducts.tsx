@@ -36,13 +36,13 @@ export default function TabProducts({
 }) {
   return (
     <section
-      className="py-5 lg:py-10 bg-section relative overflow-hidden"
+      className="py-4 bg-section relative overflow-hidden"
       id="Products For You"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <Tabs defaultValue="silver" className="w-full">
-          <div className="flex flex-col items-center mb-8">
-            <div className="flex items-center gap-2 mb-4">
+          <div className="flex flex-col items-center mb-6">
+            <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-5 h-5" style={{ color: 'var(--brand-heading)' }} />
               <span className="text-sm font-medium text-muted-foreground tracking-wider uppercase">
                 Discover Our Collections

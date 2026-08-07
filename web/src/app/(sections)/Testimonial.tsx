@@ -29,12 +29,12 @@ const Testimonial = ({ data }: { data: any[] | null | undefined }) => {
 
   return (
     <section
-      className="relative mx-auto w-full  overflow-hidden py-10 lg:py-16 bg-section-subtle"
+      className="relative mx-auto w-full overflow-hidden py-4 bg-section-subtle"
       itemScope
       itemType="https://schema.org/Review"
     >
       <div className="section-container relative z-10 max-w-5xl">
-        <div className="text-center mb-12 lg:mb-16 ">
+        <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 mb-4">
             <Quote className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
             <span className="text-sm font-medium tracking-wider uppercase" style={{ color: "var(--muted-foreground)" }}>

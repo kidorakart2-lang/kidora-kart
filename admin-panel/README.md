@@ -68,6 +68,18 @@ admin-panel/
 | `pnpm typecheck` | TypeScript check |
 | `pnpm lint` | Next.js lint |
 
+## Deployment (Vercel)
+
+```bash
+pnpm install --frozen-lockfile
+pnpm build
+```
+
+> **Important for hosted platforms (Vercel):** this project is **pnpm-only**.
+> - Set the framework preset to **Next.js** with package manager **pnpm**.
+> - `pnpm-lock.yaml` **must stay in sync** with `package.json` — Vercel's frozen-lockfile install fails with `ERR_PNPM_OUTDATED_LOCKFILE` when they drift. Regenerate with `pnpm install` after any dependency change and commit both.
+> - Ensure the `NEXT_PUBLIC_*` env vars above are configured in the platform dashboard (they are not committed).
+
 ## Auth Flow
 
 1. Login POST to `/api/admin/user/login` (proxied through Next.js rewrites to backend)

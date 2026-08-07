@@ -111,7 +111,7 @@ const SkeletonCard = ({ index }: { index: number }) => {
 const WhyChooseUs = () => {
   return (
     <section
-      className="relative w-full overflow-hidden bg-section py-12 lg:py-20"
+      className="relative w-full overflow-hidden bg-section py-4"
       aria-labelledby="why-choose-us"
     >
       {/* Decorative glows */}
@@ -125,8 +125,8 @@ const WhyChooseUs = () => {
       />
 
       <div className="section-container relative z-10">
-        <div className="mb-12 text-center lg:mb-16">
-          <div className="mb-4 inline-flex items-center gap-2">
+        <div className="mb-6 text-center">
+          <div className="mb-3 inline-flex items-center gap-2">
             <Sparkles
               className="h-5 w-5 animate-pulse"
               style={{ color: "var(--brand-primary)" }}

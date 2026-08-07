@@ -24,23 +24,21 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
       .filter(Boolean);
 
   return (
-    <section className="w-full py-8 md:py-10 bg-section">
-      <div className="text-center mb-10 mt-4">
-        <div className="inline-flex items-center justify-center gap-3 mb-2">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl text-gradient-brand relative inline-block font-serif tracking-wide">
-            {heading || "Discover Our Collection"}
-            <span
-              className="absolute bottom-[-12px] left-1/2 transform -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent"
-              style={{ backgroundImage: `linear-gradient(to right, transparent, var(--brand-primary), transparent)` }}
-            />
-            <span
-              className="absolute bottom-[-16px] left-1/2 transform -translate-x-1/2 w-2 h-2 rotate-45 shadow-lg"
-              style={{ backgroundColor: "var(--brand-primary)" }}
-            />
-          </h2>
-        </div>
+    <section className="w-full py-4 bg-section">
+      <div className="text-center mb-6 mt-2">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl text-gradient-brand relative inline-block font-serif tracking-wide">
+          {heading || "Discover Our Collection"}
+          <span
+            className="absolute bottom-[-10px] left-1/2 transform -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent"
+            style={{ backgroundImage: `linear-gradient(to right, transparent, var(--brand-primary), transparent)` }}
+          />
+          <span
+            className="absolute bottom-[-14px] left-1/2 transform -translate-x-1/2 w-2 h-2 rotate-45 shadow-lg"
+            style={{ backgroundColor: "var(--brand-primary)" }}
+          />
+        </h2>
 
-        <p className="text-sm sm:text-base text-muted-foreground font-light tracking-widest italic mt-4">
+        <p className="text-sm text-muted-foreground font-light tracking-widest italic mt-3">
           Timeless Elegance, Crafted for You
         </p>
       </div>
@@ -59,18 +57,18 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
             }}
             speed={1000}
             breakpoints={{
-              320: { slidesPerView: 2, spaceBetween: 10 },
-              480: { slidesPerView: 3.4, spaceBetween: 15 },
+              320: { slidesPerView: 2.2, spaceBetween: 8 },
+              480: { slidesPerView: 3.4, spaceBetween: 12 },
               768: { slidesPerView: 5, spaceBetween: 15 },
               1024: { slidesPerView: 7, spaceBetween: 20 },
             }}
-            className="category-swiper !pb-3"
+            className="category-swiper !pb-2"
           >
             {allSubCategories.map((subCat) => (
               <SwiperSlide key={subCat._id}>
                 <Link href={`/category/${subCat.parentSlug}/${subCat.slug}`}>
                   <article
-                    className="group relative w-full aspect-square flex flex-col items-center cursor-pointer pb-3"
+                    className="group relative w-full aspect-square flex flex-col items-center cursor-pointer pb-2 max-w-[110px] mx-auto sm:max-w-[140px] md:max-w-none"
                     itemScope
                     itemType="https://schema.org/Thing"
                   >
@@ -85,14 +83,14 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
                         src={subCat.image ?? ""}
                         alt={subCat.name}
                         fill
-                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        sizes="(max-width: 768px) 30vw, (max-width: 1024px) 20vw, 14vw"
                         className="object-cover rounded-full"
                         itemProp="image"
                       />
 
                       <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-full transition-colors duration-300 group-hover:bg-black/20">
                         <p
-                          className="text-base sm:text-lg md:text-xl font-semibold text-white text-center px-2 drop-shadow-lg"
+                          className="text-xs sm:text-sm md:text-base font-semibold text-white text-center px-2 drop-shadow-lg"
                           itemProp="name"
                         >
                           {subCat.name}

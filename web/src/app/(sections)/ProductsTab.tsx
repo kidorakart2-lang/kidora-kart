@@ -91,9 +91,9 @@ export default async function ProductsTab({
   }));
 
   return (
-    <section className="py-10 lg:py-14 relative overflow-hidden bg-section">
+    <section className="py-4 relative overflow-hidden bg-section">
       <div className="section-container relative z-10">
-        <div className="text-center mb-8 lg:mb-10">
+        <div className="text-center mb-6">
           <h2 className="section-heading relative inline-block mb-4">
             {heading || "Our Products Collection"}
             <svg
@@ -111,14 +111,14 @@ export default async function ProductsTab({
               />
             </svg>
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base lg:text-lg fw-body leading-relaxed mt-6">
+          <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base lg:text-lg fw-body leading-relaxed mt-4">
             Discover our exquisite collection of handcrafted jewellery,
             designed to bring timeless elegance to every occasion.
           </p>
         </div>
 
         <Tabs defaultValue={tabItems[0].value} className="w-full">
-          <div className="flex justify-center mb-4 lg:mb-6">
+          <div className="flex justify-center mb-4">
             <TabsList className="inline-flex bg-card rounded-full p-1.5 shadow-xl border border-border gap-1">
               {tabItems.map((tab) => {
                 const Icon = tab.icon;

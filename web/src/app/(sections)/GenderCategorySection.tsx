@@ -72,19 +72,19 @@ export default function GenderCategorySection({
     if (displayItems.length === 0) return null;
 
     return (
-      <div className="w-full max-w-[100vw] mx-auto py-10 px-4 overflow-hidden">
-        <div className="text-center mb-12 relative">
+      <div className="w-full max-w-[100vw] mx-auto py-4 px-4 overflow-hidden">
+        <div className="text-center mb-6 relative">
           <div className="inline-block relative">
-            <h2 className="text-4xl md:text-5xl font-serif font-light mb-3 tracking-wide text-gradient-brand">
+            <h2 className="text-2xl md:text-3xl font-serif font-light mb-2 tracking-wide text-gradient-brand">
               {heading || "Explore Our Collection"}
             </h2>
             <span
-              className="absolute bottom-[-10px] left-1/2 transform -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent"
+              className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent"
               style={{ backgroundImage: `linear-gradient(to right, transparent, var(--brand-primary), transparent)` }}
             />
           </div>
 
-          <p className="text-muted-foreground mt-8 font-light tracking-widest text-sm md:text-base">
+          <p className="text-muted-foreground mt-4 font-light tracking-widest text-sm md:text-base">
             Explore our collection
           </p>
         </div>
