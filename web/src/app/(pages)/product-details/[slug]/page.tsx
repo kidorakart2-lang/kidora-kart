@@ -19,7 +19,7 @@ interface ProductDetailsPageProps {
 // ── Static params — fetches real products at build time, falls back to placeholder ──
 export async function generateStaticParams() {
   try {
-    const res = await serverFetch("/api/website/product/all", { timeout: 5000 });
+    const res = await serverFetch("/api/website/product/all?minimal=true", { timeout: 10000 });
     if (!res.ok) return [{ slug: "placeholder" }];
     const data = await res.json();
     const products = data._data as { slug: string }[];

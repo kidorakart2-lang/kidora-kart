@@ -34,7 +34,7 @@ export default async function sitemap() {
 
   let products: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
   try {
-    const productsRes = await serverFetch("/api/website/product/all", { timeout: 5000 });
+    const productsRes = await serverFetch("/api/website/product/all?minimal=true", { timeout: 10000 });
     if (productsRes.ok) {
       const data = await productsRes.json();
 
@@ -70,7 +70,7 @@ export default async function sitemap() {
 
   let categoryUrls: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
   try {
-    const response = await serverFetch("/api/website/nav", { timeout: 5000 });
+    const response = await serverFetch("/api/website/nav?minimal=true", { timeout: 10000 });
 
     if (!response.ok) {
       throw new Error("Failed to fetch navigation data");

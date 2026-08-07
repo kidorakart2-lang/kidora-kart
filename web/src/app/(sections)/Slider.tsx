@@ -5,7 +5,7 @@ import "swiper/css";
 import "swiper/css/effect-coverflow";
 import ProductCard from "@/components/comman/ProductCard";
 import Link from "next/link";
-import { Sparkles, ArrowRight } from "lucide-react";import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";import { Button } from "@/components/ui/button";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
 import type { CategoryData } from "@/types";
@@ -23,11 +23,9 @@ const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: st
       <div className="section-container">
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
             <h2 className="text-2xl md:text-3xl font-serif tracking-wide section-heading">
               {heading}
             </h2>
-            <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
           </div>
           <div className="flex items-center justify-center gap-2">
             <div

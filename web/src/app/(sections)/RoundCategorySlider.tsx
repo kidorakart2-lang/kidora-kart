@@ -58,9 +58,9 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
             speed={1000}
             breakpoints={{
               320: { slidesPerView: 2.2, spaceBetween: 8 },
-              480: { slidesPerView: 3.4, spaceBetween: 12 },
-              768: { slidesPerView: 5, spaceBetween: 15 },
-              1024: { slidesPerView: 7, spaceBetween: 20 },
+              480: { slidesPerView: 3, spaceBetween: 12 },
+              768: { slidesPerView: 4, spaceBetween: 15 },
+              1024: { slidesPerView: 6, spaceBetween: 20 },
             }}
             className="category-swiper !pb-2"
           >
@@ -68,7 +68,7 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
               <SwiperSlide key={subCat._id}>
                 <Link href={`/category/${subCat.parentSlug}/${subCat.slug}`}>
                   <article
-                    className="group relative w-full aspect-square flex flex-col items-center cursor-pointer pb-2 max-w-[110px] mx-auto sm:max-w-[140px] md:max-w-none"
+                    className="group relative w-full aspect-square flex flex-col items-center cursor-pointer pb-2 max-w-[140px] mx-auto sm:max-w-[180px] md:max-w-[200px] lg:max-w-[220px]"
                     itemScope
                     itemType="https://schema.org/Thing"
                   >
@@ -83,14 +83,14 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
                         src={subCat.image ?? ""}
                         alt={subCat.name}
                         fill
-                        sizes="(max-width: 768px) 30vw, (max-width: 1024px) 20vw, 14vw"
+                        sizes="(max-width: 768px) 40vw, (max-width: 1024px) 22vw, 16vw"
                         className="object-cover rounded-full"
                         itemProp="image"
                       />
 
                       <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-full transition-colors duration-300 group-hover:bg-black/20">
                         <p
-                          className="text-xs sm:text-sm md:text-base font-semibold text-white text-center px-2 drop-shadow-lg"
+                          className="text-sm sm:text-base md:text-lg font-semibold text-white text-center px-3 drop-shadow-lg"
                           itemProp="name"
                         >
                           {subCat.name}

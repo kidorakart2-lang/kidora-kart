@@ -2,16 +2,12 @@
 import { setPriceRange } from "@/redux/features/filters";
 import { Gift, Heart, IndianRupee, Star, Sparkles, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import { useDispatch, useSelector } from "react-redux";
-import type { RootState } from "@/redux/store/store";
-import type { CategoryData } from "@/types";
-import { getCategoryHref } from "@/lib/category-nav";
+import { useDispatch } from "react-redux";
+
+const SHOP_BY_PRICE_HREF = "/category/new-arrivals";
 
 const ShopByPrice = ({ heading }: { heading?: string }) => {
   const dispatch = useDispatch();
-  const navigation = useSelector((state: RootState) => state.ui.navigation);
-  const categories = (navigation as { _data?: CategoryData[] })?._data ?? [];
-  const categoryHref = getCategoryHref(categories);
 
   const priceCategories = [
     {
@@ -90,7 +86,7 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
                       {item.label}
                     </p>
 
-                    <Link href={categoryHref} aria-label={`Shop products ${item.label}`}>
+                    <Link href={SHOP_BY_PRICE_HREF} aria-label={`Shop products ${item.label}`}>
                       <button
                         type="button"
                         onClick={() =>

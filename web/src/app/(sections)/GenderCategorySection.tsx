@@ -89,7 +89,7 @@ export default function GenderCategorySection({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 h-[75vh] max-h-[600px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 h-[48vh] max-h-[400px]">
           {displayItems.map((item, index) => (
             <Link
               key={item._id}
@@ -113,16 +113,16 @@ export default function GenderCategorySection({
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/50" />
 
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-sans fw-heading text-background mb-4 tracking-wider">
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+                  <h3 className="text-2xl md:text-3xl lg:text-4xl font-sans fw-heading text-background mb-2 tracking-wider">
                     {item.name}
                   </h3>
 
                   <div className="relative overflow-hidden">
                     <Button
                       variant="gradient"
-                      size="lg"
-                      className="rounded-full text-sm tracking-widest shadow-lg"
+                      size="sm"
+                      className="rounded-full text-xs tracking-widest shadow-lg"
                     >
                       SHOP NOW
                     </Button>
@@ -162,19 +162,19 @@ export default function GenderCategorySection({
   if (!result[0]?.subCategories || result[0]?.subCategories?.length === 0) return null;
 
   return (
-    <div className="w-full max-w-[100vw] mx-auto py-10 px-4 overflow-hidden">
-      <div className="text-center mb-12 relative">
+    <div className="w-full max-w-[100vw] mx-auto py-6 px-4 overflow-hidden">
+      <div className="text-center mb-6 relative">
         <div className="inline-block relative">
-          <h2 className="text-4xl md:text-5xl font-serif font-light mb-3 tracking-wide text-gradient-brand">
+          <h2 className="text-2xl md:text-3xl font-serif font-light mb-2 tracking-wide text-gradient-brand">
             {heading || result[0].name}
           </h2>
           <span
-            className="absolute bottom-[-10px] left-1/2 transform -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent"
+            className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent"
             style={{ backgroundImage: `linear-gradient(to right, transparent, var(--brand-primary), transparent)` }}
           />
         </div>
 
-        <p className="text-muted-foreground mt-8 font-light tracking-widest text-sm md:text-base">
+        <p className="text-muted-foreground mt-4 font-light tracking-widest text-sm md:text-base">
           Explore our collection
         </p>
       </div>
@@ -182,7 +182,7 @@ export default function GenderCategorySection({
       {result.map((category) => (
         <div
           key={category._id}
-          className="grid grid-cols-1 md:grid-cols-2 gap-2 h-[75vh] max-h-[600px]"
+          className="grid grid-cols-1 md:grid-cols-2 gap-2 h-[48vh] max-h-[400px]"
         >
           {category.subCategories?.map((subCategory, index) => (
             <Link
@@ -203,16 +203,16 @@ export default function GenderCategorySection({
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/50" />
 
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-sans fw-heading text-background mb-4 tracking-wider">
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+                  <h3 className="text-2xl md:text-3xl lg:text-4xl font-sans fw-heading text-background mb-2 tracking-wider">
                     {subCategory.name}
                   </h3>
 
                   <div className="relative overflow-hidden">
                     <Button
                       variant="gradient"
-                      size="lg"
-                      className="rounded-full text-sm tracking-widest shadow-lg"
+                      size="sm"
+                      className="rounded-full text-xs tracking-widest shadow-lg"
                     >
                       SHOP NOW
                     </Button>

@@ -35,7 +35,7 @@ export const metadata = {
 // ── Static params — fetches real categories at build time, falls back to placeholder ──
 export async function generateStaticParams() {
   try {
-    const res = await serverFetch("/api/website/nav", { timeout: 5000 });
+    const res = await serverFetch("/api/website/nav?minimal=true", { timeout: 10000 });
     if (!res.ok) return [{ slug: ["placeholder"] }];
     const data = await res.json();
     const categories = data._data as {

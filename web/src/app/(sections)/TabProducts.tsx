@@ -2,7 +2,7 @@ import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductCard from "@/components/comman/ProductCard";
 import Link from "next/link";
-import { Gem, Crown, Gift as GiftIcon, ArrowRight, Sparkles } from "lucide-react";
+import { Gem, Crown, Gift as GiftIcon, ArrowRight } from "lucide-react";
 import type { ProductData } from "@/types";
 
 const TAB_TIERS = {
@@ -43,11 +43,9 @@ export default function TabProducts({
         <Tabs defaultValue="silver" className="w-full">
           <div className="flex flex-col items-center mb-6">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-5 h-5" style={{ color: 'var(--brand-heading)' }} />
               <span className="text-sm font-medium text-muted-foreground tracking-wider uppercase">
                 Discover Our Collections
               </span>
-              <Sparkles className="w-5 h-5" style={{ color: 'var(--brand-heading)' }} />
             </div>
 
             <TabsList className="inline-flex bg-card rounded-full p-1.5 shadow-lg gap-1 border border-border">

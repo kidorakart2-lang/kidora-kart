@@ -127,17 +127,9 @@ const WhyChooseUs = () => {
       <div className="section-container relative z-10">
         <div className="mb-6 text-center">
           <div className="mb-3 inline-flex items-center gap-2">
-            <Sparkles
-              className="h-5 w-5 animate-pulse"
-              style={{ color: "var(--brand-primary)" }}
-            />
             <h2 id="why-choose-us" className="section-heading">
               Why Choose Us
             </h2>
-            <Sparkles
-              className="h-5 w-5 animate-pulse"
-              style={{ color: "var(--brand-primary)" }}
-            />
           </div>
 
           <div className="mb-4 flex items-center justify-center gap-2">

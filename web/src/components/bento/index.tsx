@@ -1,6 +1,5 @@
 "use client";
 
-import { Grid3X3, Sparkles } from "lucide-react";
 import { BentoCell } from "./BentoCell";
 import FeaturedLargeLayout from "./FeaturedLargeLayout";
 import FeaturedWideLayout from "./FeaturedWideLayout";
@@ -44,9 +43,7 @@ export default function BentoGridSection({
         {heading && (
           <div className="text-center mb-10">
             <div className="flex items-center justify-center gap-3 mb-3">
-              <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
               <h2 className="section-heading">{heading}</h2>
-              <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
             </div>
             <div className="flex items-center justify-center gap-2">
               <div
