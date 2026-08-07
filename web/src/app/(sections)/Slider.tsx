@@ -20,9 +20,9 @@ const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: st
   if (!data || !Array.isArray(data) || data.length === 0) return null;
 
   return (
-    <section className="relative py-10 overflow-hidden bg-section" id={heading}>
+    <section className="relative py-8 overflow-hidden bg-section" id={heading}>
       <div className="section-container">
-        <div className="text-center mb-14">
+        <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Sparkles className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
             <h2 className="text-4xl md:text-5xl font-serif tracking-wide section-heading">
@@ -46,7 +46,7 @@ const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: st
           </div>
         </div>
 
-        <div className="py-8 relative">
+        <div className="py-4 relative">
           <Swiper
             modules={[Autoplay, EffectCoverflow]}
             spaceBetween={20}
@@ -77,7 +77,7 @@ const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: st
           </Swiper>
         </div>
 
-        <div className="text-center mt-12">
+        <div className="text-center mt-8">
           <Link href={viewMoreHref}>
             <Button
               variant="gradient"

@@ -91,9 +91,9 @@ export default async function ProductsTab({
   }));
 
   return (
-    <section className="py-16 lg:py-20 relative overflow-hidden bg-section">
+    <section className="py-10 lg:py-14 relative overflow-hidden bg-section">
       <div className="section-container relative z-10">
-        <div className="text-center mb-12 lg:mb-16">
+        <div className="text-center mb-8 lg:mb-10">
           <h2 className="section-heading relative inline-block mb-4">
             {heading || "Our Products Collection"}
             <svg
@@ -118,7 +118,7 @@ export default async function ProductsTab({
         </div>
 
         <Tabs defaultValue={tabItems[0].value} className="w-full">
-          <div className="flex justify-center mb-6 lg:mb-10">
+          <div className="flex justify-center mb-4 lg:mb-6">
             <TabsList className="inline-flex bg-card rounded-full p-1.5 shadow-xl border border-border gap-1">
               {tabItems.map((tab) => {
                 const Icon = tab.icon;
@@ -137,7 +137,7 @@ export default async function ProductsTab({
             </TabsList>
           </div>
 
-          <div className="mt-8">
+          <div className="mt-4">
             {tabItems.map((tab) => (
               <TabsContent
                 key={tab.value}
@@ -154,7 +154,7 @@ export default async function ProductsTab({
                       ))}
                     </div>
 
-                    <div className="text-center mt-12">
+                    <div className="text-center mt-8">
                       <HoverButton href={getCategoryHref(categories, tab.value)} label={tab.label} color={tab.color} />
                     </div>
                   </>

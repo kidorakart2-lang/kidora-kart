@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   X,
@@ -12,17 +13,44 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { removeFromWishlist } from "@/redux/features/wishlist";
+import type { WishlistSliceItem } from "@/redux/features/wishlist";
+import { useProductsByIds } from "@/lib/useProduct";
 import { toast } from "sonner";
-import type { WishlistProduct } from "@/types";
 import type { RootState } from "@/redux/store/store";
 
 export default function GuestWishlist() {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const items = useSelector((state: RootState) => state.wishlist.wishlistItems as WishlistProduct[]);
+  // Guest wishlist stores lean items (id + slug only) in Redux; the product
+  // details (name, image, price) are fetched by batch so cards render fully.
+  const items = useSelector(
+    (state: RootState) => state.wishlist.wishlistItems as WishlistSliceItem[]
+  );
 
-  const handleRemoveFromWishlist = (item: WishlistProduct) => {
+  const ids = useMemo(
+    () => [...new Set(items.map((item) => item._id).filter(Boolean))],
+    [items]
+  );
+  const { productMap, isLoading } = useProductsByIds(ids);
+
+  const displayItems = useMemo(
+    () =>
+      items.map((item) => {
+        const product = item._id ? productMap.get(item._id) : undefined;
+        return {
+          _id: item._id,
+          slug: item.slug ?? product?.slug ?? "",
+          name: product?.name ?? "Loading...",
+          image: product?.image ?? "/placeholder.svg",
+          price: product?.price ?? 0,
+          discount_price: product?.discount_price,
+        };
+      }),
+    [items, productMap]
+  );
+
+  const handleRemoveFromWishlist = (item: WishlistSliceItem) => {
     dispatch(removeFromWishlist({ _id: item._id, isGuest: true }));
     toast.success("Removed from wishlist");
   };
@@ -94,9 +122,25 @@ export default function GuestWishlist() {
         </motion.div>
 
         {/* Wishlist Grid */}
+        {isLoading && ids.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
+            {Array.from({ length: Math.min(ids.length, 8) }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-background rounded-xl overflow-hidden border border-border shadow-sm"
+              >
+                <div className="aspect-[1/1] bg-muted/60 animate-pulse" />
+                <div className="p-3 space-y-2">
+                  <div className="h-4 bg-muted/60 animate-pulse rounded" />
+                  <div className="h-4 w-1/2 bg-muted/60 animate-pulse rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
           <AnimatePresence mode="popLayout">
-            {items.map((item, index) => (
+            {displayItems.map((item, index) => (
               <motion.article
                 key={item._id}
                 layout
@@ -179,6 +223,7 @@ export default function GuestWishlist() {
             ))}
           </AnimatePresence>
         </div>
+        )}
 
         {/* Continue Shopping Button */}
         <motion.div

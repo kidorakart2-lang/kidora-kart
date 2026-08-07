@@ -96,10 +96,10 @@ export const siteConfig: SiteConfig = {
   social: {
     instagram:
       "https://www.instagram.com/jewellery__wala_?igsh=MTBqdHI5cjYyMjZsMA==",
-    facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL || "https://facebook.com/jewellerywalla",
-    twitter: process.env.NEXT_PUBLIC_TWITTER_URL || "https://twitter.com/jewellerywalla",
-    pinterest: process.env.NEXT_PUBLIC_PINTEREST_URL || "https://pinterest.com/jewellerywalla",
-    youtube: process.env.NEXT_PUBLIC_YOUTUBE_URL || "https://youtube.com/@jewellerywalla",
+    facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL || "",
+    twitter: process.env.NEXT_PUBLIC_TWITTER_URL || "",
+    pinterest: process.env.NEXT_PUBLIC_PINTEREST_URL || "",
+    youtube: process.env.NEXT_PUBLIC_YOUTUBE_URL || "",
   },
 
   business: {

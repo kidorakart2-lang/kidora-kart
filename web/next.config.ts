@@ -146,6 +146,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  allowedDevOrigins: ['hippological-holly-unwept.ngrok-free.dev']
 };
 
 export default nextConfig;

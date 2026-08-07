@@ -1,5 +1,4 @@
 "use client";
-import React, { useEffect, useState } from "react";
 import { Truck } from "lucide-react";
 
 import Image from "next/image";
@@ -24,27 +23,6 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
   shippingEstimate?: ShippingEstimate | null;
 }) {
   if (type === "direct" || type === "cart") {
-    const [personalizedName, setPersonalizedName] = useState("");
-
-    // Load personalized name from sessionStorage on component mount
-    useEffect(() => {
-      const storedName = sessionStorage.getItem("personalizedName");
-      if (storedName) {
-        setPersonalizedName(storedName);
-      }
-    }, []);
-
-    // Update sessionStorage when personalizedName changes
-    useEffect(() => {
-      if (personalizedName) {
-        sessionStorage.setItem("personalizedName", personalizedName);
-      }
-    }, [personalizedName]);
-
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setPersonalizedName(e.target.value);
-    };
-
     const subtotal = cartItems.reduce(
       (sum, item) =>
         sum +
@@ -81,8 +59,8 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
         {/* Order Items */}
         <div className="space-y-4 mb-6">
           {cartItems.map((item, index) => (
-            <div key={item._id || index} className="flex items-start space-x-4">
-              <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+            <div key={item._id || index} className="flex items-start space-x-3 sm:space-x-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                 <Link
                   className="w-full h-full"
                   href={`/product-details/${item?.product?.slug}`}
@@ -97,13 +75,15 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
                 </Link>
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm fw-heading text-foreground truncate">
+                <h3 className="text-sm fw-heading text-foreground line-clamp-2">
                   {item?.product?.name}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Qty: {item?.quantity}{" "}
+                  Qty: {item?.quantity}
+                </p>
+                <div className="flex flex-wrap items-center gap-1.5 mt-1">
                   {type == "cart" && item?.color && (
-                    <span className="text-xs text-brand-500 fw-body inline-flex items-center gap-1">
+                    <span className="text-xs text-brand-500 fw-body inline-flex items-center gap-1 whitespace-nowrap">
                       <span
                         style={{ backgroundColor: item.color.code }}
                         className="w-3 h-3 rounded-full border border-border inline-block"
@@ -112,7 +92,7 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
                     </span>
                   )}
                   {type == "direct" && item?.colorCode && (
-                    <span className="text-xs text-brand-500 fw-body inline-flex items-center gap-1">
+                    <span className="text-xs text-brand-500 fw-body inline-flex items-center gap-1 whitespace-nowrap">
                       <span
                         style={{ backgroundColor: item.colorCode }}
                         className="w-3 h-3 rounded-full border border-border inline-block"
@@ -121,16 +101,16 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
                     </span>
                   )}
                   {(item.sizeName || item.size?.name) && (
-                    <span className="text-xs text-brand-600 fw-cta bg-brand-50 border border-brand-200 rounded-full px-2 py-0.5 ml-1">
+                    <span className="text-xs text-brand-600 fw-cta bg-brand-50 border border-brand-200 rounded-full px-2 py-0.5 whitespace-nowrap">
                       Size: {item.sizeName || item.size?.name}
                     </span>
                   )}
                   {item.variantName && (
-                    <span className="text-xs text-brand-600 fw-cta bg-brand-50 border border-brand-200 rounded-full px-2 py-0.5 ml-1">
+                    <span className="text-xs text-brand-600 fw-cta bg-brand-50 border border-brand-200 rounded-full px-2 py-0.5 whitespace-nowrap">
                       {item.variantName}
                     </span>
                   )}
-                </p>
+                </div>
                 <p className="text-sm fw-body text-foreground mt-1">
                   {item.variantPrice != null ? (
                     <>₹{item.variantPrice.toLocaleString()}</>
@@ -145,19 +125,9 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
                 </p>
               </div>
               {item.isPersonalized && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-muted-foreground">
-                    Personalized Name
-                  </span>
-                  <input
-                    type="text"
-                    value={personalizedName}
-                    onChange={handleNameChange}
-                    className="border border-input rounded px-2 py-1 text-sm bg-background text-foreground"
-                    placeholder="Enter name"
-                    aria-label="Personalized name for item"
-                  />
-                </div>
+                <span className="text-xs text-brand-600 fw-cta bg-brand-50 border border-brand-200 rounded-full px-2 py-0.5">
+                  Personalized
+                </span>
               )}
             </div>
           ))}

@@ -48,13 +48,13 @@ export default function ShippingAddressForm({
             variant="outline"
             size="sm"
             onClick={onDetectLocation}
-            disabled={detectingLocation}
-            className="shrink-0 border-brand-300 hover:bg-brand-50 hover:text-brand-700 transition-all"
+            disabled={detectingLocation || locationFilled}
+            className="shrink-0 border-brand-300 hover:bg-brand-50 hover:text-brand-700 transition-all h-auto min-h-8"
           >
             {detectingLocation ? (
               <><Loader2 size={14} className="animate-spin mr-1" />Detecting...</>
             ) : (
-              <><MapPin size={14} className="mr-1" />Detect Location</>
+              <><MapPin size={14} className="mr-1 shrink-0" /><span className="whitespace-normal leading-tight w-16">Detect Location</span></>
             )}
           </Button>
         )}

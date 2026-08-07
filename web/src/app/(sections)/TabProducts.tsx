@@ -36,13 +36,13 @@ export default function TabProducts({
 }) {
   return (
     <section
-      className="py-5 lg:py-12 bg-section relative overflow-hidden"
+      className="py-5 lg:py-10 bg-section relative overflow-hidden"
       id="Products For You"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <Tabs defaultValue="silver" className="w-full">
-          <div className="flex flex-col items-center mb-12">
-            <div className="flex items-center gap-2 mb-6">
+          <div className="flex flex-col items-center mb-8">
+            <div className="flex items-center gap-2 mb-4">
               <Sparkles className="w-5 h-5" style={{ color: 'var(--brand-heading)' }} />
               <span className="text-sm font-medium text-muted-foreground tracking-wider uppercase">
                 Discover Our Collections
@@ -71,7 +71,7 @@ export default function TabProducts({
             </TabsList>
           </div>
 
-          <div className="text-center mb-10 min-h-[60px] flex items-center justify-center">
+          <div className="text-center mb-6 min-h-[60px] flex items-center justify-center">
             {(Object.keys(TAB_TIERS) as Array<keyof typeof TAB_TIERS>).map(
               (key) => {
                 const tier = TAB_TIERS[key];
@@ -113,7 +113,7 @@ export default function TabProducts({
             ),
           )}
 
-          <div className="flex justify-center mt-12 lg:mt-16">
+          <div className="flex justify-center mt-8 lg:mt-10">
             <Link href="/category/new-arrivals">
               <button
                 type="button"

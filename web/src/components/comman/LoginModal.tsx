@@ -25,12 +25,17 @@ export default function LoginModal() {
 
   const handleNavigation = (path: string) => {
     dispatch(closeLoginModal());
-    router.push(path + "?returnTo=" + window.location.pathname);
+    // Preserve the full URL (pathname + query) so redirects back to pages
+    // like /checkout?type=direct keep their query params (e.g. purchase type).
+    const currentUrl = window.location.pathname + window.location.search;
+    router.push(`${path}?returnTo=${encodeURIComponent(currentUrl)}`);
   };
 
   const handleGoogleLogin = () => {
     dispatch(closeLoginModal());
-    router.push("/login?returnTo=" + window.location.pathname);
+    const currentUrl = window.location.pathname + window.location.search;
+    localStorage.setItem("googleLoginReturnTo", currentUrl);
+    router.push(`/login?returnTo=${encodeURIComponent(currentUrl)}`);
   };
 
   return (

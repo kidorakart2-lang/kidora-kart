@@ -171,7 +171,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
         totalItems: items.reduce((sum, i) => sum + i.quantity, 0),
       },
     };
-  }, [cart, fetchedCart, reduxCartItems]);
+  }, [cart, fetchedCart, reduxCartItems, guestProductsLoading, productMap]);
 
   const hasServerData = !!(cart?._data?.items?.length || fetchedCart?._data?.items?.length);
   const isGuestView = !hasServerData && reduxCartItems.length > 0;

@@ -79,7 +79,13 @@ export default function Checkout() {
 
   // Geolocation auto-fill state
   const [detectingLocation, setDetectingLocation] = useState(false);
-  const [locationFilled, setLocationFilled] = useState(false);
+  // Restored from sessionStorage so a previously detected address keeps the
+  // button disabled (and the banner visible) across page refreshes.
+  const [locationFilled, setLocationFilled] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("checkoutLocationFilled") === "1"
+  );
   const autoDetectAttemptedRef = useRef(false);
   const geolocationSupported = isGeolocationSupported();
 
@@ -187,10 +193,10 @@ export default function Checkout() {
     0,
   );
 
-  // Load saved shipping data from sessionStorage (for guests only)
+  // Load saved shipping data from sessionStorage so a detected (or manually
+  // entered) address survives a page refresh — for guests and logged-in users.
   const getInitialOrderData = (): CheckoutFormData => {
-    // For guests, try to load from sessionStorage
-    if (typeof window !== "undefined" && !getAuthToken()) {
+    if (typeof window !== "undefined") {
       const savedData = sessionStorage.getItem("checkoutOrderData");
       if (savedData) {
         try {
@@ -226,12 +232,16 @@ export default function Checkout() {
 
   const [orderData, setOrderData] = useState(getInitialOrderData);
 
-  // Save orderData to sessionStorage whenever it changes (for guests only)
+  // Save orderData and the location-detected flag to sessionStorage whenever
+  // they change, so a refresh restores the exact form state.
   useEffect(() => {
-    if (typeof window !== "undefined" && !getAuthToken()) {
-      sessionStorage.setItem("checkoutOrderData", JSON.stringify(orderData));
-    }
-  }, [orderData]);
+    if (typeof window === "undefined") return;
+    sessionStorage.setItem("checkoutOrderData", JSON.stringify(orderData));
+    sessionStorage.setItem(
+      "checkoutLocationFilled",
+      locationFilled ? "1" : "0"
+    );
+  }, [orderData, locationFilled]);
 
   // Merge a detected address into the form — only empty fields are filled,
   // so anything the user already typed is never clobbered.
@@ -323,12 +333,13 @@ export default function Checkout() {
     setShowAddressPrompt(false);
   };
 
+  // Redux is rehydrated (PersistGate) before this component renders, so this
+  // accurately reflects whether the user was already signed in on page load.
+  const loggedInAtMountRef = useRef(isLoggedIn);
+
   // Update from user data when user logs in
   useEffect(() => {
     if (user && isLoggedIn) {
-      // Clear guest session data when user logs in
-      sessionStorage.removeItem("checkoutOrderData");
-
       const hasSavedAddress =
         user.address &&
         (user.address.street || user.address.city || user.address.pincode);
@@ -337,7 +348,30 @@ export default function Checkout() {
       const formHasData =
         currentAddress.street || currentAddress.city || currentAddress.pincode;
 
-      if (hasSavedAddress && formHasData) {
+      // The prompt only makes sense on a guest -> login transition. When the
+      // user was already logged in on page load, the sessionStorage-restored
+      // address (possibly auto-detected) is authoritative — just fill any
+      // gaps from the profile instead of asking to replace it.
+      if (loggedInAtMountRef.current) {
+        setOrderData((prev) => ({
+          ...prev,
+          shippingAddress: {
+            fullName: prev.shippingAddress.fullName || user.name || "",
+            phone: prev.shippingAddress.phone || user.mobile || "",
+            email: user.email || "",
+            street: prev.shippingAddress.street || user.address?.street || "",
+            area: prev.shippingAddress.area || user.address?.area || "",
+            city: prev.shippingAddress.city || user.address?.city || "",
+            state: prev.shippingAddress.state || user.address?.state || "",
+            pincode:
+              prev.shippingAddress.pincode || user.address?.pincode || "",
+            instructions:
+              prev.shippingAddress.instructions ||
+              user.address?.instructions ||
+              "",
+          },
+        }));
+      } else if (hasSavedAddress && formHasData) {
         setShowAddressPrompt(true);
         // Ensure email is set even if we don't overwrite address
         setOrderData((prev) => ({

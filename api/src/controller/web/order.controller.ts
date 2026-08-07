@@ -256,14 +256,9 @@ export const createOrder = async (
         : {}),
     });
 
-    try {
+    
       await order.save();
-    } catch (err) {
-      // There is no unique index on (userId, idempotencyKey), so 11000 errors
-      // for idempotency key collisions cannot occur.  Any remaining 11000 would
-      // come from the orderId field — a UUID collision that is virtually impossible.
-      throw err;
-    }
+   
 
     res.status(201).json({
       success: true,

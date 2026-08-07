@@ -8,6 +8,7 @@ import {
   Clock,
   Ruler,
   Sparkles,
+  MapPin,
 } from "lucide-react";
 import { siteConfig } from "@/lib/utils";
 
@@ -185,6 +186,24 @@ const OurPolicy = () => {
               , ensuring authenticity and quality in every piece. All our
               jewellery is hallmarked and certified for your peace of mind.
             </p>
+            <div>
+              <div className="flex items-start gap-2 mb-2">
+                <MapPin className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <h3 className="text-lg font-semibold text-foreground">
+                  Location Access at Checkout
+                </h3>
+              </div>
+              <p className="text-muted-foreground leading-relaxed pl-7">
+                On the checkout page, we may ask for your location permission
+                to automatically detect your city, state, and pincode. This
+                makes filling in the delivery address faster and easier — you
+                won't have to type your address details manually. Your
+                location is used only to pre-fill the shipping form and is
+                never stored on our servers or shared with any third party.
+                You can always skip this and enter your address manually if
+                you prefer not to share your location.
+              </p>
+            </div>
           </div>
         </motion.div>
 
