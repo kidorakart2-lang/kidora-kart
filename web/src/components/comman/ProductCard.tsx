@@ -297,7 +297,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
           {/* Best Value badge — quantity-tier pack with a better per-unit price */}
           {packDealPerUnit != null && (
             <div
-              className="absolute bottom-3 left-3 z-20 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] fw-cta shadow-md bg-gradient-to-r from-brand-600 to-brand-accent-500 text-white animate-in fade-in slide-in-from-bottom duration-300"
+              className="absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 z-20 inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 sm:px-3.5 sm:py-2 text-[10px] sm:text-[11px] fw-cta shadow-md bg-gradient-to-r from-brand-600 to-brand-accent-500 text-white animate-in fade-in slide-in-from-bottom duration-300"
               role="status"
               aria-label={`Best value: ${packDealPerUnit} rupees per unit in packs`}
             >
@@ -346,19 +346,19 @@ export default function ProductCard({ data }: { data: ProductData }) {
       </button>
 
       {/* Details */}
-      <div className="p-5 sm:p-6 flex flex-col gap-3">
-        {/* 3 & 4. Name + price in a single row */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1.5 min-w-0 flex-1">
-            <Link href={`/product-details/${data.slug}`} prefetch={false}>
-              <h3
-                className="text-base sm:text-lg fw-heading text-foreground line-clamp-2
-                         group-hover:text-brand-700 transition-colors cursor-pointer leading-snug"
-                itemProp="name"
-              >
-                {data.name}
-              </h3>
-            </Link>
+<div className="p-5 sm:p-6 flex flex-col gap-3">
+          {/* 3 & 4. Name + price in a single row */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1.5 min-w-0 flex-1">
+              <Link href={`/product-details/${data.slug}`} prefetch={false}>
+                <h3
+                  className="text-base sm:text-lg fw-heading text-foreground line-clamp-2
+                           group-hover:text-brand-700 transition-colors cursor-pointer leading-snug"
+                  itemProp="name"
+                >
+                  {data.name}
+                </h3>
+              </Link>
             {data.subCategory && data.subCategory.length > 0 && (
               <span className="inline-block text-[10px] uppercase tracking-wide fw-body bg-brand-100 text-brand-800 px-2 py-0.5 rounded-full">
                 {data.subCategory[0].name}

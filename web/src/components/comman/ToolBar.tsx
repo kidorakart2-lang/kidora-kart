@@ -43,14 +43,14 @@ const ToolBar = () => {
       >
         <button
           onClick={handleInstagramClick}
-          className="group relative bg-gradient-to-tr from-amber-400 via-rose-500 to-rose-600 text-white rounded-full p-3 shadow-2xl transition-all duration-300 hover:shadow-rose-500/50 hover:scale-110 active:scale-95 overflow-hidden"
+          className="group relative bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white rounded-full p-3 shadow-2xl transition-all duration-300 hover:shadow-lg hover:scale-110 active:scale-95 overflow-hidden"
           aria-label="Chat on Instagram"
         >
           {/* Animated background gradient */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-rose-600 via-rose-500 to-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#F58529] via-[#DD2A7B] to-[#8134AF] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
           {/* Pulse effect */}
-          <div className="absolute inset-0 rounded-full bg-rose-400 animate-ping opacity-20" />
+          <div className="absolute inset-0 rounded-full bg-[#DD2A7B]/40 animate-ping opacity-20" />
 
           <Instagram className="w-5 h-5 relative z-10" />
         </button>
@@ -66,11 +66,11 @@ const ToolBar = () => {
       >
         <button
           onClick={handleWhatsAppClick}
-          className="group relative bg-amber-500 hover:bg-amber-600 text-white rounded-full p-3 shadow-2xl transition-all duration-300 hover:shadow-amber-500/50 hover:scale-110 active:scale-95 overflow-hidden"
+          className="group relative bg-[#25D366] hover:bg-[#1DA851] text-white rounded-full p-3 shadow-2xl transition-all duration-300 hover:shadow-[#25D366]/40 hover:scale-110 active:scale-95 overflow-hidden"
           aria-label="Chat on WhatsApp"
         >
           {/* Ripple effect on hover */}
-          <div className="absolute inset-0 rounded-full bg-amber-400 scale-0 group-hover:scale-150 transition-transform duration-500 opacity-30" />
+          <div className="absolute inset-0 rounded-full bg-[#1DA851] scale-0 group-hover:scale-150 transition-transform duration-500 opacity-30" />
 
           <svg
             className="w-5 h-5 relative z-10"

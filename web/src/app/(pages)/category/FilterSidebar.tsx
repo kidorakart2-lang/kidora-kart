@@ -30,6 +30,7 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
   const pathName = usePathname();
   const filters = useSelector((state: RootState) => state.filters);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const firstMountRef = useRef(true);
   const realData = useSelector((state: RootState) => state.ui.navigation._data);
   const subCategory =
     realData?.find((v) => (v.subCategories?.length ?? 0) > 0)?.subCategories || [];
@@ -97,6 +98,13 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
 
   //
   useEffect(() => {
+    // Skip the first run: we land on this page possibly carrying filters
+    // from navigation (e.g. a price range set by the "Shop by Price" section).
+    // Only reset when the user moves between category URLs afterwards.
+    if (firstMountRef.current) {
+      firstMountRef.current = false;
+      return;
+    }
     clearFilters();
   }, [pathName]);
 
