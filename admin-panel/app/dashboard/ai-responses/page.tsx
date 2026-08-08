@@ -153,6 +153,7 @@ export default function AiResponsesPage() {
             ? {
                 totalItems: data._pagination.total,
                 currentPage: page,
+                pageSize: 50,
                 onPageChange: (p) => setPage(p),
               }
             : undefined

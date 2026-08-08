@@ -86,6 +86,8 @@ export interface DataTableProps<T extends BaseItem> {
     totalItems: number;
     currentPage: number;
     onPageChange: (page: number) => void;
+    /** Server page size (defaults to 10) */
+    pageSize?: number;
   };
 }
 
@@ -124,7 +126,6 @@ function DataTableContent<T extends BaseItem>({
     year: new Date().getFullYear(),
   });
   const [filteredData, setFilteredData] = useState<T[]>(data);
-  const itemsPerPage = 10;
 
   // Update URL when page changes
   const updatePageInUrl = useCallback(
@@ -146,19 +147,18 @@ function DataTableContent<T extends BaseItem>({
   // Handle page change
   const handlePageChange = useCallback(
     (newPage: number) => {
-      if (externalPagination) {
-        externalPagination.onPageChange(newPage);
-      } else {
-        setCurrentPage(newPage);
-        updatePageInUrl(newPage);
-      }
+      setCurrentPage(newPage);
+      updatePageInUrl(newPage);
+      externalPagination?.onPageChange(newPage);
     },
     [externalPagination, updatePageInUrl],
   );
 
+  const itemsPerPage = externalPagination?.pageSize ?? 10;
+  const activePage = externalPagination?.currentPage ?? currentPage;
   const totalItems = externalPagination?.totalItems ?? filteredData.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = ((externalPagination?.currentPage ?? currentPage) - 1) * itemsPerPage;
+  const startIndex = (activePage - 1) * itemsPerPage;
   // When using external pagination, data is already the current page from the server
   // When using client-side pagination, slice from the filtered data
   const paginatedData = externalPagination
@@ -406,15 +406,15 @@ function DataTableContent<T extends BaseItem>({
         <div className="flex items-center justify-between animate-in fade-in slide-in-from-bottom duration-300">
           <p className="text-sm text-muted-foreground">
             Showing {startIndex + 1} to{" "}
-            {Math.min(startIndex + itemsPerPage, filteredData.length)} of{" "}
-            {filteredData.length} results
+            {Math.min(startIndex + itemsPerPage, totalItems)} of{" "}
+            {totalItems} results
           </p>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
+              onClick={() => handlePageChange(Math.max(1, activePage - 1))}
+              disabled={activePage === 1}
               className="transition-all duration-200 hover:scale-105"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -422,11 +422,11 @@ function DataTableContent<T extends BaseItem>({
             <div className="flex items-center gap-1">
               <span className="text-sm text-muted-foreground">Page</span>
               <Select
-                value={currentPage.toString()}
+                value={activePage.toString()}
                 onValueChange={(value) => handlePageChange(parseInt(value, 10))}
               >
                 <SelectTrigger className="w-[70px] h-8">
-                  <SelectValue placeholder={currentPage} />
+                  <SelectValue placeholder={activePage} />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(
@@ -446,9 +446,9 @@ function DataTableContent<T extends BaseItem>({
               variant="outline"
               size="sm"
               onClick={() =>
-                handlePageChange(Math.min(totalPages, currentPage + 1))
+                handlePageChange(Math.min(totalPages, activePage + 1))
               }
-              disabled={currentPage === totalPages}
+              disabled={activePage === totalPages}
               className="transition-all duration-200 hover:scale-105"
             >
               <ChevronRight className="h-4 w-4" />

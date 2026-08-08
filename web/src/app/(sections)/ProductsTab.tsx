@@ -6,19 +6,8 @@ import { Gem, Crown, CircleDot, Sparkles } from "lucide-react";
 
 import type { ProductData } from "@/types";
 import { getProducts } from "@/lib/get-products";
+import { getNavCategories } from "@/lib/get-nav-categories";
 import { getCategoryHref } from "@/lib/category-nav";
-import { serverFetch } from "@/lib/server-fetch";
-
-async function getNavCategories(): Promise<import("@/types").CategoryData[]> {
-  try {
-    const res = await serverFetch("/api/website/nav", { timeout: 5000 });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data._data ?? [];
-  } catch {
-    return [];
-  }
-}
 
 const TIER_COLORS = [
   "var(--brand-card-1-icon)", // gold

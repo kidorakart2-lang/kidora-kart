@@ -195,8 +195,8 @@ export default function ProductsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const weightNum = parseInt(formData.weight, 10);
-    if (isNaN(weightNum) || weightNum < 10) { toast({ title: "Validation Error", description: "Weight must be at least 10 grams", variant: "destructive" }); return; }
+    const weightNum = parseFloat(formData.weight);
+    if (isNaN(weightNum) || weightNum < 0) { toast({ title: "Validation Error", description: "Weight must be a valid positive number", variant: "destructive" }); return; }
     const priceHasVal = formData.price.trim() !== "";
     const discountHasVal = formData.discount_price.trim() !== "";
     if (priceHasVal !== discountHasVal) { toast({ title: "Validation Error", description: "Both price and discount price must be filled together", variant: "destructive" }); return; }
@@ -388,7 +388,7 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <DataTable data={products} columns={columns} onEdit={handleEdit} onDelete={handleDelete} searchPlaceholder="Search products..." externalPagination={{ totalItems, currentPage, onPageChange: (page) => setCurrentPage(page) }} />
+      <DataTable data={products} columns={columns} onEdit={handleEdit} onDelete={handleDelete} searchPlaceholder="Search products..." externalPagination={{ totalItems, currentPage, pageSize: 50, onPageChange: (page) => setCurrentPage(page) }} />
 
       <Drawer isOpen={drawerOpen} onClose={closeDrawer} title={editingProduct ? "Edit Product" : "Add New Product"} className={isMobile ? "!w-full" : "!w-[60vw] !max-w-[1800px]"}>
         <ProductForm

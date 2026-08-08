@@ -64,7 +64,7 @@ export async function generateStaticParams() {
         }
       }
     }
-    return params.length > 0 ? params : [{ slug: ["placeholder"] }];
+    return params.slice(0, 10).length > 0 ? params.slice(0, 10) : [{ slug: ["placeholder"] }];
   } catch {
     return [{ slug: ["placeholder"] }];
   }

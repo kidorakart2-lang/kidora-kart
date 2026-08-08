@@ -8,6 +8,8 @@ import { Suspense } from "react";
 import { siteConfig, defaultMetadata, getStructuredAddress } from "@/lib/utils";
 import { getLogo } from "@/lib/logo";
 import { serverFetch } from "@/lib/server-fetch";
+import { cacheLife, cacheTag } from "next/cache";
+import { TAG_NAVIGATION, TAG_PRODUCTS } from "@/lib/revalidation-tags";
 import ScrollToTop from "@/components/ui/scroll-to-top";
 import RequirementModal from "@/components/comman/RequirementModal";
 import LoginModal from "@/components/comman/LoginModal";
@@ -138,6 +140,10 @@ function WebsiteSchema() {
 }
 
 async function getNavigation() {
+  "use cache";
+  cacheLife("navigation");
+  cacheTag(TAG_NAVIGATION);
+
   try {
     const response = await serverFetch("/api/website/nav", { timeout: 5000 });
     if (!response.ok) return null;
@@ -150,6 +156,10 @@ async function getNavigation() {
 }
 
 async function getFeaturedProducts() {
+  "use cache";
+  cacheLife("products");
+  cacheTag(TAG_PRODUCTS);
+
   try {
     const response = await serverFetch("/api/website/product/featured-for-footer", { timeout: 5000 });
     if (!response.ok) return null;

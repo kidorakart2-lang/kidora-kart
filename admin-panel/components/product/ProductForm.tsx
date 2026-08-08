@@ -204,7 +204,7 @@ export default function ProductForm({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
           <div className="space-y-2">
             <Label htmlFor="weight">Weight (g) *</Label>
-            <Input id="weight" value={formData.weight} onChange={u("weight")} placeholder="e.g. 15" required />
+            <Input id="weight" value={formData.weight} onChange={u("weight")} placeholder="e.g. 15 or 0.1 mg" required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="length">Length (cm)</Label>

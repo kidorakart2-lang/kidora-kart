@@ -33,7 +33,7 @@ export default function BannerSlider({ slides }: BannerSliderProps) {
   };
 
   return (
-    <div className="w-full z-0 h-[30vh] md:h-[50vh] lg:h-[70vh] overflow-hidden banner-swiper">
+    <div className="w-full z-0 h-[30vh] md:h-[50vh] lg:h-[80vh] overflow-hidden banner-swiper">
       <Swiper
         modules={[Autoplay, Pagination, Navigation]}
         autoplay={{ delay: 4000, disableOnInteraction: false }}
@@ -50,7 +50,7 @@ export default function BannerSlider({ slides }: BannerSliderProps) {
               src={slide.src}
               alt={`Banner ${i + 1}`}
               onClick={() => handleSlideClick(slide)}
-              className="h-full w-full cursor-pointer object-cover"
+              className="h-full w-full cursor-pointer aspect-video"
               loading={i === 0 ? "eager" : "lazy"}
               priority={i === 0}
               sizes="100vw"

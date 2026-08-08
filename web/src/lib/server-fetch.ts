@@ -23,38 +23,27 @@ export async function serverFetch(
   path: string,
   options?: RequestInit & { timeout?: number },
 ): Promise<Response> {
-  // Client-side: use the relative path so it goes through the Next.js rewrite
-  if (typeof window !== "undefined") {
-    const { timeout = 8000, ...fetchOptions } = options ?? {};
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeout);
-    try {
-      return await fetch(path, {
-        ...fetchOptions,
-        signal: (fetchOptions.signal ?? controller.signal) as AbortSignal,
-      });
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
-  // Server-side: resolve to the backend API URL
-  const baseUrl = (
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
-  ).replace(/\/+$/, "");
-
-  const url = path.startsWith("/") ? `${baseUrl}${path}` : path;
-
   const { timeout = 8000, ...fetchOptions } = options ?? {};
+
+  const isServer = typeof window === "undefined";
+  const url = isServer
+    ? path.startsWith("/")
+      ? `${(process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/+$/, "")}${path}`
+      : path
+    : path;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
 
   try {
-    return await fetch(url, {
-      ...fetchOptions,
-      signal: (fetchOptions.signal ?? controller.signal) as AbortSignal,
-    });
+    // Combine an injected signal (Next.js injects one during static
+    // generation) with our own so the timeout always aborts the fetch —
+    // otherwise a hanging request blocks/fails the whole build.
+    const signal =
+      fetchOptions.signal && typeof AbortSignal.any === "function"
+        ? AbortSignal.any([fetchOptions.signal, controller.signal])
+        : ((fetchOptions.signal ?? controller.signal) as AbortSignal);
+    return await fetch(url, { ...fetchOptions, signal });
   } finally {
     clearTimeout(timer);
   }

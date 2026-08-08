@@ -28,27 +28,51 @@ interface SitemapCategory {
 
 import { siteConfig } from "@/lib/utils";
 import { serverFetch } from "@/lib/server-fetch";
+import { cacheLife, cacheTag } from "next/cache";
+import { TAG_PRODUCTS, TAG_NAVIGATION } from "@/lib/revalidation-tags";
+
+async function getSitemapProducts() {
+  "use cache";
+  cacheLife("max");
+  cacheTag(TAG_PRODUCTS);
+
+  const res = await serverFetch("/api/website/product/all?minimal=true", { timeout: 10000 });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data?._data ?? []) as SitemapProduct[];
+}
+
+async function getSitemapCategories(): Promise<SitemapCategory[]> {
+  "use cache";
+  cacheLife("max");
+  cacheTag(TAG_NAVIGATION);
+
+  const res = await serverFetch("/api/website/nav?minimal=true", { timeout: 10000 });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data?._data ?? []) as SitemapCategory[];
+}
 
 export default async function sitemap() {
   const baseUrl = siteConfig.url;
 
-  let products: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
-  try {
-    const productsRes = await serverFetch("/api/website/product/all?minimal=true", { timeout: 10000 });
-    if (productsRes.ok) {
-      const data = await productsRes.json();
+  const [sitemapProducts, sitemapCategories] = await Promise.all([
+    getSitemapProducts().catch((error) => {
+      console.error("[sitemap] Failed to fetch products:", error);
+      return [] as SitemapProduct[];
+    }),
+    getSitemapCategories().catch((error) => {
+      console.error("[sitemap] Failed to fetch categories:", error);
+      return [] as SitemapCategory[];
+    }),
+  ]);
 
-      products =
-        data?._data?.map((product: SitemapProduct) => ({
-          url: `${baseUrl}product-details/${product.slug}`,
-          lastModified: product.updatedAt || new Date(),
-          changeFrequency: "weekly" as const,
-          priority: 0.8,
-        })) || [];
-    }
-  } catch (error) {
-    console.error("[sitemap] Failed to fetch products:", error);
-  }
+  const products = sitemapProducts.map((product) => ({
+    url: `${baseUrl}product-details/${product.slug}`,
+    lastModified: product.updatedAt ? new Date(product.updatedAt) : new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
 
   const staticRouteConfigs: { path: string; priority: number; changeFreq?: string }[] = [
     { path: "", priority: 1, changeFreq: "daily" },
@@ -68,88 +92,73 @@ export default async function sitemap() {
     priority: route.priority,
   }));
 
-  let categoryUrls: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
-  try {
-    const response = await serverFetch("/api/website/nav?minimal=true", { timeout: 10000 });
+  const categoryUrls: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch navigation data");
-    }
+  const urlPrefix = (slug: string) => {
+    if (slug === "home") return "";
+    else if (slug === "track-your-order") return "order-track";
+    else if (slug === "contact-us") return "contact-us";
+    return "category/" + slug;
+  };
 
-    const categoriesData = await response.json();
-    const categories = categoriesData._data as SitemapCategory[];
+  const isProductCategory = (slug: string) => {
+    const nonProductSlugs = [
+      "home",
+      "track-your-order",
+      "contact-us",
+      "new-arrivals",
+      "gift-items",
+      "gift-items",
+    ];
+    return !nonProductSlugs.includes(slug);
+  };
 
-    const urls: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
+  sitemapCategories.forEach((category: SitemapCategory) => {
+    if (!category.status || category.deletedAt) return;
 
-    const urlPrefix = (slug: string) => {
-      if (slug === "home") return "";
-      else if (slug === "track-your-order") return "order-track";
-      else if (slug === "contact-us") return "contact-us";
-      return "category/" + slug;
-    };
+    const categorySlug = category.slug;
+    const isProduct = isProductCategory(categorySlug);
 
-    const isProductCategory = (slug: string) => {
-      const nonProductSlugs = [
-        "home",
-        "track-your-order",
-        "contact-us",
-        "new-arrivals",
-        "gift-items",
-        "gift-items",
-      ];
-      return !nonProductSlugs.includes(slug);
-    };
-
-    categories.forEach((category: SitemapCategory) => {
-      if (!category.status || category.deletedAt) return;
-
-      const categorySlug = category.slug;
-      const isProduct = isProductCategory(categorySlug);
-
-      urls.push({
-        url: `${baseUrl}${urlPrefix(categorySlug)}`,
-        lastModified: new Date(category.updatedAt || ""),
-        changeFrequency: "weekly",
-        priority: categorySlug === "home" ? 1.0 : 0.8,
-      });
-
-      if (
-        isProduct &&
-        category.subCategories &&
-        category.subCategories.length > 0
-      ) {
-        category.subCategories.forEach((subCategory: SitemapSubCategory) => {
-          if (!subCategory.status || subCategory.deletedAt) return;
-
-          urls.push({
-            url: `${baseUrl}category/${categorySlug}/${subCategory.slug}`,
-            lastModified: new Date(subCategory.updatedAt || ""),
-            changeFrequency: "weekly",
-            priority: 0.8,
-          });
-
-          if (
-            subCategory.subSubCategories &&
-            subCategory.subSubCategories.length > 0
-          ) {
-            subCategory.subSubCategories.forEach((subSubCategory: SitemapSubSubCategory) => {
-              if (!subSubCategory.status || subSubCategory.deletedAt) return;
-
-              urls.push({
-                url: `${baseUrl}category/${categorySlug}/${subCategory.slug}/${subSubCategory.slug}`,
-                lastModified: new Date(subSubCategory.updatedAt || ""),
-                changeFrequency: "weekly",
-                priority: 0.8,
-              });
-            });
-          }
-        });
-      }
+    categoryUrls.push({
+      url: `${baseUrl}${urlPrefix(categorySlug)}`,
+      lastModified: new Date(category.updatedAt || ""),
+      changeFrequency: "weekly",
+      priority: categorySlug === "home" ? 1.0 : 0.8,
     });
-    categoryUrls = urls;
-  } catch (error) {
-    console.error("[sitemap] Failed to fetch categories:", error);
-  }
+
+    if (
+      isProduct &&
+      category.subCategories &&
+      category.subCategories.length > 0
+    ) {
+      category.subCategories.forEach((subCategory: SitemapSubCategory) => {
+        if (!subCategory.status || subCategory.deletedAt) return;
+
+        categoryUrls.push({
+          url: `${baseUrl}category/${categorySlug}/${subCategory.slug}`,
+          lastModified: new Date(subCategory.updatedAt || ""),
+          changeFrequency: "weekly",
+          priority: 0.8,
+        });
+
+        if (
+          subCategory.subSubCategories &&
+          subCategory.subSubCategories.length > 0
+        ) {
+          subCategory.subSubCategories.forEach((subSubCategory: SitemapSubSubCategory) => {
+            if (!subSubCategory.status || subSubCategory.deletedAt) return;
+
+            categoryUrls.push({
+              url: `${baseUrl}category/${categorySlug}/${subCategory.slug}/${subSubCategory.slug}`,
+              lastModified: new Date(subSubCategory.updatedAt || ""),
+              changeFrequency: "weekly",
+              priority: 0.8,
+            });
+          });
+        }
+      });
+    }
+  });
 
   return [...staticRoutes, ...products, ...categoryUrls];
 }

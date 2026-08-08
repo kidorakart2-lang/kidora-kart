@@ -1,5 +1,6 @@
 import { siteConfig, defaultMetadata } from "@/lib/utils";
 import { notFound, redirect } from "next/navigation";
+import { connection } from "next/server";
 import { cacheLife, cacheTag } from "next/cache";
 import { productTag, TAG_PRODUCTS } from "@/lib/revalidation-tags";
 import { serverFetch } from "@/lib/server-fetch";
@@ -16,7 +17,7 @@ interface ProductDetailsPageProps {
 // IT ISNT SUPPORTED WITH nextConfig.cacheComponents setting do not USE IT 
 // export const revalidate = 1800;
 
-// ── Static params — fetches real products at build time, falls back to placeholder ──
+// ── Static params — prerender a subset (top 50) at build, the rest render on demand ──
 export async function generateStaticParams() {
   try {
     const res = await serverFetch("/api/website/product/all?minimal=true", { timeout: 10000 });
@@ -24,7 +25,7 @@ export async function generateStaticParams() {
     const data = await res.json();
     const products = data._data as { slug: string }[];
     if (!Array.isArray(products) || products.length === 0) return [{ slug: "placeholder" }];
-    return products.map((p) => ({ slug: p.slug }));
+    return products.slice(0, 10).map((p) => ({ slug: p.slug }));
   } catch {
     return [{ slug: "placeholder" }];
   }
@@ -308,6 +309,20 @@ async function ProductContent({ slug }: { slug: string }) {
   );
 }
 
+// ── Dynamic marker — renders nothing but makes this page render per-request,
+//    so generateMetadata for unknown slugs isn't prerendered at build time. ──
+async function DynamicMarker() {
+  const Connection = async () => {
+    await connection();
+    return null;
+  };
+  return (
+    <Suspense>
+      <Connection />
+    </Suspense>
+  );
+}
+
 export default async function Page({ params }: ProductDetailsPageProps) {
   const allParams = await params;
   const { slug } = allParams;
@@ -317,8 +332,11 @@ export default async function Page({ params }: ProductDetailsPageProps) {
   }
 
   return (
-    <Suspense fallback={<ProductDetailSkeleton />}>
-      <ProductContent slug={slug} />
-    </Suspense>
+    <>
+      <DynamicMarker />
+      <Suspense fallback={<ProductDetailSkeleton />}>
+        <ProductContent slug={slug} />
+      </Suspense>
+    </>
   );
 }
