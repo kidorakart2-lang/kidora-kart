@@ -787,8 +787,8 @@ export default function OrdersPage() {
             {/* Items */}
             <div className="rounded-lg border border-border p-4 space-y-3">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Items</p>
-              {selectedOrder.items?.map((item) => (
-                <div key={item.productId} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+              {selectedOrder.items?.map((item, itemIdx) => (
+                <div key={`${item.productId}-${itemIdx}`} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
                   <Image
                     src={item.images[0]}
                     alt={item.name}

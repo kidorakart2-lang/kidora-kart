@@ -7,11 +7,13 @@ import cache from "../../lib/cache.js";
 import { success, fail } from "../../utils/responses.js";
 
 export const navController = async (
-  _req: Request,
+  req: Request,
   res: Response,
 ): Promise<Response> => {
   try {
-    const cacheKey = "navigationData";
+    // ?minimal=true — only slug/updatedAt/status/deletedAt (sitemap + static params)
+    const minimal = req.query.minimal === "true";
+    const cacheKey = minimal ? "navigationData:minimal" : "navigationData";
     const cached = cache.get(cacheKey);
     if (cached) {
       return success(res, cached, "Data fetched successfully");
@@ -19,13 +21,13 @@ export const navController = async (
 
     const [categories, subCategories, subSubCategories] = await Promise.all([
       Category.find({ deletedAt: null, status: true })
-        .select("_id name slug parentSubCategory image bannerId")
+        .select(minimal ? "_id slug updatedAt status deletedAt" : "_id name slug parentSubCategory image bannerId")
         .lean(),
       SubCategory.find({ deletedAt: null, status: true })
-        .select("_id name slug category image bannerId")
+        .select(minimal ? "_id slug updatedAt status deletedAt category" : "_id name slug category image bannerId")
         .lean(),
       SubSubCategory.find({ deletedAt: null, status: true })
-        .select("_id name slug subCategory image bannerId")
+        .select(minimal ? "_id slug updatedAt status deletedAt subCategory" : "_id name slug subCategory image bannerId")
         .lean(),
     ]);
 

@@ -18,6 +18,14 @@ const POPULATE_PRODUCT = [
   { path: "subSubCategory", select: "name slug" },
 ];
 
+/**
+ * Escape regex metacharacters so admin search terms are treated literally.
+ * Search uses regex $or (name/description) instead of $text, which requires
+ * a text index that may be missing on some databases.
+ */
+const escapeRegex = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const invalidateProductCaches = (): void => {
   cache.del("newArrivals");
   cache.del("trendingProducts");
@@ -309,9 +317,17 @@ export const view = async (
     }
 
     // Support search via request.body.name (used by admin panel bento grid picker)
-    if (request.body?.name) {
-      query.$text = { $search: request.body.name.trim() };
-    }
+    const searchOr: Record<string, unknown>[] = [];
+    const pushSearch = (term: unknown): void => {
+      const trimmed = typeof term === "string" ? term.trim() : "";
+      if (!trimmed) return;
+      const escaped = escapeRegex(trimmed);
+      searchOr.push(
+        { name: { $regex: escaped, $options: "i" } },
+        { description: { $regex: escaped, $options: "i" } },
+      );
+    };
+    pushSearch(request.body?.name);
 
     if (categories) {
       query.categories = Array.isArray(categories)
@@ -341,7 +357,10 @@ export const view = async (
     }
 
     if (search) {
-      query.$text = { $search: search.trim() };
+      pushSearch(search);
+    }
+    if (searchOr.length > 0) {
+      query.$or = searchOr;
     }
 
     const [total, products] = await Promise.all([

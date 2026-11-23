@@ -28,24 +28,53 @@ interface SitemapCategory {
 
 import { siteConfig } from "@/lib/utils";
 import { serverFetch } from "@/lib/server-fetch";
+import { cacheLife, cacheTag } from "next/cache";
+import { TAG_PRODUCTS, TAG_NAVIGATION } from "@/lib/revalidation-tags";
+
+// ponytail: ?minimal=true keeps the sitemap payload to { slug, updatedAt } only
+async function getProductsForSitemap(): Promise<SitemapProduct[]> {
+  "use cache";
+  cacheLife("search");
+  cacheTag(TAG_PRODUCTS);
+
+  try {
+    const res = await serverFetch("/api/website/product/all?minimal=true", { timeout: 5000 });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data?._data) ? (data._data as SitemapProduct[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function getCategoriesForSitemap(): Promise<SitemapCategory[]> {
+  "use cache";
+  cacheLife("navigation");
+  cacheTag(TAG_NAVIGATION);
+
+  try {
+    const res = await serverFetch("/api/website/nav?minimal=true", { timeout: 5000 });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data?._data) ? (data._data as SitemapCategory[]) : [];
+  } catch {
+    return [];
+  }
+}
 
 export default async function sitemap() {
   const baseUrl = siteConfig.url;
 
   let products: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
   try {
-    const productsRes = await serverFetch("/api/website/product/all", { timeout: 5000 });
-    if (productsRes.ok) {
-      const data = await productsRes.json();
-
-      products =
-        data?._data?.map((product: SitemapProduct) => ({
-          url: `${baseUrl}product-details/${product.slug}`,
-          lastModified: product.updatedAt || new Date(),
-          changeFrequency: "weekly" as const,
-          priority: 0.8,
-        })) || [];
-    }
+    const data = await getProductsForSitemap();
+    products =
+      data?.map((product: SitemapProduct) => ({
+        url: `${baseUrl}product-details/${product.slug}`,
+        lastModified: product.updatedAt ? new Date(product.updatedAt) : new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.8,
+      })) || [];
   } catch (error) {
     console.error("[sitemap] Failed to fetch products:", error);
   }
@@ -70,14 +99,10 @@ export default async function sitemap() {
 
   let categoryUrls: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
   try {
-    const response = await serverFetch("/api/website/nav", { timeout: 5000 });
-
-    if (!response.ok) {
+    const categories = await getCategoriesForSitemap();
+    if (!categories) {
       throw new Error("Failed to fetch navigation data");
     }
-
-    const categoriesData = await response.json();
-    const categories = categoriesData._data as SitemapCategory[];
 
     const urls: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
 

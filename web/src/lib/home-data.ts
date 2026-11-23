@@ -13,9 +13,27 @@ import {
   TAG_PRODUCTS,
   TAG_HOMEPAGE,
   TAG_TESTIMONIALS,
+  TAG_NAVIGATION,
 } from "@/lib/revalidation-tags";
 import { serverFetch } from "@/lib/server-fetch";
 import type { BannerItem } from "@/types";
+
+// ── Navigation ─────────────────────────────────────────────────────────
+
+export async function getNavCategories(): Promise<import("@/types").CategoryData[]> {
+  "use cache";
+  cacheLife("navigation");
+  cacheTag(TAG_NAVIGATION);
+
+  try {
+    const res = await serverFetch("/api/website/nav", { timeout: 5000 });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data._data ?? [];
+  } catch {
+    return [];
+  }
+}
 
 // ── Types ──────────────────────────────────────────────────────────────
 

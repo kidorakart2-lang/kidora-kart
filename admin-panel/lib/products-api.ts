@@ -46,9 +46,9 @@ export async function fetchSubSubCategories(): Promise<{ _id: string; name: stri
   try { const d = await api.post("/api/admin/subSubCategory/view", {}); return Array.isArray(d) ? d : []; } catch { return []; }
 }
 
-export async function fetchProducts(isDeletedAt?: string, page = 1, limit = 50) {
+export async function fetchProducts(isDeletedAt?: string, page = 1, limit = 50, search = "") {
   const response = await api.postRaw<PaginatedResponse<Product>>(
-    "/api/admin/product/view", { isDeletedAt, page, limit },
+    "/api/admin/product/view", { isDeletedAt, page, limit, search },
   );
   return { products: response._data || [], pagination: response._pagination };
 }

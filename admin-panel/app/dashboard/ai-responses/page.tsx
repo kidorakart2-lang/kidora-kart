@@ -148,6 +148,7 @@ export default function AiResponsesPage() {
         columns={columns}
         hideActions
         searchPlaceholder="Search responses..."
+        itemsPerPage={50}
         externalPagination={
           data?._pagination
             ? {

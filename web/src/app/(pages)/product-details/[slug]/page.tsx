@@ -16,15 +16,17 @@ interface ProductDetailsPageProps {
 // IT ISNT SUPPORTED WITH nextConfig.cacheComponents setting do not USE IT 
 // export const revalidate = 1800;
 
-// ── Static params — fetches real products at build time, falls back to placeholder ──
+// ── Static params — prerender only the first 20 products at build time ──
+// The rest are generated dynamically on first request (dynamicParams defaults
+// to true), and ?minimal=true keeps the build payload to { slug, updatedAt }.
 export async function generateStaticParams() {
   try {
-    const res = await serverFetch("/api/website/product/all", { timeout: 5000 });
+    const res = await serverFetch("/api/website/product/all?minimal=true", { timeout: 5000 });
     if (!res.ok) return [{ slug: "placeholder" }];
     const data = await res.json();
     const products = data._data as { slug: string }[];
     if (!Array.isArray(products) || products.length === 0) return [{ slug: "placeholder" }];
-    return products.map((p) => ({ slug: p.slug }));
+    return products.slice(0, 20).map((p) => ({ slug: p.slug }));
   } catch {
     return [{ slug: "placeholder" }];
   }

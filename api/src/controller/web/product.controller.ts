@@ -11,6 +11,14 @@ import { logger } from "../../lib/logger.js";
 const PRODUCT_SELECT =
   "name slug images price image stock discount_price weight length height breadth minimumAge idealAge maximumAge type sku tags videoUrl giftImages colors material category subCategory subSubCategory description shortDescription variants";
 
+/**
+ * Escape regex metacharacters so user search terms are treated literally.
+ * Search uses regex $or (name/slug/description) instead of $text, which
+ * requires a text index that may be missing on some databases.
+ */
+const escapeRegex = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const POPULATE_CATEGORY = {
   path: "category",
   select: "name slug",
@@ -268,7 +276,15 @@ export const getProductByFilter = async (
       const effectiveSearchWords =
         searchWords.length > 0 ? searchWords : [trimmedSearch];
 
-      query.$text = { $search: effectiveSearchWords.join(" ") };
+      // Regex search across name/slug/description — works without a text index
+      const regexPatterns = effectiveSearchWords.map((word) => ({
+        $or: [
+          { name: { $regex: escapeRegex(word), $options: "i" } },
+          { slug: { $regex: escapeRegex(word), $options: "i" } },
+          { description: { $regex: escapeRegex(word), $options: "i" } },
+        ],
+      }));
+      query.$or = regexPatterns.flatMap((p) => p.$or);
     }
 
     if (isFeatured !== undefined) query.isFeatured = isFeatured;
@@ -336,9 +352,20 @@ export const getProductByFilter = async (
     if (ageFrom !== undefined || ageTo !== undefined) {
       const effectiveAgeFrom = ageFrom ?? 0;
       const effectiveAgeTo = ageTo ?? 18;
-      // Products whose age range overlaps the selected filter range
-      query.minimumAge = { $lte: effectiveAgeTo };
-      query.maximumAge = { $gte: effectiveAgeFrom };
+      // ponytail: products with no age data pass the age filter (unknown = matches all),
+      // otherwise exclude only products whose age range doesn't overlap the selection
+      const andClause = Array.isArray(query.$and) ? query.$and : [];
+      andClause.push({
+        $or: [
+          {
+            minimumAge: { $lte: effectiveAgeTo },
+            maximumAge: { $gte: effectiveAgeFrom },
+          },
+          { minimumAge: { $exists: false } },
+          { maximumAge: { $exists: false } },
+        ],
+      });
+      query.$and = andClause;
     }
 
     const cappedLimit = Math.min(Number(limit), 100);
@@ -373,11 +400,12 @@ export const getProductByFilter = async (
   }
 };
 
-export const getAll = async (_req: Request, res: Response): Promise<Response> => {
+export const getAll = async (req: Request, res: Response): Promise<Response> => {
   try {
+    // ?minimal=true — only slug + updatedAt, used by sitemap & generateStaticParams
+    const minimal = req.query.minimal === "true";
     const products = await Product.find({ deletedAt: null, status: "active" })
-      .populate(PRODUCT_POPULATE)
-      .select(PRODUCT_SELECT)
+      .select(minimal ? "slug updatedAt" : PRODUCT_SELECT)
       .sort({ order: -1, createdAt: -1 })
       .lean();
     return success(res, products, "Products fetched successfully");
@@ -706,20 +734,24 @@ export const getBySearch = async (
       .split(/\s+/)
       .filter((word) => word.length > 1 && !stopWords.has(word.toLowerCase()));
 
-    const searchPhrase = (cleanWords.length > 0 ? cleanWords : [trimmedSearch]).join(" ");
+    const searchWords = cleanWords.length > 0 ? cleanWords : [trimmedSearch];
+    // Regex search across name/slug/description — works without a text index
+    const regexPatterns = searchWords.map((word) => ({
+      $or: [
+        { name: { $regex: escapeRegex(word), $options: "i" } },
+        { slug: { $regex: escapeRegex(word), $options: "i" } },
+        { description: { $regex: escapeRegex(word), $options: "i" } },
+      ],
+    }));
 
-    const products = await Product.find(
-      {
-        $text: { $search: searchPhrase },
-        deletedAt: null,
-        status: "active",
-      },
-      // Include text relevance score for potential relevance-based sorting
-      { score: { $meta: "textScore" } },
-    )
+    const products = await Product.find({
+      $or: regexPatterns.flatMap((p) => p.$or),
+      deletedAt: null,
+      status: "active",
+    })
       .populate(PRODUCT_POPULATE)
       .select(PRODUCT_SELECT)
-      .sort({ score: { $meta: "textScore" } })
+      .sort({ order: -1, createdAt: -1 })
       .limit(parsedLimit)
       .lean();
 

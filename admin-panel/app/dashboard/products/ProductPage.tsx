@@ -1,7 +1,7 @@
 "use client";
 
 import { api, ApiClientError } from "@/lib/api";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { invalidateCache } from "@/lib/invalidate-cache";
 import ProductForm from "@/components/product/ProductForm";
 import { fetchColors, fetchMaterials, fetchCategories, fetchSubCategories, fetchSubSubCategories, fetchProducts, deleteProduct, changeProductStatus, saveProduct, restoreProduct, buildProductFormData, buildUpdateFormData, INITIAL_FORM_STATE, isValidVideoUrl } from "@/lib/products-api";
@@ -60,12 +60,59 @@ export default function ProductsPage() {
 
   const [deletedFilter, setDeletedFilter] = useState<string>("active");
   const [videoFilter, setVideoFilter] = useState<string>("all");
-  const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 50;
 
+  // Page + search live in the URL so they survive a refresh
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const urlPage = parseInt(searchParams.get("page") || "1", 10);
+  const currentPage = Number.isFinite(urlPage) && urlPage > 0 ? urlPage : 1;
+  const urlSearch = searchParams.get("q") ?? "";
+
+  const [searchInput, setSearchInput] = useState(urlSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(urlSearch);
+
+  // Keep the input in sync when the URL changes (browser back/forward)
+  useEffect(() => {
+    setSearchInput(urlSearch);
+  }, [urlSearch]);
+
+  // Debounce search input before hitting the server
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchInput), 400);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  // Push the debounced search term to the URL and reset to page 1
+  useEffect(() => {
+    if (debouncedSearch === urlSearch) return;
+    const params = new URLSearchParams(searchParams.toString());
+    if (debouncedSearch) params.set("q", debouncedSearch);
+    else params.delete("q");
+    params.delete("page");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  const handleSearchChange = useCallback((term: string) => {
+    setSearchInput(term);
+  }, []);
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (page <= 1) params.delete("page");
+      else params.set("page", String(page));
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [searchParams, router, pathname],
+  );
+
   const { data: fetchResult, isLoading, isError, error } = useQuery({
-    queryKey: ["products", deletedFilter, currentPage],
-    queryFn: () => fetchProducts(deletedFilter === "active" ? undefined : deletedFilter, currentPage, pageSize),
+    queryKey: ["products", deletedFilter, currentPage, debouncedSearch],
+    queryFn: () => fetchProducts(deletedFilter === "active" ? undefined : deletedFilter, currentPage, pageSize, debouncedSearch),
     staleTime: 2 * 60 * 1000,
   });
 
@@ -380,11 +427,11 @@ export default function ProductsPage() {
       <div className="flex items-center justify-between animate-in fade-in slide-in-from-top duration-300">
         <div><h1 className="text-3xl font-bold tracking-tight">Products</h1><p className="text-muted-foreground">Manage your product inventory</p></div>
         <div className="flex items-center gap-2">
-          <Select value={videoFilter} onValueChange={(val) => { setVideoFilter(val); setCurrentPage(1); }}>
+          <Select value={videoFilter} onValueChange={(val) => { setVideoFilter(val); handlePageChange(1); }}>
             <SelectTrigger className="w-[160px] h-9 text-xs"><SelectValue placeholder="Filter by video" /></SelectTrigger>
             <SelectContent><SelectItem value="all">All Products</SelectItem><SelectItem value="hasVideo">Has Video</SelectItem><SelectItem value="noVideo">No Video</SelectItem></SelectContent>
           </Select>
-          <Select value={deletedFilter} onValueChange={setDeletedFilter}>
+          <Select value={deletedFilter} onValueChange={(val) => { setDeletedFilter(val); handlePageChange(1); }}>
             <SelectTrigger className="w-[140px] h-9 text-xs"><SelectValue placeholder="Filter by status" /></SelectTrigger>
             <SelectContent><SelectItem value="active">Active Only</SelectItem><SelectItem value="all">All (incl. deleted)</SelectItem><SelectItem value="deleted">Deleted Only</SelectItem></SelectContent>
           </Select>
@@ -393,7 +440,17 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <DataTable data={products} columns={columns} onEdit={handleEdit} onDelete={handleDelete} searchPlaceholder="Search products..." externalPagination={{ totalItems, currentPage, onPageChange: (page) => setCurrentPage(page) }} />
+      <DataTable
+        data={products}
+        columns={columns}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        searchPlaceholder="Search products..."
+        defaultSearchTerm={urlSearch}
+        onSearchChange={handleSearchChange}
+        itemsPerPage={pageSize}
+        externalPagination={{ totalItems, currentPage, onPageChange: handlePageChange }}
+      />
 
       <Drawer isOpen={drawerOpen} onClose={closeDrawer} title={editingProduct ? "Edit Product" : "Add New Product"} className={isMobile ? "!w-full" : "!w-[60vw] !max-w-[1800px]"}>
         <ProductForm

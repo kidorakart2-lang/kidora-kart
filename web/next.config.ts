@@ -38,6 +38,12 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.in",
       },
+      // ponytail: local jewellery-walla DB images live on this CDN — allows
+      // next/image to render them when testing against the local database.
+      {
+        protocol: "https",
+        hostname: "cdn.jewellerywalla.com",
+      },
       {
         protocol: "https",
         hostname: "placehold.co",

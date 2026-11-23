@@ -12,20 +12,58 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { removeFromWishlist } from "@/redux/features/wishlist";
+import { useProductsByIds } from "@/lib/useProduct";
 import { toast } from "sonner";
 import type { WishlistProduct } from "@/types";
 import type { RootState } from "@/redux/store/store";
+
+interface GuestWishlistItem {
+  _id: string;
+  name: string;
+  image: string;
+  price: number;
+  discount_price?: number;
+  slug: string;
+}
 
 export default function GuestWishlist() {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const items = useSelector((state: RootState) => state.wishlist.wishlistItems as WishlistProduct[]);
+  // Redux stores only lean { _id, slug } — fetch full product data by ids
+  const leanItems = useSelector(
+    (state: RootState) => state.wishlist.wishlistItems as WishlistProduct[],
+  );
+  const ids = leanItems.map((item) => item._id).filter(Boolean);
+  const { productMap, isLoading } = useProductsByIds(ids);
 
-  const handleRemoveFromWishlist = (item: WishlistProduct) => {
+  const items: GuestWishlistItem[] = leanItems.map((item) => {
+    const fetched = item._id ? productMap.get(item._id) : undefined;
+    return {
+      _id: item._id,
+      name: fetched?.name ?? "Loading...",
+      image: fetched?.image ?? "/placeholder.svg",
+      price: fetched?.price ?? 0,
+      discount_price: fetched?.discount_price,
+      slug: item.slug ?? fetched?.slug ?? "",
+    };
+  });
+
+  const handleRemoveFromWishlist = (item: { _id: string }) => {
     dispatch(removeFromWishlist({ _id: item._id, isGuest: true }));
     toast.success("Removed from wishlist");
   };
+
+  if (isLoading && leanItems.length > 0) {
+    return (
+      <section className="min-h-[70vh] flex items-center justify-center py-16">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto" />
+          <p className="text-sm text-muted-foreground">Loading your wishlist…</p>
+        </div>
+      </section>
+    );
+  }
 
   if (items.length === 0) {
     return (

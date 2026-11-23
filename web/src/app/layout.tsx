@@ -11,6 +11,8 @@ import { Suspense } from "react";
 import { siteConfig, defaultMetadata, getStructuredAddress } from "@/lib/utils";
 import { getLogo } from "@/lib/logo";
 import { serverFetch } from "@/lib/server-fetch";
+import { cacheLife, cacheTag } from "next/cache";
+import { TAG_NAVIGATION, TAG_FEATURED_PRODUCTS, TAG_PRODUCTS } from "@/lib/revalidation-tags";
 import ScrollToTop from "@/components/ui/scroll-to-top";
 import RequirementModal from "@/components/comman/RequirementModal";
 import LoginModal from "@/components/comman/LoginModal";
@@ -141,7 +143,13 @@ function WebsiteSchema() {
   );
 }
 
+// ponytail: root layout data is fetched on EVERY route — cache it with the
+// same tag-based invalidation the admin panel already uses to purge it.
 async function getNavigation() {
+  "use cache";
+  cacheLife("navigation");
+  cacheTag(TAG_NAVIGATION);
+
   try {
     const response = await serverFetch("/api/website/nav", { timeout: 5000 });
     if (!response.ok) return null;
@@ -154,6 +162,10 @@ async function getNavigation() {
 }
 
 async function getFeaturedProducts() {
+  "use cache";
+  cacheLife("best-sellers");
+  cacheTag(TAG_FEATURED_PRODUCTS, TAG_PRODUCTS);
+
   try {
     const response = await serverFetch("/api/website/product/featured-for-footer", { timeout: 5000 });
     if (!response.ok) return null;

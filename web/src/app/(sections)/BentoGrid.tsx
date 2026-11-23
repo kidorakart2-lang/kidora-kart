@@ -76,7 +76,7 @@ function CellImage({ cell }: { cell: BentoCell }) {
         src={cell.image}
         alt={cell.title || ""}
         fill
-        className="object-contain p-4"
+        className="object-cover"
         sizes="(max-width: 768px) 100vw, 50vw"
       />
     </div>

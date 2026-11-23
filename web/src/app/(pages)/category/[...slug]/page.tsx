@@ -32,10 +32,12 @@ export const metadata = {
   },
 };
 
-// ── Static params — fetches real categories at build time, falls back to placeholder ──
+// ── Static params — prerender only the first 20 category paths at build time ──
+// The rest are generated dynamically on request, and ?minimal=true keeps the
+// build payload to { slug, updatedAt, status, deletedAt }.
 export async function generateStaticParams() {
   try {
-    const res = await serverFetch("/api/website/nav", { timeout: 5000 });
+    const res = await serverFetch("/api/website/nav?minimal=true", { timeout: 5000 });
     if (!res.ok) return [{ slug: ["placeholder"] }];
     const data = await res.json();
     const categories = data._data as {
@@ -64,7 +66,7 @@ export async function generateStaticParams() {
         }
       }
     }
-    return params.length > 0 ? params : [{ slug: ["placeholder"] }];
+    return params.length > 0 ? params.slice(0, 20) : [{ slug: ["placeholder"] }];
   } catch {
     return [{ slug: ["placeholder"] }];
   }

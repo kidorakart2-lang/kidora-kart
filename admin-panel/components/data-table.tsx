@@ -87,6 +87,12 @@ export interface DataTableProps<T extends BaseItem> {
     currentPage: number;
     onPageChange: (page: number) => void;
   };
+  /** Initial value for the search input (used with server-side search) */
+  defaultSearchTerm?: string;
+  /** When provided, the search input forwards every keystroke here instead of filtering locally (server-side search) */
+  onSearchChange?: (term: string) => void;
+  /** Number of rows per page — should match the server page size when using externalPagination */
+  itemsPerPage?: number;
 }
 
 function DataTableContent<T extends BaseItem>({
@@ -103,15 +109,18 @@ function DataTableContent<T extends BaseItem>({
   emptyDescription = "No data available yet.",
   emptyAction,
   externalPagination,
+  defaultSearchTerm = "",
+  onSearchChange,
+  itemsPerPage = 10,
 }: DataTableProps<T>) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
   // Get initial page from URL or default to 1
-  const initialPage = parseInt(searchParams.get("page") || "1", 10);
+  const initialPage = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(defaultSearchTerm);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [selectedOption, setSelectedOption] = useState("");
   const [dateFilter, setDateFilter] = useState<{
@@ -124,7 +133,6 @@ function DataTableContent<T extends BaseItem>({
     year: new Date().getFullYear(),
   });
   const [filteredData, setFilteredData] = useState<T[]>(data);
-  const itemsPerPage = 10;
 
   // Update URL when page changes
   const updatePageInUrl = useCallback(
@@ -143,22 +151,28 @@ function DataTableContent<T extends BaseItem>({
     [searchParams, router, pathname],
   );
 
-  // Handle page change
+  // Handle page change — always persist the page to the URL so it survives refresh
   const handlePageChange = useCallback(
     (newPage: number) => {
+      updatePageInUrl(newPage);
       if (externalPagination) {
         externalPagination.onPageChange(newPage);
       } else {
         setCurrentPage(newPage);
-        updatePageInUrl(newPage);
       }
     },
     [externalPagination, updatePageInUrl],
   );
 
+  // Keep internal page state in sync when the parent (server-side pagination) changes it
+  useEffect(() => {
+    setCurrentPage(externalPagination?.currentPage ?? initialPage);
+  }, [externalPagination?.currentPage, initialPage]);
+
   const totalItems = externalPagination?.totalItems ?? filteredData.length;
+  const displayTotal = externalPagination ? totalItems : filteredData.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = ((externalPagination?.currentPage ?? currentPage) - 1) * itemsPerPage;
+  const startIndex = (currentPage - 1) * itemsPerPage;
   // When using external pagination, data is already the current page from the server
   // When using client-side pagination, slice from the filtered data
   const paginatedData = externalPagination
@@ -175,8 +189,8 @@ function DataTableContent<T extends BaseItem>({
   useEffect(() => {
     let result = [...data];
 
-    // Apply search filter
-    if (searchTerm) {
+    // Apply search filter (skipped for server-side search via onSearchChange)
+    if (searchTerm && !onSearchChange) {
       result = result.filter((item) =>
         Object.values(item).some((value) =>
           String(value).toLowerCase().includes(searchTerm.toLowerCase()),
@@ -209,7 +223,7 @@ function DataTableContent<T extends BaseItem>({
     }
 
     setFilteredData(result);
-  }, [searchTerm, dateFilter, data]);
+  }, [searchTerm, dateFilter, data, onSearchChange]);
 
   return (
     <div className="space-y-4">
@@ -220,8 +234,13 @@ function DataTableContent<T extends BaseItem>({
             placeholder={searchPlaceholder}
             value={searchTerm}
             onChange={(e) => {
-              setSearchTerm(e.target.value);
-              handlePageChange(1);
+              const term = e.target.value;
+              setSearchTerm(term);
+              if (onSearchChange) {
+                onSearchChange(term);
+              } else {
+                handlePageChange(1);
+              }
             }}
             className="pl-10 transition-all duration-200 focus:scale-[1.02]"
           />
@@ -357,7 +376,7 @@ function DataTableContent<T extends BaseItem>({
             ) : (
               paginatedData.map((item, rowIndex) => (
                 <TableRow
-                  key={String(item._id)}
+                  key={item._id != null ? String(item._id) : `row-${rowIndex}`}
                   className="transition-all duration-200 hover:bg-muted/50 animate-in fade-in slide-in-from-left"
                   style={{ animationDelay: `${rowIndex * 30}ms` }}
                 >
@@ -406,8 +425,8 @@ function DataTableContent<T extends BaseItem>({
         <div className="flex items-center justify-between animate-in fade-in slide-in-from-bottom duration-300">
           <p className="text-sm text-muted-foreground">
             Showing {startIndex + 1} to{" "}
-            {Math.min(startIndex + itemsPerPage, filteredData.length)} of{" "}
-            {filteredData.length} results
+            {Math.min(startIndex + itemsPerPage, displayTotal)} of{" "}
+            {displayTotal} results
           </p>
           <div className="flex items-center gap-2">
             <Button

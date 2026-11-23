@@ -165,7 +165,10 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
         totalItems: items.reduce((sum, i) => sum + i.quantity, 0),
       },
     };
-  }, [cart, fetchedCart, reduxCartItems]);
+    // ponytail: productMap + guestProductsLoading MUST be deps — without them
+    // the memo is computed once while loading (returns null) and stays cached,
+    // so the guest cart renders the empty state after products arrive.
+  }, [cart, fetchedCart, reduxCartItems, guestProductsLoading, productMap]);
 
   const hasServerData = !!(cart?._data?.items?.length || fetchedCart?._data?.items?.length);
   const isGuestView = !hasServerData && reduxCartItems.length > 0;

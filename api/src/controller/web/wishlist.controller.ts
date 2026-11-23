@@ -50,15 +50,11 @@ export const getWishlist = asyncHandler(
 
 export const addToWishlist = asyncHandler(
   async (req: Request, res: Response) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
       const { productId } = req.body as { productId?: string };
       const userId = req.user?._id;
 
       if (!productId) {
-        await session.abortTransaction();
         return fail(res, "Product ID is required", 400);
       }
 
@@ -66,26 +62,23 @@ export const addToWishlist = asyncHandler(
         _id: productId,
         status: "active",
         deletedAt: null,
-      }).lean().session(session);
+      }).lean();
 
       if (!product) {
-        await session.abortTransaction();
         return fail(res, "Product not found or not available", 404);
       }
 
-      let wishlist = await Wishlist.findOne({ user: userId }).session(session);
+      let wishlist = await Wishlist.findOne({ user: userId });
       if (!wishlist) {
         wishlist = new Wishlist({ user: userId, products: [] });
       }
 
       if (wishlist.products.some((p) => p.toString() === productId)) {
-        await session.abortTransaction();
         return fail(res, "Product already in wishlist", 400);
       }
 
       wishlist.products.push(new mongoose.Types.ObjectId(productId));
-      await wishlist.save({ session });
-      await session.commitTransaction();
+      await wishlist.save();
 
       return success(
         res,
@@ -96,7 +89,6 @@ export const addToWishlist = asyncHandler(
         "Product added to wishlist successfully",
       );
     } catch (error) {
-      await session.abortTransaction();
       logger.error({ err: error }, "Error in addToWishlist");
       if (error instanceof Error && error.name === "ValidationError") {
       return fail(res, "Validation failed", 400);
@@ -107,32 +99,23 @@ export const addToWishlist = asyncHandler(
       500,
       error instanceof Error ? error.message : error,
     );
-    } finally {
-      session.endSession();
     }
   },
 );
 
 export const removeFromWishlist = asyncHandler(
   async (req: Request, res: Response) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
       const { productId: rawProductId } = req.params;
       const productId = Array.isArray(rawProductId) ? rawProductId[0] : rawProductId;
       const userId = req.user?._id;
 
       if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
-        await session.abortTransaction();
         return fail(res, "Invalid product ID", 400);
       }
 
-      const wishlist = await Wishlist.findOne({ user: userId }).session(
-        session,
-      );
+      const wishlist = await Wishlist.findOne({ user: userId });
       if (!wishlist) {
-        await session.abortTransaction();
         return fail(res, "Wishlist not found", 404);
       }
 
@@ -142,12 +125,10 @@ export const removeFromWishlist = asyncHandler(
       );
 
       if (wishlist.products.length === initialCount) {
-        await session.abortTransaction();
         return fail(res, "Product not found in wishlist", 404);
       }
 
-      await wishlist.save({ session });
-      await session.commitTransaction();
+      await wishlist.save();
 
       return success(
         res,
@@ -158,15 +139,12 @@ export const removeFromWishlist = asyncHandler(
         "Product removed from wishlist",
       );
     } catch (error) {
-      await session.abortTransaction();
       logger.error({ err: error }, "Error in removeFromWishlist");
       return fail(
         res,
         "Failed to remove product from wishlist",
         500,
       );
-    } finally {
-      session.endSession();
     }
   },
 );

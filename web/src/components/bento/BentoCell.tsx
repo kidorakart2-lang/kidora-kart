@@ -66,12 +66,12 @@ export function BentoCellContent({ cell, className }: BentoCellContentProps) {
       )}
     >
       {cell.image ? (
-        <div className="absolute inset-0 flex items-center justify-center p-6">
+        <div className="absolute inset-0 overflow-hidden">
           <Image
             src={cell.image}
             alt={cell.title || ""}
             fill
-            className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             sizes="(max-width: 768px) 100vw, 50vw"
             draggable={false}
           />

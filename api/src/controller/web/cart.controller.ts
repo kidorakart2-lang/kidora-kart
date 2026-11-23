@@ -70,9 +70,6 @@ export const getCart = asyncHandler(async (req: Request, res: Response) => {
 
 // Add item to cart
 export const addToCart = asyncHandler(async (req: Request, res: Response) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     const { productId, quantity = 1, colorId } = req.body as {
       productId?: string;
@@ -82,7 +79,6 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user?._id;
 
     if (!productId) {
-      await session.abortTransaction();
       return fail(res, "Product ID is required", 400);
     }
 
@@ -92,20 +88,17 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
       deletedAt: null,
     })
       .select("stock")
-      .session(session)
       .lean();
 
     if (!product) {
-      await session.abortTransaction();
       return fail(res, "Product not found or not available", 404);
     }
 
     if (product.stock < (quantity ?? 1)) {
-      await session.abortTransaction();
       return fail(res, "Insufficient stock", 400, { availableStock: product.stock });
     }
 
-    let cart = await Cart.findOne({ user: userId }).session(session);
+    let cart = await Cart.findOne({ user: userId });
     if (!cart) {
       cart = new Cart({ user: userId, items: [] });
     }
@@ -123,7 +116,6 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
       : (quantity ?? 1);
 
     if (product.stock < newQty) {
-      await session.abortTransaction();
       return fail(res, "Insufficient stock", 400, { availableStock: product.stock });
     }
 
@@ -140,8 +132,7 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
       } as never);
     }
 
-    await cart.save({ session });
-    await session.commitTransaction();
+    await cart.save();
 
     return success(
       res,
@@ -154,7 +145,6 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
         : "Product added to cart",
     );
   } catch (error) {
-    await session.abortTransaction();
     logger.error({ err: error }, "Error in addToCart");
     if (error instanceof Error && error.name === "ValidationError") {
       return fail(res, "Validation failed", 400);
@@ -165,17 +155,12 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
       500,
       error instanceof Error ? error.message : error,
     );
-  } finally {
-    session.endSession();
   }
 });
 
 // Update cart item quantity
 export const updateCartItem = asyncHandler(
   async (req: Request, res: Response) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
       const { itemId: rawItemId } = req.params;
       const itemId = Array.isArray(rawItemId) ? rawItemId[0] : rawItemId;
@@ -183,18 +168,15 @@ export const updateCartItem = asyncHandler(
       const userId = req.user?._id;
 
       if (!itemId || !mongoose.Types.ObjectId.isValid(itemId)) {
-        await session.abortTransaction();
         return fail(res, "Invalid item ID", 400);
       }
 
       if (!quantity || quantity < 1) {
-        await session.abortTransaction();
         return fail(res, "Quantity must be at least 1", 400);
       }
 
-      const cart = await Cart.findOne({ user: userId }).session(session);
+      const cart = await Cart.findOne({ user: userId });
       if (!cart) {
-        await session.abortTransaction();
         return fail(res, "Cart not found", 404);
       }
 
@@ -202,23 +184,19 @@ export const updateCartItem = asyncHandler(
         (item) => item._id.toString() === itemId,
       );
       if (itemIndex === -1) {
-        await session.abortTransaction();
         return fail(res, "Item not found in cart", 404);
       }
 
       const item = cart.items[itemIndex];
       if (!item) {
-        await session.abortTransaction();
         return fail(res, "Item not found in cart", 404);
       }
 
       const product = await Product.findById(item.product)
         .select("stock")
-        .session(session)
         .lean();
 
       if (!product || product.stock < quantity) {
-        await session.abortTransaction();
         return fail(res, "Insufficient stock", 400, {
           availableStock: product?.stock ?? 0,
           currentQuantity: item.quantity,
@@ -226,8 +204,7 @@ export const updateCartItem = asyncHandler(
       }
 
       item.quantity = quantity!;
-      await cart.save({ session });
-      await session.commitTransaction();
+      await cart.save();
 
       return success(
         res,
@@ -235,15 +212,12 @@ export const updateCartItem = asyncHandler(
         "Cart updated successfully",
       );
     } catch (error) {
-      await session.abortTransaction();
       logger.error({ err: error }, "Error in updateCartItem");
       return fail(
         res,
         "Failed to update cart",
         500,
       );
-    } finally {
-      session.endSession();
     }
   },
 );
@@ -251,22 +225,17 @@ export const updateCartItem = asyncHandler(
 // Remove item from cart
 export const removeFromCart = asyncHandler(
   async (req: Request, res: Response) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
       const { itemId: rawItemId } = req.params;
       const itemId = Array.isArray(rawItemId) ? rawItemId[0] : rawItemId;
       const userId = req.user?._id;
 
       if (!itemId || !mongoose.Types.ObjectId.isValid(itemId)) {
-        await session.abortTransaction();
         return fail(res, "Invalid item ID", 400);
       }
 
-      const cart = await Cart.findOne({ user: userId }).session(session);
+      const cart = await Cart.findOne({ user: userId });
       if (!cart) {
-        await session.abortTransaction();
         return fail(res, "Cart not found", 404);
       }
 
@@ -276,12 +245,10 @@ export const removeFromCart = asyncHandler(
       ) as unknown as typeof cart.items;
 
       if (cart.items.length === initialCount) {
-        await session.abortTransaction();
         return fail(res, "Item not found in cart", 404);
       }
 
-      await cart.save({ session });
-      await session.commitTransaction();
+      await cart.save();
 
       return success(
         res,
@@ -289,15 +256,12 @@ export const removeFromCart = asyncHandler(
         "Item removed from cart",
       );
     } catch (error) {
-      await session.abortTransaction();
       logger.error({ err: error }, "Error in removeFromCart");
       return fail(
         res,
         "Failed to remove item from cart",
         500,
       );
-    } finally {
-      session.endSession();
     }
   },
 );
@@ -306,9 +270,6 @@ export const removeFromCart = asyncHandler(
 // Used by the checkout page when cart validation fails (invalid_color, deleted, etc.)
 export const removeFromCartByProduct = asyncHandler(
   async (req: Request, res: Response) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
       const { productId, colorId } = req.body as {
         productId?: string;
@@ -317,13 +278,11 @@ export const removeFromCartByProduct = asyncHandler(
       const userId = req.user?._id;
 
       if (!productId) {
-        await session.abortTransaction();
         return fail(res, "Product ID is required", 400);
       }
 
-      const cart = await Cart.findOne({ user: userId }).session(session);
+      const cart = await Cart.findOne({ user: userId });
       if (!cart) {
-        await session.abortTransaction();
         return fail(res, "Cart not found", 404);
       }
 
@@ -338,12 +297,10 @@ export const removeFromCartByProduct = asyncHandler(
       }) as unknown as typeof cart.items;
 
       if (cart.items.length === beforeCount) {
-        await session.abortTransaction();
         return fail(res, "Item not found in cart", 404);
       }
 
-      await cart.save({ session });
-      await session.commitTransaction();
+      await cart.save();
 
       return success(
         res,
@@ -351,49 +308,38 @@ export const removeFromCartByProduct = asyncHandler(
         "Item removed from cart",
       );
     } catch (error) {
-      await session.abortTransaction();
       logger.error({ err: error }, "Error in removeFromCartByProduct");
       return fail(
         res,
         "Failed to remove item from cart",
         500,
       );
-    } finally {
-      session.endSession();
     }
   },
 );
 
 // Clear cart
 export const clearCart = asyncHandler(async (req: Request, res: Response) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     const userId = req.user?._id;
 
     const result = await Cart.findOneAndUpdate(
       { user: userId },
       { $set: { items: [] } },
-      { new: true, session },
+      { new: true },
     );
 
     if (!result) {
-      await session.abortTransaction();
       return fail(res, "Cart not found", 404);
     }
 
-    await session.commitTransaction();
     return success(res, null, "Cart cleared successfully");
   } catch (error) {
-    await session.abortTransaction();
     logger.error({ err: error }, "Error in clearCart");
-      return fail(
-        res,
-        "Failed to clear cart",
-        500,
-      );
-  } finally {
-    session.endSession();
+    return fail(
+      res,
+      "Failed to clear cart",
+      500,
+    );
   }
 });
