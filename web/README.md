@@ -1,6 +1,6 @@
 # Web — Storefront
 
-Next.js 16 customer-facing storefront for the Kidora Kart e-commerce platform.
+Next.js 16 customer-facing storefront for the Jewel Box e-commerce platform.
 
 ## Tech Stack
 
@@ -186,7 +186,7 @@ Copy `web/.env.example` to `.env.local`:
 ```
 NEXT_PUBLIC_API_URL=http://localhost:5000/
 REVALIDATE_SECRET=your-random-secret-here
-NEXT_PUBLIC_CDN_HOST=cdn.kidorakart.com
+NEXT_PUBLIC_CDN_HOST=cdn.jewelbox.com
 ```
 
 | Variable | Description |

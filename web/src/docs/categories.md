@@ -1,6 +1,6 @@
-# Kidora Kart — Category Hierarchy
+# Jewel Box — Category Hierarchy
 
-> Simplified category hierarchy focused on basic kids toys.
+> Simplified category hierarchy focused on fashion & occasion jewellery.
 
 ---
 
@@ -8,121 +8,119 @@
 
 | # | Name | Slug | Order | Description |
 |---|------|------|-------|-------------|
-| 1 | Soft Toys & Dolls | soft-toys-dolls | 1 | Plush toys, teddy bears, dolls and accessories |
-| 2 | Educational Toys | educational-toys | 2 | STEM kits, puzzles, and learning aids |
-| 3 | Action Figures & Playsets | action-figures-playsets | 3 | Action figures, building sets, and playsets |
-| 4 | Outdoor & Sports | outdoor-sports | 4 | Ride-ons, sports equipment, and outdoor play |
-| 5 | Arts & Crafts | arts-crafts | 5 | Drawing, painting, and creative activity sets |
-| 6 | Board Games & Puzzles | board-games-puzzles | 6 | Family games, card games, and jigsaw puzzles |
+| 1 | Earrings | earrings | 1 | Jhumkas, studs, hoops and chandbali |
+| 2 | Necklaces | necklaces | 2 | Chains, pendants, chokers and temple necklaces |
+| 3 | Rings | rings | 3 | Casual, cocktail and adjustable rings |
+| 4 | Bangles & Bracelets | bangles-bracelets | 4 | Bangles, bracelets and kada |
+| 5 | Bridal Jewellery | bridal-jewellery | 5 | Bridal sets, maang tikka and nath |
+| 6 | Anklets & Accessories | anklets-accessories | 6 | Anklets, nose pins and hair accessories |
 
 ---
 
 ## Sub-Categories (Level 2)
 
-### 1. Soft Toys & Dolls
+### 1. Earrings
 
 | Name | Slug | Order |
 |------|------|-------|
-| Teddy Bears | teddy-bears | 1 |
-| Character Plush | character-plush | 2 |
-| Baby Dolls | baby-dolls | 3 |
-| Puppets | puppets | 4 |
+| Jhumkas | jhumkas | 1 |
+| Studs | studs | 2 |
+| Hoops | hoops | 3 |
+| Chandbali | chandbali | 4 |
 
-### 2. Educational Toys
-
-| Name | Slug | Order |
-|------|------|-------|
-| STEM Kits | stem-kits | 1 |
-| Puzzles | puzzles | 2 |
-| Flash Cards & Books | flash-cards-books | 3 |
-| Math & Logic Games | math-logic-games | 4 |
-
-### 3. Action Figures & Playsets
+### 2. Necklaces
 
 | Name | Slug | Order |
 |------|------|-------|
-| Superhero Figures | superhero-figures | 1 |
-| Building Sets | building-sets | 2 |
-| Vehicle Playsets | vehicle-playsets | 3 |
+| Chains | chains | 1 |
+| Pendants | pendants | 2 |
+| Choker Sets | choker-sets | 3 |
+| Temple Necklaces | temple-necklaces | 4 |
 
-### 4. Outdoor & Sports
-
-| Name | Slug | Order |
-|------|------|-------|
-| Sports Equipment | sports-equipment | 1 |
-| Water Toys | water-toys | 2 |
-| Ride-Ons | ride-ons | 3 |
-| Play Tents & Tunnels | play-tents-tunnels | 4 |
-
-### 5. Arts & Crafts
+### 3. Rings
 
 | Name | Slug | Order |
 |------|------|-------|
-| Drawing & Coloring | drawing-coloring | 1 |
-| Clay & Modeling | clay-modeling | 2 |
-| DIY Craft Kits | diy-craft-kits | 3 |
-| Painting Sets | painting-sets | 4 |
+| Casual Rings | casual-rings | 1 |
+| Cocktail Rings | cocktail-rings | 2 |
+| Adjustable Rings | adjustable-rings | 3 |
 
-### 6. Board Games & Puzzles
+### 4. Bangles & Bracelets
 
 | Name | Slug | Order |
 |------|------|-------|
-| Family Board Games | family-board-games | 1 |
-| Card Games | card-games | 2 |
-| Jigsaw Puzzles | jigsaw-puzzles | 3 |
+| Bangles | bangles | 1 |
+| Bracelets | bracelets | 2 |
+| Kada | kada | 3 |
+
+### 5. Bridal Jewellery
+
+| Name | Slug | Order |
+|------|------|-------|
+| Bridal Necklace Sets | bridal-necklace-sets | 1 |
+| Bridal Earring Sets | bridal-earring-sets | 2 |
+| Maang Tikka | maang-tikka | 3 |
+| Nath | nath | 4 |
+
+### 6. Anklets & Accessories
+
+| Name | Slug | Order |
+|------|------|-------|
+| Anklets | anklets | 1 |
+| Nose Pins | nose-pins | 2 |
+| Hair Accessories | hair-accessories | 3 |
 
 ---
 
 ## Sub-Sub-Categories (Level 3)
 
-### 2.2 Puzzles
+### 1.1 Jhumkas
 
 | Name | Slug | Order |
 |------|------|-------|
-| Wooden Puzzles | wooden-puzzles | 1 |
-| Floor Puzzles | floor-puzzles | 2 |
-| 3D Puzzles | 3d-puzzles | 3 |
-| Alphabet & Number Puzzles | alphabet-number-puzzles | 4 |
+| Antique Jhumkas | antique-jhumkas | 1 |
+| Pearl Jhumkas | pearl-jhumkas | 2 |
+| Kundan Jhumkas | kundan-jhumkas | 3 |
 
-### 3.1 Superhero Figures
-
-| Name | Slug | Order |
-|------|------|-------|
-| Marvel Action Figures | marvel-action-figures | 1 |
-| DC Action Figures | dc-action-figures | 2 |
-| Movie Character Figures | movie-character-figures | 3 |
-
-### 3.2 Building Sets
+### 2.2 Pendants
 
 | Name | Slug | Order |
 |------|------|-------|
-| Classic Building Blocks | classic-building-blocks | 1 |
-| Magnetic Building Sets | magnetic-building-sets | 2 |
-| Construction Fort Kits | construction-fort-kits | 3 |
+| Gold-Plated Pendants | gold-plated-pendants | 1 |
+| Stone Pendants | stone-pendants | 2 |
+| Pearl Pendants | pearl-pendants | 3 |
 
-### 4.1 Sports Equipment
-
-| Name | Slug | Order |
-|------|------|-------|
-| Cricket Sets | cricket-sets | 1 |
-| Football & Soccer | football-soccer | 2 |
-| Basketball Sets | basketball-sets | 3 |
-
-### 6.1 Family Board Games
+### 2.3 Choker Sets
 
 | Name | Slug | Order |
 |------|------|-------|
-| Classic Board Games | classic-board-games | 1 |
-| Educational Board Games | educational-board-games | 2 |
-| Party Games | party-games | 3 |
+| Kundan Chokers | kundan-chokers | 1 |
+| Pearl Chokers | pearl-chokers | 2 |
+| Oxidised Chokers | oxidised-chokers | 3 |
 
-### 6.2 Card Games
+### 4.1 Bangles
 
 | Name | Slug | Order |
 |------|------|-------|
-| Memory Card Games | memory-card-games | 1 |
-| Matching Games | matching-games | 2 |
-| UNO & Party Card Games | uno-party-card-games | 3 |
+| Gold-Plated Bangles | gold-plated-bangles | 1 |
+| Stone Bangles | stone-bangles | 2 |
+| Kundan Bangles | kundan-bangles | 3 |
+
+### 4.2 Bracelets
+
+| Name | Slug | Order |
+|------|------|-------|
+| Chain Bracelets | chain-bracelets | 1 |
+| Charm Bracelets | charm-bracelets | 2 |
+| Stone Bracelets | stone-bracelets | 3 |
+
+### 5.1 Bridal Necklace Sets
+
+| Name | Slug | Order |
+|------|------|-------|
+| Kundan Sets | kundan-sets | 1 |
+| Polki Sets | polki-sets | 2 |
+| Pearl Sets | pearl-sets | 3 |
 
 ---
 
@@ -130,5 +128,5 @@
 
 - **6** Top-level categories
 - **22** Sub-categories
-- **19** Sub-sub-categories
-- **Total: 47** hierarchical nodes
+- **18** Sub-sub-categories
+- **Total: 46** hierarchical nodes

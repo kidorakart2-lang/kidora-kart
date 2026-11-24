@@ -16,7 +16,7 @@ const OurPolicy = () => {
     {
       title: "Quality Assurance",
       description:
-        `At ${siteConfig.name}, we are committed to providing our customers with the highest quality toys. Each product is carefully curated and inspected to ensure it meets our strict quality standards before reaching you.`,
+        `At ${siteConfig.name}, we are committed to providing our customers with the highest quality jewellery. Each piece is carefully curated and inspected to ensure it meets our strict quality standards before reaching you.`,
       icon: Shield,
     },
     {
@@ -131,7 +131,7 @@ const OurPolicy = () => {
             <div className="bg-muted border border-border rounded-lg p-4 pl-7">
               <p className="text-sm text-muted-foreground leading-relaxed">
                 <strong className="text-foreground">Note:</strong> For personalized or custom
-                toy orders, cancellations may not be available once
+                jewellery orders, cancellations may not be available once
                 production has begun. Please contact us immediately if you need
                 to make changes.
               </p>
@@ -182,8 +182,8 @@ const OurPolicy = () => {
               <strong className="text-foreground">
                 100% Quality Guaranteed
               </strong>
-              , ensuring safety and quality in every item. All our toys meet
-              the highest safety standards for your child's enjoyment.
+              , ensuring safety and quality in every item. All our jewellery meets
+              the highest quality standards and is made to last.
             </p>
           </div>
         </motion.div>
@@ -207,9 +207,9 @@ const OurPolicy = () => {
                 </h3>
               </div>
               <p className="text-muted-foreground leading-relaxed pl-7">
-                Unsure about which toy is right for your child? Contact our
-                customer service for assistance in finding the perfect toy
-                for any age group.
+                Not sure about the right size, length or fit? Contact our
+                customer service for assistance in finding the perfect piece
+                for every occasion.
               </p>
             </div>
 
@@ -221,9 +221,9 @@ const OurPolicy = () => {
                 </h3>
               </div>
               <p className="text-muted-foreground leading-relaxed pl-7">
-                Looking for something special? We offer custom toy and gift
-                options. Contact us to discuss your needs and we'll help find
-                the perfect present.
+                Looking for something special? We offer custom jewellery and
+                gifting options. Contact us to discuss your needs and we'll
+                help find the perfect present.
               </p>
             </div>
           </div>

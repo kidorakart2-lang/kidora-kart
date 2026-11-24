@@ -6,6 +6,7 @@ import type { RootState } from "../store/store";
 
 import { makeStore } from "../store/store";
 import Image from "next/image";
+import BrandLogo from "@/components/comman/BrandLogo";
 import GuestDataInitializer from "@/components/providers/GuestDataInitializer";
 import QueryProvider from "@/app/QueryProvider";
 import { CacheInvalidationProvider } from "@/lib/useCacheInvalidation";
@@ -15,13 +16,17 @@ const Loading = () => {
 
   return (
     <div className="max-w-[1200px] mx-auto flex flex-col items-center justify-center w-full h-screen bg-background">
-      <Image
-        src={logo || "/images/logo.webp"}
-        className="animate-pulse w-24 h-20"
-        alt="Loading"
-        width={100}
-        height={100}
-      />
+      {logo ? (
+        <Image
+          src={logo}
+          className="animate-pulse w-24 h-20"
+          alt="Loading"
+          width={100}
+          height={100}
+        />
+      ) : (
+        <BrandLogo size="lg" className="animate-pulse" />
+      )}
     </div>
   );
 };

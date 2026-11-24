@@ -93,7 +93,7 @@ export default function OrderTracking() {
         key: keyId,
         amount: amount * 100,
         currency: currency,
-        name: "Kidora Kart",
+        name: "Jewel Box",
         description: `Order ${orderIdVal}`,
         order_id: razorpayOrderId,
         prefill: {

@@ -493,9 +493,9 @@ export default function Checkout() {
         key: keyId,
         amount: amount * 100, // Amount in paise
         currency: currency,
-        name: "Kidora Kart",
+        name: "Jewel Box",
         description: `Order #${orderId}`,
-        image: logo || "/images/logo.webp", // Your logo
+        image: logo || undefined, // Admin-uploaded logo (omitted when none)
         order_id: razorpayOrderId,
         prefill: {
           name: orderData.shippingAddress.fullName,

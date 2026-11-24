@@ -270,10 +270,6 @@ body[data-scroll-lock="true"] {
   opacity: 0;
 }
 
-.toy-swiper {
-  padding: 20px 0;
-}
-
 .banner-swiper .swiper-pagination-bullet {
   width: 8px;
   height: 8px;

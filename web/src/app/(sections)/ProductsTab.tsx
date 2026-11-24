@@ -2,7 +2,7 @@ import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductCard from "@/components/comman/ProductCard";
 import HoverButton from "@/components/comman/HoverButton";
-import { Zap, Dices, Boxes, Sparkles } from "lucide-react";
+import { Gem, Crown, Sparkles } from "lucide-react";
 
 import type { ProductData } from "@/types";
 import { getProducts } from "@/lib/get-products";
@@ -12,40 +12,40 @@ import { getCategoryHref } from "@/lib/category-nav";
 import { getNavCategories } from "@/lib/home-data";
 
 const TIER_COLORS = [
-  "var(--brand-card-3-icon)", // action figures — green
-  "var(--brand-card-5-icon)", // board games — sky
-  "var(--brand-card-1-icon)", // building blocks — gold
+  "var(--brand-card-2-icon)", // earrings — wine
+  "var(--brand-card-1-icon)", // necklaces — gold
+  "var(--brand-card-3-icon)", // bangles — emerald
 ] as const;
 
 export default async function ProductsTab() {
-  const [actionFiguresData, boardGamesData, buildingBlocksData, categories] =
+  const [earringsData, necklacesData, banglesData, categories] =
     await Promise.all([
-      getProducts("action-figures"),
-      getProducts("board-games"),
-      getProducts("building-blocks"),
+      getProducts("earrings"),
+      getProducts("necklaces"),
+      getProducts("bangles"),
       getNavCategories(),
     ]);
 
   const tabItems = [
     {
-      value: "action-figures",
-      label: "Action Figures",
-      data: actionFiguresData,
-      icon: Zap,
+      value: "earrings",
+      label: "Earrings",
+      data: earringsData,
+      icon: Gem,
       color: TIER_COLORS[0],
     },
     {
-      value: "board-games",
-      label: "Board Games",
-      data: boardGamesData,
-      icon: Dices,
+      value: "necklaces",
+      label: "Necklaces",
+      data: necklacesData,
+      icon: Crown,
       color: TIER_COLORS[1],
     },
     {
-      value: "building-blocks",
-      label: "Building Blocks",
-      data: buildingBlocksData,
-      icon: Boxes,
+      value: "bangles",
+      label: "Bangles",
+      data: banglesData,
+      icon: Sparkles,
       color: TIER_COLORS[2],
     },
   ];
@@ -55,7 +55,7 @@ export default async function ProductsTab() {
       <div className="section-container relative z-10">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="section-heading relative inline-block mb-4">
-            Our Products Collection
+            Our Jewellery Collection
             <svg
               viewBox="0 0 120 12"
               className="absolute -bottom-3 left-1/2 h-3 w-28 -translate-x-1/2"
@@ -72,8 +72,8 @@ export default async function ProductsTab() {
             </svg>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base lg:text-lg fw-body leading-relaxed mt-6">
-            Discover our exciting collection of toys and games, designed to
-            bring joy and learning to every child&apos;s day.
+            Discover our exquisite collection of jewellery, crafted to add
+            sparkle to every occasion.
           </p>
         </div>
 

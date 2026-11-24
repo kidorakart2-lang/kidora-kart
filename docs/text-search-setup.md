@@ -39,7 +39,7 @@ mongosh "mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>"
 Or if running locally:
 ```bash
 mongosh
-use kidora-kart
+use jewelbox
 ```
 
 ### Step 2: Verify the Index Exists

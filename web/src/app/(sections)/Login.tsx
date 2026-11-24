@@ -29,6 +29,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Image from "next/image";
+import BrandLogo from "@/components/comman/BrandLogo";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -141,13 +142,17 @@ const LoginPage = () => {
       <Card className={"w-full max-w-md"}>
         <div className="flex justify-center mt-6">
           <Link href="/">
-            <Image
-              src={logo || "/images/logo.webp"}
-              alt="Logo"
-              width={120}
-              height={50}
-              className="h-12 w-auto object-contain"
-            />
+            {logo ? (
+              <Image
+                src={logo}
+                alt="Logo"
+                width={120}
+                height={50}
+                className="h-12 w-auto object-contain"
+              />
+            ) : (
+              <BrandLogo size="md" />
+            )}
           </Link>
         </div>
         <CardHeader>

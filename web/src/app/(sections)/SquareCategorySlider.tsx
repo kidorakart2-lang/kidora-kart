@@ -33,7 +33,7 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
         </div>
 
         <p className="text-sm sm:text-base text-muted-foreground fw-body tracking-widest italic mt-4">
-          Fun for Kids of All Ages
+          Trendy · Elegant · Timeless
         </p>
       </div>
 

@@ -1,6 +1,6 @@
 # Admin Panel — Next.js Dashboard
 
-Next.js 16 admin dashboard with shadcn/ui components for managing the Kidora Kart e-commerce platform.
+Next.js 16 admin dashboard with shadcn/ui components for managing the Jewel Box e-commerce platform.
 
 ## Tech Stack
 
@@ -85,8 +85,8 @@ Copy `admin-panel/.env.example` to `.env.local`:
 NEXT_PUBLIC_BACKEND_URL=http://localhost:5000/
 NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
 REVALIDATE_SECRET=your-random-secret-here
-NEXT_PUBLIC_SUPPORT_EMAIL=support@kidorakart.com
-NEXT_PUBLIC_CDN_HOST=cdn.kidorakart.com
+NEXT_PUBLIC_SUPPORT_EMAIL=support@jewelbox.com
+NEXT_PUBLIC_CDN_HOST=cdn.jewelbox.com
 ```
 
 | Variable | Description |

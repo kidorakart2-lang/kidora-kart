@@ -1,6 +1,6 @@
 # Shiprocket Shipping Integration — Full Analysis
 
-> **Project:** Kidora Kart (Toy Shop)
+> **Project:** Jewel Box (Jewellery)
 > **Status:** ✅ Core integration complete. Critical gaps fixed (cancellation + RTO + order ID persistence).
 > **Last Updated:** July 26, 2026
 
@@ -455,7 +455,7 @@ Shiprocket sends the following payload when a tracking status changes:
   "shipment_status": "Delivered",
   "shipment_status_id": 7,
   "channel_order_id": "123456",
-  "channel": "Kidora Kart",
+  "channel": "Jewel Box",
   "courier_name": "Delhivery",
   "scans": [
     {

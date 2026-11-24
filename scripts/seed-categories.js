@@ -16,7 +16,7 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "bluehawk1711@gmail.com";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "1234567890";
 
 // Placeholder image for sub-categories & sub-sub-categories
-const PLACEHOLDER_IMAGE = "https://placehold.co/400x400/f0f0f0/333?text=Toy";
+const PLACEHOLDER_IMAGE = "https://placehold.co/400x400/fbece7/8b1e3f?text=Jewel";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function toFormData(obj) {
@@ -160,91 +160,89 @@ function buildNameIdMap(records) {
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { name: "Soft Toys & Dolls", order: 1 },
-  { name: "Educational Toys", order: 2 },
-  { name: "Action Figures & Playsets", order: 3 },
-  { name: "Outdoor & Sports", order: 4 },
-  { name: "Arts & Crafts", order: 5 },
-  { name: "Board Games & Puzzles", order: 6 },
+  { name: "Earrings", order: 1 },
+  { name: "Necklaces", order: 2 },
+  { name: "Rings", order: 3 },
+  { name: "Bangles & Bracelets", order: 4 },
+  { name: "Bridal Jewellery", order: 5 },
+  { name: "Anklets & Accessories", order: 6 },
 ];
 
 // Sub-categories keyed by PARENT CATEGORY NAME (not slug)
 const SUBCATEGORIES = {
-  "Soft Toys & Dolls": [
-    { name: "Teddy Bears", order: 1 },
-    { name: "Character Plush", order: 2 },
-    { name: "Baby Dolls", order: 3 },
-    { name: "Puppets", order: 4 },
+  "Earrings": [
+    { name: "Jhumkas", order: 1 },
+    { name: "Studs", order: 2 },
+    { name: "Hoops", order: 3 },
+    { name: "Chandbali", order: 4 },
   ],
-  "Educational Toys": [
-    { name: "STEM Kits", order: 1 },
-    { name: "Puzzles", order: 2 },
-    { name: "Flash Cards & Books", order: 3 },
-    { name: "Math & Logic Games", order: 4 },
+  "Necklaces": [
+    { name: "Chains", order: 1 },
+    { name: "Pendants", order: 2 },
+    { name: "Choker Sets", order: 3 },
+    { name: "Temple Necklaces", order: 4 },
   ],
-  "Action Figures & Playsets": [
-    { name: "Superhero Figures", order: 1 },
-    { name: "Building Sets", order: 2 },
-    { name: "Vehicle Playsets", order: 3 },
+  "Rings": [
+    { name: "Casual Rings", order: 1 },
+    { name: "Cocktail Rings", order: 2 },
+    { name: "Adjustable Rings", order: 3 },
   ],
-  "Outdoor & Sports": [
-    { name: "Sports Equipment", order: 1 },
-    { name: "Water Toys", order: 2 },
-    { name: "Ride-Ons", order: 3 },
-    { name: "Play Tents & Tunnels", order: 4 },
+  "Bangles & Bracelets": [
+    { name: "Bangles", order: 1 },
+    { name: "Bracelets", order: 2 },
+    { name: "Kada", order: 3 },
   ],
-  "Arts & Crafts": [
-    { name: "Drawing & Coloring", order: 1 },
-    { name: "Clay & Modeling", order: 2 },
-    { name: "DIY Craft Kits", order: 3 },
-    { name: "Painting Sets", order: 4 },
+  "Bridal Jewellery": [
+    { name: "Bridal Necklace Sets", order: 1 },
+    { name: "Bridal Earring Sets", order: 2 },
+    { name: "Maang Tikka", order: 3 },
+    { name: "Nath", order: 4 },
   ],
-  "Board Games & Puzzles": [
-    { name: "Family Board Games", order: 1 },
-    { name: "Card Games", order: 2 },
-    { name: "Jigsaw Puzzles", order: 3 },
+  "Anklets & Accessories": [
+    { name: "Anklets", order: 1 },
+    { name: "Nose Pins", order: 2 },
+    { name: "Hair Accessories", order: 3 },
   ],
 };
 
 // Sub-sub-categories keyed by PARENT SUB-CATEGORY NAME
 const SUBSUBCATEGORIES = {
-  "Puzzles": [
-    { name: "Wooden Puzzles", order: 1 },
-    { name: "Floor Puzzles", order: 2 },
-    { name: "3D Puzzles", order: 3 },
-    { name: "Alphabet & Number Puzzles", order: 4 },
+  "Jhumkas": [
+    { name: "Antique Jhumkas", order: 1 },
+    { name: "Pearl Jhumkas", order: 2 },
+    { name: "Kundan Jhumkas", order: 3 },
   ],
-  "Superhero Figures": [
-    { name: "Marvel Action Figures", order: 1 },
-    { name: "DC Action Figures", order: 2 },
-    { name: "Movie Character Figures", order: 3 },
+  "Pendants": [
+    { name: "Gold-Plated Pendants", order: 1 },
+    { name: "Stone Pendants", order: 2 },
+    { name: "Pearl Pendants", order: 3 },
   ],
-  "Building Sets": [
-    { name: "Classic Building Blocks", order: 1 },
-    { name: "Magnetic Building Sets", order: 2 },
-    { name: "Construction Fort Kits", order: 3 },
+  "Bangles": [
+    { name: "Gold-Plated Bangles", order: 1 },
+    { name: "Stone Bangles", order: 2 },
+    { name: "Kundan Bangles", order: 3 },
   ],
-  "Sports Equipment": [
-    { name: "Cricket Sets", order: 1 },
-    { name: "Football & Soccer", order: 2 },
-    { name: "Basketball Sets", order: 3 },
+  "Bridal Necklace Sets": [
+    { name: "Kundan Sets", order: 1 },
+    { name: "Polki Sets", order: 2 },
+    { name: "Pearl Sets", order: 3 },
   ],
-  "Family Board Games": [
-    { name: "Classic Board Games", order: 1 },
-    { name: "Educational Board Games", order: 2 },
-    { name: "Party Games", order: 3 },
+  "Choker Sets": [
+    { name: "Kundan Chokers", order: 1 },
+    { name: "Pearl Chokers", order: 2 },
+    { name: "Oxidised Chokers", order: 3 },
   ],
-  "Card Games": [
-    { name: "Memory Card Games", order: 1 },
-    { name: "Matching Games", order: 2 },
-    { name: "UNO & Party Card Games", order: 3 },
+  "Bracelets": [
+    { name: "Chain Bracelets", order: 1 },
+    { name: "Charm Bracelets", order: 2 },
+    { name: "Stone Bracelets", order: 3 },
   ],
 };
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 async function main() {
   console.log("=".repeat(60));
-  console.log("  Kidora Kart — Category Seeder");
+  console.log("  Jewel Box — Category Seeder");
   console.log("=".repeat(60) + "\n");
 
   await login();

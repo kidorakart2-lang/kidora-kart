@@ -19,7 +19,7 @@ export default function AnnouncementBar() {
     <div className="w-full bg-[var(--brand-primary-dark)] text-background text-[13px] py-2 relative">
       <div className="flex items-center justify-center gap-2 px-10">
         <Truck size={14} />
-        <span className="fw-body">Free shipping on orders over ₹999</span>
+        <span className="fw-body">Free shipping on orders over ₹499</span>
       </div>
       <button
         onClick={dismiss}

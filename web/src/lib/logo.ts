@@ -1,4 +1,5 @@
-const FALLBACK_LOGO = "/images/logo.webp";
+// No stored logo → callers render the <BrandLogo /> wordmark instead.
+const FALLBACK_LOGO = "";
 
 import type { LogoData } from "@/types";
 import { serverFetch } from "@/lib/server-fetch";

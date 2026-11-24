@@ -1,4 +1,4 @@
-import { Lato } from "next/font/google";
+import { Lato, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import "./themes/minimal.css";
 import "./themes/brown.css";
@@ -32,10 +32,20 @@ const lato = Lato({
   variable: "--font-lato",
 });
 
+// Elegant serif for the brand wordmark and display headings — the
+// "Jewel Box" identity reads as classic jewellery, not sans-serif retail.
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  adjustFontFallback: true,
+  variable: "--font-playfair",
+});
+
 export const metadata = {
   ...defaultMetadata,
   title: {
-    default: `${siteConfig.name} - Online Toy Store in ${siteConfig.address.city} | Toys & Games`,
+    default: `${siteConfig.name} - Online Jewellery Store in ${siteConfig.address.city} | Fine Jewellery`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -43,7 +53,7 @@ export const metadata = {
     canonical: siteConfig.url,
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: "/favicon.svg",
   },
 };
 
@@ -56,7 +66,7 @@ function OrganizationSchema() {
     name: siteConfig.name,
     legalName: siteConfig.legalName,
     url: siteConfig.url,
-    logo: `${siteConfig.url}/logo.webp`,
+    logo: `${siteConfig.url}/favicon.svg`,
     description: siteConfig.description,
     foundingDate: siteConfig.business.foundedYear,
     priceRange: siteConfig.business.priceRange,
@@ -227,12 +237,12 @@ export default async function RootLayout({
         <meta name="geo.placename" content={siteConfig.address.city} />
         <meta name="geo.position" content={`${siteConfig.address.geo.lat};${siteConfig.address.geo.lng}`} />
         <meta name="ICBM" content={`${siteConfig.address.geo.lat}, ${siteConfig.address.geo.lng}`} />
-        <link rel="icon" href="/logo.ico" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <meta name="theme-color" content={siteConfig.themeColor} />
         <meta name="msapplication-TileColor" content={siteConfig.themeColor} />
       </head>
       <body
-        className={`pt-0 !mr-0 bg-background antialiased flex flex-col ${lato.variable} pb-12 md:pb-0`}
+        className={`pt-0 !mr-0 bg-background text-foreground antialiased flex flex-col ${lato.variable} ${playfair.variable} pb-12 md:pb-0`}
       >
         <ThemeColorMeta />
         <Suspense fallback={

@@ -253,7 +253,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
         <Breadcrumb
           items={[
             {
-              label: product.category?.[0]?.name || "Toys",
+              label: product.category?.[0]?.name || "Jewellery",
               href: `/category/${product.category?.[0]?.slug || ""}`,
             },
             ...(product.subCategory?.[0]?.name

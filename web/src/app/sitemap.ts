@@ -63,14 +63,16 @@ async function getCategoriesForSitemap(): Promise<SitemapCategory[]> {
 }
 
 export default async function sitemap() {
-  const baseUrl = siteConfig.url;
+  // siteConfig.url never has a trailing slash — join with "/" explicitly.
+  const baseUrl = siteConfig.url.replace(/\/+$/, "");
+  const join = (path: string) => (path ? `${baseUrl}/${path}` : baseUrl);
 
   let products: { url: string; lastModified: Date; changeFrequency: string; priority: number }[] = [];
   try {
     const data = await getProductsForSitemap();
     products =
       data?.map((product: SitemapProduct) => ({
-        url: `${baseUrl}product-details/${product.slug}`,
+        url: join(`product-details/${product.slug}`),
         lastModified: product.updatedAt ? new Date(product.updatedAt) : new Date(),
         changeFrequency: "weekly" as const,
         priority: 0.8,
@@ -91,7 +93,7 @@ export default async function sitemap() {
   ];
 
   const staticRoutes = staticRouteConfigs.map((route) => ({
-    url: `${baseUrl}${route.path}`,
+    url: join(route.path),
     lastModified: new Date(),
     changeFrequency: (route.changeFreq || "monthly") as "daily" | "weekly" | "monthly",
     priority: route.priority,
@@ -132,7 +134,7 @@ export default async function sitemap() {
       const isProduct = isProductCategory(categorySlug);
 
       urls.push({
-        url: `${baseUrl}${urlPrefix(categorySlug)}`,
+        url: join(urlPrefix(categorySlug)),
         lastModified: new Date(category.updatedAt || ""),
         changeFrequency: "weekly",
         priority: categorySlug === "home" ? 1.0 : 0.8,
@@ -147,7 +149,7 @@ export default async function sitemap() {
           if (!subCategory.status || subCategory.deletedAt) return;
 
           urls.push({
-            url: `${baseUrl}category/${categorySlug}/${subCategory.slug}`,
+            url: join(`category/${categorySlug}/${subCategory.slug}`),
             lastModified: new Date(subCategory.updatedAt || ""),
             changeFrequency: "weekly",
             priority: 0.8,
@@ -161,7 +163,7 @@ export default async function sitemap() {
               if (!subSubCategory.status || subSubCategory.deletedAt) return;
 
               urls.push({
-                url: `${baseUrl}category/${categorySlug}/${subCategory.slug}/${subSubCategory.slug}`,
+                url: join(`category/${categorySlug}/${subCategory.slug}/${subSubCategory.slug}`),
                 lastModified: new Date(subSubCategory.updatedAt || ""),
                 changeFrequency: "weekly",
                 priority: 0.8,

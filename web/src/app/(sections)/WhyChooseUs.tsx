@@ -30,17 +30,17 @@ const iconMap: Record<string, typeof Gem> = {
   Sparkle,
 };
 
-// Toy-box palette — one candy color per card, cycled by index.
+// Gem-tone palette — one jewellery colour per card, cycled by index.
 // Uses CSS custom properties from the theme so colors adapt in dark mode.
-const TOY_TOKENS = [
-  { icon: "var(--brand-card-2-icon)", soft: "var(--brand-card-2-bg)" },  // coral
-  { icon: "var(--brand-card-5-icon)", soft: "var(--brand-card-5-bg)" },  // sky
-  { icon: "var(--brand-card-1-icon)", soft: "var(--brand-card-1-bg)" },  // amber
-  { icon: "var(--brand-card-3-icon)", soft: "var(--brand-card-3-bg)" },  // grass
+const JEWEL_TOKENS = [
+  { icon: "var(--brand-card-2-icon)", soft: "var(--brand-card-2-bg)" },  // wine
+  { icon: "var(--brand-card-1-icon)", soft: "var(--brand-card-1-bg)" },  // gold
+  { icon: "var(--brand-card-3-icon)", soft: "var(--brand-card-3-bg)" },  // emerald
+  { icon: "var(--brand-card-5-icon)", soft: "var(--brand-card-5-bg)" },  // rose
 ] as const;
 
-// Alternating resting tilts so the row reads like toys set down on a
-// shelf, not a rigid grid. motion-safe: keeps this off for users who
+// Alternating resting tilts so the row reads like pieces laid out on a
+// velvet tray, not a rigid grid. motion-safe: keeps this off for users who
 // have reduced motion enabled.
 const TILTS = [
   "motion-safe:-rotate-2",
@@ -64,7 +64,7 @@ const WhyChooseUsItem = ({
   index: number;
 }) => {
   const IconComponent = iconMap[item.image] || Gem;
-  const palette = TOY_TOKENS[index % TOY_TOKENS.length];
+  const palette = JEWEL_TOKENS[index % JEWEL_TOKENS.length];
   const tilt = TILTS[index % TILTS.length];
 
   return (
@@ -75,7 +75,7 @@ const WhyChooseUsItem = ({
         className="relative overflow-visible rounded-[28px] border-2 bg-card pt-9 transition-shadow duration-300"
         style={{
           borderColor: palette.soft,
-          boxShadow: `0 10px 0 0 color-mix(in srgb, ${palette.icon} 35%, transparent)`,
+          boxShadow: `0 14px 30px -18px color-mix(in srgb, ${palette.icon} 60%, transparent)`,
         }}
       >
         {/* Icon badge, popped above the card edge like a block stud */}
@@ -86,7 +86,7 @@ const WhyChooseUsItem = ({
           >
             <IconComponent size={28} className="text-white" strokeWidth={2} />
           </div>
-          {/* two little studs either side, echoing a toy brick */}
+          {/* two little studs either side, echoing a gem setting */}
           <span
             className="absolute -top-1.5 left-1"
             style={{ color: palette.icon }}
@@ -128,7 +128,7 @@ const WhyChooseUsContent = async () => {
 };
 
 const SkeletonCard = ({ index }: { index: number }) => {
-  const palette = TOY_TOKENS[index % TOY_TOKENS.length];
+  const palette = JEWEL_TOKENS[index % JEWEL_TOKENS.length];
   return (
     <div className="relative pt-9">
       <div
@@ -178,7 +178,7 @@ const WhyChooseUs = () => {
             </svg>
           </h2>
           <p className="section-subheading mt-6">
-            Experience excellence in every aspect of your toy shopping
+            Experience excellence in every aspect of your jewellery shopping
             experience
           </p>
         </div>

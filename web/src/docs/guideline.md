@@ -1,4 +1,4 @@
-# Web Development Guidelines — Kidora Kart
+# Web Development Guidelines — Jewel Box
 
 ## Project Structure
 

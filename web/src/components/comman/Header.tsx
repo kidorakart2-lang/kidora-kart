@@ -20,6 +20,7 @@ import MobileNav from "./MobileNav";
 import DesktopNav from "./DesktopNav";
 import SearchPanel from "./SearchPanel";
 import IconGroup from "./IconGroup";
+import BrandLogo from "./BrandLogo";
 import type { CategoryItem } from "./header-types";
 
 interface HeaderProps {
@@ -181,7 +182,7 @@ export default function Header({ navigationData }: HeaderProps) {
       <AnnouncementBar />
 
       <header
-        className={`sticky top-0 left-0 z-[190] w-full bg-background/95 backdrop-blur border-b border-border transition-[box-shadow] duration-500  ${
+        className={`sticky top-0 left-0 z-[190] w-full bg-[color-mix(in_srgb,var(--brand-section-bg)_94%,transparent)] backdrop-blur border-b border-border transition-[box-shadow] duration-500  ${
           isScrolled ? "shadow-sm" : ""
         }`}
       >
@@ -199,13 +200,20 @@ export default function Header({ navigationData }: HeaderProps) {
           </button>
 
           <Link href="/" className="shrink-0 flex items-center">
-            <Image
-              src={logo || "/images/logo.webp"}
-              alt={siteConfig.name}
-              width={140}
-              height={140}
-              className={`w-auto object-contain transition-all duration-200 ${isScrolled ? "h-9" : "h-11"}`}
-            />
+            {logo ? (
+              <Image
+                src={logo}
+                alt={siteConfig.name}
+                width={140}
+                height={140}
+                className={`w-auto object-contain transition-all duration-200 ${isScrolled ? "h-9" : "h-11"}`}
+              />
+            ) : (
+              <BrandLogo
+                size={isScrolled ? "sm" : "md"}
+                className="transition-all duration-200"
+              />
+            )}
           </Link>
 
           <DesktopNav categories={allCategories} />

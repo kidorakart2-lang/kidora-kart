@@ -63,17 +63,19 @@ interface SiteConfig {
   googleVerification: string;
 }
 
-// SEO Configuration for Kidora Kart
+// SEO Configuration for Jewel Box
 export const siteConfig: SiteConfig = {
-  name: "Kidora Kart",
-  legalName: "Kidora Kart Private Limited",
+  name: "Jewel Box",
+  legalName: "Jewel Box Private Limited",
   description:
-    "India's favorite online toy shop in Jodhpur offering a wide range of toys, games, and gifts for kids of all ages. Discover educational toys, action figures, dolls, board games, and more.",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.kidorakart.com",
-  domain: process.env.NEXT_PUBLIC_SITE_URL || "kidorakart.com",
+    "India's favourite online jewellery store in Jodhpur offering a wide range of earrings, necklaces, rings, bangles, pendants and bridal sets. Discover everyday elegance in gold-plated, kundan, pearl and oxidised designs.",
+  url: (process.env.NEXT_PUBLIC_SITE_URL || "https://www.jewelbox.com").replace(/\/+$/, ""),
+  domain: (process.env.NEXT_PUBLIC_SITE_URL || "https://www.jewelbox.com")
+    .replace(/^https?:\/\//, "")
+    .replace(/\/+$/, ""),
 
   contact: {
-    email: process.env.NEXT_PUBLIC_BUSINESS_EMAIL || "info@kidorakart.com",
+    email: process.env.NEXT_PUBLIC_BUSINESS_EMAIL || "info@jewelbox.com",
     phone: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+91-6378643867",
     mobile: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+91-6378643867",
     whatsapp: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+916378643867",
@@ -94,40 +96,39 @@ export const siteConfig: SiteConfig = {
   },
 
   social: {
-    instagram:
-      "https://www.instagram.com/kidorakart/",
-    facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL || "https://facebook.com/kidorakart",
-    twitter: process.env.NEXT_PUBLIC_TWITTER_URL || "https://twitter.com/kidorakart",
-    pinterest: process.env.NEXT_PUBLIC_PINTEREST_URL || "https://pinterest.com/kidorakart",
-    youtube: process.env.NEXT_PUBLIC_YOUTUBE_URL || "https://youtube.com/@kidorakart",
+    instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL || "https://www.instagram.com/jewelbox",
+    facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL || "https://facebook.com/jewelbox",
+    twitter: process.env.NEXT_PUBLIC_TWITTER_URL || "https://twitter.com/jewelbox",
+    pinterest: process.env.NEXT_PUBLIC_PINTEREST_URL || "https://pinterest.com/jewelbox",
+    youtube: process.env.NEXT_PUBLIC_YOUTUBE_URL || "https://youtube.com/@jewelbox",
   },
 
   business: {
     foundedYear: "2024",
-    priceRange: "₹99 - ₹9999",
+    priceRange: "₹199 - ₹19999",
     hoursWeekday: "10:00 AM - 10:00 PM",
     hoursWeekend: "10:00 AM - 10:00 PM",
   },
 
-  themeColor: "#F58E00", // SSR fallback — overridden at runtime by ClientThemeColor from --brand-500 CSS var
-  twitterHandle: "@kidorakart",
+  themeColor: "#8B1E3F", // SSR fallback — overridden at runtime by ClientThemeColor from --brand-500 CSS var
+  twitterHandle: process.env.NEXT_PUBLIC_TWITTER_HANDLE || "@jewelbox",
   googleVerification: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "",
 
   categories: [
-    "Action Figures",
-    "Dolls & Playsets",
-    "Educational Toys",
-    "Board Games",
-    "Puzzles",
-    "Remote Control Toys",
-    "Building Blocks",
-    "Soft Toys",
-    "Cars & Vehicles",
-    "Musical Toys",
-    "Outdoor Play",
-    "Art & Craft",
-    "Pretend Play",
-    "Gift Items",
+    "Earrings",
+    "Necklaces",
+    "Rings",
+    "Bangles & Bracelets",
+    "Pendants",
+    "Necklace Sets",
+    "Anklets",
+    "Maang Tikka",
+    "Nose Pins",
+    "Jhumkas",
+    "Kundan Jewellery",
+    "Pearl Jewellery",
+    "Oxidised Jewellery",
+    "Bridal Jewellery",
   ],
 };
 
@@ -201,7 +202,7 @@ export const getThemeColor = (): string => {
 export const defaultMetadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} - Online Toy Store in ${siteConfig.address.city} | Shop Toys & Games Online`,
+    default: `${siteConfig.name} - Online Jewellery Store in ${siteConfig.address.city} | Shop Fine Jewellery Online`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -217,7 +218,7 @@ export const defaultMetadata = {
     type: "website" as const,
     locale: "en_IN" as const,
     url: siteConfig.url,
-    title: `${siteConfig.name} - Online Toy Store in ${siteConfig.address.city}`,
+    title: `${siteConfig.name} - Online Jewellery Store in ${siteConfig.address.city}`,
     description: siteConfig.description,
     siteName: siteConfig.name,
     images: [
@@ -231,7 +232,7 @@ export const defaultMetadata = {
   },
   twitter: {
     card: "summary_large_image" as const,
-    title: `${siteConfig.name} - Online Toy Store in Jodhpur`,
+    title: `${siteConfig.name} - Online Jewellery Store in Jodhpur`,
     description: siteConfig.description,
     images: [`${siteConfig.url}/og-image.jpg`],
     creator: siteConfig.twitterHandle,
@@ -248,8 +249,8 @@ export const defaultMetadata = {
     },
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.png",
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
   },
   manifest: "/site.webmanifest",
 };

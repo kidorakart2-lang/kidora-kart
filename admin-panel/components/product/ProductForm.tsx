@@ -477,12 +477,12 @@ export default function ProductForm({
               ))}
             </div>
           </div>
-          {formData.additionalImagePreviews?.some((url) => url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com"}/`)) && (
+          {formData.additionalImagePreviews?.some((url) => url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.jewelbox.com"}/`)) && (
             <div className="space-y-2">
               <Label>Images to Remove</Label>
               <div className="flex flex-col space-y-2">
                 {formData.additionalImagePreviews?.map((url, index) =>
-                  url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com"}/`) && (
+                  url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.jewelbox.com"}/`) && (
                     <div key={index} className="flex items-center space-x-2">
                       <input type="text" value={url} readOnly className="flex-1 border border-input rounded px-2 py-1 bg-background text-sm" />
                       <button type="button" onClick={() => toggleRemoveImagesUrl(url)} className="bg-destructive text-white rounded px-2 py-1 text-sm hover:bg-destructive/90">
@@ -517,12 +517,12 @@ export default function ProductForm({
               </div>
             ))}
           </div>
-          {formData.giftImagePreviews?.some((url) => url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com"}/`)) && (
+          {formData.giftImagePreviews?.some((url) => url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.jewelbox.com"}/`)) && (
             <div className="space-y-2">
               <Label>Gift Images to Remove</Label>
               <div className="flex flex-col space-y-2">
                 {formData.giftImagePreviews?.map((url, index) =>
-                  url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.kidorakart.com"}/`) && (
+                  url?.startsWith(`https://${process.env.NEXT_PUBLIC_CDN_HOST || "cdn.jewelbox.com"}/`) && (
                     <div key={index} className="flex items-center space-x-2">
                       <input type="text" value={url} readOnly className="flex-1 border border-input rounded px-2 py-1 bg-background text-sm" />
                       <button type="button" onClick={() => toggleRemoveGiftImagesUrl(url)} className="bg-destructive text-white rounded px-2 py-1 text-sm hover:bg-destructive/90">

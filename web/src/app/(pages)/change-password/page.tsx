@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
 import Image from "next/image";
+import BrandLogo from "@/components/comman/BrandLogo";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -72,13 +73,17 @@ export default function ChangePasswordPage() {
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-6">
           <Link href="/">
-            <Image
-              src={logo || "/images/logo.webp"}
-              alt="Logo"
-              width={120}
-              height={50}
-              className="h-12 w-auto object-contain"
-            />
+            {logo ? (
+              <Image
+                src={logo}
+                alt="Logo"
+                width={120}
+                height={50}
+                className="h-12 w-auto object-contain"
+              />
+            ) : (
+              <BrandLogo size="md" />
+            )}
           </Link>
         </div>
 

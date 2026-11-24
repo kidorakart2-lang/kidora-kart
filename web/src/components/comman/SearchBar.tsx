@@ -93,8 +93,8 @@ export const SearchBar = ({ className, inputId }: SearchBarProps) => {
     <div className={`relative ${className}`}>
       <PlaceholdersAndVanishInput
         placeholders={[
-          "Search for Toys",
-          "Buy Educational Toys",
+          "Search for Jewellery",
+          "Buy Earrings Online",
           "Search for action figures",
           "Find Gift Items",
         ]}

@@ -1,6 +1,6 @@
-# Kidora Kart — Monorepo
+# Jewel Box — Monorepo
 
-A full-stack toy e-commerce platform built with pnpm workspaces.
+A full-stack jewellery e-commerce platform built with pnpm workspaces.
 
 ## Admin Email - 
 bluehawk1711@gmail.com
@@ -62,10 +62,10 @@ Brand identity is env-ified via shared variables:
 
 | Variable | Default | Used By |
 |----------|---------|---------|
-| `APP_NAME` | `Kidora Kart` | API (email templates, order ID prefix, email subjects) |
-| `SUPPORT_EMAIL` | `support@kidorakart.com` | API (email templates), admin-panel (order receipt) |
-| `CDN_HOST` | `cdn.kidorakart.com` | API (image URLs), admin-panel (image validation), web (CSP/image sources) |
-| `EMAIL_FROM_NAME` | `Kidora Kart` | API (email sender display name) |
+| `APP_NAME` | `Jewel Box` | API (email templates, order ID prefix, email subjects) |
+| `SUPPORT_EMAIL` | `support@jewelbox.com` | API (email templates), admin-panel (order receipt) |
+| `CDN_HOST` | `cdn.jewelbox.com` | API (image URLs), admin-panel (image validation), web (CSP/image sources) |
+| `EMAIL_FROM_NAME` | `Jewel Box` | API (email sender display name) |
 | `STORE_PICKUP_PINCODE` | `342005` | API (shipping estimate fallback pincode for Shiprocket) |
 
 ## Deploying the API Server
@@ -139,7 +139,7 @@ Frontend                              Backend                             Google
 |----------|-------|---------|
 | `GOOGLE_CLIENT_ID` | `api/.env` | Backend OAuth client identification |
 | `GOOGLE_CLIENT_SECRET` | `api/.env` | Backend OAuth client secret |
-| `FRONTEND_URL` | `api/.env` | Base URL for the redirect URI (e.g., `https://kidorakart.com`) |
+| `FRONTEND_URL` | `api/.env` | Base URL for the redirect URI (e.g., `https://jewelbox.com`) |
 
 > The `web/.env.local` also needs the same `GOOGLE_CLIENT_ID` as `NEXT_PUBLIC_GOOGLE_CLIENT_ID` for the frontend Google Identity Services library.
 

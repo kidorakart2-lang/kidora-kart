@@ -11,10 +11,10 @@ import { getCategoryHref } from "@/lib/category-nav";
 // itself encodes where a band sits in the price range, same as the
 // dot meter below it.
 const TIER_TOKENS = [
-  { icon: "var(--brand-card-3-icon)", soft: "var(--brand-card-3-bg)" }, // value — green
-  { icon: "var(--brand-card-5-icon)", soft: "var(--brand-card-5-bg)" }, // popular — sky
+  { icon: "var(--brand-card-3-icon)", soft: "var(--brand-card-3-bg)" }, // value — emerald
+  { icon: "var(--brand-card-5-icon)", soft: "var(--brand-card-5-bg)" }, // popular — rose
   { icon: "var(--brand-card-1-icon)", soft: "var(--brand-card-1-bg)" }, // favourites — gold
-  { icon: "var(--brand-card-4-icon)", soft: "var(--brand-card-4-bg)" }, // ultimate — plum
+  { icon: "var(--brand-card-4-icon)", soft: "var(--brand-card-4-bg)" }, // luxury — mauve
 ] as const;
 
 // Alternating string lengths + tilt so the tags read as hand-hung,
@@ -37,16 +37,16 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
   const priceCategories = [
     {
       icon: IndianRupee,
-      label: "Under ₹599",
-      sublabel: "Value Picks",
+      label: "Under ₹499",
+      sublabel: "Everyday Picks",
       priceFrom: 0,
-      priceTo: 599,
+      priceTo: 499,
     },
     {
       icon: Star,
-      label: "₹600 - ₹999",
+      label: "₹500 - ₹999",
       sublabel: "Popular Picks",
-      priceFrom: 600,
+      priceFrom: 500,
       priceTo: 999,
     },
     {
@@ -59,7 +59,7 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
     {
       icon: Heart,
       label: "₹2000 & Above",
-      sublabel: "Ultimate Fun",
+      sublabel: "Luxury Picks",
       priceFrom: 2000,
       priceTo: 100000,
     },
@@ -73,7 +73,7 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
             {heading || "Shop by Price"}
           </h2>
           <p className="text-muted-foreground mt-4 fw-body tracking-widest text-sm">
-            Find the Perfect Toy for Every Age
+            Find the Perfect Piece for Every Budget
           </p>
         </div>
 
@@ -106,7 +106,7 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
                   className="relative -mt-1.5 w-full rounded-2xl rounded-tl-sm border-2 bg-card p-5 md:p-6 flex flex-col items-center text-center min-h-[188px] transition-shadow duration-300"
                   style={{
                     borderColor: tier.soft,
-                    boxShadow: `0 8px 0 0 ${tier.icon}`,
+                    boxShadow: `0 10px 24px -14px ${tier.icon}`,
                   }}
                 >
                   <div

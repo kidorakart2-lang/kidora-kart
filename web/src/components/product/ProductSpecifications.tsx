@@ -156,7 +156,7 @@ export default function ProductSpecifications({
               </p>
             </div>
 
-            {/* Toy-block shadow accent */}
+            {/* Soft gem-toned shadow accent */}
             <div
               className="absolute -bottom-0.5 left-0 right-0 h-0.5 rounded-b-xl opacity-30 transition-opacity duration-300 group-hover:opacity-60"
               style={{ backgroundColor: spec.color }}

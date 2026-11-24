@@ -9,12 +9,12 @@ import type { CategoryData, SubCategoryData } from "@/types";
 import "swiper/css";
 import Link from "next/link";
 
-const TOY_PALETTE = [
-  "var(--brand-card-2-icon)", // coral
-  "var(--brand-card-5-icon)", // sky
-  "var(--brand-card-1-icon)", // amber
-  "var(--brand-card-3-icon)", // grass
-  "var(--brand-card-4-icon)", // plum
+const JEWEL_PALETTE = [
+  "var(--brand-card-2-icon)", // wine
+  "var(--brand-card-1-icon)", // gold
+  "var(--brand-card-3-icon)", // emerald
+  "var(--brand-card-4-icon)", // mauve
+  "var(--brand-card-5-icon)", // rose
 ] as const;
 
 export default function RoundCategorySlider({ heading }: { heading?: string }) {
@@ -51,8 +51,8 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
             />
           </svg>
         </h2>
-        <p className="text-sm sm:text-base text-muted-foreground fw-body tracking-widest mt-5">
-          Fun for Kids of All Ages
+        <p className="text-muted-foreground mt-5 fw-body tracking-widest">
+          Trendy · Elegant · Timeless
         </p>
       </div>
 
@@ -78,7 +78,7 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
             className="category-swiper !pb-3"
           >
             {allSubCategories.map((subCat, index) => {
-              const ring = TOY_PALETTE[index % TOY_PALETTE.length];
+              const ring = JEWEL_PALETTE[index % JEWEL_PALETTE.length];
               return (
                 <SwiperSlide key={subCat._id}>
                   <Link href={`/category/${subCat.parentSlug}/${subCat.slug}`}>
@@ -91,7 +91,7 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
                         className="relative w-full aspect-square overflow-hidden rounded-full  transition-transform duration-300 motion-safe:group-hover:-translate-y-1 motion-safe:group-hover:rotate-3"
                         style={{
                           borderColor: ring,
-                          boxShadow: `0 3px 0 0 ${ring}`,
+                          boxShadow: `0 6px 18px -8px ${ring}`,
                         }}
                       >
                         <Image

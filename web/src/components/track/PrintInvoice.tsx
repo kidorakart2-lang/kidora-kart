@@ -13,7 +13,7 @@ export default function PrintInvoice({ order }: PrintInvoiceProps) {
   return (
     <div className="print-only bg-white" id="print-invoice">
       <div className="border-b-2 border-black pb-4 mb-6">
-        <h1 className="text-2xl font-bold mb-1">Kidora Kart</h1>
+        <h1 className="text-2xl font-bold mb-1">Jewel Box</h1>
         <p className="text-sm text-gray-600">Order Invoice</p>
       </div>
 
@@ -123,7 +123,7 @@ export default function PrintInvoice({ order }: PrintInvoiceProps) {
       <div className="border-t-2 border-gray-200 pt-6 mt-6">
         <div className="text-center space-y-2">
           <p className="font-semibold">Thank you for your order!</p>
-          <p className="text-sm text-gray-600">Questions? Contact us at {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@kidorakart.com"}</p>
+          <p className="text-sm text-gray-600">Questions? Contact us at {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@jewelbox.com"}</p>
           <p className="text-xs text-gray-500 mt-4">This is a computer-generated invoice and does not require a signature.</p>
         </div>
       </div>

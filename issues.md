@@ -347,11 +347,11 @@ Each product page should have a unique `<meta name="description">` tag. The curr
 The site lacks:
 - **Organization JSON-LD** (name, logo, contact, address)
 - **WebSite JSON-LD** (search URL, site name)
-- **LocalBusiness JSON-LD** for local SEO (Jodhpur-based toy shop)
+- **LocalBusiness JSON-LD** for local SEO (Jodhpur-based jewellery shop)
 
 The layout.tsx has metadata but no JSON-LD structured data script tags.
 
-**Risk:** Search engines can't understand the business context. Local SEO (Jodhpur toy shop) is weakened. Rich results (knowledge panel, sitelinks search box) won't appear.
+**Risk:** Search engines can't understand the business context. Local SEO (Jodhpur jewellery shop) is weakened. Rich results (knowledge panel, sitelinks search box) won't appear.
 
 **Recommendation:** Add JSON-LD structured data to the layout using Next.js's `Script` component with `id` for organization, website, and local business schemas.
 

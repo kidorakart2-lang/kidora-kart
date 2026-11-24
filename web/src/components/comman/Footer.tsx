@@ -17,6 +17,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
 import { useEffect, useState } from "react";
 import { InstagramIcon, FacebookIcon, WhatsAppIcon } from "../icons";
+import BrandLogo from "./BrandLogo";
 import { siteConfig, getFullAddress } from "@/lib/utils";
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
@@ -43,9 +44,9 @@ interface NavCategory {
 /* ── Data ───────────────────────────────────────────────────────────────── */
 
 const FEATURES = [
-  { Icon: Truck, title: "Free Shipping", desc: "On orders over ₹1000" },
+  { Icon: Truck, title: "Free Shipping", desc: "On orders over ₹499" },
   { Icon: Shield, title: "Secure Payment", desc: "100% Protected" },
-  { Icon: Award, title: "Certified Quality", desc: "Safe & Tested" },
+  { Icon: Award, title: "Certified Quality", desc: "Hallmarked & Tested" },
   { Icon: Heart, title: "Lifetime Support", desc: "24/7 Customer Care" },
 ];
 
@@ -61,7 +62,7 @@ const POLICY_LINKS = [
   { label: "Terms of Service", href: "/our-policy?query=terms" },
   { label: "Refund Policy", href: "/our-policy?query=refund" },
   { label: "Shipping Policy", href: "/our-policy?query=shipping" },
-  { label: "Warranty", href: "/our-policy?query=warranty" },
+  { label: "Jewellery Care", href: "/our-policy?query=warranty" },
 ];
 
 /* ── Component ──────────────────────────────────────────────────────────── */
@@ -134,18 +135,22 @@ export default function Footer({
           {/* Brand column */}
           <div className="lg:col-span-4">
             <Link href="/" className="inline-block mb-4">
-              <Image
-                src={logo || "/images/logo.webp"}
-                alt={siteConfig.name}
-                width={120}
-                height={40}
-                className="h-10 w-auto"
-              />
+              {logo ? (
+                <Image
+                  src={logo}
+                  alt={siteConfig.name}
+                  width={120}
+                  height={40}
+                  className="h-10 w-auto"
+                />
+              ) : (
+                <BrandLogo size="md" />
+              )}
             </Link>
             <p className="text-sm text-muted-foreground mb-5 max-w-sm leading-relaxed">
-              Discover endless fun with our exciting collection of toys and
-              games. Shop with confidence — every order is backed by our
-              quality promise.
+              Discover timeless jewellery crafted for every occasion — elegant
+              earrings, necklaces, bangles and more. Shop with confidence —
+              every order is backed by our quality promise.
             </p>
 
             {/* Social */}

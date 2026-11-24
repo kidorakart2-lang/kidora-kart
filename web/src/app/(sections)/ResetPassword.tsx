@@ -23,6 +23,7 @@ import StrongPasswordInput from "@/components/comman/StrongPasswordInput";
 import { useSelector } from "react-redux";
 import Link from "next/link";
 import Image from "next/image";
+import BrandLogo from "@/components/comman/BrandLogo";
 import type { RootState } from "@/redux/store/store";
 
 export default function ResetPassword() {
@@ -196,13 +197,17 @@ export default function ResetPassword() {
       <Card className="w-full max-w-md">
         <div className="flex justify-center mt-6">
           <Link href="/">
-            <Image
-              src={logo || "/images/logo.webp"}
-              alt="Logo"
-              width={120}
-              height={50}
-              className="h-12 w-auto object-contain"
-            />
+            {logo ? (
+              <Image
+                src={logo}
+                alt="Logo"
+                width={120}
+                height={50}
+                className="h-12 w-auto object-contain"
+              />
+            ) : (
+              <BrandLogo size="md" />
+            )}
           </Link>
         </div>
         <CardHeader className="space-y-1 text-center">

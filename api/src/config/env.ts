@@ -15,9 +15,9 @@ const envSchema = z.object({
   MY_GMAIL: z.string().email().optional(),
   MY_GMAIL_PASSWORD: z.string().optional(),
   EMAIL_FROM_NAME: z.string().optional(),
-  SUPPORT_EMAIL: z.string().email().default("support@kidorakart.com"),
-  CDN_HOST: z.string().default("cdn.kidorakart.com"),
-  APP_NAME: z.string().default("Kidora Kart"),
+  SUPPORT_EMAIL: z.string().email().default("support@jewelbox.com"),
+  CDN_HOST: z.string().default("cdn.jewelbox.com"),
+  APP_NAME: z.string().default("Jewel Box"),
 
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 

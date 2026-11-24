@@ -135,7 +135,7 @@ export default function Wishlist({
               Your Wishlist is Empty
             </h2>
             <p className="text-muted-foreground text-sm fw-body leading-relaxed">
-              Save your favorite items and create your dream collection. Start exploring our toys!
+              Save your favorite items and create your dream collection. Start exploring our jewellery!
             </p>
           </div>
 

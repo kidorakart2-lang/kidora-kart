@@ -110,7 +110,7 @@ async function DynamicSection({ section }: { section: HomeSection }) {
     }
 
     case "products-tab": {
-      const searchTerms = ((cfg.searchTerms as string) ?? "action-figures,board-games,puzzles")
+      const searchTerms = ((cfg.searchTerms as string) ?? "earrings,necklaces,bangles")
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean);

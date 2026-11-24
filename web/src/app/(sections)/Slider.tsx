@@ -49,7 +49,7 @@ const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: st
               768: { slidesPerView: 3, spaceBetween: 24 },
               1024: { slidesPerView: 4, spaceBetween: 20 },
             }}
-            className="!overflow-visible toys-swiper"
+            className="!overflow-visible"
           >
             {data.map((item) => (
               <SwiperSlide key={item._id}>

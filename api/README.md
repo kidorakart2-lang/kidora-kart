@@ -1,6 +1,6 @@
 # API — Express Backend
 
-Express 5 + MongoDB REST API for the Kidora Kart e-commerce platform.
+Express 5 + MongoDB REST API for the Jewel Box e-commerce platform.
 
 ## Tech Stack
 
@@ -69,7 +69,7 @@ Key vars in `api/.env` (gitignored). See `.env.example` for full reference:
 ```
 NODE_ENV=development
 PORT=5000
-NEW_DB_URL=mongodb://localhost:27017/kidorakart
+NEW_DB_URL=mongodb://localhost:27017/jewelbox
 JWT_SECRET=your-jwt-secret-here                # ⚠️ Generate with: openssl rand -hex 64
 
 # CORS
@@ -80,9 +80,9 @@ APP_URL=http://localhost:3000
 FRONTEND_URL=http://localhost:3000
 
 # Brand (used in email templates, order IDs, receipts)
-APP_NAME=Kidora Kart
-SUPPORT_EMAIL=support@kidorakart.com
-EMAIL_FROM_NAME=Kidora Kart
+APP_NAME=Jewel Box
+SUPPORT_EMAIL=support@jewelbox.com
+EMAIL_FROM_NAME=Jewel Box
 
 # Email (Gmail SMTP)
 MY_GMAIL=your-email@gmail.com
@@ -94,7 +94,7 @@ CLOUDFLARE_ACCESS_KEY_ID=...
 CLOUDFLARE_SECRET_ACCESS_KEY=...
 CLOUDFLARE_BUCKET_NAME=...
 CLOUDFLARE_PUBLIC_URL=...
-CDN_HOST=cdn.kidorakart.com
+CDN_HOST=cdn.jewelbox.com
 
 # Razorpay
 RAZORPAY_KEY_ID=...

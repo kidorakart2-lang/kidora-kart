@@ -98,7 +98,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
               )}
             </div>
             <span className="font-bold text-lg text-sidebar-foreground">
-              Kidora Kart
+              Jewel Box
             </span>
           </div>
         )}

@@ -94,7 +94,7 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
           <div className="p-8 print:p-4" id="receipt-content">
             {/* Company Header */}
             <div className="border-b-2 border-black pb-4 mb-6">
-              <h1 className="text-2xl font-bold mb-1">Kidora Kart</h1>
+              <h1 className="text-2xl font-bold mb-1">Jewel Box</h1>
               <p className="text-sm text-muted-foreground">Order Invoice</p>
             </div>
 
@@ -312,7 +312,7 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
               <div className="text-center space-y-2">
                 <p className="font-semibold">Thank you for your order!</p>
                 <p className="text-sm text-muted-foreground">
-                  Questions about your order? Contact us at {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@kidorakart.com"}
+                  Questions about your order? Contact us at {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@jewelbox.com"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-4">
                   This is a computer-generated invoice and does not require a
