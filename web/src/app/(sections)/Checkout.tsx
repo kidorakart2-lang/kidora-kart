@@ -493,7 +493,7 @@ export default function Checkout() {
         key: keyId,
         amount: amount * 100, // Amount in paise
         currency: currency,
-        name: "Jewel Box",
+        name: "Ratnavya",
         description: `Order #${orderId}`,
         image: logo || undefined, // Admin-uploaded logo (omitted when none)
         order_id: razorpayOrderId,
@@ -670,26 +670,29 @@ export default function Checkout() {
     <>
       <LoadingOverlay hidden={loading} />
 
-      <div className="min-h-screen bg-gradient-to-b from-background to-brand-50/30">
+      <div className="min-h-screen bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 group"
+          className="group mb-6 inline-flex items-center gap-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/55 transition-colors hover:text-[var(--brand-plum)]"
         >
           <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
           <span>Back</span>
         </button>
 
         {/* Header */}
-        <div className="mb-10">
-           <h1 className="text-3xl md:text-4xl fw-heading text-foreground tracking-tight">
-            Checkout
-          </h1>
-          <p className="text-muted-foreground text-sm mt-2 font-light">
-            Complete your purchase by filling in the details below
+        <div className="mb-8">
+          <p className="eyebrow mb-2">
+            <span className="mr-2">✦</span>
+            Secure checkout
           </p>
-          <div className="h-px bg-gradient-to-r from-brand-200 via-brand-400/50 to-transparent mt-4" />
+          <div className="border-b border-[var(--brand-gold)]/25 pb-4">
+            <h1 className="display-heading text-3xl sm:text-4xl">Checkout</h1>
+            <p className="mt-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/50">
+              Complete your purchase in three short steps
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
@@ -731,16 +734,18 @@ export default function Checkout() {
             />
 
             {/* Order Notes */}
-            <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md">
-              <div className="flex items-center gap-3 mb-7">
-                <span className="w-8 h-8 rounded-full bg-brand-600 text-background flex items-center justify-center text-sm font-medium shadow-sm">
+            <div className="rounded-xl border border-[var(--brand-gold)]/25 bg-white p-6 sm:p-8">
+              <div className="mb-6 flex items-center gap-3">
+                <span className="grid size-8 place-items-center rounded-full border border-[var(--brand-gold)]/50 bg-[var(--brand-gold)]/10 text-[12px] text-[var(--brand-gold-dark)]">
                   3
                 </span>
                 <div>
-                  <h2 className="text-base font-semibold text-foreground">
+                  <h2 className="display-heading text-lg">
                     Additional Information
                   </h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">Order notes and preferences</p>
+                  <p className="text-[11px] text-[var(--brand-ink)]/50">
+                    Order notes and preferences
+                  </p>
                 </div>
               </div>
 
@@ -761,7 +766,7 @@ export default function Checkout() {
                     onChange={(e) =>
                       setOrderData({ ...orderData, notes: e.target.value })
                     }
-                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                    className="w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white px-4 py-2.5 text-sm text-[var(--brand-ink)] transition-all focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30"
                   />
                 </div>
               </div>
@@ -771,9 +776,12 @@ export default function Checkout() {
           {/* Right Column - Order Summary */}
           <div className="lg:col-span-1">
             <div className="sticky top-6 space-y-6">
-              <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100">
-                <h2 className="text-base font-semibold text-foreground mb-6 flex items-center gap-2">
-                  <span className="w-1.5 h-5 rounded-full bg-brand-600" />
+              <div className="rounded-xl border border-[var(--brand-gold)]/30 bg-white px-6 py-6 sm:px-7">
+                <p className="eyebrow mb-1.5 text-[10px]">
+                  <span className="mr-1.5">✦</span>
+                  Your order
+                </p>
+                <h2 className="display-heading mb-5 border-b border-[var(--brand-gold)]/20 pb-3 text-xl">
                   Order Summary
                 </h2>
 

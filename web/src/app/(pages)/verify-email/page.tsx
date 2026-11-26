@@ -147,8 +147,8 @@ export default function VerifyEmailPage() {
               <Image
                 src={logo}
                 alt="Logo"
-                width={120}
-                height={50}
+                width={180}
+                height={60}
                 className="h-12 w-auto object-contain"
               />
             ) : (

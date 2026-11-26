@@ -1,57 +1,44 @@
 "use client";
 
-import { ShoppingCart, ShoppingBag, ArrowRight, Sparkles } from "lucide-react";
+import { ShoppingBag, ArrowRight, Gem } from "lucide-react";
 import Link from "next/link";
 import { motion } from "motion/react";
 
 export default function CartEmptyState() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-[70vh] flex items-center justify-center py-16"
-    >
-      <div className="text-center space-y-8 max-w-md px-4">
-        {/* Animated cartoon icon */}
-        <motion.div
-          animate={{
-            y: [0, -8, 0],
-            rotate: [0, -5, 5, 0],
-          }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/30 dark:to-brand-800/30 flex items-center justify-center shadow-lg border border-brand-200 dark:border-brand-700/30"
-        >
-          <ShoppingCart
-            className="w-12 h-12 text-brand-600 dark:text-brand-400"
-            strokeWidth={1.5}
-          />
-        </motion.div>
-
-        <div className="space-y-3">
-          <h2 className="text-3xl fw-heading text-foreground tracking-tight">
-            Your Cart is Empty
-          </h2>
-          <p className="text-muted-foreground fw-body text-sm leading-relaxed max-w-sm mx-auto">
-            Looks like you haven&apos;t added anything yet. Explore our collection of earrings, necklaces, bangles and more to find something special!
-          </p>
+    <main className="flex min-h-[70vh] items-center justify-center bg-[var(--brand-cream)] px-4 py-16">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        className="max-w-md text-center"
+      >
+        <div className="arch-top mx-auto mb-7 grid h-24 w-24 place-items-center border border-[var(--brand-gold)]/40 bg-white text-[var(--brand-gold-dark)]">
+          <Gem size={30} strokeWidth={1.3} />
         </div>
 
-        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-          <Sparkles size={12} className="text-brand-500" />
-          <span>New arrivals added weekly</span>
-          <Sparkles size={12} className="text-brand-500" />
-        </div>
+        <p className="eyebrow mb-3">
+          <span className="mr-2">✦</span>
+          Nothing selected yet
+        </p>
+        <h1 className="display-heading text-3xl sm:text-4xl">
+          Your bag is <span className="accent-italic">empty.</span>
+        </h1>
+        <p className="mx-auto mt-4 max-w-sm text-sm leading-relaxed text-[var(--brand-ink)]/65">
+          Every heirloom starts with a first piece. Explore our collections of
+          earrings, necklaces, bangles and more to find something special.
+        </p>
 
-        <Link
-          href="/category/new-arrival"
-          className="inline-flex items-center gap-2 btn-gradient fw-cta py-3.5 px-8 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md group"
-        >
-          <ShoppingBag size={17} />
-          <span>Start Shopping</span>
-          <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+        <Link href="/category" className="btn-gold mt-8">
+          <ShoppingBag size={16} />
+          Start Shopping
+          <ArrowRight size={15} />
         </Link>
-      </div>
-    </motion.div>
+
+        <p className="mt-5 text-[10.5px] uppercase tracking-[0.2em] text-[var(--brand-mauve)]">
+          New arrivals added weekly
+        </p>
+      </motion.div>
+    </main>
   );
 }

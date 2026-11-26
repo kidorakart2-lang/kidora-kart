@@ -17,9 +17,9 @@ const themes = [
   {
     name: "dark",
     label: "Dark",
-    description: "Blue accents on dark backgrounds",
-    color: "bg-[oklch(0.15_0_0)]",
-    accent: "bg-[oklch(0.55_0.18_250)]",
+    description: "Deep plum & champagne gold",
+    color: "bg-[oklch(0.18_0.025_330)]",
+    accent: "bg-[oklch(0.76_0.07_82)]",
   },
   {
     name: "minimal",

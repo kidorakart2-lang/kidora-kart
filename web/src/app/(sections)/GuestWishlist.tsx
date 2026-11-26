@@ -56,10 +56,10 @@ export default function GuestWishlist() {
 
   if (isLoading && leanItems.length > 0) {
     return (
-      <section className="min-h-[70vh] flex items-center justify-center py-16">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto" />
-          <p className="text-sm text-muted-foreground">Loading your wishlist…</p>
+      <section className="flex min-h-[70vh] items-center justify-center bg-white py-16">
+        <div className="space-y-4 text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-b-2 border-t-2 border-[var(--brand-gold)]" />
+          <p className="text-[12px] text-[var(--brand-ink)]/50">Loading your wishlist…</p>
         </div>
       </section>
     );
@@ -70,28 +70,27 @@ export default function GuestWishlist() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="min-h-[70vh] flex items-center justify-center py-16"
+        className="flex min-h-[70vh] items-center justify-center bg-white px-4 py-16"
       >
-        <div className="text-center space-y-6 max-w-sm">
-          <div className="w-20 h-20 mx-auto rounded-full bg-muted flex items-center justify-center">
-            <Heart className="w-10 h-10 text-muted-foreground" strokeWidth={1.5} fill="currentColor" />
+        <div className="max-w-sm space-y-6 text-center">
+          <div className="mx-auto grid size-20 place-items-center rounded-full border border-[var(--brand-gold)]/40 bg-white">
+            <Heart className="h-8 w-8 text-[var(--brand-gold)]" strokeWidth={1.3} fill="currentColor" />
           </div>
 
           <div className="space-y-2">
-             <h2 className="text-2xl fw-heading text-foreground tracking-tight">
-              Your Wishlist is Empty
+            <h2 className="display-heading text-2xl">
+              Your Wishlist is <span className="accent-italic">Empty</span>
             </h2>
-            <p className="text-muted-foreground text-sm">
-              Save your favorite items and create your dream collection.
+            <p className="text-[12.5px] text-[var(--brand-ink)]/55">
+              Save your favourite pieces and create your dream collection.
             </p>
           </div>
 
           <Link
             href="/category/all"
-            className="inline-flex items-center gap-2 btn-gradient font-medium py-3 px-8
-                     rounded-xl transition-all duration-300 shadow-sm"
+            className="btn-gold inline-flex items-center gap-2 !text-[10.5px] uppercase tracking-[0.18em]"
           >
-            <ShoppingBag size={18} />
+            <ShoppingBag size={15} />
             Start Shopping
           </Link>
         </div>
@@ -102,7 +101,7 @@ export default function GuestWishlist() {
   return (
     <section
       id="wishlist"
-      className="py-12 md:py-16 bg-muted/30"
+      className="bg-white py-12 md:py-16"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
@@ -112,18 +111,19 @@ export default function GuestWishlist() {
           transition={{ duration: 0.6 }}
           className="mb-10"
         >
-           <h1 className="text-2xl sm:text-3xl fw-heading tracking-tight text-foreground">
-            My Wishlist
+          <p className="eyebrow mb-2"><span className="mr-2">✦</span>Saved for later</p>
+          <h1 className="display-heading text-2xl sm:text-3xl">
+            My <span className="accent-italic">Wishlist</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="mt-1.5 text-[12px] text-[var(--brand-ink)]/50">
             {items.length} {items.length === 1 ? "item" : "items"} saved
           </p>
 
           {/* Guest notice */}
-          <div className="mt-4 inline-flex items-center gap-2 bg-muted rounded-full px-4 py-2 border border-border">
-            <LogIn size={16} className="text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">
-              <Link href="/login" className="font-semibold text-foreground hover:underline">
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[var(--brand-gold)]/30 bg-white px-4 py-2">
+            <LogIn size={14} className="text-[var(--brand-gold-dark)]" />
+            <span className="text-[11.5px] text-[var(--brand-ink)]/55">
+              <Link href="/login" className="text-[var(--brand-plum)] underline decoration-[var(--brand-gold)]/60 underline-offset-4 hover:no-underline">
                 Login
               </Link>{" "}
               to save your wishlist permanently
@@ -150,14 +150,12 @@ export default function GuestWishlist() {
                   delay: index * 0.05,
                   layout: { duration: 0.3 },
                 }}
-                className="group relative bg-background rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300"
+                className="group relative overflow-hidden rounded-xl border border-[var(--brand-gold)]/25 bg-white transition-all duration-300 hover:border-[var(--brand-gold)]/50 hover:shadow-md"
               >
                 {/* Remove Button */}
                 <motion.button
                   onClick={() => handleRemoveFromWishlist(item)}
-                  className="absolute top-2 right-2 z-20 w-7 h-7 bg-background/90 backdrop-blur-sm 
-                           rounded-full border border-border flex items-center justify-center
-                           hover:bg-destructive hover:text-destructive-foreground transition-all duration-300"
+                  className="absolute right-2 top-2 z-20 grid size-7 place-items-center rounded-full border border-[var(--brand-gold)]/40 bg-white/90 text-[var(--brand-ink)]/50 backdrop-blur-sm transition-all duration-300 hover:border-destructive/40 hover:bg-destructive hover:text-white"
                   whileHover={{ rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   aria-label="Remove from wishlist"
@@ -167,7 +165,7 @@ export default function GuestWishlist() {
 
                 {/* Image Container */}
                 <div
-                  className="relative aspect-[1/1] bg-muted/30 overflow-hidden cursor-pointer"
+                  className="relative aspect-square cursor-pointer overflow-hidden bg-[var(--brand-cream)]"
                   onClick={() => router.push(`/product-details/${item.slug}`)}
                 >
                   <motion.div
@@ -188,7 +186,7 @@ export default function GuestWishlist() {
                 {/* Product Details */}
                 <div className="p-3">
                   <h3
-                    className="text-sm font-medium text-foreground mb-2 line-clamp-2 cursor-pointer leading-snug min-h-[2.5rem]"
+                    className="mb-2 line-clamp-2 min-h-[2.5rem] cursor-pointer text-[13.5px] leading-snug text-[var(--brand-ink)] transition-colors hover:text-[var(--brand-mauve)]"
                     onClick={() => router.push(`/product-details/${item.slug}`)}
                   >
                     {item.name}
@@ -196,17 +194,17 @@ export default function GuestWishlist() {
 
                   {/* Pricing */}
                   <div className="flex items-baseline gap-1.5 flex-wrap">
-                    <span className="text-base font-semibold text-foreground">
+                    <span className="display-heading text-[16px] text-[var(--brand-plum)]">
                       ₹{(item.discount_price || item.price || 0).toLocaleString()}
                     </span>
                     {item.price &&
                       item.discount_price &&
                       item.price > item.discount_price && (
                         <>
-                          <span className="text-xs text-muted-foreground line-through">
+                          <span className="text-[11px] text-[var(--brand-ink)]/40 line-through">
                             ₹{item.price.toLocaleString()}
                           </span>
-                          <span className="text-[10px] bg-emerald-100 text-emerald-700 font-semibold px-1 py-0.5 rounded">
+                          <span className="rounded-full border border-[var(--brand-gold)]/40 bg-[var(--brand-gold)]/10 px-1.5 py-0.5 text-[9.5px] text-[var(--brand-gold-dark)]">
                             {Math.round((1 - item.discount_price / item.price) * 100)}%
                           </span>
                         </>
@@ -227,9 +225,9 @@ export default function GuestWishlist() {
         >
           <Link
             href="/category/all"
-            className="inline-flex items-center gap-2 btn-gradient font-medium py-3 px-8 rounded-xl transition-all duration-300"
+            className="btn-gold inline-flex items-center gap-2 !text-[10.5px] uppercase tracking-[0.18em]"
           >
-            <ShoppingBag size={18} />
+            <ShoppingBag size={15} />
             Continue Shopping
           </Link>
         </motion.div>

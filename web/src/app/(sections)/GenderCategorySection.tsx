@@ -75,7 +75,7 @@ export default function GenderCategorySection({
       <div className="w-full max-w-[100vw] mx-auto py-10 px-4 overflow-hidden">
         <div className="text-center mb-12 relative">
           <div className="inline-block relative">
-            <h2 className="text-4xl md:text-5xl fw-heading mb-3 tracking-wide text-foreground">
+            <h2 className="display-heading mb-3 text-4xl tracking-wide md:text-5xl">
               {heading || "Explore Our Collection"}
             </h2>
           </div>
@@ -110,7 +110,7 @@ export default function GenderCategorySection({
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/50" />
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-sans fw-heading text-background mb-4 tracking-wider">
+                  <h3 className="display-heading mb-4 text-4xl tracking-wide text-[var(--brand-cream)] md:text-5xl lg:text-6xl">
                     {item.name}
                   </h3>
 
@@ -161,12 +161,13 @@ export default function GenderCategorySection({
     <div className="w-full max-w-[100vw] mx-auto py-10 px-4 overflow-hidden">
       <div className="text-center mb-12 relative">
         <div className="inline-block relative">
-          <h2 className="text-4xl md:text-5xl fw-heading mb-3 tracking-wide text-foreground">
+          <h2 className="display-heading mb-3 text-4xl tracking-wide md:text-5xl">
             {heading || result[0].name}
           </h2>
         </div>
 
-        <p className="text-muted-foreground mt-6 fw-body tracking-widest text-sm md:text-base">            Shop by Category
+        <p className="mt-6 text-sm tracking-widest text-[var(--brand-ink)]/55 md:text-base">
+            Shop by Category
           </p>
       </div>
 
@@ -195,7 +196,7 @@ export default function GenderCategorySection({
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-opacity duration-500 group-hover:from-black/50" />
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-sans fw-heading text-background mb-4 tracking-wider">
+                  <h3 className="display-heading mb-4 text-4xl tracking-wide text-[var(--brand-cream)] md:text-5xl lg:text-6xl">
                     {subCategory.name}
                   </h3>
 

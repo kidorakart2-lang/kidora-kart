@@ -1,18 +1,29 @@
 "use client";
-import { Heart, ShoppingCart, Star, Loader2, Dot, Sparkles } from "lucide-react";
+import { Heart, ShoppingCart, Star, Loader2, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { getAuthToken } from "@/lib/cookies";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../../redux/features/cart";
-import { useSelector } from "react-redux";
 import { addToWishlist, removeFromWishlist } from "@/redux/features/wishlist";
 import type { ProductData } from "@/types";
 import type { RootState } from "@/redux/store/store";
 
-export default function ProductCard({ data }: { data: ProductData }) {
+interface ProductCardProps {
+  data: ProductData;
+  /** "dark" renders the plum-on-black card used inside dark product bands. */
+  tone?: "light" | "dark";
+  /** Load the primary image immediately — used inside auto-playing rails. */
+  eager?: boolean;
+}
+
+export default function ProductCard({
+  data,
+  tone = "light",
+  eager = false,
+}: ProductCardProps) {
   const cartItem = useSelector((state: RootState) =>
     (state.cart?.cartItems ?? []).find((item) => item.productId === data?._id),
   );
@@ -50,13 +61,11 @@ export default function ProductCard({ data }: { data: ProductData }) {
 
   const hasSecondaryImage = Boolean(data?.images && data.images.length > 0);
   const outOfStock = data.stock === 0;
+  const sellingPrice = displayCurrentPrice ?? displayPrice;
 
   // Quantity-tier pack deal — show a "Best Value" badge when a pack's per-unit
   // price beats the base selling price (e.g. base ₹25, pack of 5 @ ₹100 → ₹20/unit).
   const baseUnitPrice = data.discount_price ?? data.price;
-  // Round per-unit to whole rupees ONCE, then use that same value for both the
-  // comparison and the display — so the badge can never claim a price equal to
-  // or worse than the base (e.g. 24.8/unit rounds to 25 → not a real deal vs ₹25).
   const bestPack = (data.variants ?? [])
     .filter((v) => v.quantity > 1 && v.price > 0)
     .map((v) => ({ ...v, perUnit: Math.round(v.price / v.quantity) }))
@@ -70,104 +79,81 @@ export default function ProductCard({ data }: { data: ProductData }) {
     preload.src = data.images![0];
   }, [hasSecondaryImage, data?.images]);
 
-  const handleImageHover = (hovered: boolean) => {
-    setIsHovered(hovered);
-  };
-
   const handleWishlistToggle = async () => {
     const isLoggedIn = !!getAuthToken();
-
     setWishlistLoading(true);
 
     if (isWishlisted) {
       if (isLoggedIn) {
         try {
           const response = await fetch(
-            "/api/website/wishlist/remove/" +
-              data?._id,
+            "/api/website/wishlist/remove/" + data?._id,
             {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${getAuthToken()}`,
               },
-              body: JSON.stringify({
-                productId: data?._id,
-              }),
+              body: JSON.stringify({ productId: data?._id }),
             },
           );
           const responseData = await response.json();
           if (response.ok || responseData._status) {
-            dispatch(
-              removeFromWishlist({
-                _id: data?._id,
-              }),
-            );
+            dispatch(removeFromWishlist({ _id: data?._id }));
             toast.success(responseData._message);
           } else {
             toast.error(responseData._message);
           }
         } catch (err) {
-          const serverErr = err as { response?: { data?: { message?: string } }; message?: string };
+          const serverErr = err as {
+            response?: { data?: { message?: string } };
+            message?: string;
+          };
           toast.error(
-            serverErr?.response?.data?.message || (err instanceof Error ? err.message : "Something went wrong"),
+            serverErr?.response?.data?.message ||
+              (err instanceof Error ? err.message : "Something went wrong"),
           );
         } finally {
           setWishlistLoading(false);
         }
       } else {
-        dispatch(
-          removeFromWishlist({
-            _id: data?._id,
-            isGuest: true,
-          }),
-        );
+        dispatch(removeFromWishlist({ _id: data?._id, isGuest: true }));
         toast.success("Removed from wishlist");
         setWishlistLoading(false);
       }
     } else {
       if (isLoggedIn) {
         try {
-          const response = await fetch(
-            "/api/website/wishlist/add",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${getAuthToken()}`,
-              },
-              body: JSON.stringify({
-                productId: data?._id,
-              }),
+          const response = await fetch("/api/website/wishlist/add", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${getAuthToken()}`,
             },
-          );
+            body: JSON.stringify({ productId: data?._id }),
+          });
           const responseData = await response.json();
           if (response.ok || responseData._status) {
-            dispatch(
-              addToWishlist({
-                _id: data?._id,
-                slug: data?.slug,
-              }),
-            );
+            dispatch(addToWishlist({ _id: data?._id, slug: data?.slug }));
             toast.success(responseData._message);
           } else {
             toast.error(responseData._message);
           }
         } catch (err) {
-          const serverErr = err as { response?: { data?: { message?: string } }; message?: string };
+          const serverErr = err as {
+            response?: { data?: { message?: string } };
+            message?: string;
+          };
           toast.error(
-            serverErr?.response?.data?.message || (err instanceof Error ? err.message : "Something went wrong"),
+            serverErr?.response?.data?.message ||
+              (err instanceof Error ? err.message : "Something went wrong"),
           );
         } finally {
           setWishlistLoading(false);
         }
       } else {
         dispatch(
-          addToWishlist({
-            _id: data?._id,
-            slug: data?.slug,
-            isGuest: true,
-          }),
+          addToWishlist({ _id: data?._id, slug: data?.slug, isGuest: true }),
         );
         toast.success("Added to wishlist");
         setWishlistLoading(false);
@@ -178,23 +164,19 @@ export default function ProductCard({ data }: { data: ProductData }) {
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (loading || outOfStock) return;
-
     const isLoggedIn = !!getAuthToken();
-
     setLoading(true);
 
     if (isLoggedIn) {
-      try {          const response = await fetch(
-          "/api/website/cart/add",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${getAuthToken()}`,
-            },
-            body: JSON.stringify(cartObj),
+      try {
+        const response = await fetch("/api/website/cart/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${getAuthToken()}`,
           },
-        );
+          body: JSON.stringify(cartObj),
+        });
         const responseData = await response.json();
         if (response.ok || responseData._status) {
           dispatch(addToCart(cartObj));
@@ -203,9 +185,13 @@ export default function ProductCard({ data }: { data: ProductData }) {
           toast.error(responseData._message);
         }
       } catch (err) {
-        const serverErr = err as { response?: { data?: { message?: string } }; message?: string };
+        const serverErr = err as {
+          response?: { data?: { message?: string } };
+          message?: string;
+        };
         toast.error(
-          serverErr?.response?.data?.message || (err instanceof Error ? err.message : "Something went wrong"),
+          serverErr?.response?.data?.message ||
+            (err instanceof Error ? err.message : "Something went wrong"),
         );
       } finally {
         setLoading(false);
@@ -217,18 +203,20 @@ export default function ProductCard({ data }: { data: ProductData }) {
     }
   };
 
+  const isDark = tone === "dark";
+
   return (
     <article
-      className="group relative bg-background rounded-2xl overflow-hidden border border-border
-                 shadow-[0_1px_2px_rgba(16,24,40,0.04)]
-                 hover:shadow-[0_12px_24px_-8px_rgba(16,24,40,0.14),0_4px_8px_-4px_rgba(16,24,40,0.08)]
-                 hover:-translate-y-1 hover:border-brand-200 transition-[transform,box-shadow,border-color] duration-300 ease-out will-change-transform"
+      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border p-2 transition-[transform,border-color,box-shadow] duration-300 ease-out will-change-transform hover:-translate-y-1 ${
+        isDark
+          ? "border-[var(--brand-gold)]/20 bg-[#2e1b29] shadow-[0_18px_40px_-30px_rgba(0,0,0,0.9)] hover:border-[var(--brand-gold)]/50"
+          : "border-[var(--brand-gold)]/20 bg-white shadow-[0_10px_30px_-28px_rgba(62,39,57,0.55)] hover:border-[var(--brand-gold)]/55"
+      }`}
       itemScope
       itemType="https://schema.org/Product"
       role="article"
       aria-label={`Product: ${data.name}`}
     >
-      {/* Schema.org structured data */}
       <meta itemProp="productID" content={data._id} />
       <meta itemProp="url" content={`/product-details/${data.slug}`} />
       {data.subCategory && data.subCategory.length > 0 && (
@@ -250,7 +238,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
         <meta itemProp="url" content={`/product-details/${data.slug}`} />
       </div>
 
-      {/* 1. Product Image */}
+      {/* Image tile — cream, inset, with a soft lift on hover */}
       <Link
         href={`/product-details/${data.slug}`}
         aria-label={`View details for ${data.name}`}
@@ -258,75 +246,80 @@ export default function ProductCard({ data }: { data: ProductData }) {
         prefetch={false}
       >
         <div
-          className="relative aspect-[4/5] bg-gradient-to-br from-brand-50 to-muted overflow-hidden"
-          onMouseEnter={() => handleImageHover(true)}
-          onMouseLeave={() => handleImageHover(false)}
+          className="framed-tile relative aspect-square rounded-xl"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
-          {/* Discount sticker — tilted like a price sticker on packaging */}
           {discountPercentage > 0 && (
-            <div
-              className="absolute top-3 left-3 z-20 -rotate-6 bg-brand-accent-500 text-white px-2.5 py-1 rounded-lg text-[11px] fw-cta shadow-md flex items-center gap-0.5 animate-in fade-in slide-in-from-left duration-300"
+            <span
+              className="absolute left-3 top-3 z-20 rounded-full bg-[var(--brand-gold)] px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--brand-plum)] shadow-sm"
               role="status"
               aria-label={`${discountPercentage} percent discount`}
             >
-              <Dot className="size-4 -ml-1 animate-ping" aria-hidden="true" />
-              {discountPercentage}% OFF
-            </div>
+              {discountPercentage}% Off
+            </span>
           )}
 
-          {/* Main image */}
           <div
-            className={`absolute inset-0 transition-[opacity,transform] duration-300 ease-out ${
+            className={`absolute inset-0 transition-all duration-500 ease-out ${
               isHovered && hasSecondaryImage ? "opacity-0" : "opacity-100"
-            } ${isHovered ? "scale-[1.04]" : "scale-100"}`}
+            } ${isHovered ? "scale-[1.03]" : "scale-100"}`}
           >
             <Image
               fill
               src={data?.image ?? ""}
               alt={`${data.name} - Product image`}
-              className="object-cover cursor-pointer"
+              className="object-cover"
               itemProp="image"
               title={data.name}
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              loading={eager ? "eager" : "lazy"}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             />
           </div>
 
-          {/* Secondary image — crossfades in on hover */}
           {hasSecondaryImage && (
             <div
-              className={`absolute inset-0 transition-[opacity,transform] duration-300 ease-out ${
-                isHovered ? "opacity-100 scale-[1.04]" : "opacity-0 scale-100"
+              className={`absolute inset-0 transition-all duration-500 ease-out ${
+                isHovered ? "opacity-100 scale-[1.03]" : "opacity-0 scale-100"
               }`}
             >
               <Image
                 fill
                 src={data.images![0]}
                 alt={`${data.name} - Product image hover`}
-                className="object-cover cursor-pointer"
+                className="object-cover"
                 itemProp="image"
                 title={data.name}
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
               />
             </div>
           )}
 
-          {/* Best Value badge — quantity-tier pack with a better per-unit price */}
           {packDealPerUnit != null && (
-            <div
-              className="absolute bottom-3 left-3 z-20 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] fw-cta shadow-md bg-gradient-to-r from-brand-600 to-brand-accent-500 text-white animate-in fade-in slide-in-from-bottom duration-300"
-              role="status"
-              aria-label={`Best value: ${packDealPerUnit} rupees per unit in packs`}
-            >
-              <Sparkles size={12} aria-hidden="true" />
-              <span>Best Value</span>
-              <span className="font-bold">₹{packDealPerUnit}/unit</span>
+            <div className="absolute bottom-3 left-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-[var(--brand-plum)]/90 px-2.5 py-1 text-[10px] text-[var(--brand-cream)]">
+              <Sparkles size={11} aria-hidden="true" />
+              <span>₹{packDealPerUnit}/unit in packs</span>
             </div>
           )}
 
-          {/* Out of stock overlay */}
+          {(data.rating ?? 0) > 0 && (
+            <span className="absolute bottom-2.5 left-2.5 z-20 inline-flex items-center gap-1 rounded-full border border-black/5 bg-white/95 px-2 py-0.5 text-[10px] font-medium text-[var(--brand-ink)] shadow-sm backdrop-blur-sm">
+              {Number(data.rating).toFixed(1)}
+              <Star size={9} className="fill-[#e0a53c] text-[#e0a53c]" />
+              {(data.reviewCount ?? 0) > 0 && (
+                <>
+                  <span className="mx-0.5 h-2.5 w-px bg-[var(--brand-ink)]/15" />
+                  <span className="text-[9.5px] text-[var(--brand-ink)]/55">
+                    {data.reviewCount}
+                  </span>
+                </>
+              )}
+            </span>
+          )}
+
           {outOfStock && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-[1px]">
-              <span className="rounded-full border border-border bg-background/95 px-4 py-1.5 text-xs fw-cta uppercase tracking-wide text-muted-foreground shadow-sm">
+            <div className="absolute inset-0 z-20 grid place-items-center rounded-xl bg-[var(--brand-cream)]/70 backdrop-blur-[1px]">
+              <span className="rounded-full border border-[var(--brand-gold)]/50 bg-white/95 px-4 py-1.5 text-[10px] uppercase tracking-[0.18em] text-[var(--brand-plum)]">
                 Out of Stock
               </span>
             </div>
@@ -334,7 +327,7 @@ export default function ProductCard({ data }: { data: ProductData }) {
         </div>
       </Link>
 
-      {/* 2. Wishlist button — floats over the image, top-right */}
+      {/* Wishlist — floats on the image corner */}
       <button
         disabled={wishlistLoading}
         aria-label={
@@ -343,139 +336,99 @@ export default function ProductCard({ data }: { data: ProductData }) {
             : `Add ${data.name} to wishlist`
         }
         aria-pressed={!!isWishlisted}
-        className={`absolute top-3 right-3 z-30 w-9 h-9 rounded-full bg-background/90 backdrop-blur-sm border border-border
-                 hover:bg-background flex items-center justify-center
-                 transition-all duration-200 shadow-md hover:shadow-lg
-                 hover:scale-110 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2
-                 ${wishlistLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+        className={`absolute right-4 top-4 z-30 grid size-8 place-items-center rounded-full border backdrop-blur-sm transition-all duration-200 hover:scale-110 active:scale-90 ${
+          isDark
+            ? "border-[var(--brand-gold)]/30 bg-[#2e1b29]/80"
+            : "border-[var(--brand-gold)]/30 bg-white/85"
+        } ${wishlistLoading ? "opacity-50 cursor-not-allowed" : ""}`}
         onClick={handleWishlistToggle}
         type="button"
       >
         <Heart
-          size={17}
+          size={15}
           fill={isWishlisted ? "currentColor" : "none"}
           className={`transition-colors ${
-            isWishlisted ? "text-brand-accent-500" : "text-muted-foreground"
+            isWishlisted
+              ? "text-[var(--brand-gold)]"
+              : isDark
+                ? "text-[var(--brand-cream)]/70"
+                : "text-[var(--brand-ink)]/60"
           }`}
           aria-hidden="true"
         />
       </button>
 
-      {/* Details */}
-      <div className="p-5 sm:p-6 flex flex-col gap-3">
-        {/* 3 & 4. Name + price in a single row */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1.5 min-w-0 flex-1">
-            <Link href={`/product-details/${data.slug}`} prefetch={false}>
-              <h3
-                className="text-base sm:text-lg fw-heading text-foreground line-clamp-2
-                         group-hover:text-brand-700 transition-colors cursor-pointer leading-snug"
-                itemProp="name"
+      <div className="flex flex-1 flex-col px-1.5 pb-1.5 pt-3">
+        <Link href={`/product-details/${data.slug}`} prefetch={false}>
+          <h3
+            className={`display-heading line-clamp-2 text-[15px] leading-snug transition-colors sm:text-[16.5px] ${
+              isDark
+                ? "text-[var(--brand-cream)] group-hover:text-[var(--brand-gold)]"
+                : "text-[var(--brand-ink)] group-hover:text-[var(--brand-plum)]"
+            }`}
+            itemProp="name"
+          >
+            {data.name}
+          </h3>
+        </Link>
+
+        <div className="mt-auto flex items-end justify-between gap-1.5 pt-3 sm:gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-baseline gap-x-1.5">
+              <span
+                className={`text-[17px] font-semibold tracking-tight sm:text-lg ${
+                  isDark ? "text-[var(--brand-cream)]" : "text-[var(--brand-ink)]"
+                }`}
+                itemProp="price"
+                aria-label={`Current price: ${sellingPrice} rupees`}
               >
-                {data.name}
-              </h3>
-            </Link>
-            {data.subCategory && data.subCategory.length > 0 && (
-              <span className="inline-block text-[10px] uppercase tracking-wide fw-body bg-brand-100 text-brand-800 px-2 py-0.5 rounded-full">
-                {data.subCategory[0].name}
+                ₹{sellingPrice?.toLocaleString() ?? "—"}
               </span>
-            )}
-            {data.shortDescription && (
-              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                {data.shortDescription}
-              </p>
-            )}
-            {!data.shortDescription && data.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                {data.description}
+              {displayPrice && displayPrice !== displayCurrentPrice && (
+                <span
+                  className={`text-[10.5px] line-through ${
+                    isDark
+                      ? "text-[var(--brand-cream)]/45"
+                      : "text-[var(--brand-ink)]/40"
+                  }`}
+                  aria-label={`Original price: ${displayPrice} rupees`}
+                >
+                  ₹{displayPrice.toLocaleString()}
+                </span>
+              )}
+            </div>
+            {savings > 0 && (
+              <p className="mt-0.5 text-[9px] uppercase tracking-[0.1em] text-[var(--brand-gold-dark)]">
+                Save ₹{savings.toLocaleString()}
               </p>
             )}
           </div>
 
-          {/* 6. Price */}
-          <div
-            role="group"
-            aria-label="Product pricing"
-            className="flex flex-col items-end gap-1 shrink-0 text-right"
+          <button
+            disabled={loading || outOfStock}
+            className={`inline-flex size-8 shrink-0 items-center justify-center gap-1.5 rounded-full px-0 text-[9.5px] font-medium uppercase tracking-[0.05em] transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-55 sm:h-8 sm:w-auto sm:px-3 ${
+              isDark
+                ? "bg-[var(--brand-gold)] text-[var(--brand-plum)] hover:brightness-105"
+                : "bg-[var(--brand-pink)] text-white hover:bg-[#b34262]"
+            }`}
+            onClick={handleAddToCart}
+            aria-label={`Add ${data.name} to cart`}
+            type="button"
           >
-            {displayCurrentPrice && (
-              <span
-                className="text-2xl sm:text-3xl fw-body text-foreground tracking-tight leading-none"
-                itemProp="price"
-                aria-label={`Current price: ${displayCurrentPrice} rupees`}
-              >
-                ₹{displayCurrentPrice}
-              </span>
+            {loading ? (
+              <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+            ) : (
+              <ShoppingCart size={13} aria-hidden="true" />
             )}
-            {displayPrice && displayPrice !== displayCurrentPrice && (
-              <span
-                className="text-sm text-muted-foreground line-through"
-                aria-label={`Original price: ${displayPrice} rupees`}
-              >
-                ₹{displayPrice}
-              </span>
-            )}
-            {savings > 0 && (
-              <span
-                className="text-[11px] text-brand-accent-600 fw-body bg-brand-accent-50 px-1.5 py-0.5 rounded-full"
-                aria-label={`You save: ${savings} rupees`}
-              >
-                Save ₹{savings}
-              </span>
-            )}
-          </div>
+            <span className="hidden sm:inline">
+              {loading ? "Adding" : outOfStock ? "Sold out" : "Add to cart"}
+            </span>
+          </button>
         </div>
 
-        {/* 5. Rating */}
-        {(data.rating ?? 0) > 0 && (
-          <div className="flex items-center gap-1.5">
-            <div className="flex items-center gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  size={12}
-                  className={
-                    i < Math.round(data.rating!)
-                      ? "fill-yellow-400 text-yellow-400"
-                      : "fill-muted text-muted"
-                  }
-                />
-              ))}
-            </div>
-            {(data.reviewCount ?? 0) > 0 && (
-              <span className="text-xs text-muted-foreground">
-                ({data.reviewCount})
-              </span>
-            )}
-          </div>
+        {savings > 0 && (
+          <p className="sr-only">{`You save ${savings} rupees`}</p>
         )}
-
-        {/* 7. Add to Cart */}
-        <button
-          disabled={loading || outOfStock}
-          className="w-full h-11 rounded-xl text-sm fw-cta bg-brand-500 text-white
-                   flex items-center justify-center gap-2
-                   shadow-sm hover:bg-brand-600 hover:shadow-md active:scale-[0.98]
-                   disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-sm disabled:hover:bg-brand-500 disabled:active:scale-100
-                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2
-                   transition-all duration-300"
-          onClick={handleAddToCart}
-          aria-label={`Add ${data.name} to cart`}
-          type="button"
-        >
-          {loading ? (
-            <Loader2 size={16} className="animate-spin" aria-hidden="true" />
-          ) : (
-            <ShoppingCart size={16} aria-hidden="true" />
-          )}
-          <span>
-            {loading
-              ? "Adding..."
-              : outOfStock
-                ? "Out of Stock"
-                : "Add to Cart"}
-          </span>
-        </button>
       </div>
     </article>
   );

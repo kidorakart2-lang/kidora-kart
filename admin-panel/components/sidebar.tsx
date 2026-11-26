@@ -82,24 +82,18 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
     <div className="flex h-full flex-col">
       {/* Logo + Header */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border shrink-0">
-        {!collapsed && !isMobile && (
-          <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left duration-300 overflow-hidden">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-              {logoUrl ? (
-                <img
-                  src={logoUrl}
-                  alt="Logo"
-                  className="w-full h-full object-contain rounded-lg"
-                />
-              ) : (
-                <div className="w-full h-full bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-sm">T</span>
-                </div>
-              )}
+        {(!collapsed || isMobile) && (
+          <div className="flex min-w-0 items-center animate-in fade-in slide-in-from-left duration-300 overflow-hidden">
+            <div className="min-w-0 leading-none">
+              <img
+                src={logoUrl || "/Ratnavya Gold Leaf Logo.webp"}
+                alt="Ratnavya logo"
+                className="h-8 w-auto max-w-[138px] object-contain object-left"
+              />
+              <span className="mt-1.5 block text-[8px] uppercase tracking-[0.3em] text-[#c6a875]/80">
+                Admin
+              </span>
             </div>
-            <span className="font-bold text-lg text-sidebar-foreground">
-              Jewel Box
-            </span>
           </div>
         )}
         {!isMobile && (
@@ -144,8 +138,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
                     className={cn(
                       "flex items-center justify-center w-full px-3 py-2.5 rounded-lg transition-all duration-200",
                       "hover:bg-sidebar-accent",
-                      isActive &&
-                        "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg hover:bg-sidebar-primary",
+                      isActive && "admin-nav-active",
                       !isActive && "text-sidebar-foreground",
                     )}
                   >
@@ -242,8 +235,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
                         className={cn(
                           "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-sm",
                           "hover:bg-sidebar-accent",
-                          isActive &&
-                            "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg hover:bg-sidebar-primary",
+                          isActive && "admin-nav-active",
                           !isActive && "text-sidebar-foreground",
                         )}
                       >
@@ -277,7 +269,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
             <span className="sr-only">Open navigation menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0 bg-sidebar">
+        <SheetContent side="left" className="admin-sidebar w-64 p-0 bg-sidebar">
           {sidebarContent}
         </SheetContent>
       </Sheet>
@@ -288,7 +280,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300",
+        "admin-sidebar fixed left-0 top-0 z-40 h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300",
         collapsed ? "w-16" : "w-64",
       )}
     >

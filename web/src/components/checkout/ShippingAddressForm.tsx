@@ -36,13 +36,13 @@ export default function ShippingAddressForm({
   }));
 
   return (
-    <div className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md">
-      <div className="flex items-center justify-between mb-7">
+    <div className="rounded-xl border border-[var(--brand-gold)]/25 bg-white p-6 sm:p-8">
+      <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="w-8 h-8 rounded-full bg-brand-600 text-background flex items-center justify-center text-sm font-medium shadow-sm">1</span>
+          <span className="grid size-8 place-items-center rounded-full border border-[var(--brand-gold)]/50 bg-[var(--brand-gold)]/10 text-[12px] text-[var(--brand-gold-dark)]">1</span>
           <div>
-            <h2 className="text-base font-semibold text-foreground">Shipping Information</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Enter your delivery address</p>
+            <h2 className="display-heading text-lg">Shipping Information</h2>
+            <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/50">Enter your delivery address</p>
           </div>
         </div>
         {geolocationSupported && onDetectLocation && (
@@ -52,7 +52,7 @@ export default function ShippingAddressForm({
             size="sm"
             onClick={onDetectLocation}
             disabled={detectingLocation}
-            className="shrink-0 border-brand-300 hover:bg-brand-50 hover:text-brand-700 transition-all"
+            className="shrink-0 border-[var(--brand-gold)]/40 text-[var(--brand-ink)]/75 transition-all hover:bg-[var(--brand-cream)]"
           >
             {detectingLocation ? (
               <><Loader2 size={14} className="animate-spin mr-1" />Detecting...</>
@@ -73,24 +73,24 @@ export default function ShippingAddressForm({
       )}
 
       {showAddressPrompt && (
-        <div className="mb-6 p-4 bg-brand-50 border border-brand-200 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="text-sm text-brand-900">
+        <div className="mb-6 flex flex-col items-start justify-between gap-4 rounded-lg border border-[var(--brand-gold)]/30 bg-[var(--brand-rose)]/20 p-4 sm:flex-row sm:items-center">
+          <div className="text-sm text-[var(--brand-ink)]">
             <p className="font-medium">Saved address found</p>
             <p>Would you like to use the address saved in your profile?</p>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <Button variant="outline" size="sm" onClick={() => setShowAddressPrompt(false)} className="flex-1 sm:flex-none border-brand-300 hover:bg-brand-100">Keep Current</Button>
-            <Button size="sm" onClick={loadProfileAddress} className="flex-1 sm:flex-none bg-brand-600 hover:bg-brand-700 text-background">Use Profile Address</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowAddressPrompt(false)} className="flex-1 border-[var(--brand-gold)]/40 hover:bg-white sm:flex-none">Keep Current</Button>
+            <Button size="sm" onClick={loadProfileAddress} className="flex-1 bg-[var(--brand-plum)] text-[var(--brand-cream)] hover:bg-[var(--brand-primary-dark)] sm:flex-none">Use Profile Address</Button>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Field label="Full Name *" value={sa.fullName} onChange={(v) => update("fullName", v)} />
         {isLoggedIn ? (
           <div className="space-y-1">
-            <label className="text-sm font-medium text-muted-foreground">Email *</label>
-            <div className="w-full px-4 py-2.5 border border-border rounded-lg bg-muted/30 text-foreground">
+            <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">Email *</label>
+            <div className="w-full rounded-lg border border-[var(--brand-gold)]/20 bg-[var(--brand-cream)]/60 px-4 py-2.5 text-[var(--brand-ink)]">
               {sa.email || "—"}
             </div>
             <p className="text-xs text-muted-foreground">Email from your account</p>
@@ -99,22 +99,22 @@ export default function ShippingAddressForm({
           <Field label="Email *" value={sa.email} onChange={(v) => update("email", v)} readonly onClick={onEmailClick} />
         )}
         <div className="space-y-1">
-          <label className="text-sm font-medium text-muted-foreground">Phone *</label>
+          <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">Phone *</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <span className="text-muted-foreground text-sm">{siteConfig.contact.countryCode}</span>
             </div>
             <input type="tel" value={sa.phone} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); if (v.length <= 10) update("phone", v); }}
-              className="w-full pl-12 pr-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all" maxLength={10} required />
+              className="w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white py-2.5 pl-12 pr-4 text-[var(--brand-ink)] transition-all focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30" maxLength={10} required />
           </div>
         </div>
         <div className="space-y-1">
-          <label className="text-sm font-medium text-muted-foreground">Pincode *</label>
+          <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">Pincode *</label>
           <div className="flex gap-2">
             <input type="text" value={sa.pincode} onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 6); update("pincode", v); }}
-              className="flex-1 px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all" maxLength={6} required placeholder="Enter 6-digit pincode" />
+              className="flex-1 rounded-lg border border-[var(--brand-gold)]/30 bg-white px-4 py-2.5 text-[var(--brand-ink)] transition-all focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30" maxLength={6} required placeholder="Enter 6-digit pincode" />
             <Button type="button" variant="outline" size="sm" onClick={onCheckPincode} disabled={sa.pincode.length !== 6}
-              className="shrink-0 border-brand-300 hover:bg-brand-50 hover:text-brand-700 transition-all">
+              className="shrink-0 border-[var(--brand-gold)]/40 text-[var(--brand-ink)]/75 transition-all hover:bg-[var(--brand-cream)]">
               {isFetching ? <><Loader2 size={14} className="animate-spin mr-1" />Checking</> : <><MapPin size={14} className="mr-1" />Check</>}
             </Button>
           </div>
@@ -133,13 +133,13 @@ export default function ShippingAddressForm({
           </div>
         ) : shippingEstimate ? (
           <div className={`col-span-full -mt-2`}>
-            <div className={`bg-brand-50 border border-brand-200 rounded-xl p-4 transition-all hover:shadow-sm ${isFetching ? "opacity-60" : ""}`}>
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2.5"><Truck className="w-4 h-4 text-brand-600" /><span className="text-sm font-semibold text-brand-900">₹{shippingEstimate.estimatedCharge} shipping</span></div>
-                {shippingEstimate.etd && <span className="text-xs text-brand-700 bg-brand-100 px-2.5 py-1 rounded-full font-medium">Est. delivery {shippingEstimate.etd}</span>}
+            <div className={`rounded-xl border border-[var(--brand-gold)]/30 bg-[var(--brand-cream)] p-4 transition-all hover:shadow-sm ${isFetching ? "opacity-60" : ""}`}>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5"><Truck className="h-4 w-4 text-[var(--brand-gold-dark)]" /><span className="text-sm text-[var(--brand-ink)]">₹{shippingEstimate.estimatedCharge} shipping</span></div>
+                {shippingEstimate.etd && <span className="rounded-full bg-white px-2.5 py-1 text-[10.5px] uppercase tracking-[0.12em] text-[var(--brand-mauve)]">Est. delivery {shippingEstimate.etd}</span>}
               </div>
               {shippingEstimate.courierName && (
-                <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-brand-200/60"><MapPin className="w-3 h-3 text-brand-500" /><span className="text-xs text-brand-600">{shippingEstimate.courierName}</span></div>
+                <div className="mt-2 flex items-center gap-1.5 border-t border-[var(--brand-gold)]/20 pt-2"><MapPin className="h-3 w-3 text-[var(--brand-gold-dark)]" /><span className="text-[11px] text-[var(--brand-ink)]/55">{shippingEstimate.courierName}</span></div>
               )}
             </div>
           </div>
@@ -149,7 +149,7 @@ export default function ShippingAddressForm({
         <Field label="Area *" value={sa.area} onChange={(v) => update("area", v)} placeholder="E.g., Near Central Park" />
         <Field label="City *" value={sa.city} onChange={(v) => update("city", v)} />
         <div className="space-y-1">
-          <label className="text-sm font-medium text-muted-foreground">State *</label>
+          <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">State *</label>
           <Select value={sa.state} onValueChange={(v) => update("state", v)} name="state" required>
             <SelectTrigger className="w-full"><SelectValue placeholder="Select State" /></SelectTrigger>
             <SelectContent>
@@ -160,10 +160,10 @@ export default function ShippingAddressForm({
       </div>
 
       <div className="mt-6">
-        <label className="block text-sm font-medium text-muted-foreground mb-2">Delivery Instructions (Optional)</label>
+        <label className="mb-2 block text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">Delivery Instructions (Optional)</label>
         <textarea placeholder="Any special delivery instructions?" rows={2} value={sa.instructions}
           onChange={(e) => update("instructions", e.target.value)}
-          className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all" />
+          className="w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white px-4 py-2.5 text-[var(--brand-ink)] transition-all focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30" />
       </div>
     </div>
   );
@@ -174,10 +174,10 @@ function Field({ label, value, onChange, placeholder, readonly, onClick }: {
 }) {
   return (
     <div className="space-y-1">
-      <label className="text-sm font-medium text-muted-foreground">{label}</label>
+      <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">{label}</label>
       <input type="text" value={value} onChange={(e) => onChange(e.target.value)} readOnly={readonly}
         placeholder={placeholder} required onClick={onClick}
-        className={`w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all ${readonly && onClick ? 'cursor-pointer bg-muted/50' : ''}`} />
+        className={`w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white px-4 py-2.5 text-[var(--brand-ink)] transition-all focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30 ${readonly && onClick ? 'cursor-pointer bg-[var(--brand-cream)]/60' : ''}`} />
       {readonly && onClick && (
         <p className="text-xs text-muted-foreground">Click to sign in and fill email</p>
       )}

@@ -61,8 +61,8 @@ export default function ContactPage() {
       title: "Phone",
       content: siteConfig.contact.mobile,
       subContent: "Mon-Sun, 10am-10pm IST",
-      color: "bg-brand-100/80 border border-brand-200/50",
-      bgColor: "bg-brand-50/80",
+      color: "border border-[var(--brand-gold)]/30",
+      bgColor: "bg-[var(--brand-gold)]/10",
       href: `tel:${siteConfig.contact.phone}`,
       ariaLabel: "Contact us by phone",
     },
@@ -71,8 +71,8 @@ export default function ContactPage() {
       title: "Email",
       content: siteConfig.contact.email,
       subContent: "We'll respond within 24 hours",
-      color: "bg-brand-100/80 border border-brand-200/50",
-      bgColor: "bg-brand-50/80",
+      color: "border border-[var(--brand-gold)]/30",
+      bgColor: "bg-[var(--brand-gold)]/10",
       href: `mailto:${siteConfig.contact.email}`,
       ariaLabel: "Send us an email",
     },
@@ -81,23 +81,26 @@ export default function ContactPage() {
       title: "Address",
       content: siteConfig.address.street,
       subContent: getFullAddress(),
-      color: "bg-brand-100/80 border border-brand-200/50",
-      bgColor: "bg-brand-50/80",
+      color: "border border-[var(--brand-gold)]/30",
+      bgColor: "bg-[var(--brand-gold)]/10",
       href: siteConfig.address.googleMapsUrl,
       ariaLabel: "View our location on map",
     },
   ];
 
   return (
-    <div id="contact" className="min-h-screen bg-muted overflow-hidden">
+    <div id="contact" className="min-h-screen overflow-hidden bg-white">
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 bg-background rounded-2xl">
-        <h1 className="text-4xl md:text-5xl font-medium text-foreground mb-4 text-center">
-          Contact Us
-        </h1>
-        <p className="text-muted-foreground text-lg mb-12 text-center">
-          We're here to help. Please reach out with any questions or concerns.
-          We will get back to you as soon as possible.
+      <main className="mx-auto max-w-6xl px-4 py-14 sm:px-6 md:py-20 lg:px-8">
+        <div className="mb-12 text-center">
+          <p className="eyebrow mb-2"><span className="mr-2">✦</span>We're listening</p>
+          <h1 className="display-heading text-4xl md:text-5xl">
+            Contact <span className="accent-italic">us</span>
+          </h1>
+        </div>
+        <p className="mx-auto mb-12 max-w-2xl text-center text-[13px] leading-relaxed text-[var(--brand-ink)]/55">
+          Questions about a piece, an order or a gift? Send us a note and our
+          team will get back to you within one working day.
         </p>
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16">
           {/* Left Column - Contact Info */}
@@ -110,7 +113,7 @@ export default function ContactPage() {
               {contactInfo.map((info, index) => (
                 <Card
                   key={index}
-                  className="transition-all duration-300 hover:shadow-md hover:-translate-y-1 border-border py-2"
+                  className="rounded-xl border border-[var(--brand-gold)]/25 bg-white py-2 shadow-none transition-all duration-300 hover:border-[var(--brand-gold)]/50"
                   style={{ animationDelay: `${index * 100}ms` }}
                   role="listitem"
                 >
@@ -128,17 +131,18 @@ export default function ContactPage() {
                         className={`${info.bgColor} p-3 rounded-lg transition-transform duration-300 group-hover:scale-110`}
                       >
                         <info.icon
-                          className="w-6 h-6 text-brand-600"
+                          className="h-5 w-5 text-[var(--brand-gold-dark)]"
+                          strokeWidth={1.6}
                           aria-hidden="true"
                         />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-foreground mb-1">
+                        <h3 className="display-heading mb-1 text-[15px]">
                           {info.title}
                         </h3>
-                        <p className="text-muted-foreground">{info.content}</p>
+                        <p className="text-[12.5px] text-[var(--brand-ink)]/70">{info.content}</p>
                         {info.subContent && (
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <p className="mt-1 text-[11px] text-[var(--brand-ink)]/45">
                             {info.subContent}
                           </p>
                         )}
@@ -152,12 +156,14 @@ export default function ContactPage() {
 
           {/* Right Column - Contact Form */}
           <div className="anim-fill-both anim-name-fade-in anim-name-slide-right anim-duration-700">
-            <Card className="border-border shadow-lg">
-              <CardContent className="p-8">
+            <Card className="rounded-xl border border-[var(--brand-gold)]/25 bg-white shadow-none">
+              <CardContent className="p-6 sm:p-8">
+                <p className="eyebrow mb-1.5 text-[10px]"><span className="mr-1.5">✦</span>Write to us</p>
+                <h2 className="display-heading mb-6 text-xl">Send a message</h2>
                 {isSubmitted && (
-                  <Alert className="mb-6 bg-green-50 border-green-200 anim-fill-both anim-name-fade-in anim-name-slide-top anim-duration-500">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <AlertDescription className="text-green-800">
+                  <Alert className="mb-6 rounded-lg border border-[var(--brand-gold)]/40 bg-[var(--brand-gold)]/10">
+                    <CheckCircle2 className="h-4 w-4 text-[var(--brand-gold-dark)]" />
+                    <AlertDescription className="text-[12px] text-[var(--brand-ink)]/70">
                       Thank you! Your message has been sent successfully. We'll
                       respond within 24 hours.
                     </AlertDescription>
@@ -170,7 +176,7 @@ export default function ContactPage() {
                   aria-label="Contact form"
                 >
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-muted-foreground font-medium">
+                    <Label htmlFor="name" className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
                       Your Name
                     </Label>
                     <Input
@@ -181,7 +187,7 @@ export default function ContactPage() {
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="Enter your name"
-                      className="transition-all duration-200 focus:scale-[1.01]"
+                      className="rounded-lg border-[var(--brand-gold)]/30 bg-white text-[var(--brand-ink)] transition-all duration-200 focus:border-[var(--brand-gold)] focus:ring-[var(--brand-gold)]/30"
                       aria-required="true"
                     />
                   </div>
@@ -189,7 +195,7 @@ export default function ContactPage() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="email"
-                      className="text-muted-foreground font-medium"
+                      className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55"
                     >
                       Your Email
                     </Label>
@@ -201,7 +207,7 @@ export default function ContactPage() {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="Enter your email"
-                      className="transition-all duration-200 focus:scale-[1.01]"
+                      className="rounded-lg border-[var(--brand-gold)]/30 bg-white text-[var(--brand-ink)] transition-all duration-200 focus:border-[var(--brand-gold)] focus:ring-[var(--brand-gold)]/30"
                       aria-required="true"
                     />
                   </div>
@@ -209,7 +215,7 @@ export default function ContactPage() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="message"
-                      className="text-muted-foreground font-medium"
+                      className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55"
                     >
                       Message
                     </Label>
@@ -221,7 +227,7 @@ export default function ContactPage() {
                       onChange={handleChange}
                       placeholder="Enter your message"
                       rows={5}
-                      className="resize-none transition-all duration-200 focus:scale-[1.01]"
+                      className="resize-none rounded-lg border-[var(--brand-gold)]/30 bg-white text-[var(--brand-ink)] transition-all duration-200 focus:border-[var(--brand-gold)] focus:ring-[var(--brand-gold)]/30"
                       aria-required="true"
                     />
                   </div>
@@ -229,8 +235,7 @@ export default function ContactPage() {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    variant="gradient"
-                    className="w-full"
+                    className="btn-gold w-full !text-[10.5px] uppercase tracking-[0.18em]"
                     aria-busy={isLoading}
                   >
                     {isLoading ? (

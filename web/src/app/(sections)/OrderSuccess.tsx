@@ -132,7 +132,7 @@ export default function OrderSuccess() {
       {/* ══════════════════════════════════════════════════════════════ */}
       {phase !== "reveal" && (
         <motion.div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-900 overflow-hidden"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-[#14100f]"
           initial={{ y: 0 }}
           animate={
             phase === "slideUp"
@@ -142,8 +142,8 @@ export default function OrderSuccess() {
         >
           {/* Ambient blobs */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute -top-20 -left-20 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl" />
-            <div className="absolute top-1/3 -right-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+            <div className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-[var(--brand-gold)]/15 blur-3xl" />
+            <div className="absolute -right-20 top-1/3 h-96 w-96 rounded-full bg-[var(--brand-mauve)]/15 blur-3xl" />
           </div>
 
           {/* Lottie / Fallback */}
@@ -175,13 +175,17 @@ export default function OrderSuccess() {
             transition={{ delay: 0.5, duration: 0.5 }}
             className="text-center mt-6"
           >
-             <h1 className="text-3xl md:text-4xl fw-heading text-white mb-2">
+            <p className="eyebrow mb-2">
+              <span className="mr-2">✦</span>
+              Your next treasure
+            </p>
+            <h1 className="display-heading mb-2 text-3xl text-[var(--brand-cream)] md:text-4xl">
               Order Placed!
             </h1>
-            <p className="text-emerald-100/80">
+            <p className="text-[var(--brand-cream)]/60">
               Confirming your order...
             </p>
-            <Badge className="mt-3 bg-white/15 text-white border-white/20 px-4 py-1.5 text-xs font-mono">
+            <Badge className="mt-3 border border-[var(--brand-gold)]/45 bg-transparent px-4 py-1.5 font-mono text-[11px] text-[var(--brand-gold)]">
               {orderId}
             </Badge>
           </motion.div>
@@ -193,7 +197,7 @@ export default function OrderSuccess() {
       {/*  Always rendered behind splash; animates in as splash lifts     */}
       {/* ══════════════════════════════════════════════════════════════ */}
       <motion.div
-        className="min-h-screen bg-gradient-to-b from-background to-brand-50/30"
+        className="min-h-screen bg-white"
         initial={false}
         animate={
           phase === "reveal"
@@ -218,23 +222,23 @@ export default function OrderSuccess() {
               damping: 18,
               delay: 0.2,
             }}
-            className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center shadow-lg shadow-emerald-200/50"
+            className="mx-auto mb-4 grid size-16 place-items-center rounded-full border border-[var(--brand-gold)]/50 bg-white text-[var(--brand-gold-dark)]"
           >
-            <Check className="w-8 h-8 text-emerald-600" strokeWidth={3} />
+            <Check className="h-7 w-7" strokeWidth={2} />
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-             className="text-3xl md:text-4xl fw-heading text-foreground tracking-tight"
+            className="display-heading text-3xl md:text-4xl"
           >
-            Thank you for your order!
+            Thank you for your <span className="accent-italic">order.</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-muted-foreground text-sm mt-2"
+            className="mt-2 text-sm text-[var(--brand-ink)]/60"
           >
             We&apos;ll send you a confirmation when your order ships.
           </motion.p>
@@ -246,7 +250,7 @@ export default function OrderSuccess() {
             >
               <Badge
                 variant="outline"
-                className="mt-3 text-xs font-mono border-brand-200 text-brand-700"
+                className="mt-3 border-[var(--brand-gold)]/40 font-mono text-[11px] text-[var(--brand-gold-dark)]"
               >
                 {orderId}
               </Badge>
@@ -256,7 +260,7 @@ export default function OrderSuccess() {
 
         {/* Decorative divider */}
         <motion.div
-          className="h-px bg-gradient-to-r from-transparent via-brand-200/50 to-transparent max-w-2xl mx-auto"
+          className="mx-auto h-px max-w-2xl bg-gradient-to-r from-transparent via-[var(--brand-gold)]/45 to-transparent"
           initial={{ scaleX: 0 }}
           animate={phase === "reveal" ? { scaleX: 1 } : { scaleX: 0 }}
           transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
@@ -273,21 +277,21 @@ export default function OrderSuccess() {
                   initial={{ opacity: 0, y: 24 }}
                   animate={phase === "reveal" ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
                   transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
-                  className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md"
+                  className="rounded-xl border border-[var(--brand-gold)]/25 bg-white p-6 sm:p-8"
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-brand-600 text-background flex items-center justify-center text-sm font-medium shadow-sm">
+                    <div className="grid size-8 place-items-center rounded-full border border-[var(--brand-gold)]/50 bg-[var(--brand-gold)]/10 text-[12px] text-[var(--brand-gold-dark)]">
                       1
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground text-base">
+                      <h3 className="display-heading text-lg">
                         Order Progress
                       </h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/50">
                         Estimated delivery by {estimatedDelivery(order.createdAt)}
                       </p>
                     </div>
-                    <span className="ml-auto flex items-center gap-1.5 text-xs text-brand-600 font-medium">
+                    <span className="ml-auto flex items-center gap-1.5 text-[11px] uppercase tracking-[0.12em] text-[var(--brand-gold-dark)]">
                       <Clock className="w-3.5 h-3.5" />
                       {estimatedDelivery(order.createdAt)}
                     </span>
@@ -300,17 +304,17 @@ export default function OrderSuccess() {
                   initial={{ opacity: 0, y: 24 }}
                   animate={phase === "reveal" ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
                   transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
-                  className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md"
+                  className="rounded-xl border border-[var(--brand-gold)]/25 bg-white p-6 sm:p-8"
                 >
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-8 h-8 rounded-full bg-brand-600 text-background flex items-center justify-center text-sm font-medium shadow-sm">
+                    <div className="grid size-8 place-items-center rounded-full border border-[var(--brand-gold)]/50 bg-[var(--brand-gold)]/10 text-[12px] text-[var(--brand-gold-dark)]">
                       2
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground text-base">
+                      <h3 className="display-heading text-lg">
                         Your Items
                       </h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/50">
                         {order.items.length}{" "}
                         {order.items.length === 1 ? "item" : "items"} in this
                         order
@@ -325,30 +329,30 @@ export default function OrderSuccess() {
                   initial={{ opacity: 0, y: 24 }}
                   animate={phase === "reveal" ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
                   transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
-                  className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md"
+                  className="rounded-xl border border-[var(--brand-gold)]/25 bg-white p-6 sm:p-8"
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-brand-600 text-background flex items-center justify-center text-sm font-medium shadow-sm">
+                    <div className="grid size-8 place-items-center rounded-full border border-[var(--brand-gold)]/50 bg-[var(--brand-gold)]/10 text-[12px] text-[var(--brand-gold-dark)]">
                       3
                     </div>
                     <h3 className="font-semibold text-foreground text-base">
                       Delivery Address
                     </h3>
                   </div>
-                  <div className="bg-muted p-4 rounded-xl">
-                    <p className="font-medium text-foreground text-sm">
+                  <div className="rounded-lg border border-[var(--brand-gold)]/20 bg-[var(--brand-cream)] p-4">
+                    <p className="text-sm text-[var(--brand-ink)]">
                       {order.shippingAddress.fullName}
                     </p>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="mt-1 text-[12.5px] text-[var(--brand-ink)]/65">
                       {order.shippingAddress.street},{" "}
                       {order.shippingAddress.area}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-[12.5px] text-[var(--brand-ink)]/65">
                       {order.shippingAddress.city},{" "}
                       {order.shippingAddress.state} -{" "}
                       {order.shippingAddress.pincode}
                     </p>
-                    <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
+                    <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-[var(--brand-gold)]/25 pt-3 text-[11px] text-[var(--brand-ink)]/45">
                       <span className="flex items-center gap-1">
                         <Phone className="w-3 h-3" />
                         {order.shippingAddress.phone}
@@ -369,17 +373,17 @@ export default function OrderSuccess() {
                     initial={{ opacity: 0, y: 24 }}
                     animate={phase === "reveal" ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
                     transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
-                    className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-brand-100 transition-all hover:shadow-md"
+                    className="rounded-xl border border-[var(--brand-gold)]/25 bg-white p-6 sm:p-8"
                   >
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-8 h-8 rounded-full bg-brand-accent-100 text-brand-accent-700 flex items-center justify-center">
-                        <Gift className="w-4 h-4" />
+                      <div className="grid size-8 place-items-center rounded-full border border-[var(--brand-gold)]/40 bg-[var(--brand-gold)]/10 text-[var(--brand-gold-dark)]">
+                        <Gift className="h-4 w-4" />
                       </div>
-                      <h3 className="font-semibold text-foreground text-base">
+                      <h3 className="display-heading text-lg">
                         Gift Message
                       </h3>
                     </div>
-                    <div className="bg-brand-accent-50 border-l-4 border-brand-accent-400 rounded-r-lg p-4 italic text-brand-accent-700 text-sm">
+                    <div className="rounded-r-lg border-l-2 border-[var(--brand-gold)] bg-[var(--brand-cream)] p-4 text-sm italic text-[var(--brand-ink)]/75">
                       &ldquo;{order.giftMessage}&rdquo;
                     </div>
                   </motion.div>
@@ -392,33 +396,34 @@ export default function OrderSuccess() {
                   initial={{ opacity: 0, y: 24 }}
                   animate={phase === "reveal" ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
                   transition={{ delay: 0.35, duration: 0.5, ease: "easeOut" }}
-                  className="bg-background rounded-2xl p-6 sm:p-8 shadow-xl border border-brand-100 sticky top-6"
+                  className="sticky top-6 rounded-xl border border-[var(--brand-gold)]/30 bg-white p-6 sm:p-7"
                 >
-                  <div className="flex items-center gap-2 mb-5">
-                    <div className="w-1.5 h-5 rounded-full bg-brand-600" />
-                    <h3 className="font-semibold text-foreground text-base">
-                      Order Summary
-                    </h3>
-                  </div>
+                  <p className="eyebrow mb-1.5 text-[10px]">
+                    <span className="mr-1.5">✦</span>
+                    Your order
+                  </p>
+                  <h3 className="display-heading mb-4 border-b border-[var(--brand-gold)]/20 pb-3 text-xl">
+                    Order Summary
+                  </h3>
 
                   {/* Price breakdown */}
-                  <div className="space-y-3 py-4 border-y border-border">
+                  <div className="space-y-3 border-y border-[var(--brand-gold)]/20 py-4">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="text-[var(--brand-ink)]/60">Subtotal</span>
                       <span className="text-foreground">
                         ₹{order.pricing.subtotal}
                       </span>
                     </div>
                     {order.pricing.discount?.amount > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-emerald-600">Discount</span>
-                        <span className="text-emerald-600">
+                        <span className="text-[var(--brand-mauve)]">Discount</span>
+                        <span className="text-[var(--brand-mauve)]">
                           -₹{order.pricing.discount.amount}
                         </span>
                       </div>
                     )}
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Shipping</span>
+                      <span className="text-[var(--brand-ink)]/60">Shipping</span>
                       <span className="text-foreground">
                         {order.pricing.shipping > 0
                           ? `₹${order.pricing.shipping}`
@@ -428,17 +433,19 @@ export default function OrderSuccess() {
                   </div>
 
                   {/* Total */}
-                  <div className="flex justify-between items-baseline pt-4">
-                    <span className="font-semibold text-foreground">Total</span>
-                    <span className="text-2xl font-bold text-brand-600">
+                  <div className="flex items-baseline justify-between pt-4">
+                    <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/55">
+                      Total
+                    </span>
+                    <span className="display-heading text-2xl text-[var(--brand-plum)]">
                       ₹{order.pricing.total}
                     </span>
                   </div>
 
                   {/* Payment method */}
-                  <div className="mt-5 pt-4 border-t border-border">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <CreditCard className="w-4 h-4" />
+                  <div className="mt-5 border-t border-[var(--brand-gold)]/20 pt-4">
+                    <div className="flex items-center gap-2 text-[12.5px] text-[var(--brand-ink)]/60">
+                      <CreditCard className="h-4 w-4 text-[var(--brand-gold-dark)]" />
                       <span>
                         Paid via{" "}
                         <span className="font-medium text-foreground">
@@ -450,7 +457,7 @@ export default function OrderSuccess() {
                     </div>
                     {order.payment.codAdvance &&
                       order.pricing.advance > 0 && (
-                        <p className="text-xs text-emerald-600 mt-1 ml-6">
+                        <p className="ml-6 mt-1 text-[11px] text-[var(--brand-mauve)]">
                           Advance paid: ₹{order.pricing.advance}
                         </p>
                       )}
@@ -458,8 +465,8 @@ export default function OrderSuccess() {
 
                   {/* Package ID */}
                   {packageId && (
-                    <div className="mt-4 pt-4 border-t border-border">
-                      <p className="text-xs text-muted-foreground mb-1">
+                    <div className="mt-4 border-t border-[var(--brand-gold)]/20 pt-4">
+                      <p className="mb-1 text-[10px] uppercase tracking-[0.16em] text-[var(--brand-ink)]/45">
                         Package ID
                       </p>
                       <p className="text-sm font-mono font-medium text-foreground">
@@ -474,16 +481,16 @@ export default function OrderSuccess() {
                       onClick={() =>
                         (window.location.href = "/profile?tab=orders")
                       }
-                       className="w-full h-12 btn-gradient fw-cta rounded-xl shadow-sm group"
+                      className="btn-gold group h-12 w-full !text-[11px] uppercase tracking-[0.18em]"
                     >
-                      <ShoppingBag className="w-5 h-5 mr-2" />
+                      <ShoppingBag className="h-4 w-4" />
                       View My Orders
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                     </Button>
                     <Button
                       onClick={() => (window.location.href = "/")}
                       variant="outline"
-                      className="w-full h-12 border-2 border-brand-200 hover:border-brand-400 hover:bg-brand-50/50 text-foreground fw-cta rounded-xl"
+                      className="h-12 w-full rounded-full border border-[var(--brand-gold)]/40 text-[11px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/70 hover:bg-[var(--brand-cream)]"
                     >
                       Continue Shopping
                     </Button>
@@ -497,7 +504,7 @@ export default function OrderSuccess() {
         {/* ── Loading state ─────────────────────────────────────── */}
         {!order && (
           <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-            <p className="text-muted-foreground text-sm">
+            <p className="text-sm text-[var(--brand-ink)]/50">
               Loading order details...
             </p>
           </div>

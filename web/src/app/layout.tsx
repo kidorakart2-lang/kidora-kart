@@ -5,7 +5,7 @@ import "./themes/brown.css";
 import "./themes/monochrome.css";
 import "@/index.css";
 import { Client } from "@/redux/provider/Client";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import MainLayout from "@/components/comman/MainLayout";
 import { Suspense } from "react";
 import { siteConfig, defaultMetadata, getStructuredAddress } from "@/lib/utils";
@@ -22,7 +22,6 @@ import ThemeColorMeta from "@/components/comman/ThemeColorMeta";
 import dynamic from "next/dynamic";
 
 const MotionProvider = dynamic(() => import("@/components/MotionProvider"));
-const DevThemeToggle = dynamic(() => import("@/components/comman/DevThemeToggle"));
 
 const lato = Lato({
   subsets: ["latin"],
@@ -33,7 +32,7 @@ const lato = Lato({
 });
 
 // Elegant serif for the brand wordmark and display headings — the
-// "Jewel Box" identity reads as classic jewellery, not sans-serif retail.
+// "Ratnavya" identity reads as classic jewellery, not sans-serif retail.
 const playfair = Playfair_Display({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -53,8 +52,15 @@ export const metadata = {
     canonical: siteConfig.url,
   },
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
+  manifest: "/site.webmanifest",
 };
 
 // Organization Schema Component
@@ -66,7 +72,7 @@ function OrganizationSchema() {
     name: siteConfig.name,
     legalName: siteConfig.legalName,
     url: siteConfig.url,
-    logo: `${siteConfig.url}/favicon.svg`,
+    logo: `${siteConfig.url}/Ratnavya%20Gold%20Leaf%20Logo.webp`,
     description: siteConfig.description,
     foundingDate: siteConfig.business.foundedYear,
     priceRange: siteConfig.business.priceRange,
@@ -237,7 +243,7 @@ export default async function RootLayout({
         <meta name="geo.placename" content={siteConfig.address.city} />
         <meta name="geo.position" content={`${siteConfig.address.geo.lat};${siteConfig.address.geo.lng}`} />
         <meta name="ICBM" content={`${siteConfig.address.geo.lat}, ${siteConfig.address.geo.lng}`} />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
         <meta name="theme-color" content={siteConfig.themeColor} />
         <meta name="msapplication-TileColor" content={siteConfig.themeColor} />
       </head>
@@ -256,12 +262,11 @@ export default async function RootLayout({
               <LayoutContent>{children}</LayoutContent>
             </Suspense>
             <ScrollToTop />
-            <Toaster richColors closeButton position="top-right" />
+            <Toaster closeButton position="top-right" />
             <LoginModal />
             <RequirementModal />
             <PhoneNumberModal />
             <CookieConsent />
-            <DevThemeToggle />
           </MotionProvider>
         </Client>
         </Suspense>

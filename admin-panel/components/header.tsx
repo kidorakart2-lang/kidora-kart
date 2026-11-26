@@ -129,13 +129,14 @@ export function Header() {
           scrolled ? "h-12" : "h-14"
         }`}
       >
+        <span className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-[#c6a875]/70 via-[#c6a875]/15 to-transparent" />
         <div className="flex-1 flex items-center gap-4">
           <div ref={searchContainerRef} className="relative w-full max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               onChange={getSearchResult}
-              placeholder="Search..."
-              className="pl-9 h-8 text-sm"
+              placeholder="Search pages..."
+              className="h-8 rounded-full border-border/70 bg-background/60 pl-9 text-sm transition-colors focus-visible:border-[#c6a875]/60 focus-visible:ring-[#c6a875]/20"
               onFocus={() => {
                 if (query.trim() !== "" && result.length > 0) {
                   setBar(true);

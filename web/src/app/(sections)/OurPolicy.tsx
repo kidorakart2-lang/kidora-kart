@@ -34,8 +34,8 @@ const OurPolicy = () => {
   ];
 
   return (
-    <section className="py-12 md:py-16 bg-background">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="bg-white py-14 md:py-20">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -43,11 +43,12 @@ const OurPolicy = () => {
           transition={{ duration: 0.5 }}
           className="mb-12"
         >
-           <h1 className="text-3xl md:text-4xl fw-heading text-foreground mb-3">
-            Our Policies
+           <p className="eyebrow mb-2"><span className="mr-2">✦</span>The small print</p>
+          <h1 className="display-heading mb-3 text-3xl md:text-4xl">
+            Our <span className="accent-italic">Policies</span>
           </h1>
-          <div className="w-16 h-0.5 bg-foreground mb-4"></div>
-          <p className="text-muted-foreground text-base leading-relaxed">
+          <div className="mb-4 h-px w-16 bg-[var(--brand-gold)]"></div>
+          <p className="text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
             At {siteConfig.name}, we are committed to providing you with an
             exceptional shopping experience. Here's how we ensure your
             satisfaction at every step.
@@ -64,17 +65,14 @@ const OurPolicy = () => {
           {policies.map((policy, index) => {
             const IconComponent = policy.icon;
             return (
-              <div
-                key={index}
-                className="border-l-4 border-foreground/20 pl-6 py-2"
-              >
-                <div className="flex items-start gap-3 mb-2">
-                  <IconComponent className="w-5 h-5 text-muted-foreground mt-1 flex-shrink-0" />
-                  <h2 className="text-xl font-semibold text-foreground">
-                    {policy.title}
-                  </h2>
+              <div key={index} className="rounded-xl border border-[var(--brand-gold)]/25 bg-white p-6">
+                <div className="mb-2 flex items-start gap-3">
+                  <div className="grid size-9 shrink-0 place-items-center rounded-full border border-[var(--brand-gold)]/35 bg-[var(--brand-gold)]/10">
+                    <IconComponent className="h-4 w-4 text-[var(--brand-gold-dark)]" strokeWidth={1.6} />
+                  </div>
+                  <h2 className="display-heading text-lg">{policy.title}</h2>
                 </div>
-                <p className="text-muted-foreground leading-relaxed">
+                <p className="text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
                   {policy.description}
                 </p>
               </div>
@@ -90,21 +88,23 @@ const OurPolicy = () => {
           className="mb-12"
         >
           <div className="flex items-center gap-3 mb-4">
-            <RefreshCw className="w-6 h-6 text-muted-foreground" />
-            <h2 className="text-2xl font-semibold text-foreground">
-              Refund & Cancellation Policy
+            <div className="grid size-9 place-items-center rounded-full border border-[var(--brand-gold)]/35 bg-[var(--brand-gold)]/10">
+              <RefreshCw className="h-4 w-4 text-[var(--brand-gold-dark)]" strokeWidth={1.6} />
+            </div>
+            <h2 className="display-heading text-2xl">
+              Refund &amp; Cancellation Policy
             </h2>
           </div>
 
           <div className="space-y-6">
             <div>
               <div className="flex items-start gap-2 mb-2">
-                <Clock className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                <h3 className="text-lg font-semibold text-foreground">
+                <Clock className="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand-gold-dark)]" strokeWidth={1.6} />
+                <h3 className="display-heading text-lg">
                   Order Cancellation
                 </h3>
               </div>
-              <p className="text-muted-foreground leading-relaxed pl-7">
+              <p className="pl-7 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
                 You can cancel your order within{" "}
                 <strong className="text-foreground">24 hours</strong> of placing
                 it. Simply contact our customer support team or use your account
@@ -114,12 +114,12 @@ const OurPolicy = () => {
 
             <div>
               <div className="flex items-start gap-2 mb-2">
-                <RefreshCw className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                <h3 className="text-lg font-semibold text-foreground">
+                <RefreshCw className="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand-gold-dark)]" strokeWidth={1.6} />
+                <h3 className="display-heading text-lg">
                   Refund Processing
                 </h3>
               </div>
-              <p className="text-muted-foreground leading-relaxed pl-7">
+              <p className="pl-7 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
                 Once your return or cancellation is approved, refunds will be
                 processed within{" "}
                 <strong className="text-foreground">3-5 business days</strong>{" "}
@@ -128,8 +128,8 @@ const OurPolicy = () => {
               </p>
             </div>
 
-            <div className="bg-muted border border-border rounded-lg p-4 pl-7">
-              <p className="text-sm text-muted-foreground leading-relaxed">
+            <div className="rounded-lg border border-[var(--brand-gold)]/25 bg-white p-4 pl-7">
+              <p className="text-[12px] leading-relaxed text-[var(--brand-ink)]/60">
                 <strong className="text-foreground">Note:</strong> For personalized or custom
                 jewellery orders, cancellations may not be available once
                 production has begun. Please contact us immediately if you need
@@ -147,13 +147,15 @@ const OurPolicy = () => {
           className="mb-12"
         >
           <div className="flex items-center gap-3 mb-4">
-            <Lock className="w-6 h-6 text-muted-foreground" />
-            <h2 className="text-2xl font-semibold text-foreground">
-              Cookie & Data Usage Policy
+            <div className="grid size-9 place-items-center rounded-full border border-[var(--brand-gold)]/35 bg-[var(--brand-gold)]/10">
+              <Lock className="h-4 w-4 text-[var(--brand-gold-dark)]" strokeWidth={1.6} />
+            </div>
+            <h2 className="display-heading text-2xl">
+              Cookie &amp; Data Usage Policy
             </h2>
           </div>
 
-          <div className="space-y-4 text-muted-foreground leading-relaxed">
+          <div className="space-y-4 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
             <p>
               We use cookies to help us recognize returning users and keep your
               shopping experience smooth. No personal data is shared with
@@ -194,19 +196,19 @@ const OurPolicy = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <h2 className="text-2xl font-semibold text-foreground mb-6">
+          <h2 className="display-heading mb-6 text-2xl">
             Additional Information
           </h2>
 
           <div className="space-y-6">
             <div>
               <div className="flex items-start gap-2 mb-2">
-                <Ruler className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                <h3 className="text-lg font-semibold text-foreground">
+                <Ruler className="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand-gold-dark)]" strokeWidth={1.6} />
+                <h3 className="display-heading text-lg">
                   Size Guide
                 </h3>
               </div>
-              <p className="text-muted-foreground leading-relaxed pl-7">
+              <p className="pl-7 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
                 Not sure about the right size, length or fit? Contact our
                 customer service for assistance in finding the perfect piece
                 for every occasion.
@@ -215,12 +217,12 @@ const OurPolicy = () => {
 
             <div>
               <div className="flex items-start gap-2 mb-2">
-                <Sparkles className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                <h3 className="text-lg font-semibold text-foreground">
+                <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand-gold-dark)]" strokeWidth={1.6} />
+                <h3 className="display-heading text-lg">
                   Custom Orders
                 </h3>
               </div>
-              <p className="text-muted-foreground leading-relaxed pl-7">
+              <p className="pl-7 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
                 Looking for something special? We offer custom jewellery and
                 gifting options. Contact us to discuss your needs and we'll
                 help find the perfect present.

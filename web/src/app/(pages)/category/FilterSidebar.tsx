@@ -296,8 +296,8 @@ export default function FilterSidebar({ color, material }: FilterSidebarProps) {
             </div>
           </div>
 
-          {/* Age Range Filter */}
-          <div className="space-y-3 pb-4">
+          {/* Age Range Filter — kept for future use, hidden from the storefront */}
+          <div className="hidden">
             <Label className="text-base font-semibold text-brand-900 flex items-center gap-2">
               <Baby size={16} className="text-brand-600" />
               Age Range

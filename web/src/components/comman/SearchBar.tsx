@@ -21,9 +21,10 @@ import { useSearchSuggestions, type SuggestionData } from "@/lib/useSearchSugges
 interface SearchBarProps {
   className?: string;
   inputId?: string;
+  formClassName?: string;
 }
 
-export const SearchBar = ({ className, inputId }: SearchBarProps) => {
+export const SearchBar = ({ className, inputId, formClassName }: SearchBarProps) => {
   const value = useSelector((state: RootState) => state.ui.searchValue);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const router = useRouter();
@@ -93,17 +94,20 @@ export const SearchBar = ({ className, inputId }: SearchBarProps) => {
     <div className={`relative ${className}`}>
       <PlaceholdersAndVanishInput
         placeholders={[
-          "Search for Jewellery",
-          "Buy Earrings Online",
-          "Search for action figures",
-          "Find Gift Items",
+          "Search for silver chains",
+          "Pearl necklaces",
+          "Everyday silver earrings",
+          "Gifts under ₹1,000",
         ]}
         onSubmit={handleSubmit}
         inputId={inputId}
+        formClassName={formClassName}
       />
       <Search
-        size={20}
-        className="hidden md:block absolute left-9 top-1/2 -translate-y-1/2 text-[var(--brand-primary-dark)] pointer-events-none"
+        size={18}
+        strokeWidth={1.6}
+        aria-hidden="true"
+        className="pointer-events-none absolute left-4 top-1/2 z-[60] hidden -translate-y-1/2 text-[var(--brand-gold-dark)] sm:block"
       />
 
       {isSuggestionsOpen && (
@@ -111,33 +115,33 @@ export const SearchBar = ({ className, inputId }: SearchBarProps) => {
           initial="closed"
           animate={isSuggestionsOpen ? "open" : "closed"}
           variants={suggestionVariants}
-          className="absolute top-full left-0 right-0 h-auto w-[78%] md:w-full mt-1 bg-background rounded-lg shadow-lg z-[200] border border-border overflow-x-hidden overflow-y-auto no-scrollbar"
+          className="no-scrollbar absolute left-0 right-0 top-full z-[200] mt-2 h-auto w-[86%] overflow-y-auto overflow-x-hidden rounded-xl border border-[var(--brand-gold)]/30 bg-white shadow-[0_24px_60px_-30px_rgba(75,49,71,0.45)] md:w-full"
         >
           {/* Loading state */}
           {isFetching && (
             <div className="p-6 flex items-center justify-center gap-2">
-              <div className="w-4 h-4 border-2 border-brand-300 border-t-brand-600 rounded-full animate-spin" />
-              <span className="text-xs text-muted-foreground">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--brand-gold)]/30 border-t-[var(--brand-gold-dark)]" />
+              <span className="text-[11.5px] text-[var(--brand-ink)]/50">
                 Searching...
               </span>
             </div>
           )}
 
           {!isFetching && (
-            <div className="grid grid-cols-[30%_auto] divide-x divide-border">
+            <div className="grid grid-cols-[32%_auto] divide-x divide-[var(--brand-gold)]/20">
               {/* Suggestions Column */}
               {(suggestions?.suggestions?.length ?? 0) > 0 ||
               (suggestions?.products?.length ?? 0) > 0 ? (
                 <>
                   <div className="p-4">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2 ">
+                    <h3 className="mb-2 text-[9.5px] uppercase tracking-[0.2em] text-[var(--brand-ink)]/40">
                       <span>Suggestions</span>
                     </h3>
                     <div className="space-y-2">
                       {suggestions?.suggestions?.map((suggestion, index) => (
                         <button
                           key={index}
-                          className="w-full text-left p-2 hover:bg-muted rounded-md transition-colors text-sm"
+                          className="w-full rounded-md p-2 text-left text-[12.5px] text-[var(--brand-ink)]/75 transition-colors hover:bg-[var(--brand-cream)] hover:text-[var(--brand-ink)]"
                           onClick={() =>
                             router.push(
                               `/category/shop-by-category?q=${suggestion}`,
@@ -152,7 +156,7 @@ export const SearchBar = ({ className, inputId }: SearchBarProps) => {
 
                   {/* Products Column */}
                   <div className="p-4">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center justify-between">
+                    <h3 className="mb-2 flex items-center justify-between text-[9.5px] uppercase tracking-[0.2em] text-[var(--brand-ink)]/40">
                       <span>Products</span>
                       <span
                         onClick={() => setIsSuggestionsOpen(false)}
@@ -167,9 +171,9 @@ export const SearchBar = ({ className, inputId }: SearchBarProps) => {
                           onClick={() => setIsSuggestionsOpen(false)}
                           key={product._id}
                           href={`/product-details/${product.slug}`}
-                          className="group flex flex-col items-center p-3 hover:bg-muted rounded-lg transition-colors"
+                          className="group flex flex-col items-center rounded-lg p-3 transition-colors hover:bg-[var(--brand-cream)]"
                         >
-                          <div className="relative w-full aspect-square mb-2 bg-muted rounded-md overflow-hidden">
+                          <div className="relative mb-2 aspect-square w-full overflow-hidden rounded-md border border-[var(--brand-gold)]/20 bg-[var(--brand-cream)]">
                             <Image
                               src={product.image}
                               alt={product.name}
@@ -178,10 +182,10 @@ export const SearchBar = ({ className, inputId }: SearchBarProps) => {
                               className="object-cover group-hover:scale-105 transition-transform"
                             />
                           </div>
-                          <p className="text-sm font-medium  line-clamp-2">
+                          <p className="line-clamp-2 text-[12px] text-[var(--brand-ink)]/80">
                             {product.name}
                           </p>
-                          <p className="text-[var(--brand-primary-dark)] font-medium mt-1">
+                          <p className="mt-1 text-[12px] text-[var(--brand-plum)]">
                             ₹{product.discount_price || product.price}
                           </p>
                         </Link>
@@ -190,8 +194,8 @@ export const SearchBar = ({ className, inputId }: SearchBarProps) => {
                   </div>
                 </>
               ) : (
-                <div className="p-4 col-span-2 text-center text-muted-foreground">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center justify-between">
+                <div className="col-span-2 p-4 text-center text-[var(--brand-ink)]/45">
+                  <h3 className="mb-2 flex items-center justify-between text-[9.5px] uppercase tracking-[0.2em]">
                     <span>No suggestions found</span>
                     <span
                       onClick={() => setIsSuggestionsOpen(false)}

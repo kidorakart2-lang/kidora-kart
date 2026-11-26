@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, Minus, Trash2, Package } from "lucide-react";
+import { Plus, Minus, Trash2 } from "lucide-react";
 import type { CartApiItem } from "@/app/(sections)/Cart";
 
 interface CartItemRowProps {
@@ -22,100 +22,90 @@ export default function CartItemRow({
   const totalPrice = unitPrice * item.quantity;
 
   return (
-    <div className="group bg-background rounded-2xl border border-border shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
-      {/* Left accent stripe with brand gradient */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-brand-500 via-brand-400 to-brand-600 opacity-60" />
-
-      <div className="flex gap-5 p-5 sm:p-6 relative z-10">
-        {/* Product Image */}
+    <div className="group relative overflow-hidden rounded-xl border border-[var(--brand-gold)]/25 bg-white p-3 transition-colors duration-300 hover:border-[var(--brand-gold)]/55 sm:p-4">
+      <div className="flex gap-4">
         <Link
           href={`/product-details/${item.product.slug}`}
-          className="flex-shrink-0"
+          className="shrink-0"
+          aria-label={`View ${item.product.name}`}
         >
-          <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-xl overflow-hidden border border-border bg-muted shadow-sm transition-all duration-300 group-hover:shadow-md">
+          <div className="framed-tile size-24 overflow-hidden rounded-lg sm:size-28">
             <Image
               src={item.product.image ?? "/placeholder.svg"}
               alt={item.product.name}
-              width={144}
-              height={144}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              width={112}
+              height={112}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           </div>
         </Link>
 
-        {/* Product Info */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between">
-          {/* Top row: name + remove button */}
-          <div className="flex justify-between items-start gap-3">
-            <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
               <Link href={`/product-details/${item.product.slug}`}>
-                <h3 className="text-base sm:text-lg fw-heading text-foreground line-clamp-2 hover:text-brand-700 transition-colors leading-snug">
+                <h3 className="display-heading line-clamp-2 text-base italic leading-snug transition-colors hover:text-[var(--brand-mauve)] sm:text-lg">
                   {item.product.name}
                 </h3>
               </Link>
 
-              {/* Color indicator */}
               {item.color?.name && (
-                <div className="flex items-center gap-1.5 mt-1.5">
+                <div className="mt-1.5 flex items-center gap-1.5">
                   <span
-                    className="w-3.5 h-3.5 rounded-full border border-border shadow-sm shrink-0"
+                    className="size-3 shrink-0 rounded-full border border-[var(--brand-gold)]/40"
                     style={{ backgroundColor: item.color.code }}
                   />
-                  <span className="text-xs text-muted-foreground">{item.color.name}</span>
+                  <span className="text-[11.5px] text-[var(--brand-ink)]/55">
+                    {item.color.name}
+                  </span>
                 </div>
               )}
             </div>
 
             <button
               onClick={() => onRemove(item._id)}
-              className="shrink-0 w-9 h-9 rounded-lg bg-muted hover:bg-destructive/10 border border-border hover:border-destructive/30 flex items-center justify-center transition-all duration-300 group/btn"
-              aria-label="Remove item"
+              className="grid size-8 shrink-0 place-items-center rounded-full text-[var(--brand-ink)]/40 transition-colors hover:bg-[var(--brand-rose)]/30 hover:text-destructive"
+              aria-label={`Remove ${item.product.name} from cart`}
             >
-              <Trash2
-                size={15}
-                className="text-muted-foreground group-hover/btn:text-destructive transition-colors"
-                strokeWidth={1.5}
-              />
+              <Trash2 size={15} strokeWidth={1.6} />
             </button>
           </div>
 
-          {/* Bottom row: price + quantity + stock */}
-          <div className="flex flex-wrap items-end justify-between gap-4 mt-auto pt-3">
-            {/* Quantity controls */}
-            <div className="flex items-center gap-3">
-              <div className="inline-flex items-center border border-border rounded-lg overflow-hidden bg-muted/30">
+          <div className="mt-auto flex flex-wrap items-end justify-between gap-3 pt-3">
+            <div className="flex items-center gap-2.5">
+              <div className="inline-flex h-9 items-center rounded-full border border-[var(--brand-gold)]/40 px-1">
                 <button
                   disabled={loading || item.quantity <= 1}
                   onClick={() => onUpdateQuantity(item._id, item.quantity - 1)}
-                  className="w-9 h-9 flex items-center justify-center text-muted-foreground hover:bg-background transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="grid size-7 place-items-center rounded-full text-[var(--brand-ink)]/70 transition-colors hover:bg-[var(--brand-cream)] disabled:cursor-not-allowed disabled:opacity-30"
+                  aria-label="Decrease quantity"
                 >
-                  <Minus size={13} strokeWidth={2.5} />
+                  <Minus size={12} strokeWidth={2.5} />
                 </button>
-                <span className="w-10 text-center text-sm fw-heading text-foreground border-x border-border bg-background/50">
+                <span className="w-7 text-center text-[13px] tabular-nums text-[var(--brand-ink)]">
                   {item.quantity}
                 </span>
                 <button
                   disabled={loading || item.quantity >= (item.product.stock ?? 0)}
                   onClick={() => onUpdateQuantity(item._id, item.quantity + 1)}
-                  className="w-9 h-9 flex items-center justify-center text-muted-foreground hover:bg-background transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="grid size-7 place-items-center rounded-full text-[var(--brand-ink)]/70 transition-colors hover:bg-[var(--brand-cream)] disabled:cursor-not-allowed disabled:opacity-30"
+                  aria-label="Increase quantity"
                 >
-                  <Plus size={13} strokeWidth={2.5} />
+                  <Plus size={12} strokeWidth={2.5} />
                 </button>
               </div>
 
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Package size={12} strokeWidth={1.5} />
-                {(item.product.stock ?? 0)} in stock
+              <span className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/40">
+                {item.product.stock ?? 0} in stock
               </span>
             </div>
 
-            {/* Price */}
             <div className="text-right">
-              <p className="text-lg sm:text-xl fw-heading text-foreground">
+              <p className="display-heading text-base text-[var(--brand-ink)] sm:text-lg">
                 ₹{totalPrice.toFixed(2)}
               </p>
               {item.product.discount_price && (
-                <p className="text-xs text-muted-foreground line-through">
+                <p className="text-[11px] text-[var(--brand-ink)]/40 line-through">
                   ₹{(item.product.price * item.quantity).toFixed(2)}
                 </p>
               )}

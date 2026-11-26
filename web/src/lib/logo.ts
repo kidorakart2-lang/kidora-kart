@@ -1,5 +1,5 @@
-// No stored logo → callers render the <BrandLogo /> wordmark instead.
-const FALLBACK_LOGO = "";
+// Used until an admin uploads a logo, and whenever the logo API is unavailable.
+const FALLBACK_LOGO = "/Ratnavya Gold Leaf Logo.webp";
 
 import type { LogoData } from "@/types";
 import { serverFetch } from "@/lib/server-fetch";

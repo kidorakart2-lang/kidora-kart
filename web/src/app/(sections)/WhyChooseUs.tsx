@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Gem,
@@ -30,25 +29,6 @@ const iconMap: Record<string, typeof Gem> = {
   Sparkle,
 };
 
-// Gem-tone palette — one jewellery colour per card, cycled by index.
-// Uses CSS custom properties from the theme so colors adapt in dark mode.
-const JEWEL_TOKENS = [
-  { icon: "var(--brand-card-2-icon)", soft: "var(--brand-card-2-bg)" },  // wine
-  { icon: "var(--brand-card-1-icon)", soft: "var(--brand-card-1-bg)" },  // gold
-  { icon: "var(--brand-card-3-icon)", soft: "var(--brand-card-3-bg)" },  // emerald
-  { icon: "var(--brand-card-5-icon)", soft: "var(--brand-card-5-bg)" },  // rose
-] as const;
-
-// Alternating resting tilts so the row reads like pieces laid out on a
-// velvet tray, not a rigid grid. motion-safe: keeps this off for users who
-// have reduced motion enabled.
-const TILTS = [
-  "motion-safe:-rotate-2",
-  "motion-safe:rotate-1",
-  "motion-safe:-rotate-1",
-  "motion-safe:rotate-2",
-];
-
 type WhyChooseUsData = {
   _id: string;
   image: string;
@@ -56,61 +36,42 @@ type WhyChooseUsData = {
   description: string;
 };
 
-const WhyChooseUsItem = ({
-  item,
-  index,
-}: {
-  item: WhyChooseUsData;
-  index: number;
-}) => {
-  const IconComponent = iconMap[item.image] || Gem;
-  const palette = JEWEL_TOKENS[index % JEWEL_TOKENS.length];
-  const tilt = TILTS[index % TILTS.length];
+const iconForTitle = (title: string) => {
+  const t = title.toLowerCase();
+  if (t.includes("gift")) return Gift;
+  if (t.includes("return") || t.includes("day")) return CheckCircle;
+  if (t.includes("everyday")) return Sparkles;
+  if (t.includes("silver")) return ShieldCheck;
+  return Gem;
+};
+
+const WhyChooseUsItem = ({ item }: { item: WhyChooseUsData }) => {
+  const IconComponent = iconMap[item.image] || iconForTitle(item.title);
 
   return (
-    <div
-      className={`group relative ${tilt} transition-transform duration-300 ease-out motion-safe:hover:rotate-0 motion-safe:hover:-translate-y-1.5`}
-    >
-      <Card
-        className="relative overflow-visible rounded-[28px] border-2 bg-card pt-9 transition-shadow duration-300"
-        style={{
-          borderColor: palette.soft,
-          boxShadow: `0 14px 30px -18px color-mix(in srgb, ${palette.icon} 60%, transparent)`,
-        }}
+    <article className="group relative flex h-full flex-col rounded-2xl border border-[var(--brand-rose)] bg-[var(--brand-section-bg)] px-4 py-6 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--brand-gold)]/50 hover:bg-white hover:shadow-[0_22px_44px_-32px_rgba(74,37,66,0.5)] sm:px-6 sm:py-7 lg:px-7">
+      <span
+        className="absolute right-5 top-5 text-[var(--brand-gold)]/45 transition-colors group-hover:text-[var(--brand-gold)]"
+        aria-hidden="true"
       >
-        {/* Icon badge, popped above the card edge like a block stud */}
-        <div className="absolute -top-8 left-1/2 -translate-x-1/2">
-          <div
-            className="flex h-16 w-16 items-center justify-center rounded-2xl ring-4 ring-background transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
-            style={{ backgroundColor: palette.icon }}
-          >
-            <IconComponent size={28} className="text-white" strokeWidth={2} />
-          </div>
-          {/* two little studs either side, echoing a gem setting */}
-          <span
-            className="absolute -top-1.5 left-1"
-            style={{ color: palette.icon }}
-          >
-            <span className="block h-2 w-2 rounded-full bg-current opacity-60" />
-          </span>
-          <span
-            className="absolute -top-1.5 right-1"
-            style={{ color: palette.icon }}
-          >
-            <span className="block h-2 w-2 rounded-full bg-current opacity-60" />
-          </span>
-        </div>
+        <Sparkle size={14} />
+      </span>
 
-        <CardContent className="flex flex-col items-center px-6 pb-8 pt-2 text-center sm:px-7">
-          <h3 className="fw-heading mb-2 text-base font-bold text-foreground md:text-lg">
-            {item.title}
-          </h3>
-          <p className="fw-body text-xs leading-relaxed text-muted-foreground sm:text-sm">
-            {item.description}
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+      <span className="mb-4 grid size-10 place-items-center rounded-full border border-[var(--brand-gold)]/35 bg-white text-[var(--brand-gold-dark)] shadow-[0_8px_18px_-14px_rgba(74,37,66,0.5)] sm:mb-5 sm:size-11">
+        <IconComponent size={17} strokeWidth={1.6} />
+      </span>
+
+      <h3 className="display-heading text-base leading-snug sm:text-[1.15rem] lg:text-xl">
+        {item.title}
+      </h3>
+      <p className="mt-2 text-[11.5px] leading-relaxed text-[var(--brand-ink)]/60 sm:mt-2.5 sm:text-[12.5px]">
+        {item.description}
+      </p>
+
+      <span className="mt-auto block pt-5">
+        <span className="block h-px w-8 bg-[var(--brand-gold)]/55 transition-all duration-300 group-hover:w-14" />
+      </span>
+    </article>
   );
 };
 
@@ -118,76 +79,60 @@ const WhyChooseUsContent = async () => {
   const data = await getWhyChooseUs();
   const features: WhyChooseUsData[] = data;
 
+  if (!features?.length) return null;
+
   return (
-    <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 sm:gap-y-14 lg:grid-cols-4 lg:gap-x-8">
-      {features?.map((item, index) => (
-        <WhyChooseUsItem key={item._id} item={item} index={index} />
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+      {features.map((item) => (
+        <WhyChooseUsItem key={item._id} item={item} />
       ))}
     </div>
   );
 };
 
-const SkeletonCard = ({ index }: { index: number }) => {
-  const palette = JEWEL_TOKENS[index % JEWEL_TOKENS.length];
-  return (
-    <div className="relative pt-9">
-      <div
-        className="rounded-[28px] border-2 bg-muted/20 pb-8 pt-2"
-        style={{ borderColor: palette.soft }}
-      >
-        <div className="absolute -top-8 left-1/2 -translate-x-1/2">
-          <Skeleton className="h-16 w-16 rounded-2xl" />
-        </div>
-        <div className="flex flex-col items-center gap-3 px-6 pt-9">
-          <Skeleton className="h-4 w-28" />
-          <Skeleton className="h-3 w-36" />
-          <Skeleton className="h-3 w-24" />
-        </div>
-      </div>
-    </div>
-  );
-};
+const SkeletonCard = () => (
+  <div className="rounded-2xl border border-[var(--brand-rose)] bg-[var(--brand-section-bg)] p-6">
+    <Skeleton className="mb-5 size-11 rounded-full" />
+    <Skeleton className="mb-2 h-4 w-28" />
+    <Skeleton className="h-3 w-full" />
+    <Skeleton className="mt-1.5 h-3 w-3/4" />
+  </div>
+);
 
 const WhyChooseUs = () => {
   return (
     <section
-      className="relative w-full overflow-hidden bg-section py-12 lg:py-20"
+      className="relative w-full overflow-hidden bg-white py-16 lg:py-20"
       aria-labelledby="why-choose-us"
     >
+      <div
+        className="pointer-events-none absolute left-1/2 top-0 h-[320px] w-[760px] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(247,226,234,0.7),rgba(247,226,234,0)_78%)]"
+        aria-hidden="true"
+      />
+
       <div className="section-container relative z-10">
-        <div className="mb-14 text-center lg:mb-20">
+        <div className="mb-11 text-center lg:mb-14">
+          <p className="eyebrow mb-4">
+            <span className="mr-2">✦</span>
+            The Ratnavya promise
+          </p>
           <h2
             id="why-choose-us"
-            className="section-heading relative inline-block mb-4"
+            className="display-heading text-3xl sm:text-4xl lg:text-[2.75rem]"
           >
-            Why Choose Us
-            {/* hand-drawn squiggle underline — the section's signature mark */}
-            <svg
-              viewBox="0 0 120 12"
-              className="absolute -bottom-3 left-1/2 h-3 w-28 -translate-x-1/2"
-              style={{ color: "var(--brand-card-2-icon)" }}
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M2 8 Q 20 1 40 7 T 78 6 T 118 4"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            </svg>
+            Why Choose <span className="accent-italic">Ratnavya?</span>
           </h2>
-          <p className="section-subheading mt-6">
-            Experience excellence in every aspect of your jewellery shopping
-            experience
+          <p className="mx-auto mt-4 max-w-xl text-[13px] leading-relaxed text-[var(--brand-ink)]/60 sm:text-sm">
+            The little details that make every order feel as considered as the
+            jewellery itself.
           </p>
         </div>
 
         <Suspense
           fallback={
-            <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 sm:gap-y-14 lg:grid-cols-4 lg:gap-x-8">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
               {[...Array(4)].map((_, i) => (
-                <SkeletonCard key={i} index={i} />
+                <SkeletonCard key={i} />
               ))}
             </div>
           }

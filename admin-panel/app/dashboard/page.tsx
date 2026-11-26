@@ -102,8 +102,11 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-6">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-4 w-96" />
+        <div className="admin-hero rounded-xl border border-[#c6a875]/25 px-6 py-7 sm:px-8">
+          <Skeleton className="mb-3 h-2.5 w-28 bg-white/10" />
+          <Skeleton className="h-9 w-64 bg-white/10" />
+          <Skeleton className="mt-3 h-4 w-80 bg-white/10" />
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <Skeleton className="h-[108px]" />
           <Skeleton className="h-[108px]" />
@@ -127,9 +130,14 @@ export default function DashboardPage() {
 
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here&apos;s what&apos;s happening today.</p>
+        <div className="admin-hero relative overflow-hidden rounded-xl border border-[#c6a875]/25 px-6 py-7 sm:px-8">
+          <p className="admin-eyebrow mb-2">✦ Store overview</p>
+          <h1 className="admin-display text-3xl text-[#faf7f3] sm:text-4xl">
+            Welcome back
+          </h1>
+          <p className="mt-2 max-w-xl text-sm text-[#faf7f3]/60">
+            Here&apos;s what&apos;s happening across your store today.
+          </p>
         </div>
         <ErrorState
           message={errMsg}
@@ -141,17 +149,20 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back! Here&apos;s what&apos;s happening today.
+      <div className="admin-hero relative overflow-hidden rounded-xl border border-[#c6a875]/25 px-6 py-7 sm:px-8">
+        <p className="admin-eyebrow mb-2">✦ Store overview</p>
+        <h1 className="admin-display text-3xl text-[#faf7f3] sm:text-4xl">
+          Welcome back
+        </h1>
+        <p className="mt-2 max-w-xl text-sm text-[#faf7f3]/60">
+          Here&apos;s what&apos;s happening across your store today.
         </p>
       </div>
 
       {/* ── KPI Summary Cards ── */}
       <div className="space-y-8">
         <div>
-          <h2 className="text-xl font-semibold mb-4">Last Week</h2>
+          <h2 className="admin-display mb-4 text-xl text-foreground">Last Week</h2>
           <div className="grid gap-4 md:grid-cols-3">
             <StatCard
               title="New Users"
@@ -175,7 +186,7 @@ export default function DashboardPage() {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mb-4">All Time</h2>
+          <h2 className="admin-display mb-4 text-xl text-foreground">All Time</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
               title="Total Users"

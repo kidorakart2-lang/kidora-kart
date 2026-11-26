@@ -19,6 +19,7 @@ import AnnouncementBar from "./AnnouncementBar";
 import MobileNav from "./MobileNav";
 import DesktopNav from "./DesktopNav";
 import SearchPanel from "./SearchPanel";
+import { SearchBar } from "./SearchBar";
 import IconGroup from "./IconGroup";
 import BrandLogo from "./BrandLogo";
 import type { CategoryItem } from "./header-types";
@@ -153,10 +154,12 @@ export default function Header({ navigationData }: HeaderProps) {
     const cats: CategoryItem[] = (navigationData?._data || []).map((cat) => ({
       name: cat.name ?? "",
       slug: cat.slug ?? "",
+      image: (cat as { image?: string }).image ?? undefined,
       subCategories:
         (cat.subCategories ?? []).map((sub) => ({
           name: sub.name ?? "",
           slug: sub.slug ?? "",
+          image: (sub as { image?: string }).image ?? undefined,
           subSubCategories:
             (sub.subSubCategories ?? []).map((ss) => ({
               _id: ss._id ?? "",
@@ -182,50 +185,104 @@ export default function Header({ navigationData }: HeaderProps) {
       <AnnouncementBar />
 
       <header
-        className={`sticky top-0 left-0 z-[190] w-full bg-[color-mix(in_srgb,var(--brand-section-bg)_94%,transparent)] backdrop-blur border-b border-border transition-[box-shadow] duration-500  ${
-          isScrolled ? "shadow-sm" : ""
+        className={`sticky left-0 top-0 z-[190] w-full border-b border-[var(--brand-gold)]/20 bg-white/95 backdrop-blur transition-[box-shadow] duration-500 ${
+          isScrolled ? "shadow-[0_10px_30px_-26px_rgba(74,37,66,0.45)]" : ""
         }`}
       >
+        {/* ── Desktop: logo · search pill · account/wishlist/bag ── */}
+        <div className="hidden lg:block">
+          <div
+            className={`mx-auto flex max-w-[1400px] items-center gap-8 px-6 transition-[padding] duration-200 ${
+              isScrolled ? "py-2.5" : "py-4"
+            }`}
+          >
+            <Link href="/" className="flex shrink-0 items-center" aria-label={siteConfig.name}>
+              {logo ? (
+                <Image
+                  src={logo}
+                  alt={siteConfig.name}
+                  width={360}
+                  height={120}
+                  quality={100}
+                  priority
+                  sizes="180px"
+                  className={`w-auto max-w-[180px] object-contain mix-blend-multiply transition-all duration-200 ${
+                    isScrolled ? "max-h-9" : "max-h-11"
+                  }`}
+                />
+              ) : (
+                <BrandLogo
+                  size={isScrolled ? "sm" : "md"}
+                  className="transition-all duration-200"
+                />
+              )}
+            </Link>
+
+            <div className="mx-auto w-full max-w-[520px]">
+              <SearchBar
+                inputId="header-search-desktop"
+                formClassName="header-search-pill"
+              />
+            </div>
+
+            <IconGroup
+              labeled
+              showSearch={false}
+              isSearchOpen={isSearchOpen}
+              onToggleSearch={() => setIsSearchOpen((v) => !v)}
+              cartCount={cartCount}
+              wishlistCount={wishlistCount}
+              isLoggedIn={isLoggedIn}
+              user={user}
+            />
+          </div>
+
+          <DesktopNav categories={allCategories} />
+        </div>
+
+        {/* ── Mobile / tablet: menu · wordmark · actions ── */}
         <div
-          className={`flex items-center gap-4 md:gap-6 px-4 md:px-6 w-full transition-[padding] duration-200 ${
-            isScrolled ? "py-2" : "py-4"
+          className={`flex w-full items-center gap-3 px-4 transition-[padding] duration-200 lg:hidden ${
+            isScrolled ? "py-2" : "py-3.5"
           }`}
         >
           <button
-            className="md:hidden shrink-0 grid place-items-center size-9 -ml-1.5 rounded-lg hover:bg-muted text-foreground transition-colors"
+            className="grid size-9 shrink-0 place-items-center rounded-lg text-foreground transition-colors hover:bg-muted"
             aria-label="Open navigation menu"
             onClick={() => setIsOffcanvasOpen(true)}
           >
             <Menu size={22} />
           </button>
 
-          <Link href="/" className="shrink-0 flex items-center">
+          <Link href="/" className="flex shrink-0 items-center" aria-label={siteConfig.name}>
             {logo ? (
               <Image
                 src={logo}
                 alt={siteConfig.name}
-                width={140}
-                height={140}
-                className={`w-auto object-contain transition-all duration-200 ${isScrolled ? "h-9" : "h-11"}`}
+                width={300}
+                height={100}
+                quality={100}
+                priority
+                sizes="150px"
+                className={`w-auto max-w-[150px] object-contain mix-blend-multiply transition-all duration-200 ${
+                  isScrolled ? "max-h-8" : "max-h-10"
+                }`}
               />
             ) : (
-              <BrandLogo
-                size={isScrolled ? "sm" : "md"}
-                className="transition-all duration-200"
-              />
+              <BrandLogo size={isScrolled ? "sm" : "md"} />
             )}
           </Link>
 
-          <DesktopNav categories={allCategories} />
-
-          <IconGroup
-            isSearchOpen={isSearchOpen}
-            onToggleSearch={() => setIsSearchOpen((v) => !v)}
-            cartCount={cartCount}
-            wishlistCount={wishlistCount}
-            isLoggedIn={isLoggedIn}
-            user={user}
-          />
+          <div className="ml-auto">
+            <IconGroup
+              isSearchOpen={isSearchOpen}
+              onToggleSearch={() => setIsSearchOpen((v) => !v)}
+              cartCount={cartCount}
+              wishlistCount={wishlistCount}
+              isLoggedIn={isLoggedIn}
+              user={user}
+            />
+          </div>
         </div>
 
         <SearchPanel ref={searchRef} isOpen={isSearchOpen} />

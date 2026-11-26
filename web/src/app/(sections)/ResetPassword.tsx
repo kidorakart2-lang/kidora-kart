@@ -193,16 +193,16 @@ export default function ResetPassword() {
   const logo = useSelector((state: RootState) => state.logo.logo);
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-muted p-4">
-      <Card className="w-full max-w-md">
+    <main className="flex min-h-screen items-center justify-center bg-white px-4 py-12">
+      <Card className="w-full max-w-md rounded-xl border border-[var(--brand-gold)]/25 bg-white shadow-none">
         <div className="flex justify-center mt-6">
           <Link href="/">
             {logo ? (
               <Image
                 src={logo}
                 alt="Logo"
-                width={120}
-                height={50}
+                width={180}
+                height={60}
                 className="h-12 w-auto object-contain"
               />
             ) : (
@@ -210,18 +210,19 @@ export default function ResetPassword() {
             )}
           </Link>
         </div>
-        <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-100">
-            <Lock className="h-6 w-6 text-brand-600" />
+        <CardHeader className="space-y-2 pb-2 text-center">
+          <p className="eyebrow text-[10px]"><span className="mr-1.5">✦</span>Account care</p>
+          <div className="mx-auto flex size-12 items-center justify-center rounded-full border border-[var(--brand-gold)]/40 bg-[var(--brand-gold)]/10">
+            <Lock className="h-5 w-5 text-[var(--brand-gold-dark)]" strokeWidth={1.6} />
           </div>
-           <CardTitle className="text-2xl fw-heading">
+           <CardTitle className="display-heading pt-2 text-2xl">
             {step === "request"
               ? "Reset Password"
               : step === "otp"
                 ? "Verify Code"
                 : "Create New Password"}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-[12px] text-[var(--brand-ink)]/50">
             {step === "request"
               ? "Enter your email to receive a password reset link"
               : step === "otp"
@@ -233,18 +234,18 @@ export default function ResetPassword() {
           {step === "request" ? (
             <form onSubmit={handleRequestReset} className="space-y-5">
               {isLoggedIn && !showEmailFallback ? (
-                <p className="text-sm text-muted-foreground text-center">
+                <p className="text-center text-[12px] text-[var(--brand-ink)]/55">
                   You're signed in — a verification code will be sent to your
                   registered email address.
                 </p>
               ) : (
                 <div>
-                  <Label htmlFor="email" className="block text-muted-foreground mb-2 font-medium text-sm">
+                  <Label htmlFor="email" className="mb-2 block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
                     Email Address
                   </Label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail size={18} className="text-foreground z-10" />
+                      <Mail size={16} className="z-10 text-[var(--brand-gold-dark)]" strokeWidth={1.6} />
                     </div>
                     <input
                       id="email"
@@ -252,7 +253,7 @@ export default function ResetPassword() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="example@mail.com"
-                      className="w-full pl-10 pr-4 py-3 bg-background/70 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md"
+                      className="w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white py-3 pl-10 pr-4 text-[var(--brand-ink)] transition-all duration-300 focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30"
                       required
                     />
                   </div>
@@ -261,10 +262,10 @@ export default function ResetPassword() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-sm transform hover:-translate-y-0.5 ${
+                className={`w-full rounded-full py-3.5 text-[11px] uppercase tracking-[0.18em] transition-all duration-300 ${
                   isLoading
-                    ? "bg-brand-400 cursor-not-allowed opacity-70"
-                    : "btn-gradient"
+                    ? "cursor-not-allowed bg-[var(--brand-plum)]/45 text-[var(--brand-cream)]"
+                    : "btn-gold"
                 }`}
               >
                 {isLoading ? (
@@ -280,7 +281,7 @@ export default function ResetPassword() {
           ) : step === "otp" ? (
             <form onSubmit={verifyOtp} className="space-y-5">
               <div className="space-y-2">
-                <Label className="block text-muted-foreground mb-2 font-medium text-sm text-center">
+                <Label className="mb-2 block text-center text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
                   Enter verification code
                 </Label>
                 <div className="flex justify-center">
@@ -294,7 +295,7 @@ export default function ResetPassword() {
                         <InputOTPSlot
                           key={i}
                           index={i}
-                          className="h-12 w-12 text-lg border-border focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg"
+                          className="size-12 rounded-lg border-[var(--brand-gold)]/30 text-lg text-[var(--brand-ink)] focus-visible:ring-2 focus-visible:ring-[var(--brand-gold)]/40"
                         />
                       ))}
                     </InputOTPGroup>
@@ -304,10 +305,10 @@ export default function ResetPassword() {
                <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full py-3 text-background fw-cta rounded-xl transition-all duration-300 shadow-sm transform hover:-translate-y-0.5 ${
+                className={`w-full rounded-full py-3.5 text-[11px] uppercase tracking-[0.18em] transition-all duration-300 ${
                   isLoading
-                    ? "bg-brand-400 cursor-not-allowed opacity-70"
-                    : "btn-gradient"
+                    ? "cursor-not-allowed bg-[var(--brand-plum)]/45 text-[var(--brand-cream)]"
+                    : "btn-gold"
                 }`}
               >
                 {isLoading ? (
@@ -328,12 +329,12 @@ export default function ResetPassword() {
                 onChange={setNewPassword}
               />
               <div>
-                <Label htmlFor="confirmPassword" className="block text-muted-foreground mb-2 font-medium text-sm">
+                <Label htmlFor="confirmPassword" className="mb-2 block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
                   Confirm Password
                 </Label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock size={18} className="text-foreground z-10" />
+                    <Lock size={16} className="z-10 text-[var(--brand-gold-dark)]" strokeWidth={1.6} />
                   </div>
                   <input
                     type="password"
@@ -341,7 +342,7 @@ export default function ResetPassword() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm new password"
-                    className="w-full pl-10 pr-4 py-3 bg-background/70 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md"
+                    className="w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white py-3 pl-10 pr-4 text-[var(--brand-ink)] transition-all duration-300 focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30"
                     required
                   />
                 </div>
@@ -349,10 +350,10 @@ export default function ResetPassword() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full py-3 text-background font-semibold rounded-xl transition-all duration-300 shadow-sm transform hover:-translate-y-0.5 ${
+                className={`w-full rounded-full py-3.5 text-[11px] uppercase tracking-[0.18em] transition-all duration-300 ${
                   isLoading
-                    ? "bg-brand-400 cursor-not-allowed opacity-70"
-                    : "btn-gradient"
+                    ? "cursor-not-allowed bg-[var(--brand-plum)]/45 text-[var(--brand-cream)]"
+                    : "btn-gold"
                 }`}
               >
                 {isLoading ? (
@@ -368,7 +369,7 @@ export default function ResetPassword() {
           )}
 
           {step !== "request" && (
-            <p className="text-center text-muted-foreground text-sm mt-6">
+            <p className="mt-6 text-center text-[11.5px] text-[var(--brand-ink)]/55">
               <button
                 type="button"
                 onClick={() => {
@@ -378,7 +379,7 @@ export default function ResetPassword() {
                   setConfirmPassword("");
                   setShowEmailFallback(false);
                 }}
-                className="text-brand-600 hover:text-brand-700 font-semibold hover:underline transition-colors"
+                className="text-[var(--brand-plum)] underline decoration-[var(--brand-gold)]/60 underline-offset-4 transition-colors hover:no-underline"
               >
                 Back to reset password
               </button>

@@ -2,10 +2,11 @@ import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import DefaultBanner from "./(sections)/DefaultBanner";
 import { siteConfig } from "@/lib/utils";
+import type { ProductData } from "@/types";
 import { cacheLife, cacheTag } from "next/cache";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getHomeSections, type HomeSection } from "@/lib/home-data";
 import { serverFetch } from "@/lib/server-fetch";
+import { getProducts } from "@/lib/get-products";
 import {
   TAG_PRODUCTS,
   TAG_HOMEPAGE,
@@ -14,7 +15,7 @@ import {
   TAG_TABS,
 } from "@/lib/revalidation-tags";
 
-const RoundCategorySlider = dynamic(() => import("./(sections)/RoundCategorySlider"), {
+const ShopByCategory = dynamic(() => import("./(sections)/ShopByCategory"), {
   loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-6" />,
 });
 const Slider = dynamic(() => import("./(sections)/Slider"), {
@@ -22,12 +23,6 @@ const Slider = dynamic(() => import("./(sections)/Slider"), {
 });
 const Testimonial = dynamic(() => import("./(sections)/Testimonial"), {
   loading: () => <div className="h-80 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
-});
-const FullVideoSection = dynamic(() => import("./(sections)/video"), {
-  loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
-});
-const DynamicSections = dynamic(() => import("./(sections)/DynamicSections"), {
-  loading: () => null,
 });
 const GenderCategorySection = dynamic(() => import("./(sections)/GenderCategorySection"), {
   loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
@@ -44,6 +39,10 @@ const WhyChooseUs = dynamic(() => import("./(sections)/WhyChooseUs"), {
 const ProductsTab = dynamic(() => import("./(sections)/ProductsTab"), {
   loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg mx-4 my-8" />,
 });
+const MarqueeStrip = dynamic(() => import("./(sections)/MarqueeStrip"));
+const AboutStory = dynamic(() => import("./(sections)/AboutStory"));
+const SignatureEdit = dynamic(() => import("./(sections)/SignatureEdit"));
+const ClosingCta = dynamic(() => import("./(sections)/ClosingCta"));
 
 export const metadata = {
   title: `${siteConfig.name} in ${siteConfig.address.city} | Best Online Jewellery Store | ${siteConfig.name}`,
@@ -199,37 +198,32 @@ async function getBestSellers() {
   }
 }
 
-async function getTrendingProducts() {
-  "use cache";
-  cacheLife("products");
-  cacheTag(TAG_PRODUCTS, TAG_HOMEPAGE);
-
-  try {
-    const response = await serverFetch("/api/website/product/trending-products", { timeout: 5000 });
-    const data = await response.json();
-    return data._data;
-  } catch {
-    return [];
-  }
-}
-
 // ── PPR-compatible wrapper components ───────────────────────────────
 // Each component fetches its own data inside a Suspense boundary so the
 // static page shell can render immediately while dynamic sections stream in.
 
 async function NewArrivalsSection() {
   const data = await getNewArrivals();
-  return <Slider data={data} heading="New Arrivals" />;
+  return (
+    <Slider
+      data={data}
+      heading="New Arrivals"
+      accent="just landed"
+      eyebrow="Freshly crafted"
+    />
+  );
 }
 
 async function BestSellersSection() {
   const data = await getBestSellers();
-  return <Slider data={data} heading="Best Sellers Products" />;
-}
-
-async function TrendingSection() {
-  const data = await getTrendingProducts();
-  return <Slider data={data} heading="Trending Products" />;
+  return (
+    <Slider
+      data={data}
+      heading="The Pieces"
+      accent="Everyone Loves"
+      eyebrow="Handpicked for you"
+    />
+  );
 }
 
 async function TabProductsSection() {
@@ -240,6 +234,15 @@ async function TabProductsSection() {
 async function TestimonialSection() {
   const data = await GetTestimonials();
   return <Testimonial data={data} />;
+}
+
+async function SignatureEditSection() {
+  const products = ((await getProducts("necklace")) as ProductData[]) ?? [];
+  const unique = Array.from(
+    new Map(products.filter(Boolean).map((product) => [product._id, product])).values(),
+  );
+
+  return <SignatureEdit products={unique.slice(0, 8)} />;
 }
 
 // ── Skeleton fallbacks for dynamic sections ──────────────────────────
@@ -291,36 +294,41 @@ function TestimonialSkeleton() {
 function DefaultLayoutSections() {
   return (
     <>
+      {/* Editorial flow: hero → marquee → categories → story → product rails
+          → promise → collections → price bands → voices → closing CTA. */}
       <DefaultBanner />
-      <RoundCategorySlider />
-      <GenderCategorySection />
-      <ShopByPrice />
-
-      <Suspense fallback={<TabProductsSkeleton />}>
-        <TabProductsSection />
-      </Suspense>
-
-      <WhyChooseUs />
-
-      <Suspense fallback={<SliderSkeleton heading="New Arrivals" />}>
-        <NewArrivalsSection />
-      </Suspense>
-
-      <FullVideoSection />
+      <MarqueeStrip />
+      <ShopByCategory />
+      <AboutStory />
 
       <Suspense fallback={<SliderSkeleton heading="Best Sellers Products" />}>
         <BestSellersSection />
       </Suspense>
 
-      <ProductsTab />
-
-      <Suspense fallback={<SliderSkeleton heading="Trending Products" />}>
-        <TrendingSection />
+      <Suspense fallback={<TabProductsSkeleton />}>
+        <SignatureEditSection />
       </Suspense>
+
+      <WhyChooseUs />
+
+      <GenderCategorySection />
+
+      <Suspense fallback={<SliderSkeleton heading="New Arrivals" />}>
+        <NewArrivalsSection />
+      </Suspense>
+
+      <Suspense fallback={<TabProductsSkeleton />}>
+        <TabProductsSection />
+      </Suspense>
+
+      <ShopByPrice />
 
       <Suspense fallback={<TestimonialSkeleton />}>
         <TestimonialSection />
       </Suspense>
+
+      <ProductsTab />
+      <ClosingCta />
     </>
   );
 }
@@ -331,16 +339,9 @@ function DefaultLayoutSections() {
 // Since getHomeSections() uses "use cache", calling it again here is free
 // if it was already fetched (cache hit from same render).
 
-async function StreamingLayoutRouter() {
-  const homeSections: HomeSection[] = await getHomeSections();
-  const hasDynamicSections = homeSections.some((s) => !s.config?.hidden);
-
-  if (hasDynamicSections) {
-    return <DynamicSections />;
-  }
-
-  return <DefaultLayoutSections />;
-}
+// DEV ONLY: the dynamic homepage section builder is intentionally bypassed.
+// The homepage always renders the static editorial layout below until the
+// dynamic sections are re-enabled.
 
 // ── Home page ────────────────────────────────────────────────────────
 // The page renders immediately — no blocking await on getHomeSections().
@@ -356,9 +357,7 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <Suspense fallback={<DefaultLayoutSections />}>
-        <StreamingLayoutRouter />
-      </Suspense>
+      <DefaultLayoutSections />
     </>
   );
 }

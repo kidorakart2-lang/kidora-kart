@@ -81,7 +81,9 @@ export default function Footer({
       const res = await fetch(        "/api/website/product/featured-for-footer",
       );
       const data = await res.json();
-      setFeaturedProducts(data._data);
+      // A failed/empty response must not replace the list with undefined —
+      // the render below calls .length on it.
+      setFeaturedProducts(Array.isArray(data?._data) ? data._data : []);
     } catch {
       /* ignore */
     }
@@ -139,9 +141,9 @@ export default function Footer({
                 <Image
                   src={logo}
                   alt={siteConfig.name}
-                  width={120}
-                  height={40}
-                  className="h-10 w-auto"
+                  width={240}
+                  height={80}
+                  className="h-10 w-auto object-contain"
                 />
               ) : (
                 <BrandLogo size="md" />
@@ -192,7 +194,7 @@ export default function Footer({
             </div>
 
             {/* Featured Products */}
-            {featuredProducts.length > 0 && (
+            {featuredProducts?.length > 0 && (
               <div>
                 <h4 className="fw-heading text-sm text-foreground mb-3 uppercase tracking-wider">
                   Featured Products

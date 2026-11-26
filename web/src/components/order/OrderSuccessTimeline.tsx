@@ -33,25 +33,25 @@ export default function OrderSuccessTimeline({
         return (
           <div
             key={step.key}
-            className="flex items-center flex-1 last:flex-none"
+            className="flex flex-1 items-center last:flex-none"
           >
             <div className="flex flex-col items-center">
               <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-500 ${
+                className={`flex size-8 items-center justify-center rounded-full transition-all duration-500 ${
                   isCompleted
-                    ? "bg-brand-500 text-background shadow-md"
-                    : "bg-muted text-muted-foreground"
-                } ${isCurrent ? "ring-4 ring-brand-100" : ""}`}
+                    ? "bg-[var(--brand-plum)] text-[var(--brand-cream)]"
+                    : "border border-[var(--brand-gold)]/25 bg-[var(--brand-cream)] text-[var(--brand-ink)]/30"
+                } ${isCurrent ? "ring-2 ring-[var(--brand-gold)]/40 ring-offset-2 ring-offset-white" : ""}`}
               >
                 {isCompleted ? (
-                  <Check className="w-4 h-4" strokeWidth={3} />
+                  <Check className="h-3.5 w-3.5" strokeWidth={2.4} />
                 ) : (
-                  <div className="w-2.5 h-2.5 rounded-full bg-border" />
+                  <div className="size-1.5 rounded-full bg-[var(--brand-ink)]/20" />
                 )}
               </div>
               <p
-                className={`text-[10px] mt-1.5 font-medium whitespace-nowrap ${
-                  isCompleted ? "text-brand-700" : "text-muted-foreground"
+                className={`mt-2 whitespace-nowrap text-[9px] uppercase tracking-[0.1em] ${
+                  isCompleted ? "text-[var(--brand-ink)]/75" : "text-[var(--brand-ink)]/35"
                 }`}
               >
                 {step.label}
@@ -59,8 +59,8 @@ export default function OrderSuccessTimeline({
             </div>
             {i < steps.length - 1 && (
               <div
-                className={`flex-1 h-0.5 mx-1.5 mt-[-1.5rem] transition-colors duration-500 ${
-                  i < activeIndex ? "bg-brand-500" : "bg-border"
+                className={`mx-1.5 mt-[-1.4rem] h-px flex-1 transition-colors duration-500 ${
+                  i < activeIndex ? "bg-[var(--brand-gold)]" : "bg-[var(--brand-gold)]/20"
                 }`}
               />
             )}

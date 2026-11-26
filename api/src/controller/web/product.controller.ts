@@ -361,6 +361,8 @@ export const getProductByFilter = async (
             minimumAge: { $lte: effectiveAgeTo },
             maximumAge: { $gte: effectiveAgeFrom },
           },
+          { minimumAge: null },
+          { maximumAge: null },
           { minimumAge: { $exists: false } },
           { maximumAge: { $exists: false } },
         ],

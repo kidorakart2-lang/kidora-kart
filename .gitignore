@@ -8,3 +8,6 @@ dist/
 nul
 lhci_reports
 .lightouseci
+
+/ui/
+/ui/*

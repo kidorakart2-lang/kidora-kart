@@ -34,16 +34,10 @@ export default function LoginModal() {
   };
 
   return (
-    <Dialog
-      modal={false}
-      className="z-[1500]"
-      open={isOpen}
-      onOpenChange={(open) => !open && handleClose()}
-    >
-      <div onClick={handleClose} className={`bg-black/50 fixed w-screen h-screen top-0 left-0 z-[1499] ${isOpen ? "block" : "hidden"}`}></div>
-      <DialogContent className=" rounded-lg z-[1500] px-6 ">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="max-w-md gap-5 rounded-xl border-[var(--brand-gold)]/25 bg-white px-6 py-7 shadow-[0_30px_80px_-40px_rgba(74,37,66,0.55)]">
         <DialogHeader className="text-center">
-          <DialogTitle className="text-2xl font-bold text-foreground">
+          <DialogTitle className="text-[1.65rem] font-medium leading-tight text-[var(--brand-heading)]">
             Welcome Back
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
@@ -73,7 +67,7 @@ export default function LoginModal() {
               <span className="w-full border-t border-border"></span>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-background text-muted-foreground">
+              <span className="px-2 bg-white text-muted-foreground">
                 OR CONTINUE WITH
               </span>
             </div>

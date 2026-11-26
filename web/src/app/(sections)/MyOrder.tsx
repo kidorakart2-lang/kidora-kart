@@ -115,12 +115,12 @@ export default function MyOrders() {
   };
 
   const statusColors: Record<string, string> = {
-    pending: "bg-muted text-muted-foreground border-border",
-    confirmed: "bg-muted text-muted-foreground border-border",
-    shipped: "bg-blue-50 text-blue-700 border-blue-200",
-    delivered: "bg-green-100 text-green-800 border-green-300",
-    cancelled: "bg-muted text-muted-foreground border-border",
-    payment_failed: "bg-red-100 text-red-800 border-red-300",
+    pending: "bg-[var(--brand-cream)] text-[var(--brand-ink)]/60 border-[var(--brand-gold)]/25",
+    confirmed: "bg-[var(--brand-rose)]/25 text-[var(--brand-plum)] border-[var(--brand-mauve)]/35",
+    shipped: "bg-[var(--brand-rose)]/25 text-[var(--brand-plum)] border-[var(--brand-mauve)]/35",
+    delivered: "bg-[var(--brand-gold)]/15 text-[var(--brand-gold-dark)] border-[var(--brand-gold)]/45",
+    cancelled: "bg-destructive/5 text-destructive border-destructive/25",
+    payment_failed: "bg-destructive/5 text-destructive border-destructive/25",
   };
 
   const filters = [
@@ -134,19 +134,20 @@ export default function MyOrders() {
   ];
 
   return (
-    <div id="orders" className="min-h-screen    md:p-8">
+    <div id="orders" className="min-h-0">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-7xl w-full mx-auto"
       >
-        <div className="flex items-center gap-3 mb-8">
-          <div className="p-3 rounded-xl bg-muted">
-            <Package className="w-8 h-8 text-muted-foreground" />
+        <div className="mb-8 flex items-center gap-4 border-b border-[var(--brand-gold)]/20 pb-6">
+          <div className="grid size-12 place-items-center rounded-full border border-[var(--brand-gold)]/40 bg-[var(--brand-gold)]/10">
+            <Package className="h-5 w-5 text-[var(--brand-gold-dark)]" strokeWidth={1.5} />
           </div>
           <div>
-             <h1 className="text-4xl fw-heading">My Orders</h1>
-            <p className="text-muted-foreground text-sm">
+            <p className="eyebrow mb-1 text-[10px]"><span className="mr-1.5">✦</span>Purchase history</p>
+            <h1 className="display-heading text-3xl">My Orders</h1>
+            <p className="mt-1 text-[11.5px] text-[var(--brand-ink)]/50">
               Track and manage your purchases
             </p>
           </div>
@@ -158,29 +159,32 @@ export default function MyOrders() {
           transition={{ delay: 0.1 }}
           className="mb-6"
         >
-          <div className="flex items-center gap-2 mb-3">
-            <Filter className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-foreground">
+          <div className="mb-3 flex items-center gap-2">
+            <Filter className="h-3.5 w-3.5 text-[var(--brand-gold-dark)]" />
+            <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/45">
               Filter by status
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
             {filters.map((filterOption) => (
-              <Button
+              <button
                 key={filterOption.value}
                 onClick={() => setFilter(filterOption.value)}
-                variant={filter === filterOption.value ? "default" : "outline"}
-                size="sm"
+                className={`rounded-full border px-3.5 py-1.5 text-[10.5px] uppercase tracking-[0.12em] transition-all duration-300 ${
+                  filter === filterOption.value
+                    ? "border-[var(--brand-plum)] bg-[var(--brand-plum)] text-[var(--brand-cream)]"
+                    : "border-[var(--brand-gold)]/30 bg-white text-[var(--brand-ink)]/60 hover:border-[var(--brand-gold)]/60 hover:text-[var(--brand-ink)]"
+                }`}
               >
                 {filterOption.label}
-              </Button>
+              </button>
             ))}
           </div>
         </motion.div>
 
         {isLoading ? (
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="w-10 h-10 animate-spin text-foreground" />
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--brand-gold-dark)]" />
           </div>
         ) : (
           <AnimatePresence mode="wait">
@@ -192,11 +196,14 @@ export default function MyOrders() {
               className="space-y-4"
             >
               {orders.length === 0 ? (
-                <Card className="border-border bg-background">
+                <Card className="border-[var(--brand-gold)]/25 bg-white">
                   <CardContent className="py-20 text-center">
-                    <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground font-medium">
+                    <Package className="mx-auto mb-4 h-12 w-12 text-[var(--brand-gold)]/60" strokeWidth={1.2} />
+                    <p className="display-heading text-lg text-[var(--brand-ink)]/70">
                       No orders found yet
+                    </p>
+                    <p className="mt-1 text-[11.5px] text-[var(--brand-ink)]/45">
+                      Your purchases will appear here once you place an order.
                     </p>
                   </CardContent>
                 </Card>
@@ -208,14 +215,14 @@ export default function MyOrders() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
                   >
-                    <Card className="bg-background  backdrop-blur hover:shadow-xl transition-all duration-300 p-2 ">
+                    <Card className="border-[var(--brand-gold)]/25 bg-white p-1 transition-shadow duration-300 hover:shadow-md">
                       <CardHeader className="">
                         <div className="flex justify-between items-start">
                           <div>
-                            <h3 className="text-lg font-semibold text-foreground">
+                            <h3 className="display-heading text-lg">
                               Order #{order.orderId}
                             </h3>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-[11.5px] text-[var(--brand-ink)]/45">
                               {new Date(order.createdAt).toLocaleDateString(
                                 "en-US",
                                 {
@@ -230,7 +237,7 @@ export default function MyOrders() {
                             variant="outline"
                             className={`${
                               statusColors[order.status]
-                            } capitalize font-medium`}
+                                                          } capitalize text-[10px] tracking-[0.1em] font-medium`}
                           >
                             {order.status}
                           </Badge>
@@ -255,7 +262,7 @@ export default function MyOrders() {
                                 alt={item.name}
                                 width={80}
                                 height={80}
-                                className="w-20 h-20 cursor-pointer object-cover rounded-md border border-border"
+                                className="size-20 cursor-pointer rounded-lg border border-[var(--brand-gold)]/20 object-cover"
                               />
                               <div
                                 onClick={() =>
@@ -265,34 +272,33 @@ export default function MyOrders() {
                                 }
                                 className="flex-1 cursor-pointer"
                               >
-                                <p className="font-medium text-foreground">
+                                <p className="display-heading text-[14px] italic text-[var(--brand-ink)]">
                                   {item.name}
                                 </p>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-[11.5px] text-[var(--brand-ink)]/50">
                                   Quantity: {item.quantity}
                                 </p>
                                 {item.variantName && (
-                                  <p className="text-sm text-brand-600 fw-cta">
-                                    🎁 {item.variantName}
+                                  <p className="text-[11.5px] text-[var(--brand-gold-dark)]">
+                                    ✦ {item.variantName}
                                   </p>
                                 )}
                                 {/* Color display */}
                                 {item.color && (
-                                  <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                    Color:{" "}
+                                  <p className="flex items-center gap-1.5 text-[11.5px] text-[var(--brand-ink)]/50">
+                                    Colour:{" "}
                                     <span
                                       style={{
                                         backgroundColor: item.color.code,
                                       }}
-                                      className="w-3 h-3 rounded-full border border-border inline-block"
+                                      className="inline-block size-3 rounded-full border border-[var(--brand-gold)]/40"
                                     />
                                     <span>{item.color.name}</span>
                                   </p>
                                 )}
                                 {item.isPersonalized && (
-                                  <p className="text-sm text-muted-foreground font-medium">
-                                    ✨ Personalized Name :{" "}
-                                    {item.personalizedName}
+                                  <p className="mt-1 inline-block rounded border border-[var(--brand-gold)]/30 bg-[var(--brand-gold)]/10 px-2 py-0.5 text-[11px] text-[var(--brand-ink)]/65">
+                                    Personalised: {item.personalizedName}
                                   </p>
                                 )}
                               </div>
@@ -301,9 +307,10 @@ export default function MyOrders() {
                         </div>
                       </CardContent>
 
-                      <CardFooter className="flex flex-wrap gap-2 justify-between items-center border-t border-border bg-muted/30">
-                        <div className="text-lg font-semibold text-foreground">
-                          Total: ₹{order.pricing.total}
+                      <CardFooter className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--brand-gold)]/20 bg-[var(--brand-cream)]/50">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-[9.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/50">Total</span>
+                          <span className="display-heading text-lg text-[var(--brand-plum)]">₹{order.pricing.total}</span>
                         </div>
                         <div className="flex gap-2">
                           {order.status === "pending" &&
@@ -312,7 +319,7 @@ export default function MyOrders() {
                               onClick={() => openCancelDialog(order.orderId)}
                               variant="outline"
                               size="sm"
-                              className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                              className="rounded-full border-destructive/30 bg-transparent text-[10px] uppercase tracking-[0.12em] text-destructive hover:bg-destructive/5"
                             >
                               <X className="w-4 h-4 mr-1" />
                               Cancel
@@ -326,7 +333,7 @@ export default function MyOrders() {
                                 )
                               }
                               size="sm"
-                              className="btn-gradient"
+                              className="btn-gold !text-[10px] uppercase tracking-[0.14em]"
                             >
                               <RefreshCw className="w-4 h-4 mr-1" />
                               Retry Payment
@@ -339,7 +346,7 @@ export default function MyOrders() {
                               )
                             }
                             size="sm"
-                            className="btn-gradient"
+                            className="btn-gold !text-[10px] uppercase tracking-[0.14em]"
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             View Details
@@ -365,19 +372,19 @@ export default function MyOrders() {
               onClick={() => setPage(page - 1)}
               disabled={page === 1}
               variant="outline"
-              className="border-border text-foreground hover:bg-muted disabled:opacity-50"
+              className="rounded-full border-[var(--brand-gold)]/35 bg-transparent text-[10px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65 hover:bg-white disabled:opacity-40"
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
               Previous
             </Button>
-            <span className="px-2 py-2 bg-foreground text-background rounded-lg flex shadow-md">
+            <span className="rounded-full bg-[var(--brand-plum)] px-4 py-1.5 text-[10px] uppercase tracking-[0.14em] text-[var(--brand-cream)]">
               Page {page}
             </span>
             <Button
               onClick={() => setPage(page + 1)}
               disabled={page >= (orderData?.totalPages ?? 1)}
               variant="outline"
-              className="border-border text-foreground hover:bg-muted disabled:opacity-50"
+              className="rounded-full border-[var(--brand-gold)]/35 bg-transparent text-[10px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65 hover:bg-white disabled:opacity-40"
             >
               Next
               <ChevronRight className="w-4 h-4 ml-1" />
@@ -387,17 +394,17 @@ export default function MyOrders() {
       </motion.div>
 
       <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <DialogContent className="w-[calc(100%-2rem)] max-w-md bg-background border border-border p-0 gap-0 overflow-hidden h-[95vh] sm:h-auto sm:max-h-[90vh] flex flex-col">
-          <DialogHeader className="px-6 pt-6 pb-4 text-center sm:text-left bg-gradient-to-br from-destructive/5 to-destructive/10 border-b border-border flex-shrink-0">
+        <DialogContent className="flex h-[95vh] w-[calc(100%-2rem)] max-w-md flex-col gap-0 overflow-hidden rounded-xl border border-[var(--brand-gold)]/25 bg-white p-0 sm:h-auto sm:max-h-[90vh]">
+          <DialogHeader className="flex-shrink-0 border-b border-[var(--brand-gold)]/20 bg-[var(--brand-cream)]/60 px-6 pb-4 pt-6 text-center sm:text-left">
             <div className="flex items-center gap-3 sm:flex-row flex-col sm:text-left text-center">
               <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
                 <AlertTriangle className="w-6 h-6 text-destructive" />
               </div>
               <div className="flex-1">
-                <DialogTitle className="text-foreground text-xl">
+                <DialogTitle className="display-heading text-xl">
                   Cancel Order?
                 </DialogTitle>
-                <DialogDescription className="text-muted-foreground mt-1">
+                <DialogDescription className="mt-1 text-[11.5px] text-[var(--brand-ink)]/50">
                   This action cannot be undone
                 </DialogDescription>
               </div>
@@ -405,9 +412,9 @@ export default function MyOrders() {
           </DialogHeader>
 
           <div className="px-6 py-5 space-y-4 overflow-y-auto custom-scrollbar flex-1 min-h-0">
-            <div className="bg-muted border border-border rounded-lg p-3">
-              <p className="text-xs text-muted-foreground mb-1">Order Number</p>
-              <p className="font-mono text-sm font-semibold text-foreground break-all">
+            <div className="rounded-lg border border-[var(--brand-gold)]/20 bg-[var(--brand-cream)] p-3">
+              <p className="mb-1 text-[9.5px] uppercase tracking-[0.16em] text-[var(--brand-ink)]/45">Order Number</p>
+              <p className="break-all font-mono text-[12px] text-[var(--brand-ink)]">
                 {selectedOrderId}
               </p>
             </div>
@@ -415,7 +422,7 @@ export default function MyOrders() {
             <div className="space-y-2">
               <label
                 htmlFor="cancel-reason"
-                className="text-sm font-medium text-foreground block"
+                className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55"
               >
                 Reason for cancellation <span className="text-destructive">*</span>
               </label>
@@ -436,7 +443,7 @@ export default function MyOrders() {
                     className={`text-left px-3 py-2 rounded-md text-sm border transition-colors ${
                       cancelReason === reason
                         ? "border-destructive bg-destructive/5 text-destructive font-medium"
-                        : "border-border hover:border-border hover:bg-muted text-foreground"
+                        : "border-[var(--brand-gold)]/25 bg-white text-[var(--brand-ink)]/70 hover:border-[var(--brand-gold)]/50 hover:bg-[var(--brand-cream)]"
                     }`}
                   >
                     {reason}
@@ -450,7 +457,7 @@ export default function MyOrders() {
                   placeholder="Please tell us more..."
                   value={customReason}
                   onChange={(e) => setCustomReason(e.target.value)}
-                  className="border-border focus:border-destructive focus:ring-destructive mt-2 min-h-[80px]"
+                  className="mt-2 min-h-[80px] border-[var(--brand-gold)]/30 bg-white text-[var(--brand-ink)] focus:border-destructive focus:ring-destructive"
                   rows={3}
                   autoFocus
                 />
@@ -464,7 +471,7 @@ export default function MyOrders() {
             </div>
           </div>
 
-          <DialogFooter className="px-6 py-4 bg-muted/50 border-t border-border flex flex-col-reverse sm:flex-row gap-2 flex-shrink-0">
+          <DialogFooter className="flex flex-shrink-0 flex-col-reverse gap-2 border-t border-[var(--brand-gold)]/20 bg-[var(--brand-cream)]/50 px-6 py-4 sm:flex-row">
             <Button
               variant="outline"
               disabled={cancelMutation.isPending}
@@ -473,7 +480,7 @@ export default function MyOrders() {
                 setCancelReason("");
                 setCustomReason("");
               }}
-              className="border-border text-foreground hover:bg-muted w-full sm:w-auto min-h-[44px]"
+              className="min-h-[44px] w-full rounded-full border-[var(--brand-gold)]/35 text-[10px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65 hover:bg-white sm:w-auto"
             >
               Keep Order
             </Button>

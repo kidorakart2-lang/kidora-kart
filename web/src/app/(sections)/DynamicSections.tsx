@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
-import BannerSingle from "./BannerSingle";
+
 import BannerSlider from "./BannerSlider";
 import WhyChooseUs from "./WhyChooseUs";
 import {
@@ -204,7 +204,6 @@ async function ProductsTabSection({
 
 async function BannerFromConfig({
   selectedBannerIds,
-  bannerMode,
 }: {
   selectedBannerIds?: string[]
   bannerMode?: "single" | "slider"
@@ -223,9 +222,6 @@ async function BannerFromConfig({
     external: item.link?.type === "external",
   }))
 
-  if (bannerMode === "single" || slides.length === 1) {
-    return <BannerSingle slide={slides[0]} />
-  }
-
+  // Every homepage layout uses the editorial hero, including single banners.
   return <BannerSlider slides={slides} />
 }

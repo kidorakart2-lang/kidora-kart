@@ -63,19 +63,19 @@ interface SiteConfig {
   googleVerification: string;
 }
 
-// SEO Configuration for Jewel Box
+// SEO Configuration for Ratnavya
 export const siteConfig: SiteConfig = {
-  name: "Jewel Box",
-  legalName: "Jewel Box Private Limited",
+  name: "Ratnavya",
+  legalName: "Ratnavya",
   description:
-    "India's favourite online jewellery store in Jodhpur offering a wide range of earrings, necklaces, rings, bangles, pendants and bridal sets. Discover everyday elegance in gold-plated, kundan, pearl and oxidised designs.",
-  url: (process.env.NEXT_PUBLIC_SITE_URL || "https://www.jewelbox.com").replace(/\/+$/, ""),
-  domain: (process.env.NEXT_PUBLIC_SITE_URL || "https://www.jewelbox.com")
+    "Ratnavya is a modern Indian jewellery house offering everyday silver, pearl and gold-plated pieces alongside bridal sets — crafted for real life and made to last.",
+  url: (process.env.NEXT_PUBLIC_SITE_URL || "https://ratnavya.in").replace(/\/+$/, ""),
+  domain: (process.env.NEXT_PUBLIC_SITE_URL || "https://ratnavya.in")
     .replace(/^https?:\/\//, "")
     .replace(/\/+$/, ""),
 
   contact: {
-    email: process.env.NEXT_PUBLIC_BUSINESS_EMAIL || "info@jewelbox.com",
+    email: process.env.NEXT_PUBLIC_BUSINESS_EMAIL || "info@ratnavya.in",
     phone: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+91-6378643867",
     mobile: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+91-6378643867",
     whatsapp: process.env.NEXT_PUBLIC_BUSINESS_PHONE || "+916378643867",
@@ -96,11 +96,11 @@ export const siteConfig: SiteConfig = {
   },
 
   social: {
-    instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL || "https://www.instagram.com/jewelbox",
-    facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL || "https://facebook.com/jewelbox",
-    twitter: process.env.NEXT_PUBLIC_TWITTER_URL || "https://twitter.com/jewelbox",
-    pinterest: process.env.NEXT_PUBLIC_PINTEREST_URL || "https://pinterest.com/jewelbox",
-    youtube: process.env.NEXT_PUBLIC_YOUTUBE_URL || "https://youtube.com/@jewelbox",
+    instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL || "https://www.instagram.com/ratnavya",
+    facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL || "https://facebook.com/ratnavya",
+    twitter: process.env.NEXT_PUBLIC_TWITTER_URL || "https://twitter.com/ratnavya",
+    pinterest: process.env.NEXT_PUBLIC_PINTEREST_URL || "https://pinterest.com/ratnavya",
+    youtube: process.env.NEXT_PUBLIC_YOUTUBE_URL || "https://youtube.com/@ratnavya",
   },
 
   business: {
@@ -110,8 +110,8 @@ export const siteConfig: SiteConfig = {
     hoursWeekend: "10:00 AM - 10:00 PM",
   },
 
-  themeColor: "#8B1E3F", // SSR fallback — overridden at runtime by ClientThemeColor from --brand-500 CSS var
-  twitterHandle: process.env.NEXT_PUBLIC_TWITTER_HANDLE || "@jewelbox",
+  themeColor: "#4a2542", // SSR fallback — overridden at runtime by ClientThemeColor from --brand-500 CSS var
+  twitterHandle: process.env.NEXT_PUBLIC_TWITTER_HANDLE || "@ratnavya",
   googleVerification: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "",
 
   categories: [
@@ -249,8 +249,13 @@ export const defaultMetadata = {
     },
   },
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
 };

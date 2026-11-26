@@ -1,16 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
-import type { Variants } from "motion/react";
-import { motion, AnimatePresence } from "motion/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import ImageZoom from "./image-zoom";
 import ProductVideoPlayer, { VideoThumbnail } from "./product-video";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
+import type { Swiper as SwiperClass } from "swiper";
 import "swiper/css";
-import "swiper/css/navigation";
 
 export default function ImageSlider({
   images,
@@ -30,181 +27,141 @@ export default function ImageSlider({
   onShowVideo?: () => void;
 }) {
   const [currentImage, setCurrentImage] = useState(0);
-  const [direction, setDirection] = useState(0);
+  const mainRef = useRef<SwiperClass | null>(null);
+  const thumbsRef = useRef<SwiperClass | null>(null);
 
-  const slideVariants: Variants = {
-    enter: (dir: number) => ({
-      x: dir > 0 ? 10 : -10,
-      opacity: 1,
-    }),
-    center: {
-      zIndex: 1,
-      x: 1,
-      opacity: 1,
-    },
-    exit: (dir: number) => ({
-      zIndex: 0,
-      x: dir < 0 ? 10 : -10,
-      opacity: 1,
-    }),
+  const goTo = (index: number) => {
+    mainRef.current?.slideTo(index);
+    setCurrentImage(index);
+    if (showVideo && onShowVideo) onShowVideo();
   };
 
-  const paginate = (newDirection: number) => {
-    setDirection(newDirection);
-    setCurrentImage((prev) => {
-      const next = prev + newDirection;
-      if (next < 0) return images.length - 1;
-      if (next >= images.length) return 0;
-      return next;
-    });
+  const paginate = (delta: number) => {
+    const total = images.length;
+    const next = (currentImage + delta + total) % total;
+    mainRef.current?.slideTo(next);
+    setCurrentImage(next);
   };
 
   return (
     <div className="space-y-4">
-      {/* Main Display: Video or Image */}
       {showVideo && videoUrl ? (
         <ProductVideoPlayer
           videoUrl={videoUrl}
           onClose={() => onShowVideo?.()}
-          isActive={true}
+          isActive
         />
       ) : (
-        <motion.div
-          className="relative bg-gradient-to-br from-brand-50/50 to-brand-100/50 overflow-hidden h-96 sm:h-[500px] border border-brand-100/50 glass-effect"
-          whileHover={!isMobile ? { scale: 1.01 } : {}}
-          transition={{ duration: 0.2 }}
-        >
-          <AnimatePresence initial={false} custom={direction} mode="wait">
-            <motion.div
-              key={currentImage}
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{
-                x: { type: "spring", stiffness: 200, damping: 20 },
-                opacity: { duration: 0.4 },
+        <div className="group relative overflow-hidden rounded-xl border border-[var(--brand-gold)]/25 bg-white p-2">
+          <div className="relative overflow-hidden rounded-lg bg-[var(--brand-section-bg)]">
+            <Swiper
+              onSwiper={(swiper) => {
+                mainRef.current = swiper;
               }}
-              className="absolute inset-0"
+              onSlideChange={(swiper) => {
+                setCurrentImage(swiper.activeIndex);
+                thumbsRef.current?.slideTo(swiper.activeIndex);
+              }}
+              spaceBetween={0}
+              slidesPerView={1}
+              className="aspect-square w-full"
             >
-              <ImageZoom
-                src={images[currentImage] || "/placeholder.svg"}
-                alt={`${productName} - ${currentImage + 1}`}
-                isMobile={isMobile}
-              />
-            </motion.div>
-          </AnimatePresence>
+              {images.map((img, index) => (
+                <SwiperSlide key={index}>
+                  <div className="relative h-full w-full">
+                    <ImageZoom
+                      src={img || "/placeholder.svg"}
+                      alt={`${productName} - ${index + 1}`}
+                      isMobile={isMobile}
+                    />
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
 
-          {/* New Arrival Badge */}
-          {isNewArrival && (
-            <motion.span
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ delay: 0.3, type: "spring" }}
-              className="absolute top-4 right-4 bg-gradient-to-r from-brand-500 to-brand-600 text-background text-xs font-bold px-4 py-2 rounded-full shadow-lg backdrop-blur-sm"
-            >
-              NEW
-            </motion.span>
-          )}
+            {isNewArrival && (
+              <span className="absolute left-4 top-4 z-20 rounded-full bg-[var(--brand-gold)] px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-[var(--brand-plum)]">
+                New
+              </span>
+            )}
 
-          {/* Navigation Arrows - Desktop Only */}
-          {!isMobile && images.length > 1 && (
-            <>
-              <motion.button
-                whileHover={{ scale: 1.1, x: -4 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => paginate(-1)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background text-brand-600 p-3 rounded-full shadow-lg backdrop-blur-md transition-all"
-                aria-label="Previous image"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.1, x: 4 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => paginate(1)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background text-brand-600 p-3 rounded-full shadow-lg backdrop-blur-md transition-all"
-                aria-label="Next image"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </motion.button>
-            </>
-          )}
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => paginate(-1)}
+                  aria-label="Previous image"
+                  className="absolute left-3 top-1/2 z-20 grid size-9 -translate-y-1/2 place-items-center rounded-full border border-[var(--brand-gold)]/35 bg-white/85 text-[var(--brand-plum)] backdrop-blur-sm transition-opacity hover:bg-white md:opacity-0 md:group-hover:opacity-100"
+                >
+                  <ChevronLeft size={17} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => paginate(1)}
+                  aria-label="Next image"
+                  className="absolute right-3 top-1/2 z-20 grid size-9 -translate-y-1/2 place-items-center rounded-full border border-[var(--brand-gold)]/35 bg-white/85 text-[var(--brand-plum)] backdrop-blur-sm transition-opacity hover:bg-white md:opacity-0 md:group-hover:opacity-100"
+                >
+                  <ChevronRight size={17} />
+                </button>
+              </>
+            )}
 
-          {/* Image Counter */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="absolute bottom-4 left-4 bg-black/40 text-background px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-md"
-          >
-            {currentImage + 1} / {images.length}
-          </motion.div>
-        </motion.div>
+            <span className="absolute bottom-3 right-3 z-20 rounded-full bg-[var(--brand-plum)]/80 px-2.5 py-1 text-[10px] tracking-wide text-[var(--brand-cream)] backdrop-blur-sm">
+              {currentImage + 1} / {images.length}
+            </span>
+          </div>
+        </div>
       )}
 
-      {/* Thumbnail Slider */}
+      {/* Thumbnails — always sit under the main image, swipeable on mobile */}
       {(images.length > 1 || videoUrl) && (
-        <div className="relative group mt-4 px-2">
-          <div className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 z-10 cursor-pointer p-2 bg-background/80 rounded-full shadow-md text-brand-600 hover:bg-background transition-all border border-brand-100 disabled:opacity-50 disabled:cursor-not-allowed">
-            <ChevronLeft className="w-5 h-5" />
-          </div>
-          <div className="swiper-button-next-custom absolute right-0 top-1/2 -translate-y-1/2 z-10 cursor-pointer p-2 bg-background/80 rounded-full shadow-md text-brand-600 hover:bg-background transition-all border border-brand-100 disabled:opacity-50 disabled:cursor-not-allowed">
-            <ChevronRight className="w-5 h-5" />
-          </div>
+        <Swiper
+          onSwiper={(swiper) => {
+            thumbsRef.current = swiper;
+          }}
+          spaceBetween={10}
+          slidesPerView="auto"
+          className="!px-1"
+        >
+          {images.map((img, index) => (
+            <SwiperSlide key={index} className="!w-auto">
+              <button
+                type="button"
+                onClick={() => goTo(index)}
+                aria-label={`View ${productName} image ${index + 1}`}
+                aria-current={!showVideo && currentImage === index}
+                className={`size-[68px] overflow-hidden rounded-lg border-2 bg-[var(--brand-surface)] transition-all sm:size-[76px] ${
+                  !showVideo && currentImage === index
+                    ? "border-[var(--brand-gold)] shadow-[0_6px_16px_-12px_rgba(74,37,66,0.6)]"
+                    : "border-transparent opacity-75 hover:opacity-100"
+                }`}
+              >
+                <Image
+                  src={img || "/placeholder.svg"}
+                  alt={`${productName} - ${index + 1}`}
+                  width={76}
+                  height={76}
+                  className="h-full w-full object-cover"
+                />
+              </button>
+            </SwiperSlide>
+          ))}
 
-          <Swiper
-            modules={[Navigation]}
-            navigation={{
-              prevEl: ".swiper-button-prev-custom",
-              nextEl: ".swiper-button-next-custom",
-            }}
-            spaceBetween={12}
-            slidesPerView="auto"
-            className="w-[90%] mx-auto px-8 py-2"
-          >
-            {images.map((img: string, index: number) => (
-              <SwiperSlide key={index} className="!w-auto">
-                <motion.button
-                  onClick={() => {
-                    setDirection(index > currentImage ? 1 : -1);
-                    setCurrentImage(index);
-                    if (showVideo && onShowVideo) {
-                      onShowVideo();
-                    }
-                  }}
-                  whileHover={{ scale: 1, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  aria-label={`View ${productName} image ${index + 1}`}
-                  tabIndex={0}
-                  className={`flex-shrink-0 size-20 md:size-28 overflow-hidden border-3 transition-all rounded-md ${
-                    !showVideo && currentImage === index
-                      ? "border-brand-500 shadow-lg ring-2 ring-brand-200"
-                      : "border-brand-100 hover:border-brand-300"
-                  }`}
-                >
-                  <Image
-                    src={img || "/placeholder.svg"}
-                    alt={`${productName} - ${index + 1}`}
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-cover"
-                  />
-                </motion.button>
-              </SwiperSlide>
-            ))}
-            {/* Video thumbnail in the Swiper strip */}
-            {videoUrl && (
-              <SwiperSlide className="!w-auto">
+          {videoUrl && (
+            <SwiperSlide className="!w-auto">
+              <div className="relative">
                 <VideoThumbnail
                   videoUrl={videoUrl}
                   onClick={() => onShowVideo?.()}
                   isActive={!!showVideo}
                 />
-              </SwiperSlide>
-            )}
-          </Swiper>
-        </div>
+                <span className="pointer-events-none absolute inset-0 grid place-items-center rounded-lg bg-black/25 text-white">
+                  <Play size={16} />
+                </span>
+              </div>
+            </SwiperSlide>
+          )}
+        </Swiper>
       )}
     </div>
   );

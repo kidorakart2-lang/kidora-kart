@@ -1,16 +1,29 @@
 {
-  "name": "Jewel Box",
-  "short_name": "Jewel Box",
+  "name": "Ratnavya",
+  "short_name": "Ratnavya",
+  "description": "Fine gold, diamond and gemstone jewellery.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#fffcfb",
-  "theme_color": "#8b1e3f",
+  "background_color": "#fffaf6",
+  "theme_color": "#4a2542",
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
       "purpose": "any"
     }
   ]

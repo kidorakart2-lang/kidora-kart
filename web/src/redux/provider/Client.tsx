@@ -19,9 +19,9 @@ const Loading = () => {
       {logo ? (
         <Image
           src={logo}
-          className="animate-pulse w-24 h-20"
+          className="animate-pulse h-10 w-auto"
           alt="Loading"
-          width={100}
+          width={300}
           height={100}
         />
       ) : (

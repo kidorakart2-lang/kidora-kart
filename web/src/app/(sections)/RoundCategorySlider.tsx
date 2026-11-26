@@ -1,25 +1,28 @@
 "use client";
+import { useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay } from "swiper/modules";
+import type { Swiper as SwiperClass } from "swiper";
+import { Autoplay, EffectCoverflow, Navigation } from "swiper/modules";
 import Image from "next/image";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
 import type { CategoryData, SubCategoryData } from "@/types";
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 
 import "swiper/css";
+import "swiper/css/effect-coverflow";
 import Link from "next/link";
 
-const JEWEL_PALETTE = [
-  "var(--brand-card-2-icon)", // wine
-  "var(--brand-card-1-icon)", // gold
-  "var(--brand-card-3-icon)", // emerald
-  "var(--brand-card-4-icon)", // mauve
-  "var(--brand-card-5-icon)", // rose
-] as const;
-
+/**
+ * "A Collection for Every Occasion" — the dark, ornamental coverflow band.
+ * Each card is a category photograph with a gold serif caption; hovering lifts
+ * the active card and the arrows walk the collection.
+ */
 export default function RoundCategorySlider({ heading }: { heading?: string }) {
   const navigation = useSelector((state: RootState) => state.ui.navigation);
   const categories = (navigation as { _data?: CategoryData[] })?._data ?? [];
+  const prevRef = useRef<HTMLButtonElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
 
   const allSubCategories: (SubCategoryData & { parentSlug: string })[] =
     categories
@@ -31,93 +34,118 @@ export default function RoundCategorySlider({ heading }: { heading?: string }) {
       )
       .filter(Boolean);
 
+  if (allSubCategories.length === 0) return null;
+
   return (
-    <section className="w-full py-8 md:py-10 bg-section">
-      <div className="text-center mb-10 mt-4">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl fw-heading tracking-wide text-foreground relative inline-block mb-3">
-          {heading || "Discover Our Collection"}
-          <svg
-            viewBox="0 0 120 12"
-            className="absolute -bottom-3 left-1/2 h-3 w-28 -translate-x-1/2"
-            style={{ color: "var(--brand-primary)" }}
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M2 8 Q 20 1 40 7 T 78 6 T 118 4"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-          </svg>
-        </h2>
-        <p className="text-muted-foreground mt-5 fw-body tracking-widest">
-          Trendy · Elegant · Timeless
-        </p>
-      </div>
+    <section className="relative w-full overflow-hidden bg-[#14100f] py-14 lg:py-20">
+      {/* ornamental lace along the top edge */}
+      <div className="ornament-band absolute inset-x-0 top-0" aria-hidden="true" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(90%_70%_at_50%_0%,rgba(62,39,57,0.55),transparent_70%)]" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {allSubCategories.length > 0 && (
-          <Swiper
-            modules={[Autoplay]}
-            spaceBetween={10}
-            slidesPerView={5}
-            loop={allSubCategories.length < 3}
-            autoplay={{
-              delay: 2500,
-              disableOnInteraction: false,
-              pauseOnMouseEnter: true,
-            }}
-            speed={1000}
-            breakpoints={{
-              320: { slidesPerView: 2, spaceBetween: 10 },
-              480: { slidesPerView: 3.4, spaceBetween: 15 },
-              768: { slidesPerView: 5, spaceBetween: 15 },
-              1024: { slidesPerView: 7, spaceBetween: 20 },
-            }}
-            className="category-swiper !pb-3"
-          >
-            {allSubCategories.map((subCat, index) => {
-              const ring = JEWEL_PALETTE[index % JEWEL_PALETTE.length];
-              return (
-                <SwiperSlide key={subCat._id}>
-                  <Link href={`/category/${subCat.parentSlug}/${subCat.slug}`}>
-                    <article
-                      className="group relative w-full flex flex-col items-center cursor-pointer pb-3"
-                      itemScope
-                      itemType="https://schema.org/Thing"
-                    >
-                      <div
-                        className="relative w-full aspect-square overflow-hidden rounded-full  transition-transform duration-300 motion-safe:group-hover:-translate-y-1 motion-safe:group-hover:rotate-3"
-                        style={{
-                          borderColor: ring,
-                          boxShadow: `0 6px 18px -8px ${ring}`,
-                        }}
-                      >
-                        <Image
-                          src={subCat.image ?? ""}
-                          alt={subCat.name}
-                          fill
-                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          className="object-cover rounded-full"
-                          itemProp="image"
-                        />
-                      </div>
+      <div className="relative z-10">
+        <div className="section-container mb-10 text-center lg:mb-14">
+          <p className="eyebrow mb-4">
+            <span className="mr-2">✦</span>
+            Discover your style
+          </p>
+          <h2 className="display-heading text-3xl text-[var(--brand-cream)] sm:text-4xl lg:text-5xl">
+            {heading || (
+              <>
+                A Collection for <span className="accent-italic">Every Occasion</span>
+              </>
+            )}
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[var(--brand-cream)]/65">
+            From everyday essentials to statement jewellery, find the piece that
+            complements your style and celebrates every occasion.
+          </p>
+        </div>
 
-                      <span
-                        className="mt-3 inline-flex max-w-full items-center rounded-full border-2 bg-card px-3 py-1 text-xs sm:text-sm font-semibold text-foreground shadow-sm truncate"
-                        style={{ borderColor: ring }}
-                        itemProp="name"
-                      >
-                        {subCat.name}
-                      </span>
-                    </article>
-                  </Link>
-                </SwiperSlide>
-              );
-            })}
-          </Swiper>
-        )}
+        <Swiper
+          modules={[Autoplay, EffectCoverflow, Navigation]}
+          effect="coverflow"
+          grabCursor
+          centeredSlides
+          loop={allSubCategories.length > 3}
+          slidesPerView={1.4}
+          spaceBetween={14}
+          autoplay={{
+            delay: 4200,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true,
+          }}
+          speed={900}
+          coverflowEffect={{
+            rotate: 0,
+            stretch: 0,
+            depth: 140,
+            modifier: 1.6,
+            slideShadows: false,
+          }}
+          navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
+          onBeforeInit={(swiper: SwiperClass) => {
+            const nav = swiper.params.navigation;
+            if (nav && typeof nav !== "boolean") {
+              nav.prevEl = prevRef.current;
+              nav.nextEl = nextRef.current;
+            }
+          }}
+          breakpoints={{
+            640: { slidesPerView: 2.4, spaceBetween: 18 },
+            1024: { slidesPerView: 3.6, spaceBetween: 22 },
+          }}
+          className="!px-4 !py-2"
+        >
+          {allSubCategories.map((subCat) => (
+            <SwiperSlide key={subCat._id} className="!h-auto">
+              <Link
+                href={`/category/${subCat.parentSlug}/${subCat.slug}`}
+                className="group block h-full"
+              >
+                <article className="relative h-full overflow-hidden rounded-xl border border-[var(--brand-gold)]/25 bg-[#241621]">
+                  <div className="relative aspect-[4/5] overflow-hidden">
+                    <Image
+                      src={subCat.image ?? ""}
+                      alt={subCat.name}
+                      fill
+                      sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 28vw"
+                      className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#14100f] via-[#14100f]/20 to-transparent" />
+                  </div>
+
+                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 px-5 pb-5">
+                    <h3 className="display-heading text-lg text-[var(--brand-cream)] sm:text-xl">
+                      {subCat.name}
+                    </h3>
+                    <span className="grid size-8 shrink-0 place-items-center rounded-full border border-[var(--brand-gold)]/50 text-[var(--brand-gold)] transition-transform duration-300 group-hover:translate-x-1">
+                      <ArrowRight size={13} />
+                    </span>
+                  </div>
+                </article>
+              </Link>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+
+        <div className="mt-8 flex items-center justify-center gap-3 text-[var(--brand-cream)]">
+          <button
+            ref={prevRef}
+            className="rail-arrow"
+            aria-label="Previous collection"
+            type="button"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button
+            ref={nextRef}
+            className="rail-arrow"
+            aria-label="Next collection"
+            type="button"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
       </div>
     </section>
   );

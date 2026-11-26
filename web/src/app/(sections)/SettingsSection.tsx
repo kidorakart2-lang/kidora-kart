@@ -97,45 +97,45 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
       <LoadingOverlay hidden={loading} />
       {/* Security Section */}
       <div className="space-y-6">
-        <h3 className="text-sm font-semibold text-muted-foreground mb-4">Security</h3>
+        <h3 className="mb-4 text-[10px] uppercase tracking-[0.2em] text-[var(--brand-ink)]/45">Security</h3>
 
         {/* Forgot Password Button */}
         <Link href="/reset-password">
           <button
-            className="w-full flex items-center justify-between p-4 bg-background/80 rounded-lg border border-border hover:border-border hover:shadow-md transition-all duration-300 group"
+            className="group flex w-full items-center justify-between rounded-lg border border-[var(--brand-gold)]/25 bg-white p-4 transition-all duration-300 hover:border-[var(--brand-gold)]/50 hover:shadow-sm"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-muted rounded-lg group-hover:bg-muted/80 transition-colors duration-300">
-                <Lock size={18} className="text-muted-foreground" />
+              <div className="grid size-9 place-items-center rounded-full border border-[var(--brand-gold)]/35 bg-[var(--brand-gold)]/10 text-[var(--brand-gold-dark)]">
+                <Lock size={15} strokeWidth={1.6} />
               </div>
               <div className="text-left">
-                <p className="font-medium text-foreground">Forgot Password</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="display-heading text-[15px]">Forgot Password</p>
+                <p className="text-[11.5px] text-[var(--brand-ink)]/50">
                   Reset your password via email
                 </p>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+            <ArrowRight className="h-4 w-4 text-[var(--brand-gold-dark)]/60 transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--brand-gold-dark)]" />
           </button>
         </Link>
 
         {/* Change Password Button */}
         <Link href="/change-password">
           <button
-            className="w-full flex items-center justify-between p-4 bg-background/80 rounded-lg border border-border hover:border-border hover:shadow-md transition-all duration-300 group"
+            className="group flex w-full items-center justify-between rounded-lg border border-[var(--brand-gold)]/25 bg-white p-4 transition-all duration-300 hover:border-[var(--brand-gold)]/50 hover:shadow-sm"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-muted rounded-lg group-hover:bg-muted/80 transition-colors duration-300">
-                <Lock size={18} className="text-muted-foreground" />
+              <div className="grid size-9 place-items-center rounded-full border border-[var(--brand-gold)]/35 bg-[var(--brand-gold)]/10 text-[var(--brand-gold-dark)]">
+                <Lock size={15} strokeWidth={1.6} />
               </div>
               <div className="text-left">
-                <p className="font-medium text-foreground">Change Password</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="display-heading text-[15px]">Change Password</p>
+                <p className="text-[11.5px] text-[var(--brand-ink)]/50">
                   Update your password regularly
                 </p>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+            <ArrowRight className="h-4 w-4 text-[var(--brand-gold-dark)]/60 transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--brand-gold-dark)]" />
           </button>
         </Link>
 
@@ -143,40 +143,41 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
         {data?.isEmailVerified ? null : (
           <button
             onClick={() => handleVerifyClick("email")}
-            className="w-full flex items-center justify-between p-4 bg-background/80 rounded-lg border border-border hover:border-border hover:shadow-md transition-all duration-300 group"
+            className="group flex w-full items-center justify-between rounded-lg border border-[var(--brand-gold)]/25 bg-white p-4 transition-all duration-300 hover:border-[var(--brand-gold)]/50 hover:shadow-sm"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-muted rounded-lg group-hover:bg-muted/80 transition-colors duration-300">
-                <Mail size={18} className="text-muted-foreground" />
+              <div className="grid size-9 place-items-center rounded-full border border-[var(--brand-gold)]/35 bg-[var(--brand-gold)]/10 text-[var(--brand-gold-dark)]">
+                <Mail size={15} strokeWidth={1.6} />
               </div>
               <div className="text-left">
-                <p className="font-medium text-foreground flex items-center gap-2">
+                <p className="display-heading flex items-center gap-2 text-[15px]">
                   Verify Email
                   {!data?.isEmailVerified && (
-                    <span className="px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded-full">
+                    <span className="rounded-full border border-[var(--brand-gold)]/35 bg-[var(--brand-cream)] px-2 py-0.5 text-[9.5px] uppercase tracking-[0.12em] text-[var(--brand-ink)]/50">
                       Pending
                     </span>
                   )}
                   {data?.isEmailVerified && (
-                    <CheckCircle size={16} className="text-green-600" />
+                    <CheckCircle size={14} className="text-[var(--brand-gold-dark)]" />
                   )}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-[11.5px] text-[var(--brand-ink)]/50">
                   {data?.isEmailVerified
                     ? "Your email is verified"
                     : "Verify your email address"}
                 </p>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+            <ArrowRight className="h-4 w-4 text-[var(--brand-gold-dark)]/60 transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--brand-gold-dark)]" />
           </button>
         )}
 
         {/* Logout Button */}
-        <div className="pt-4 border-t border-border">
+        <div className="border-t border-[var(--brand-gold)]/20 pt-5">
           <Button
             onClick={() => setShowLogoutDialog(true)}
-            className="flex items-center gap-2 text-destructive hover:text-destructive/80 font-medium transition-colors duration-300 bg-background border-destructive hover:bg-destructive/20"
+            variant="outline"
+            className="flex items-center gap-2 rounded-full border-destructive/35 bg-transparent text-[10.5px] uppercase tracking-[0.16em] text-destructive transition-colors duration-300 hover:bg-destructive/5"
           >
             <LogOut className="h-5 w-5" />
             Sign Out

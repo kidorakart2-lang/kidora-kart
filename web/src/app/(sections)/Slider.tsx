@@ -1,78 +1,125 @@
 "use client";
+import { useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, EffectCoverflow } from "swiper/modules";
+import type { Swiper as SwiperClass } from "swiper";
+import { Autoplay, Navigation } from "swiper/modules";
 import "swiper/css";
-import "swiper/css/effect-coverflow";
+import "swiper/css/navigation";
 import ProductCard from "@/components/comman/ProductCard";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
-import type { CategoryData } from "@/types";
+import type { CategoryData, ProductData } from "@/types";
 import { getCategoryHref } from "@/lib/category-nav";
 
-const Slider = ({ data, heading }: { data: any[] | null | undefined; heading: string }) => {
+interface SliderProps {
+  data: ProductData[] | null | undefined;
+  heading: string;
+  /** Italic gold continuation of the heading, e.g. "Everyone Loves". */
+  accent?: string;
+  eyebrow?: string;
+  href?: string;
+}
+
+const Slider = ({ data, heading, accent, eyebrow, href }: SliderProps) => {
   const navigation = useSelector((state: RootState) => state.ui.navigation);
   const categories = (navigation as { _data?: CategoryData[] })?._data ?? [];
-  const viewMoreHref = getCategoryHref(categories);
+  const viewMoreHref = href ?? getCategoryHref(categories);
+  const prevRef = useRef<HTMLButtonElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
 
   if (!data || !Array.isArray(data) || data.length === 0) return null;
 
   return (
-    <section className="relative py-10 overflow-hidden bg-section" id={heading}>
-      <div className="section-container">
-        <div className="text-center mb-14">
-          <h2 className="text-4xl md:text-5xl fw-heading tracking-wide section-heading mb-4">
-            {heading}
-          </h2>
-        </div>
+    <section
+      className="relative overflow-hidden bg-white py-14 lg:py-20"
+      id={heading}
+    >
+      <div className="section-container relative z-10">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-5 lg:mb-10">
+          <div>
+            {eyebrow && (
+              <p className="eyebrow mb-3">
+                <span className="mr-2">✦</span>
+                {eyebrow}
+              </p>
+            )}
+            <h2 className="display-heading text-3xl sm:text-4xl lg:text-[2.75rem]">
+              {heading}{" "}
+              {accent && <span className="accent-italic">{accent}</span>}
+            </h2>
+          </div>
 
-        <div className="py-8 relative">
-          <Swiper
-            modules={[Autoplay, EffectCoverflow]}
-            spaceBetween={20}
-            slidesPerView={1}
-            autoplay={{
-              delay: 3500,
-              disableOnInteraction: false,
-              pauseOnMouseEnter: true,
-            }}
-            speed={800}
-            loop={false}
-            observer={true}
-            observeParents={true}
-            centeredSlides={false}
-            breakpoints={{
-              320: { slidesPerView: 1.3, spaceBetween: 20 },
-              450: { slidesPerView: 1.5, spaceBetween: 15 },
-              768: { slidesPerView: 3, spaceBetween: 24 },
-              1024: { slidesPerView: 4, spaceBetween: 20 },
-            }}
-            className="!overflow-visible"
-          >
-            {data.map((item) => (
-              <SwiperSlide key={item._id}>
-                <ProductCard key={item._id} data={item} />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </div>
-
-        <div className="text-center mt-12">
-          <Link href={viewMoreHref}>
-            <Button
-              variant="gradient"
-              size="lg"
-              className="group relative rounded-full text-[15px] font-medium tracking-wider shadow-lg overflow-hidden"
+          <div className="flex items-center gap-2.5">
+            <button
+              ref={prevRef}
+              className="rail-arrow text-[var(--brand-plum)]"
+              aria-label={`Previous ${heading}`}
+              type="button"
             >
-              <span className="relative flex items-center gap-2">
-                VIEW MORE
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-              </span>
-            </Button>
-          </Link>
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              ref={nextRef}
+              className="rail-arrow text-[var(--brand-plum)]"
+              aria-label={`Next ${heading}`}
+              type="button"
+            >
+              <ChevronRight size={16} />
+            </button>
+            <Link
+              href={viewMoreHref}
+              className="btn-gold ml-1 !px-5 !py-2.5 !text-[10px] uppercase tracking-[0.16em]"
+            >
+              Shop More
+              <ArrowRight size={13} />
+            </Link>
+          </div>
         </div>
+
+        <Swiper
+          modules={[Autoplay, Navigation]}
+          spaceBetween={20}
+          slidesPerView="auto"
+          autoplay={{
+            delay: 4600,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true,
+          }}
+          speed={750}
+          grabCursor
+          observer
+          observeParents
+          navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
+          onBeforeInit={(swiper: SwiperClass) => {
+            const nav = swiper.params.navigation;
+            if (nav && typeof nav !== "boolean") {
+              nav.prevEl = prevRef.current;
+              nav.nextEl = nextRef.current;
+            }
+          }}
+          onSwiper={(swiper: SwiperClass) => {
+            // Recalculate after fonts, images and the streamed section settle —
+            // otherwise the trailing cards can be measured as zero-width and the
+            // right side of the rail stays blank until the first slide.
+            swiper.update();
+            requestAnimationFrame(() => swiper.update());
+            if (typeof document !== "undefined" && "fonts" in document) {
+              document.fonts.ready.then(() => swiper.update());
+            }
+          }}
+          className="!py-1"
+        >
+          {data.map((item, index) => (
+            <SwiperSlide
+              key={item._id}
+              className="!h-auto !w-[76%] pb-1 sm:!w-[44%] lg:!w-[31.5%] xl:!w-[23.4%]"
+            >
+              <ProductCard data={item} eager={index < 6} />
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </div>
     </section>
   );

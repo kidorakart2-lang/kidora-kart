@@ -107,9 +107,9 @@ export default function AccountPage() {
 
   useEffect(() => {
     const tab = params.get("tab");
-    if (tab) {
-      setActiveTab(tab);
-    }
+    // Always land on a real tab — an absent/unknown ?tab= must never leave the
+    // profile screen with nothing selected.
+    setActiveTab(tabs.some((item) => item.id === tab) ? (tab as string) : "account");
   }, [params]);
 
   const handleTabChange = (value: string) => {
@@ -243,19 +243,19 @@ export default function AccountPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <LoadingOverlay hidden={false} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="min-h-screen bg-white">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 md:py-12 lg:px-8">
         {/* Profile Header */}
-        <div className="flex flex-col md:flex-row items-start md:items-end gap-5 p-6 md:p-8 border-b border-border mb-6">
-          <div className="relative group shrink-0">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white shadow-xl overflow-hidden bg-muted">
+        <div className="mb-6 flex flex-col items-start gap-6 rounded-xl border border-[var(--brand-gold)]/25 bg-white p-6 md:flex-row md:items-center md:p-8">
+          <div className="group relative shrink-0">
+            <div className="size-20 overflow-hidden rounded-full border border-[var(--brand-gold)]/50 bg-[var(--brand-cream)] p-1 md:size-24">
               <Avatar className="w-full h-full">
                 {avatar && (
                   <Image
@@ -266,23 +266,27 @@ export default function AccountPage() {
                     className="w-full h-full object-cover"
                   />
                 )}
-                <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-lg">
+                <AvatarFallback className="bg-[var(--brand-cream)] text-[13px] text-[var(--brand-mauve)]">
                   {data?.name?.slice(0, 1).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </div>
             <button
               onClick={scrollToImageUpload}
-              className="absolute -bottom-1 -right-1 bg-foreground hover:bg-foreground/90 text-background p-1.5 rounded-full shadow-lg transition-all duration-300 hover:scale-110 active:scale-95"
+              className="absolute -bottom-0.5 -right-0.5 rounded-full border border-[var(--brand-gold)]/40 bg-[var(--brand-plum)] p-2 text-[var(--brand-cream)] transition-all duration-300 hover:scale-105 active:scale-95"
             >
               <Camera size={14} />
             </button>
           </div>
           <div className="flex-1 min-w-0">
-             <h1 className="text-xl md:text-2xl fw-heading text-foreground truncate">
+            <p className="eyebrow mb-1.5 text-[10px]">
+              <span className="mr-1.5">✦</span>
+              Member profile
+            </p>
+            <h1 className="display-heading truncate text-2xl md:text-3xl">
               {data?.name || "My Account"}
             </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">{data?.email}</p>
+            <p className="mt-0.5 text-[12.5px] text-[var(--brand-ink)]/55">{data?.email}</p>
           </div>
         </div>
 
@@ -304,11 +308,11 @@ export default function AccountPage() {
                       key={tab.id}
                       onClick={() => handleTabChange(tab.id)}
                       className={cn(
-                        "relative flex items-center cursor-pointer gap-3 px-3.5 py-3 rounded-xl text-sm fw-cta transition-all outline-none w-full justify-start select-none whitespace-nowrap shrink-0",
-                        "hover:bg-muted/60 hover:text-foreground",
+                        "relative flex w-full shrink-0 cursor-pointer select-none items-center justify-start gap-3 whitespace-nowrap rounded-full px-4 py-3 text-[10.5px] uppercase tracking-[0.14em] transition-all outline-none",
+                        "hover:bg-white",
                         isActive
-                          ? "text-foreground shadow-sm"
-                          : "text-muted-foreground border border-border/50"
+                          ? "text-[var(--brand-cream)]"
+                          : "border border-transparent text-[var(--brand-ink)]/60 hover:border-[var(--brand-gold)]/30"
                       )}
                     >
                       <Icon className="w-4 h-4 z-10 shrink-0" />
@@ -316,7 +320,7 @@ export default function AccountPage() {
                       {isActive && (
                         <motion.div
                           layoutId="profile-tab-indicator"
-                          className="absolute inset-0 bg-muted rounded-xl pointer-events-none"
+                          className="pointer-events-none absolute inset-0 rounded-full bg-[var(--brand-plum)]"
                           initial={false}
                           transition={{ type: "spring", stiffness: 300, damping: 25 }}
                         />
@@ -347,17 +351,17 @@ export default function AccountPage() {
                         <form
                           id="account"
                           onSubmit={handleSubmit}
-                          className="space-y-6"
+                          className="space-y-8 rounded-xl border border-[var(--brand-gold)]/25 bg-white p-6 sm:p-8"
                         >
                           {/* Image Upload Section */}
                           <div ref={imageUploadRef}>
-                            <h2 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
-                              <Camera size={18} className="text-muted-foreground" />
+                            <h2 className="display-heading mb-4 flex items-center gap-2 text-lg">
+                              <Camera size={16} className="text-[var(--brand-gold-dark)]" strokeWidth={1.6} />
                               Profile Picture
                             </h2>
 
                             <div className="flex flex-col md:flex-row gap-6 items-start">
-                              <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-dashed border-border flex items-center justify-center">
+                              <div className="flex size-32 items-center justify-center overflow-hidden rounded-full border border-dashed border-[var(--brand-gold)]/50 bg-[var(--brand-cream)]/60">
                                 {previewImage ? (
                                   <div className="relative w-full h-full group">
                                     <img
@@ -373,7 +377,7 @@ export default function AccountPage() {
                                     </button>
                                   </div>
                                 ) : (
-                                  <Upload size={32} className="text-muted-foreground" />
+                                  <Upload size={26} className="text-[var(--brand-gold)]/70" strokeWidth={1.4} />
                                 )}
                               </div>
 
@@ -388,12 +392,12 @@ export default function AccountPage() {
                                 />
                                 <Label
                                   htmlFor="avatar-upload"
-                                  className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-border text-muted-foreground rounded-lg cursor-pointer transition-all duration-300 text-sm fw-cta"
+                                  className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[var(--brand-gold)]/45 px-4 py-2 text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/70 transition-all duration-300 hover:bg-[var(--brand-cream)]"
                                 >
                                   <Upload size={16} />
                                   Choose Image
                                 </Label>
-                                <p className="text-xs text-muted-foreground mt-2">
+                                <p className="mt-2 text-[11px] text-[var(--brand-ink)]/45">
                                   JPG, PNG or GIF. Max size 5MB.
                                 </p>
 
@@ -401,7 +405,7 @@ export default function AccountPage() {
                                   <div className="flex gap-2 mt-4">
                                     <button
                                       onClick={removePreviewImage}
-                                      className="px-4 py-2 bg-border text-muted-foreground rounded-lg text-sm fw-cta hover:bg-muted-foreground/20 transition-all duration-300"
+                                      className="rounded-full border border-[var(--brand-gold)]/30 px-4 py-2 text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/60 transition-all duration-300 hover:bg-[var(--brand-cream)]"
                                     >
                                       Cancel
                                     </button>
@@ -413,14 +417,14 @@ export default function AccountPage() {
 
                           {/* Personal Information */}
                           <div>
-                            <h2 className="text-lg font-semibold mb-6 text-foreground">
+                            <h2 className="display-heading mb-5 text-lg">
                               Personal Information
                             </h2>
 
                             <div className="space-y-4">
                               <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
                                     Full Name
                                   </Label>
                                   <Input
@@ -433,11 +437,11 @@ export default function AccountPage() {
                                         name: e.target.value,
                                       })
                                     }
-                                    className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
+                                    className="w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white px-4 py-2.5 text-sm text-[var(--brand-ink)] transition-all duration-300 focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30"
                                   />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
                                     Gender
                                   </Label>
                                   <Select
@@ -446,7 +450,7 @@ export default function AccountPage() {
                                       setFormData({ ...formData, gender: value })
                                     }
                                   >
-                                    <SelectTrigger className="w-full">
+                                    <SelectTrigger className="w-full rounded-lg border-[var(--brand-gold)]/30 bg-white text-[var(--brand-ink)]">
                                       <SelectValue placeholder="Select Gender" />
                                     </SelectTrigger>
                                     <SelectContent className="w-full">
@@ -460,13 +464,13 @@ export default function AccountPage() {
 
                               <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
                                     Email Address
                                   </Label>
-                                  <p className="text-sm text-foreground">{data?.email}</p>
+                                  <p className="text-sm text-[var(--brand-ink)]/75">{data?.email}</p>
                                 </div>
                                 <div className="space-y-2">
-                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
                                     Phone Number
                                   </Label>
                                   <Input
@@ -480,7 +484,7 @@ export default function AccountPage() {
                                       })
                                     }
                                     placeholder="Enter phone number"
-                                    className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
+                                    className="w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white px-4 py-2.5 text-sm text-[var(--brand-ink)] transition-all duration-300 focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30"
                                   />
                                 </div>
                               </div>
@@ -489,15 +493,15 @@ export default function AccountPage() {
 
                           {/* Shipping Address */}
                           <div>
-                            <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
-                                  <MapPin size={18} className="text-muted-foreground" />
+                            <h3 className="display-heading mb-5 flex items-center gap-2 text-lg">
+                              <MapPin size={16} className="text-[var(--brand-gold-dark)]" strokeWidth={1.6} />
                               Shipping Address
                             </h3>
 
                             <div className="space-y-4">
                               <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
                                     Street Address
                                   </Label>
                                   <Input
@@ -511,11 +515,11 @@ export default function AccountPage() {
                                       })
                                     }
                                     placeholder="Enter street address"
-                                    className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
+                                    className="w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white px-4 py-2.5 text-sm text-[var(--brand-ink)] transition-all duration-300 focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30"
                                   />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
                                     Area
                                   </Label>
                                   <Input
@@ -529,14 +533,14 @@ export default function AccountPage() {
                                       })
                                     }
                                     placeholder="Enter area/locality"
-                                    className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
+                                    className="w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white px-4 py-2.5 text-sm text-[var(--brand-ink)] transition-all duration-300 focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30"
                                   />
                                 </div>
                               </div>
 
                               <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
                                     City
                                   </Label>
                                   <Input
@@ -550,11 +554,11 @@ export default function AccountPage() {
                                       })
                                     }
                                     placeholder="Enter city"
-                                    className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
+                                    className="w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white px-4 py-2.5 text-sm text-[var(--brand-ink)] transition-all duration-300 focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30"
                                   />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
                                     State
                                   </Label>
                                   <Select
@@ -568,7 +572,7 @@ export default function AccountPage() {
                                     name="state"
                                     required
                                   >
-                                    <SelectTrigger className="w-full">
+                                    <SelectTrigger className="w-full rounded-lg border-[var(--brand-gold)]/30 bg-white text-[var(--brand-ink)]">
                                       <SelectValue placeholder="Select State" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -576,7 +580,7 @@ export default function AccountPage() {
                                         <SelectItem
                                           key={s}
                                           value={s}
-                                          className="cursor-pointer border-b-1 border-border"
+                                          className="cursor-pointer border-b border-[var(--brand-gold)]/15"
                                         >
                                           {s}
                                         </SelectItem>
@@ -588,7 +592,7 @@ export default function AccountPage() {
 
                               <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <Label className="block text-sm font-medium text-muted-foreground">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
                                     Pincode
                                   </Label>
                                   <Input
@@ -602,13 +606,13 @@ export default function AccountPage() {
                                       })
                                     }
                                     placeholder="Enter pincode"
-                                    className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80"
+                                    className="w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white px-4 py-2.5 text-sm text-[var(--brand-ink)] transition-all duration-300 focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30"
                                   />
                                 </div>
                               </div>
 
                               <div className="space-y-2">
-                                <Label className="block text-sm font-medium text-muted-foreground">
+                                <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
                                   Delivery Instructions (Optional)
                                 </Label>
                                 <Textarea
@@ -622,13 +626,13 @@ export default function AccountPage() {
                                   }
                                   placeholder="Add any special delivery instructions"
                                   rows={3}
-                                  className="w-full border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-300 bg-background/80 resize-none"
+                                  className="w-full resize-none rounded-lg border border-[var(--brand-gold)]/30 bg-white px-4 py-2.5 text-sm text-[var(--brand-ink)] transition-all duration-300 focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30"
                                 />
                               </div>
                             </div>
 
-                            <div className="pt-6 flex gap-3">
-                              <Button variant="gradient" disabled={isSubmitting} className="px-6 py-2.5 rounded-lg text-sm fw-cta shadow-sm transform transition-all duration-300 hover:scale-105 active:scale-95">
+                            <div className="flex gap-3 border-t border-[var(--brand-gold)]/20 pt-6">
+                              <Button disabled={isSubmitting} className="btn-gold px-7 py-3 !text-[10.5px] uppercase tracking-[0.18em] disabled:opacity-60">
                                 {isSubmitting ? "Saving..." : "Save Changes"}
                               </Button>
                             </div>
@@ -641,8 +645,9 @@ export default function AccountPage() {
 
                       {/* Settings Tab */}
                       {tab.id === "settings" && (
-                        <div id="settings">
-                          <h2 className="text-xl font-semibold mb-6 text-foreground">
+                        <div id="settings" className="rounded-xl border border-[var(--brand-gold)]/25 bg-white p-6 sm:p-8">
+                          <p className="eyebrow mb-1.5 text-[10px]"><span className="mr-1.5">✦</span>Account</p>
+                          <h2 className="display-heading mb-6 text-xl">
                             Account Settings
                           </h2>
                           <SettingsSection data={data} />

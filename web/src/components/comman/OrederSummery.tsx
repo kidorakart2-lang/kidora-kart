@@ -79,10 +79,10 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
     return (
       <div>
         {/* Order Items */}
-        <div className="space-y-4 mb-6">
+        <div className="mb-5 space-y-3">
           {cartItems.map((item, index) => (
-            <div key={item._id || index} className="flex items-start space-x-4">
-              <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+            <div key={item._id || index} className="flex items-start gap-3">
+              <div className="framed-tile size-[68px] shrink-0 overflow-hidden rounded-lg border border-[var(--brand-gold)]/20">
                 <Link
                   className="w-full h-full"
                   href={`/product-details/${item?.product?.slug}`}
@@ -92,18 +92,18 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
                     alt={item?.product?.name || "cart image"}
                     width={80}
                     height={80}
-                    className="w-full h-full object-cover"
+                    className="h-full w-full rounded-lg object-cover"
                   />
                 </Link>
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm fw-heading text-foreground truncate">
+                <h3 className="display-heading truncate text-[13.5px] italic">
                   {item?.product?.name}
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-[11.5px] text-[var(--brand-ink)]/55">
                   Qty: {item?.quantity}{" "}
                   {type == "cart" && item?.color && (
-                    <span className="text-xs text-brand-500 fw-body inline-flex items-center gap-1">
+                    <span className="inline-flex items-center gap-1 text-[11px] text-[var(--brand-ink)]/60">
                       <span
                         style={{ backgroundColor: item.color.code }}
                         className="w-3 h-3 rounded-full border border-border inline-block"
@@ -112,7 +112,7 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
                     </span>
                   )}
                   {type == "direct" && item?.colorCode && (
-                    <span className="text-xs text-brand-500 fw-body inline-flex items-center gap-1">
+                    <span className="inline-flex items-center gap-1 text-[11px] text-[var(--brand-ink)]/60">
                       <span
                         style={{ backgroundColor: item.colorCode }}
                         className="w-3 h-3 rounded-full border border-border inline-block"
@@ -121,12 +121,12 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
                     </span>
                   )}
                   {item.variantName && (
-                    <span className="text-xs text-brand-600 fw-cta bg-brand-50 border border-brand-200 rounded-full px-2 py-0.5 ml-1">
+                    <span className="ml-1 rounded-full border border-[var(--brand-gold)]/35 bg-[var(--brand-gold)]/10 px-2 py-0.5 text-[10px] text-[var(--brand-gold-dark)]">
                       {item.variantName}
                     </span>
                   )}
                 </p>
-                <p className="text-sm fw-body text-foreground mt-1">
+                <p className="mt-1 text-[13px] text-[var(--brand-ink)]">
                   {item.variantPrice != null ? (
                     <>₹{item.variantPrice.toLocaleString()}</>
                   ) : (
@@ -159,8 +159,8 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
         </div>
 
         {/* Order Total */}
-        <div className="border-t border-border pt-4 space-y-3">
-          <div className="flex justify-between text-sm text-muted-foreground">
+        <div className="space-y-3 border-t border-[var(--brand-gold)]/20 pt-4">
+          <div className="flex justify-between text-[12.5px] text-[var(--brand-ink)]/60">
             <span>Subtotal</span>
             <span>
               ₹
@@ -176,14 +176,14 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
             </span>
           </div>
 
-          <div className="flex justify-between text-sm text-muted-foreground">
+          <div className="flex justify-between text-[12.5px] text-[var(--brand-ink)]/60">
             <span className="flex items-center gap-1.5">
-              <Truck className="w-3.5 h-3.5" />
+              <Truck className="h-3.5 w-3.5" />
               Shipping
             </span>
-            <span className="text-foreground fw-body">
+            <span className="text-[var(--brand-ink)]">
               {shippingEstimate ? (
-                <span className="text-brand-600">₹{shippingCharge}</span>
+                <span className="text-[var(--brand-gold-dark)]">₹{shippingCharge}</span>
               ) : (
                 <span>₹{shippingCharge}</span>
               )}
@@ -192,8 +192,8 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
 
           {shippingEstimate?.courierName && (
             <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Courier</span>
-              <span className="fw-body text-foreground">
+              <span className="text-[var(--brand-ink)]/50">Courier</span>
+              <span className="text-[var(--brand-ink)]/80">
                 {shippingEstimate.courierName}
               </span>
             </div>
@@ -201,13 +201,13 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
 
           {shippingEstimate?.etd && (
             <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Est. Delivery</span>
-              <span className="fw-body text-brand-600">{shippingEstimate.etd}</span>
+              <span className="text-[var(--brand-ink)]/50">Est. Delivery</span>
+              <span className="text-[var(--brand-mauve)]">{shippingEstimate.etd}</span>
             </div>
           )}
 
           {orderData.giftWrap && (
-            <div className="flex justify-between text-sm text-muted-foreground">
+            <div className="flex justify-between text-[12.5px] text-[var(--brand-ink)]/60">
               <span>Gift Wrap</span>
               <span>₹50</span>
             </div>
@@ -219,26 +219,32 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
             </p>
           )}
 
-          <div className="border-t border-border pt-3 mt-2">
-            <div className="flex justify-between fw-heading text-foreground">
-              <span>Total</span>
-              <span className="text-lg">₹{total}</span>
+          <div className="mt-2 border-t border-[var(--brand-gold)]/25 pt-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/55">
+                Total
+              </span>
+              <span className="display-heading text-xl text-[var(--brand-plum)]">
+                ₹{total}
+              </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Inclusive of all taxes</p>
+            <p className="mt-1 text-[10.5px] text-[var(--brand-ink)]/40">
+              Inclusive of all taxes
+            </p>
           </div>
 
           {/* Payment Info Cards */}
           <div className="mt-4 space-y-2">
-            <div className="flex items-center gap-2 bg-[var(--brand-accent-50)] border border-[var(--brand-accent-200)] rounded-lg px-3 py-2">
-              <span className="text-[var(--brand-accent-600)] text-lg">✓</span>
-              <span className="text-sm fw-body text-[var(--brand-accent-700)]">
-                5% Discount on ONLINE Purchase
+            <div className="flex items-center gap-2 rounded-lg border border-[var(--brand-gold)]/30 bg-[var(--brand-gold)]/10 px-3 py-2">
+              <span className="text-[13px] text-[var(--brand-gold-dark)]">✓</span>
+              <span className="text-[11.5px] text-[var(--brand-gold-dark)]">
+                5% discount on online payment
               </span>
             </div>
-            <div className="flex items-center gap-2 bg-brand-50 border border-brand-200 rounded-lg px-3 py-2">
-              <span className="text-brand-600 text-lg">✓</span>
-              <span className="text-sm text-brand-700">
-                10% Advance And Rest In COD
+            <div className="flex items-center gap-2 rounded-lg border border-[var(--brand-mauve)]/30 bg-[var(--brand-rose)]/20 px-3 py-2">
+              <span className="text-[13px] text-[var(--brand-mauve)]">✓</span>
+              <span className="text-[11.5px] text-[var(--brand-plum)]/80">
+                10% advance and the rest on delivery
               </span>
             </div>
           </div>

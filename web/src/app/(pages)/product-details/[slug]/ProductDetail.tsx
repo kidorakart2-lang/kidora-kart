@@ -1,8 +1,15 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { Star, Package, Truck, Shield, RotateCcw, Sparkles } from "lucide-react";
+import { Star, Package, Truck, Shield, RotateCcw, Share2, MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "motion/react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 import ProductReviews from "@/components/product/product-reviews";
 import ImageSlider from "@/components/product/image-slider";
@@ -30,10 +37,10 @@ import ProductNotFound from "@/components/product/ProductNotFound";
 import type { ProductData, ProductVariant } from "@/types";
 
 const TRUST_BADGES = [
-  { icon: Shield, label: "Secure Payment" },
-  { icon: Truck, label: "Free Shipping" },
-  { icon: RotateCcw, label: "Easy Returns" },
-  { icon: Package, label: "Gift Wrapping" },
+  { icon: Shield, label: "Secure Payment", desc: "100% protected" },
+  { icon: Truck, label: "Free Shipping", desc: "On every order" },
+  { icon: RotateCcw, label: "Easy Returns", desc: "15 day returns" },
+  { icon: Package, label: "Gift Wrapping", desc: "Complimentary" },
 ];
 
 interface ProductDetailsPageProps {
@@ -165,15 +172,29 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
     Array.from({ length: 5 }).map((_, i) => (
       <Star
         key={i}
-        size={15}
+        size={14}
         className={
-          i < Math.floor(rating || 4)
-            ? "fill-amber-400 text-amber-400"
-            : "fill-muted text-muted"
+          i < Math.floor(rating || 0)
+            ? "fill-[var(--brand-gold)] text-[var(--brand-gold)]"
+            : "fill-[var(--brand-surface)] text-[var(--brand-surface)]"
         }
         strokeWidth={1.5}
       />
     ));
+
+  const handleShare = async () => {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: product.name, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copied to clipboard");
+      }
+    } catch {
+      /* user dismissed the share sheet */
+    }
+  };
 
   const allImages: string[] = useMemo(
     () =>
@@ -247,7 +268,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
       : null;
 
   return (
-    <main className="bg-gradient-to-b from-background via-background to-muted/30">
+    <main className="bg-white">
       {/* ── Breadcrumb area ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <Breadcrumb
@@ -269,8 +290,8 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
       </div>
 
       {/* ── Product hero section ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-14">
           {/* ── Left: Images ── */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -295,16 +316,13 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             transition={{ duration: 0.6, delay: 0.1 }}
             className="flex flex-col lg:sticky lg:top-28 lg:self-start"
           >
-            {/* Category tag */}
             {product.category?.[0]?.name && (
-              <span className="inline-flex self-start items-center gap-1 px-3 py-1 rounded-full text-[11px] fw-cta uppercase tracking-wider bg-brand-100 text-brand-800 mb-3">
-                <Sparkles size={12} />
+              <p className="mb-3 text-[10px] uppercase tracking-[0.26em] text-[var(--brand-gold-dark)]">
                 {product.category[0].name}
-              </span>
+              </p>
             )}
 
-            {/* Title */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl fw-heading text-foreground leading-tight tracking-tight mb-4">
+            <h1 className="display-heading text-[2.1rem] leading-[1.1] tracking-tight sm:text-4xl lg:text-[2.75rem]">
               {product.name}
             </h1>
 
@@ -318,8 +336,10 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               <div className="flex items-center gap-0.5">
                 {renderStars(product.rating ?? 0)}
               </div>
-              <span className="text-sm text-muted-foreground fw-body">
-                {product.reviewCount || 0} reviews
+              <span className="text-[13px] text-[var(--brand-ink)]/60">
+                {product.rating ? Number(product.rating).toFixed(1) : "0.0"} ·{" "}
+                {product.reviewCount || 0}{" "}
+                {product.reviewCount === 1 ? "review" : "reviews"}
               </span>
             </motion.div>
 
@@ -334,13 +354,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                 {selectedVariant ? (
                   <>
                     <span
-                      className="text-4xl sm:text-5xl fw-heading tracking-tight"
-                      style={{
-                        background: "linear-gradient(135deg, var(--brand-price-1-from), var(--brand-price-1-via), var(--brand-price-1-to))",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        backgroundClip: "text",
-                      }}
+                      className="display-heading text-3xl tracking-tight text-[var(--brand-plum)] sm:text-4xl"
                     >
                       ₹{selectedVariant.price.toLocaleString()}
                     </span>
@@ -358,13 +372,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                 ) : product.discount_price ? (
                   <>
                     <span
-                      className="text-4xl sm:text-5xl fw-heading tracking-tight"
-                      style={{
-                        background: "linear-gradient(135deg, var(--brand-price-1-from), var(--brand-price-1-via), var(--brand-price-1-to))",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        backgroundClip: "text",
-                      }}
+                      className="display-heading text-3xl tracking-tight text-[var(--brand-plum)] sm:text-4xl"
                     >
                       ₹{product.discount_price.toLocaleString()}
                     </span>
@@ -381,7 +389,33 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                   </span>
                 )}
               </div>
+              <p className="mt-2 text-[10.5px] text-[var(--brand-ink)]/40">
+                Inclusive of all taxes · Free shipping across India
+              </p>
             </motion.div>
+
+            {/* Low-stock urgency */}
+            {typeof product.stock === "number" &&
+              product.stock > 0 &&
+              product.stock <= 10 && (
+                <div className="mb-6">
+                  <p className="mb-2 text-xs text-[var(--brand-ink)]/70">
+                    Only{" "}
+                    <strong className="fw-heading text-[var(--brand-plum)]">
+                      {product.stock} items
+                    </strong>{" "}
+                    left in stock
+                  </p>
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-[var(--brand-surface)]">
+                    <div
+                      className="h-full rounded-full bg-[var(--brand-mauve)]"
+                      style={{
+                        width: `${Math.max(8, Math.min(100, (product.stock / 10) * 100))}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
 
             {/* Short Description */}
             {(product.shortDescription || product.short_description) && (
@@ -395,8 +429,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               </motion.p>
             )}
 
-            {/* Divider */}
-            <div className="h-px bg-gradient-to-r from-border via-border/50 to-transparent mb-6" />
+            <div className="hairline mb-6" />
 
             {/* Color Picker */}
             <ColorPicker
@@ -422,6 +455,10 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               wishlistLoading={wishlistLoading}
               isWishlisted={!!isWishlisted}
               stock={product.stock ?? 0}
+              quantity={selectedVariant ? selectedVariant.quantity : quantity}
+              quantityLocked={!!selectedVariant}
+              onIncrement={handleIncrement}
+              onDecrement={handleDecrement}
               onAddToCart={handleAddToCart}
               onWishlist={handleWishlist}
               onBuyNow={handleBuyNow}
@@ -445,30 +482,81 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                   </motion.div>
                 )
               }
-            >
-              {/* Specifications */}
-              <ProductSpecifications product={product} />
-            </ActionButtons>
+            />
 
-            {/* Trust Badges */}
+            {/* Trust row */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
-              className="mt-8 grid grid-cols-4 gap-3"
+              transition={{ delay: 0.9 }}
+              className="mt-7 grid grid-cols-3 gap-4 border-y border-[var(--brand-gold)]/25 py-5"
             >
-              {TRUST_BADGES.map((badge) => (
-                <div
-                  key={badge.label}
-                  className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-muted/50 border border-border"
-                >
-                  <badge.icon size={16} className="text-brand-600" strokeWidth={1.5} />
-                  <span className="text-[10px] text-muted-foreground fw-body text-center leading-tight">
-                    {badge.label}
+              {TRUST_BADGES.slice(0, 3).map((badge) => (
+                <div key={badge.label} className="flex items-start gap-2.5">
+                  <badge.icon
+                    size={18}
+                    className="mt-0.5 shrink-0 text-[var(--brand-gold-dark)]"
+                    strokeWidth={1.4}
+                  />
+                  <span>
+                    <span className="block text-[11.5px] leading-tight text-[var(--brand-ink)]">
+                      {badge.label}
+                    </span>
+                    <span className="mt-0.5 block text-[10.5px] text-[var(--brand-ink)]/50">
+                      {badge.desc}
+                    </span>
                   </span>
                 </div>
               ))}
             </motion.div>
+
+            <ProductSpecifications product={product} />
+
+            {/* SKU + categories meta */}
+            <div className="mt-5 grid grid-cols-2 gap-4 text-[11.5px]">
+              <div>
+                <p className="mb-1 text-[10px] uppercase tracking-[0.2em] text-[var(--brand-ink)]/45">
+                  SKU
+                </p>
+                <p className="text-[var(--brand-ink)]/80">
+                  {product.sku || product._id}
+                </p>
+              </div>
+              <div>
+                <p className="mb-1 text-[10px] uppercase tracking-[0.2em] text-[var(--brand-ink)]/45">
+                  Categories
+                </p>
+                <p className="text-[var(--brand-ink)]/80">
+                  {[
+                    ...(product.category ?? []).map((c) => c.name),
+                    ...(product.subCategory ?? []).map((c) => c.name),
+                  ].join(", ") || "Jewellery"}
+                </p>
+              </div>
+            </div>
+
+            {/* Utility links */}
+            <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[var(--brand-gold)]/20 pt-4 text-[10.5px] uppercase tracking-[0.16em] text-[var(--brand-ink)]/55">
+              <Link
+                href="/contact-us"
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--brand-plum)]"
+              >
+                <MessageCircle size={12} /> Contact Us
+              </Link>
+              <Link
+                href="/our-policy?query=shipping"
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--brand-plum)]"
+              >
+                <Truck size={12} /> Shipping Info
+              </Link>
+              <button
+                type="button"
+                onClick={handleShare}
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--brand-plum)]"
+              >
+                <Share2 size={12} /> Share
+              </button>
+            </div>
 
             {/* Estimate delivery */}
             {product.estimated_delivery_time && (
@@ -493,25 +581,68 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
         </div>
       )}
 
-      {/* ── Description ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+      {/* ── Details accordion ── */}
+      <section className="mx-auto mb-12 max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="bg-background rounded-2xl border border-border p-8 md:p-12 shadow-sm"
+          className="rounded-2xl border border-[var(--brand-gold)]/25 bg-white px-6 py-2 sm:px-8"
         >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-1 h-6 rounded-full bg-brand-500" />
-            <h2 className="text-2xl sm:text-3xl fw-heading text-foreground tracking-tight">
-              Description
-            </h2>
-          </div>
-          <div className="h-px bg-gradient-to-r from-brand-200/50 via-brand-300/30 to-transparent mb-6" />
-          <div className="text-foreground leading-relaxed text-base fw-body whitespace-pre-line max-w-4xl">
-            {product.description}
-          </div>
+          <Accordion
+            type="single"
+            collapsible
+            defaultValue="description"
+            className="w-full"
+          >
+            <AccordionItem
+              value="description"
+              className="border-b border-[var(--brand-gold)]/20"
+            >
+              <AccordionTrigger className="text-[11px] uppercase tracking-[0.22em] text-[var(--brand-ink)] hover:no-underline">
+                Description
+              </AccordionTrigger>
+              <AccordionContent className="max-w-4xl whitespace-pre-line pb-5 text-[13.5px] leading-relaxed text-[var(--brand-ink)]/70">
+                {product.description}
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem
+              value="shipping"
+              className="border-b border-[var(--brand-gold)]/20"
+            >
+              <AccordionTrigger className="text-[11px] uppercase tracking-[0.22em] text-[var(--brand-ink)] hover:no-underline">
+                Shipping
+              </AccordionTrigger>
+              <AccordionContent className="pb-5 text-[13.5px] leading-relaxed text-[var(--brand-ink)]/70">
+                Free shipping on every order across India. Dispatched within 1–2
+                business days; delivery usually takes 3–7 working days. You will
+                receive tracking details as soon as the parcel leaves our studio.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem
+              value="packaging"
+              className="border-b border-[var(--brand-gold)]/20"
+            >
+              <AccordionTrigger className="text-[11px] uppercase tracking-[0.22em] text-[var(--brand-ink)] hover:no-underline">
+                Packaging
+              </AccordionTrigger>
+              <AccordionContent className="pb-5 text-[13.5px] leading-relaxed text-[var(--brand-ink)]/70">
+                Each piece arrives in a signature keepsake box with a soft pouch,
+                ready to gift. Complimentary gift wrapping is available on request.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="returns" className="border-b-0">
+              <AccordionTrigger className="text-[11px] uppercase tracking-[0.22em] text-[var(--brand-ink)] hover:no-underline">
+                Returns &amp; Cancellations
+              </AccordionTrigger>
+              <AccordionContent className="pb-5 text-[13.5px] leading-relaxed text-[var(--brand-ink)]/70">
+                Easy 15-day returns on unworn pieces in original packaging.
+                Cancellations are accepted before the order is dispatched — just
+                reach out to our care team.
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </motion.div>
       </section>
 

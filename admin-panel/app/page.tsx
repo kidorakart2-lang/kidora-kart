@@ -50,7 +50,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* ─── Left Side — Animated Illustration ─── */}
-      <div className="relative flex-1 lg:flex-[1.2] min-h-[40vh] lg:min-h-screen overflow-hidden bg-background flex items-center justify-center">
+      <div className="relative flex-1 lg:flex-[1.2] min-h-[40vh] lg:min-h-screen overflow-hidden bg-[radial-gradient(120%_90%_at_20%_0%,rgba(198,168,117,0.14),transparent_60%),radial-gradient(100%_80%_at_100%_100%,rgba(185,149,165,0.12),transparent_60%)] flex items-center justify-center">
         {/* Illustration */}
         <div className="relative z-10 w-full max-w-[95%] lg:max-w-[90%] h-full max-h-[70vh] lg:max-h-[85vh] animate-in fade-in duration-1000">
           <img
@@ -62,8 +62,8 @@ export default function LoginPage() {
 
         {/* Brand text */}
         <div className="absolute bottom-8 lg:bottom-12 left-0 right-0 text-center z-10 animate-in fade-in duration-1000 delay-500">
-          <p className="text-slate-400 text-xs lg:text-sm tracking-[0.2em] uppercase font-light">
-            Jewel Box — Admin Dashboard
+          <p className="text-[10px] lg:text-xs uppercase tracking-[0.32em] text-[#a97f3f]/80">
+            Ratnavya — Admin Suite
           </p>
         </div>
       </div>
@@ -71,41 +71,26 @@ export default function LoginPage() {
       {/* ─── Right Side — Login Form ─── */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-8 lg:p-12 bg-gradient-to-br from-background via-background to-muted/50 relative">
         {/* Subtle background texture */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" />
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]" />
 
         <div className="w-full max-w-sm relative z-10">
           {/* Logo + Heading */}
           <div className="text-center mb-10">
-            <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-5 overflow-hidden shadow-lg animate-in zoom-in duration-500">
-              {logoUrl ? (
-                <img
-                  src={logoUrl}
-                  alt="Logo"
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center">
-                  <svg
-                    className="w-8 h-8 text-primary-foreground"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
-                </div>
-              )}
+            <div className="mx-auto mb-5 flex h-16 w-[210px] items-center justify-center animate-in zoom-in duration-500">
+              <img
+                src={logoUrl || "/Ratnavya Gold Leaf Logo.webp"}
+                alt="Ratnavya logo"
+                className="h-14 w-auto max-w-full object-contain drop-shadow-[0_10px_24px_rgba(198,168,117,0.25)]"
+              />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight animate-in slide-in-from-top duration-500">
-              Welcome Back
+            <p className="admin-eyebrow mb-2 animate-in fade-in duration-500">
+              ✦ Admin Access
+            </p>
+            <h1 className="admin-display text-3xl tracking-tight animate-in slide-in-from-top duration-500">
+              Welcome back
             </h1>
-            <p className="text-muted-foreground mt-1.5 text-sm animate-in slide-in-from-top duration-500 delay-100">
-              Sign in to your admin account
+            <p className="text-muted-foreground mt-2 text-sm animate-in slide-in-from-top duration-500 delay-100">
+              Sign in to manage your store
             </p>
           </div>
 
@@ -123,7 +108,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="h-11 rounded-xl border-border/60 bg-background px-4 transition-all duration-200 focus:scale-[1.01] focus:border-primary/50 focus:shadow-[0_0_0_4px_rgba(100,100,255,0.08)]"
+                className="h-11 rounded-xl border-border/60 bg-background px-4 transition-all duration-200 focus:scale-[1.01] focus:border-[#c6a875]/60 focus:shadow-[0_0_0_4px_rgba(198,168,117,0.14)]"
               />
             </div>
 
@@ -139,13 +124,13 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="h-11 rounded-xl border-border/60 bg-background px-4 transition-all duration-200 focus:scale-[1.01] focus:border-primary/50 focus:shadow-[0_0_0_4px_rgba(100,100,255,0.08)]"
+                className="h-11 rounded-xl border-border/60 bg-background px-4 transition-all duration-200 focus:scale-[1.01] focus:border-[#c6a875]/60 focus:shadow-[0_0_0_4px_rgba(198,168,117,0.14)]"
               />
             </div>
 
             <Button
               type="submit"
-              className="w-full h-11 rounded-xl text-base font-medium animate-in slide-in-from-bottom duration-500 delay-400 transition-all hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-primary/20"
+              className="w-full h-11 rounded-xl text-base font-medium tracking-wide animate-in slide-in-from-bottom duration-500 delay-400 transition-all hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-primary/20"
               disabled={loading}
             >
               {loading ? (
@@ -176,7 +161,7 @@ export default function LoginPage() {
 
           {/* Footer */}
           <p className="text-center text-xs text-muted-foreground/60 mt-10 animate-in fade-in duration-500 delay-700">
-            &copy; {new Date().getFullYear()} Jewel Box. All rights reserved.
+            &copy; {new Date().getFullYear()} Ratnavya. All rights reserved.
           </p>
         </div>
       </div>

@@ -47,7 +47,7 @@ const StarRating = ({ rating, onRatingChange, readOnly = false }: StarRatingProp
         <Star
           size={20}
           className={`${
-            star <= rating ? "fill-brand-400 text-brand-400" : "text-muted-foreground"
+            star <= rating ? "fill-[var(--brand-gold)] text-[var(--brand-gold)]" : "text-[var(--brand-ink)]/20"
           }`}
         />
       </button>
@@ -172,40 +172,34 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
         variants={containerVariants}
       >
         {/* Section Header */}
-        <div className="text-center mb-12">
-          <motion.div
-            variants={itemVariants}
-            className="inline-flex items-center gap-2 mb-4"
-          >
-            <div className="h-px w-12 bg-gradient-to-r from-transparent to-brand-300" />
-            <Award size={20} className="text-brand-600" strokeWidth={1.5} />
-            <div className="h-px w-12 bg-gradient-to-l from-transparent to-brand-300" />
-          </motion.div>
-
-          <motion.h2
-            variants={itemVariants}
-            className="text-4xl md:text-5xl fw-heading text-foreground tracking-tight mb-3"
-          >
-            Customer Reviews
-          </motion.h2>
-
-          <motion.p
-            variants={itemVariants}
-            className="text-sm text-muted-foreground fw-body uppercase tracking-[0.2em]"
-          >
-            What Our Clients Say
-          </motion.p>
-        </div>
+        <motion.div
+          variants={itemVariants}
+          className="mb-7 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--brand-gold)]/20 pb-4"
+        >
+          <div>
+            <p className="eyebrow">
+              <span className="mr-2">✦</span>
+              Real words, real pieces
+            </p>
+            <h2 className="display-heading mt-2 text-2xl sm:text-3xl">
+              Reviews
+            </h2>
+          </div>
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-[var(--brand-ink)]/45">
+            <Award size={14} className="text-[var(--brand-gold-dark)]" />
+            {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
+          </span>
+        </motion.div>
 
         {/* Main Content Card */}
-        <div className="bg-background/60 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/80 overflow-hidden">
+        <div className="overflow-hidden rounded-2xl border border-[var(--brand-gold)]/20 bg-white">
           {/* Header with Write Review Button */}
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-8 md:p-10 border-b border-border">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center">
+              <div className="grid size-11 place-items-center rounded-full border border-[var(--brand-gold)]/30 bg-white">
                 <Star
-                  size={20}
-                  className="text-brand-600 fill-brand-600"
+                  size={18}
+                  className="fill-[var(--brand-gold)] text-[var(--brand-gold)]"
                   strokeWidth={1.5}
                 />
               </div>
@@ -226,7 +220,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setIsModalOpen(true)}
-className="px-6 py-3 btn-gradient rounded-full fw-cta text-sm uppercase tracking-wider shadow-sm transition-all flex items-center gap-2"
+className="btn-gold !px-5 !py-2.5 !text-[10px] uppercase tracking-[0.16em]"
           >
             <Edit3 size={16} />
             <span>Write Review</span>
@@ -236,7 +230,7 @@ className="px-6 py-3 btn-gradient rounded-full fw-cta text-sm uppercase tracking
           {/* Rating Summary */}
           <motion.div
             variants={itemVariants}
-            className="p-8 md:p-10 bg-gradient-to-br from-brand-50/30 to-brand-100/30"
+            className="bg-[var(--brand-section-bg)]/60 p-6 md:p-8"
           >
             <div className="flex items-center gap-6 mb-4">
               <StarRating rating={Math.round(averageRating)} readOnly={true} />
@@ -251,7 +245,7 @@ className="px-6 py-3 btn-gradient rounded-full fw-cta text-sm uppercase tracking
                 initial={{ width: 0 }}
                 whileInView={{ width: `${(averageRating / 5) * 100}%` }}
                 transition={{ duration: 1.2, ease: "easeOut" }}
-                className="absolute h-full bg-gradient-to-r from-brand-500 to-brand-600 rounded-full"
+                className="absolute h-full rounded-full bg-[var(--brand-gold)]"
               />
             </div>
           </motion.div>
@@ -259,7 +253,7 @@ className="px-6 py-3 btn-gradient rounded-full fw-cta text-sm uppercase tracking
           {/* Reviews List */}
           <motion.div
             variants={containerVariants}
-            className="p-8 md:p-10 space-y-4"
+            className="space-y-3 p-6 md:p-8"
           >
             {reviews.map((review, i) => (
               <motion.div
@@ -269,16 +263,16 @@ className="px-6 py-3 btn-gradient rounded-full fw-cta text-sm uppercase tracking
               >
                 <motion.div
                   whileHover={{ y: -2 }}
-                  className="p-6 md:p-8 bg-background rounded-2xl border border-border hover:border-brand-200 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                  className="cursor-pointer rounded-xl border border-[var(--brand-gold)]/15 bg-white p-5 transition-all hover:border-[var(--brand-gold)]/40 md:p-6"
                   onClick={() =>
                     setExpandedReview(expandedReview === i ? null : i)
                   }
                 >
                   {/* Verified Badge */}
                   {review.verified && (
-                    <div className="absolute top-4 right-4 flex items-center gap-1 px-3 py-1 bg-green-50 rounded-full border border-green-200">
-                      <Shield size={12} className="text-green-600" />
-                      <span className="text-xs text-green-700 fw-body">
+                    <div className="absolute right-4 top-4 flex items-center gap-1 rounded-full border border-[var(--brand-gold)]/30 bg-[var(--brand-section-bg)] px-2.5 py-0.5">
+                      <Shield size={11} className="text-[var(--brand-gold-dark)]" />
+                      <span className="text-[9px] uppercase tracking-[0.1em] text-[var(--brand-gold-dark)]">
                         Verified
                       </span>
                     </div>
@@ -287,7 +281,7 @@ className="px-6 py-3 btn-gradient rounded-full fw-cta text-sm uppercase tracking
                   <div className="flex items-start gap-4 mb-4">
                     {/* Avatar */}
                     <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center text-brand-700 fw-body text-lg">
+                      <div className="grid size-10 place-items-center rounded-full bg-[var(--brand-section-bg)] text-sm text-[var(--brand-plum)]">
                         {review.userId?.avatar ? (
                           <img
                             src={review.userId.avatar}
@@ -303,7 +297,7 @@ className="px-6 py-3 btn-gradient rounded-full fw-cta text-sm uppercase tracking
                     {/* User Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="fw-heading text-foreground text-lg">
+                        <h4 className="display-heading text-base">
                           {review.userId?.name || "Anonymous User"}
                         </h4>
                         <span className="text-xs text-muted-foreground fw-body">
@@ -337,7 +331,7 @@ className="px-6 py-3 btn-gradient rounded-full fw-cta text-sm uppercase tracking
 
                       {/* Expand Button */}
                       {review.comment.length > 150 && (
-                        <button className="mt-3 flex items-center gap-1 text-sm text-brand-600 hover:text-brand-700 fw-cta transition-colors">
+                        <button className="mt-2 flex items-center gap-1 text-[11px] text-[var(--brand-gold-dark)] transition-colors hover:text-[var(--brand-plum)]">
                           <span>
                             {expandedReview === i ? "Show less" : "Read more"}
                           </span>

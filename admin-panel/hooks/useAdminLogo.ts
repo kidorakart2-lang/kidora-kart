@@ -6,6 +6,9 @@ const BACKEND_URL =
   (typeof process !== "undefined" && process.env.NEXT_PUBLIC_BACKEND_URL) ||
   "http://localhost:5000/";
 
+// Shown until an admin uploads a logo, and whenever the logo API fails.
+const FALLBACK_LOGO = "/Ratnavya Gold Leaf Logo.webp";
+
 /**
  * Shared hook for fetching and caching the admin panel logo.
  *
@@ -15,7 +18,7 @@ const BACKEND_URL =
  * @param cacheKey Optional sessionStorage key (defaults to "admin-logo")
  */
 export function useAdminLogo(cacheKey = "admin-logo") {
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(FALLBACK_LOGO);
   const [isLoading, setIsLoading] = useState(true);
   const fetchedRef = useRef(false);
 

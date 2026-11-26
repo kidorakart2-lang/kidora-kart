@@ -139,35 +139,37 @@ export default function ProductListing() {
     <div>
       <div className="lg:flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-3">
         <div>
-          <h2 className="text-2xl font-serif text-brand-800">All Products</h2>
-          <p className="text-muted-foreground text-sm">
-            {totalProducts || sortedProducts.length} product
+          <h2 className="display-heading text-2xl sm:text-[1.75rem]">
+            All <span className="accent-italic">Products</span>
+          </h2>
+          <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/45">
+            {totalProducts || sortedProducts.length} piece
             {(totalProducts || sortedProducts.length) !== 1 ? "s" : ""}
           </p>
         </div>
         <div className="flex items-center gap-2 my-3 md:my-0">
-          <div className="flex items-center border rounded-lg overflow-hidden">
+          <div className="flex items-center overflow-hidden rounded-full border border-[var(--brand-gold)]/30 bg-white p-0.5">
             <button
               onClick={() => setGridLayout("normal")}
-              className={`p-2 transition-colors ${
+              className={`grid size-8 place-items-center rounded-full transition-colors ${
                 gridLayout === "normal"
-                  ? "bg-brand-100 text-brand-700"
-                  : "hover:bg-muted text-muted-foreground"
+                  ? "bg-[var(--brand-plum)] text-[var(--brand-cream)]"
+                  : "text-[var(--brand-ink)]/50 hover:bg-[var(--brand-section-bg)]"
               }`}
               title="Grid view"
             >
-              <LayoutGrid size={18} />
+              <LayoutGrid size={15} />
             </button>
             <button
               onClick={() => setGridLayout("single")}
-              className={`p-2 transition-colors ${
+              className={`grid size-8 place-items-center rounded-full transition-colors ${
                 gridLayout === "single"
-                  ? "bg-brand-100 text-brand-700"
-                  : "hover:bg-muted text-muted-foreground"
+                  ? "bg-[var(--brand-plum)] text-[var(--brand-cream)]"
+                  : "text-[var(--brand-ink)]/50 hover:bg-[var(--brand-section-bg)]"
               }`}
               title="List view"
             >
-              <List size={18} />
+              <List size={15} />
             </button>
           </div>
         </div>
@@ -191,7 +193,7 @@ export default function ProductListing() {
             Filter
           </Button>
           <Select value={selectedSort} onValueChange={setSelectedSort}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="h-9 w-[160px] rounded-full border-[var(--brand-gold)]/30 text-[11px] uppercase tracking-[0.08em]">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -208,10 +210,10 @@ export default function ProductListing() {
       {sortedProducts.length > 0 ? (
         <div className="">
           <div
-            className={`grid gap-2 sm:gap-3 md:gap-3 lg:gap-5 animate-fade-in duration-100 sm:px-0 ${
+            className={`animate-fade-in grid gap-2.5 duration-100 sm:gap-3 sm:px-0 lg:gap-4 ${
               gridLayout === "single"
-                ? "grid-cols-1 max-w-md mx-auto"
-                : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3"
+                ? "mx-auto grid-cols-1 max-w-md"
+                : "grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
             }`}
           >
             {sortedProducts.map((p, index) => (
@@ -222,7 +224,7 @@ export default function ProductListing() {
           {(hasNextPage || isFetchingNextPage) && (
             <div
               ref={observerTarget}
-              className="h-20 mt-8 flex items-center justify-center border-2 border-dashed border-border bg-muted"
+              className="mt-8 flex h-16 items-center justify-center rounded-xl border border-dashed border-[var(--brand-gold)]/30 bg-[var(--brand-section-bg)]"
             >
               {isFetchingNextPage ? (
                 <div className="text-center flex items-center justify-center gap-2">

@@ -23,36 +23,36 @@ export default function OrderSummaryCard({ pricing, isCodAdvance }: OrderSummary
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
-      className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border transition-all hover:shadow-md"
+      className="rounded-xl border border-[var(--brand-gold)]/25 bg-white p-6 sm:p-8"
     >
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-medium shadow-sm">4</div>
-        <h2 className="font-semibold text-foreground text-base">Order Summary</h2>
+      <div className="mb-4 flex items-center gap-3">
+        <div className="grid size-8 place-items-center rounded-full border border-[var(--brand-gold)]/50 bg-[var(--brand-gold)]/10 text-[12px] text-[var(--brand-gold-dark)]">4</div>
+        <h2 className="display-heading text-lg">Order Summary</h2>
       </div>
       <div className="space-y-3">
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Subtotal</span>
-          <span className="text-foreground">₹{pricing.subtotal?.toLocaleString("en-IN")}</span>
+        <div className="flex justify-between text-[12.5px]">
+          <span className="text-[var(--brand-ink)]/55">Subtotal</span>
+          <span className="text-[var(--brand-ink)]">₹{pricing.subtotal?.toLocaleString("en-IN")}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Shipping</span>
-          <span className="text-foreground">{pricing.shipping === 0 ? "Free" : `₹${pricing.shipping?.toLocaleString("en-IN")}`}</span>
+        <div className="flex justify-between text-[12.5px]">
+          <span className="text-[var(--brand-ink)]/55">Shipping</span>
+          <span className="text-[var(--brand-ink)]">{pricing.shipping === 0 ? "Free" : `₹${pricing.shipping?.toLocaleString("en-IN")}`}</span>
         </div>
         {pricing.discount?.amount != null && pricing.discount.amount > 0 && (
-          <div className="flex justify-between text-sm">
-            <span className="text-emerald-600">Discount</span>
-            <span className="text-emerald-600">-₹{pricing.discount.amount.toLocaleString("en-IN")}</span>
+          <div className="flex justify-between text-[12.5px]">
+            <span className="text-[var(--brand-mauve)]">Discount</span>
+            <span className="text-[var(--brand-mauve)]">-₹{pricing.discount.amount.toLocaleString("en-IN")}</span>
           </div>
         )}
         {isCodAdvance && pricing.advance != null && (
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Amount Left</span>
-            <span className="text-foreground">₹{pricing.total - pricing.advance}</span>
+          <div className="flex justify-between text-[12.5px]">
+            <span className="text-[var(--brand-ink)]/55">Amount Left</span>
+            <span className="text-[var(--brand-ink)]">₹{(pricing.total - pricing.advance).toLocaleString("en-IN")}</span>
           </div>
         )}
-        <div className="flex justify-between font-bold text-lg pt-3 border-t border-border">
-          <span className="text-foreground">Total</span>
-          <span className="text-foreground">₹{pricing.total.toLocaleString("en-IN")}</span>
+        <div className="flex items-baseline justify-between border-t border-[var(--brand-gold)]/25 pt-3">
+          <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/55">Total</span>
+          <span className="display-heading text-xl text-[var(--brand-plum)]">₹{pricing.total.toLocaleString("en-IN")}</span>
         </div>
       </div>
     </motion.div>

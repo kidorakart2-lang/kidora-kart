@@ -24,46 +24,46 @@ export default function CancellationDetails({ cancellation }: CancellationDetail
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.45, duration: 0.5, ease: "easeOut" }}
-      className="bg-background rounded-2xl p-6 sm:p-8 shadow-sm border border-border transition-all hover:shadow-md"
+      className="rounded-xl border border-destructive/25 bg-white p-6 sm:p-8"
     >
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
-          <XCircle className="w-4 h-4" />
+      <div className="mb-4 flex items-center gap-3">
+        <div className="grid size-8 place-items-center rounded-full border border-destructive/25 bg-destructive/5 text-destructive">
+          <XCircle className="h-4 w-4" strokeWidth={1.7} />
         </div>
-        <h3 className="font-semibold text-foreground text-base">Cancellation Details</h3>
+        <h3 className="display-heading text-lg">Cancellation Details</h3>
       </div>
-      <div className="space-y-3 text-sm">
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Reason</span>
-          <span className="font-medium text-foreground">{cancellation.reason || "Not specified"}</span>
+      <div className="space-y-3 text-[12.5px]">
+        <div className="flex justify-between gap-4">
+          <span className="text-[var(--brand-ink)]/55">Reason</span>
+          <span className="text-right text-[var(--brand-ink)]">{cancellation.reason || "Not specified"}</span>
         </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Cancelled On</span>
-          <span className="font-medium text-foreground">{new Date(cancellation.cancelledAt).toLocaleDateString()}</span>
+        <div className="flex justify-between gap-4">
+          <span className="text-[var(--brand-ink)]/55">Cancelled On</span>
+          <span className="text-[var(--brand-ink)]">{new Date(cancellation.cancelledAt).toLocaleDateString()}</span>
         </div>
         {cancellation.refundStatus && (
           <>
-            <div className="border-t border-border my-3" />
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Refund Status</span>
-              <span className={`font-medium ${cancellation.refundStatus === "completed" ? "text-emerald-600" : cancellation.refundStatus === "failed" ? "text-destructive" : "text-foreground"}`}>
+            <div className="my-3 border-t border-[var(--brand-gold)]/20" />
+            <div className="flex justify-between gap-4">
+              <span className="text-[var(--brand-ink)]/55">Refund Status</span>
+              <span className={`uppercase text-[11px] tracking-[0.12em] ${cancellation.refundStatus === "completed" ? "text-[var(--brand-gold-dark)]" : cancellation.refundStatus === "failed" ? "text-destructive" : "text-[var(--brand-ink)]/70"}`}>
                 {cancellation.refundStatus.charAt(0).toUpperCase() + cancellation.refundStatus.slice(1)}
               </span>
             </div>
             {cancellation.refundAmount != null && cancellation.refundAmount > 0 && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Refund Amount</span>
-                <span className="font-medium text-foreground">₹{cancellation.refundAmount.toLocaleString("en-IN")}</span>
+              <div className="flex justify-between gap-4">
+                <span className="text-[var(--brand-ink)]/55">Refund Amount</span>
+                <span className="text-[var(--brand-ink)]">₹{cancellation.refundAmount.toLocaleString("en-IN")}</span>
               </div>
             )}
             {cancellation.refundedAt && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Processed On</span>
-                <span className="font-medium text-foreground">{new Date(cancellation.refundedAt).toLocaleString()}</span>
+              <div className="flex justify-between gap-4">
+                <span className="text-[var(--brand-ink)]/55">Processed On</span>
+                <span className="text-[var(--brand-ink)]">{new Date(cancellation.refundedAt).toLocaleString()}</span>
               </div>
             )}
             {cancellation.refundError && (
-              <div className="mt-2 p-2 bg-destructive/10 text-destructive text-sm rounded-lg">
+              <div className="mt-2 rounded-lg border border-destructive/20 bg-destructive/5 p-2 text-[11.5px] text-destructive">
                 <span className="font-medium">Refund Error:</span> {cancellation.refundError}
               </div>
             )}

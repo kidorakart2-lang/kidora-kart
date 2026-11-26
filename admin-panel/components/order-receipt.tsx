@@ -94,7 +94,7 @@ export function OrderReceipt({ isOpen, onClose, order }: OrderReceiptProps) {
           <div className="p-8 print:p-4" id="receipt-content">
             {/* Company Header */}
             <div className="border-b-2 border-black pb-4 mb-6">
-              <h1 className="text-2xl font-bold mb-1">Jewel Box</h1>
+              <h1 className="text-2xl font-bold mb-1">Ratnavya</h1>
               <p className="text-sm text-muted-foreground">Order Invoice</p>
             </div>
 

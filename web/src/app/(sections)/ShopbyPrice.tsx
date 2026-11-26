@@ -1,31 +1,17 @@
 "use client";
 import { setPriceRange } from "@/redux/features/filters";
-import { Gift, Heart, IndianRupee, Star, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
 import type { CategoryData } from "@/types";
 import { getCategoryHref } from "@/lib/category-nav";
 
-// Tier colors progress from "affordable" to "premium" — the color
-// itself encodes where a band sits in the price range, same as the
-// dot meter below it.
-const TIER_TOKENS = [
-  { icon: "var(--brand-card-3-icon)", soft: "var(--brand-card-3-bg)" }, // value — emerald
-  { icon: "var(--brand-card-5-icon)", soft: "var(--brand-card-5-bg)" }, // popular — rose
-  { icon: "var(--brand-card-1-icon)", soft: "var(--brand-card-1-bg)" }, // favourites — gold
-  { icon: "var(--brand-card-4-icon)", soft: "var(--brand-card-4-bg)" }, // luxury — mauve
-] as const;
-
-// Alternating string lengths + tilt so the tags read as hand-hung,
-// not a rigid grid — echoes the tilt language from Why Choose Us
-// but via a different mechanism (hanging vs. resting).
-const STRING_LENGTH = ["h-6", "h-10", "h-8", "h-5"];
-const TILTS = [
-  "motion-safe:-rotate-2",
-  "motion-safe:rotate-1",
-  "motion-safe:-rotate-1",
-  "motion-safe:rotate-2",
+const PRICE_BANDS = [
+  { label: "999", priceFrom: 0, priceTo: 999 },
+  { label: "1,999", priceFrom: 1000, priceTo: 1999 },
+  { label: "2,999", priceFrom: 2000, priceTo: 2999 },
+  { label: "5,000", priceFrom: 3000, priceTo: 100000 },
 ];
 
 const ShopByPrice = ({ heading }: { heading?: string }) => {
@@ -34,145 +20,88 @@ const ShopByPrice = ({ heading }: { heading?: string }) => {
   const categories = (navigation as { _data?: CategoryData[] })?._data ?? [];
   const categoryHref = getCategoryHref(categories);
 
-  const priceCategories = [
-    {
-      icon: IndianRupee,
-      label: "Under ₹499",
-      sublabel: "Everyday Picks",
-      priceFrom: 0,
-      priceTo: 499,
-    },
-    {
-      icon: Star,
-      label: "₹500 - ₹999",
-      sublabel: "Popular Picks",
-      priceFrom: 500,
-      priceTo: 999,
-    },
-    {
-      icon: Gift,
-      label: "₹1000 - ₹1999",
-      sublabel: "Top Favourites",
-      priceFrom: 1000,
-      priceTo: 1999,
-    },
-    {
-      icon: Heart,
-      label: "₹2000 & Above",
-      sublabel: "Luxury Picks",
-      priceFrom: 2000,
-      priceTo: 100000,
-    },
-  ];
-
   return (
-    <div className="w-full bg-section py-6 md:py-10 overflow-hidden">
+    <section className="w-full overflow-hidden bg-white py-14 lg:py-20">
       <div className="section-container">
-        <div className="text-center mb-14">
-          <h2 className="text-4xl md:text-5xl fw-heading mb-3 tracking-wide text-foreground">
-            {heading || "Shop by Price"}
-          </h2>
-          <p className="text-muted-foreground mt-4 fw-body tracking-widest text-sm">
-            Find the Perfect Piece for Every Budget
+        <div className="mb-10 text-center lg:mb-14">
+          <p className="eyebrow mb-4">
+            <span className="mr-2">✦</span>
+            Shop by price
           </p>
+          <h2 className="display-heading text-3xl sm:text-4xl lg:text-[2.75rem]">
+            {heading ? (
+              heading
+            ) : (
+              <>
+                A little luxury,{" "}
+                <span className="accent-italic">at every price.</span>
+              </>
+            )}
+          </h2>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-10 md:gap-x-6">
-          {priceCategories.map((item, index) => {
-            const Icon = item.icon;
-            const tier = TIER_TOKENS[index % TIER_TOKENS.length];
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
+          {PRICE_BANDS.map((item, index) => {
+            // Second card is the featured one — the reference's deep rose panel.
+            const featured = index === 1;
 
             return (
               <div
-                key={index}
-                className={`group relative flex flex-col items-center ${TILTS[index]} transition-transform duration-300 ease-out motion-safe:hover:rotate-0 motion-safe:hover:-translate-y-1`}
+                key={item.label}
+                className={`price-card group ${featured ? "price-card-featured" : ""}`}
               >
-                {/* string + punched hole the tag hangs from */}
-                <div className="flex flex-col items-center">
-                  <span
-                    className={`w-px border-l-2 border-dashed ${STRING_LENGTH[index]} opacity-70`}
-                    style={{ borderColor: tier.icon }}
-                    aria-hidden="true"
-                  />
-                  <span
-                    className="h-3 w-3 rounded-full border-2 bg-section"
-                    style={{ borderColor: tier.icon }}
-                    aria-hidden="true"
-                  />
+                <div className="price-spine" aria-hidden="true" />
+
+                <div>
+                  <p
+                    className={`text-[10px] uppercase tracking-[0.3em] ${
+                      featured ? "text-white/70" : "text-[var(--brand-mauve)]"
+                    }`}
+                  >
+                    Under
+                  </p>
+                  <p
+                    className={`display-heading mt-2 text-3xl sm:text-[2.1rem] ${
+                      featured ? "text-white" : "text-[var(--brand-ink)]"
+                    }`}
+                  >
+                    ₹{item.label}
+                  </p>
                 </div>
 
-                {/* the tag itself */}
-                <div
-                  className="relative -mt-1.5 w-full rounded-2xl rounded-tl-sm border-2 bg-card p-5 md:p-6 flex flex-col items-center text-center min-h-[188px] transition-shadow duration-300"
-                  style={{
-                    borderColor: tier.soft,
-                    boxShadow: `0 10px 24px -14px ${tier.icon}`,
-                  }}
+                <Link
+                  href={categoryHref}
+                  onClick={() =>
+                    dispatch(
+                      setPriceRange({
+                        priceFrom: item.priceFrom,
+                        priceTo: item.priceTo,
+                      }),
+                    )
+                  }
+                  className={`mt-8 inline-flex items-center gap-2 text-[13px] transition-colors ${
+                    featured
+                      ? "text-white/90 hover:text-white"
+                      : "text-[var(--brand-ink)]/75 hover:text-[var(--brand-plum)]"
+                  }`}
                 >
-                  <div
-                    className="mb-3 flex h-11 w-11 items-center justify-center rounded-full"
-                    style={{ backgroundColor: tier.soft }}
+                  Shop collection
+                  <span
+                    className={`grid size-6 place-items-center rounded-full border ${
+                      featured
+                        ? "border-white/50"
+                        : "border-[var(--brand-gold)]/60 text-[var(--brand-gold-dark)]"
+                    }`}
                   >
-                    <Icon
-                      className="h-5 w-5"
-                      style={{ color: tier.icon }}
-                      strokeWidth={2}
-                    />
-                  </div>
-
-                  <p className="text-[11px] fw-body text-muted-foreground mb-1 tracking-wider uppercase">
-                    {item.sublabel}
-                  </p>
-                  <p className="text-base md:text-lg font-semibold text-foreground mb-2">
-                    {item.label}
-                  </p>
-
-                  {/* tier meter — position within the price range */}
-                  <div
-                    className="flex items-center gap-1 mb-4"
-                    aria-hidden="true"
-                  >
-                    {TIER_TOKENS.map((_, dotIndex) => (
-                      <span
-                        key={dotIndex}
-                        className="h-1.5 w-1.5 rounded-full transition-colors"
-                        style={{
-                          backgroundColor:
-                            dotIndex <= index ? tier.icon : "var(--muted)",
-                        }}
-                      />
-                    ))}
-                  </div>
-
-                  <Link href={categoryHref} className="mt-auto">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        dispatch(
-                          setPriceRange({
-                            priceFrom: item.priceFrom,
-                            priceTo: item.priceTo,
-                          }),
-                        )
-                      }
-                      className="group/btn inline-flex items-center gap-1.5 rounded-full px-6 py-2 text-sm font-medium text-white transition-all duration-200 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-card"
-                      style={{
-                        backgroundColor: tier.icon,
-                        // @ts-expect-error -- CSS custom property for focus ring color
-                        "--tw-ring-color": tier.icon,
-                      }}
-                    >
-                      Shop Now
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover/btn:translate-x-0.5" />
-                    </button>
-                  </Link>
-                </div>
+                    <ArrowRight size={11} />
+                  </span>
+                </Link>
               </div>
             );
           })}
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

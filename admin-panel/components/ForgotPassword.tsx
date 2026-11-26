@@ -60,12 +60,12 @@ export default function ForgotPassword() {
 
       <Card className="w-full max-w-md relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500 border-border/50 shadow-2xl">
         <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto w-20 h-20 rounded-xl flex items-center justify-center mb-4 animate-in zoom-in duration-300 delay-100 overflow-hidden">
+          <div className="mx-auto w-[200px] h-16 flex items-center justify-center mb-4 animate-in zoom-in duration-300 delay-100 overflow-hidden">
             {logoUrl ? (
               <img
                 src={logoUrl}
-                alt="Logo"
-                className="w-full h-full object-contain"
+                alt="Ratnavya logo"
+                className="h-14 w-auto max-w-full object-contain"
               />
             ) : (
               <div className="w-full h-full bg-primary rounded-xl flex items-center justify-center">

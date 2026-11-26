@@ -12,7 +12,14 @@ const Toaster = ({
     <Sonner
       theme={theme as "dark" | "light" | "system"}
       className="toaster group"
-      style={{ "--normal-bg": "var(--popover)", "--normal-text": "var(--popover-foreground)", "--normal-border": "var(--border)" } as React.CSSProperties}
+      style={
+        {
+          "--normal-bg": "#ffffff",
+          "--normal-text": "var(--brand-heading)",
+          "--normal-border":
+            "color-mix(in srgb, var(--brand-gold) 38%, transparent)",
+        } as React.CSSProperties
+      }
       {...props} />
   );
 }

@@ -11,6 +11,8 @@ interface PlaceholdersAndVanishInputProps {
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
   inputId?: string;
+  /** Extra classes for the form shell (e.g. the header's rounded search pill). */
+  formClassName?: string;
 }
 
 export function PlaceholdersAndVanishInput({
@@ -18,6 +20,7 @@ export function PlaceholdersAndVanishInput({
   onChange,
   onSubmit,
   inputId = "search",
+  formClassName,
 }: PlaceholdersAndVanishInputProps) {
   const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
 
@@ -189,7 +192,8 @@ export function PlaceholdersAndVanishInput({
       autoComplete="off"
       className={cn(
         "w-full relative max-w-xl mx-auto bg-white dark:bg-zinc-800 h-12 rounded-full overflow-hidden shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),_0px_1px_0px_0px_rgba(25,28,33,0.02),_0px_0px_0px_1px_rgba(25,28,33,0.08)] transition duration-200",
-        value && "bg-muted"
+        value && "bg-muted",
+        formClassName
       )}
       onSubmit={handleSubmit}
     >
@@ -276,7 +280,7 @@ export function PlaceholdersAndVanishInput({
                 duration: 0.3,
                 ease: "linear",
               }}
-              className="dark:text-zinc-500 text-sm sm:text-base font-normal text-neutral-500 pl-4 sm:pl-12 text-left w-[calc(100%-2rem)] truncate"
+              className="header-search-placeholder dark:text-zinc-500 w-[calc(100%-3.5rem)] truncate pl-4 text-left text-sm font-normal text-neutral-500 sm:pl-12 sm:text-base"
             >
               {placeholders[currentPlaceholder]}
             </motion.p>

@@ -51,45 +51,34 @@ export default async function ProductsTab() {
   ];
 
   return (
-    <section className="py-16 lg:py-20 relative overflow-hidden bg-section">
+    <section className="relative overflow-hidden bg-white py-16 lg:py-20">
       <div className="section-container relative z-10">
-        <div className="text-center mb-12 lg:mb-16">
-          <h2 className="section-heading relative inline-block mb-4">
-            Our Jewellery Collection
-            <svg
-              viewBox="0 0 120 12"
-              className="absolute -bottom-3 left-1/2 h-3 w-28 -translate-x-1/2"
-              style={{ color: "var(--brand-primary)" }}
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M2 8 Q 20 1 40 7 T 78 6 T 118 4"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            </svg>
+        <div className="mb-10 text-center lg:mb-12">
+          <p className="eyebrow mb-3">
+            <span className="mr-2">✦</span>
+            The full collection
+          </p>
+          <h2 className="display-heading text-3xl sm:text-4xl lg:text-[2.75rem]">
+            Our Jewellery <span className="accent-italic">Collection</span>
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base lg:text-lg fw-body leading-relaxed mt-6">
-            Discover our exquisite collection of jewellery, crafted to add
-            sparkle to every occasion.
+          <p className="mx-auto mt-4 max-w-xl text-[13px] leading-relaxed text-[var(--brand-ink)]/60 sm:text-sm">
+            Exquisite, everyday jewellery crafted to add a little sparkle to
+            every occasion.
           </p>
         </div>
 
         <Tabs defaultValue={tabItems[0].value} className="w-full">
-          <div className="flex justify-center mb-6 lg:mb-10">
-            <TabsList className="inline-flex bg-card rounded-full p-1.5 shadow-xl border border-border gap-1">
+          <div className="mb-8 flex justify-center lg:mb-10">
+            <TabsList className="tab-pill-track">
               {tabItems.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    style={{ ["--tab-active-bg" as string]: tab.color }}
-                    className="flex items-center px-6 md:px-8 py-3 md:py-3.5 rounded-full fw-cta text-xs md:text-sm uppercase transition-all duration-300 text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-[var(--tab-active-bg)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                    className="tab-pill"
                   >
-                    <Icon className="h-4 w-4 md:mr-2" />
+                    <Icon className="h-3.5 w-3.5 md:mr-1.5" />
                     <span className="hidden md:inline">{tab.label}</span>
                   </TabsTrigger>
                 );

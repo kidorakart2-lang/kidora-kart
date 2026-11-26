@@ -6,8 +6,32 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    font-family: var(--font-lato), "Lato", system-ui, sans-serif;
+  }
+
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-lato), "Lato", system-ui, sans-serif;
+  }
+
+  /* One heading voice across the whole storefront. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-playfair), "Playfair Display", Georgia, serif;
+    color: var(--brand-heading);
+    letter-spacing: -0.01em;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
   }
 }
 
@@ -76,6 +100,16 @@
   --color-brand-accent-800: var(--brand-accent-800);
   --color-brand-accent-900: var(--brand-accent-900);
   --color-brand-accent-950: var(--brand-accent-950);
+  --color-brand-plum: var(--brand-plum);
+  --color-brand-cream: var(--brand-cream);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-gold-dark: var(--brand-gold-dark);
+  --color-brand-mauve: var(--brand-mauve);
+  --color-brand-rose: var(--brand-rose);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-heading: var(--brand-heading);
+  --color-brand-section: var(--brand-section-bg);
 }
 
 :root {
@@ -85,208 +119,228 @@
   --font-cta: 500;
 
   --radius: 0.75rem;
-  --background: #fffcfb;
-  --foreground: #2c1f22;
+  --background: #ffffff;
+  --foreground: #2b1c27;
   --card: #ffffff;
-  --card-foreground: #2c1f22;
+  --card-foreground: #2b1c27;
   --popover: #ffffff;
-  --popover-foreground: #2c1f22;
-  --primary: oklch(0.37 0.14 10);
-  --primary-foreground: #ffffff;
-  --secondary: #fbeae5;
-  --secondary-foreground: #6e1531;
-  --muted: #faf2f0;
-  --muted-foreground: #7d6a6e;
-  --accent: #f9e7e3;
-  --accent-foreground: #6e1531;
-  --destructive: #d33b55;
+  --popover-foreground: #2b1c27;
+  --primary: #4a2542;
+  --primary-foreground: #fffaf6;
+  --secondary: #fbeef3;
+  --secondary-foreground: #4a2542;
+  --muted: #fbf3f6;
+  --muted-foreground: #8c7280;
+  --accent: #fbeef3;
+  --accent-foreground: #4a2542;
+  --destructive: #c7304f;
   --destructive-foreground: #ffffff;
-  --border: #f2e1dc;
-  --input: #f2e1dc;
-  --ring: oklch(0.37 0.14 10);
-  --chart-1: oklch(0.37 0.14 10);
-  --chart-2: oklch(0.55 0.19 20);
-  --chart-3: oklch(0.72 0.13 75);
-  --chart-4: oklch(0.63 0.19 350);
-  --chart-5: oklch(0.5 0.15 160);
-  --sidebar: #fdf6f4;
-  --sidebar-foreground: #2c1f22;
-  --sidebar-primary: oklch(0.37 0.14 10);
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #fbeae5;
-  --sidebar-accent-foreground: #6e1531;
-  --sidebar-border: #f2e1dc;
-  --sidebar-ring: #f2e1dc;
+  --border: #f0e4e9;
+  --input: #f0e4e9;
+  --ring: #cfa869;
+  --chart-1: #4a2542;
+  --chart-2: #bf839c;
+  --chart-3: #cfa869;
+  --chart-4: #f7e2ea;
+  --chart-5: #6a3d60;
+  --sidebar: #fdf3f7;
+  --sidebar-foreground: #2b1c27;
+  --sidebar-primary: #4a2542;
+  --sidebar-primary-foreground: #fffaf6;
+  --sidebar-accent: #fbeef3;
+  --sidebar-accent-foreground: #4a2542;
+  --sidebar-border: #f0e4e9;
+  --sidebar-ring: #f0e4e9;
 
-  /* ── Jewel Box brand — wine, blush & gold ── */
-  --brand-primary: #8b1e3f;
-  --brand-primary-foreground: #ffffff;
-  --brand-primary-dark: #6e1531;
-  --brand-primary-light: #a83a5a;
-  --brand-primary-darker: #4a0d21;
-  --brand-secondary: #c24a68;
-  --brand-secondary-foreground: #ffffff;
-  --brand-secondary-dark: #a32a4b;
-  --brand-section-bg: #fbece7;
-  --brand-section-bg-subtle: #fbece780;
-  --brand-gradient-from: #8b1e3f;
-  --brand-gradient-to: #b8446a;
-  --brand-heading: #6e1531;
+  /* ── Jewel Box brand — deep plum, warm white & champagne gold ── */
+  --brand-primary: #4a2542;
+  --brand-primary-foreground: #fffaf6;
+  --brand-primary-dark: #381a32;
+  --brand-primary-light: #6a3d60;
+  --brand-primary-darker: #2a1326;
+  --brand-secondary: #e8cda0;
+  --brand-secondary-foreground: #2b1c27;
+  --brand-secondary-dark: #c29c5e;
+  --brand-section-bg: #fdf3f7;
+  --brand-section-bg-subtle: #fdf3f780;
+  --brand-gradient-from: #4a2542;
+  --brand-gradient-to: #8d5b7d;
+  --brand-heading: #43203c;
 
-  /* Feature cards — gem tones (gold, wine, emerald, mauve, rose) */
-  --brand-card-1-bg: #fdf6e7;
-  --brand-card-1-icon: #b98a2e;
-  --brand-card-1-ring: #ecd9a6;
+  /* Core brand palette — richer gold and lighter, rosier pink */
+  --brand-plum: #4a2542;
+  --brand-cream: #fffaf6;
+  --brand-gold: #cfa869;
+  --brand-gold-dark: #a97f3f;
+  --brand-mauve: #bf839c;
+  --brand-rose: #f7e2ea;
+  --brand-pink: #c94f72;
+  --brand-surface: #f4e9ed;
+  --brand-ink: #2b1c27;
 
-  --brand-card-2-bg: #fce9ee;
-  --brand-card-2-icon: #a32a4b;
-  --brand-card-2-ring: #f3c6d1;
+  /* Feature cards — gem tones (plum, gold, mauve, rose, ink) */
+  --brand-card-1-bg: #f7f0e3;
+  --brand-card-1-icon: #bda173;
+  --brand-card-1-ring: #eeddc0;
 
-  --brand-card-3-bg: #eef8f3;
-  --brand-card-3-icon: #2f7d5f;
-  --brand-card-3-ring: #c3e3d5;
+  --brand-card-2-bg: #f1e9ee;
+  --brand-card-2-icon: #4b3147;
+  --brand-card-2-ring: #d9c8ce;
 
-  --brand-card-4-bg: #f7f0f8;
-  --brand-card-4-icon: #8f5f8e;
-  --brand-card-4-ring: #e3cfe3;
+  --brand-card-3-bg: #f5edef;
+  --brand-card-3-icon: #8a6b7c;
+  --brand-card-3-ring: #d9c8ce;
 
-  --brand-card-5-bg: #fdeff1;
-  --brand-card-5-icon: #cf325c;
-  --brand-card-5-ring: #f8cdd6;
+  --brand-card-4-bg: #faf1f3;
+  --brand-card-4-icon: #b995a5;
+  --brand-card-4-ring: #edd9df;
 
-  --brand-50: #fdf3f5;
-  --brand-100: #fce7ec;
-  --brand-200: #f9d2db;
-  --brand-300: #f4adbd;
-  --brand-400: #ec7f99;
-  --brand-500: #df5478;
-  --brand-600: #c24a68;
-  --brand-700: #a32a4b;
-  --brand-800: #8b1e3f;
-  --brand-900: #6e1531;
-  --brand-950: #4a0d21;
+  --brand-card-5-bg: #ede7e9;
+  --brand-card-5-icon: #2a1e27;
+  --brand-card-5-ring: #c9bcc2;
 
-  --brand-accent-50: #fdf2f4;
-  --brand-accent-100: #fce7eb;
-  --brand-accent-200: #f9d0d9;
-  --brand-accent-300: #f4aabb;
-  --brand-accent-400: #ec7f99;
-  --brand-accent-500: #df5478;
-  --brand-accent-600: #c24a68;
-  --brand-accent-700: #a32a4b;
-  --brand-accent-800: #85203f;
-  --brand-accent-900: #6e1531;
-  --brand-accent-950: #4a0d21;
+  --brand-50: #f6f1f3;
+  --brand-100: #ede3e9;
+  --brand-200: #dac7d1;
+  --brand-300: #c2a6b4;
+  --brand-400: #a5798f;
+  --brand-500: #8a5d74;
+  --brand-600: #6e4a60;
+  --brand-700: #55394f;
+  --brand-800: #4b3147;
+  --brand-900: #2e1b29;
+  --brand-950: #1f121c;
 
-  --brand-price-1-from: #f4adbd;
-  --brand-price-1-via: #ec7f99;
-  --brand-price-1-to: #c24a68;
+  --brand-accent-50: #fbf7ef;
+  --brand-accent-100: #f5eddc;
+  --brand-accent-200: #ebdcbb;
+  --brand-accent-300: #dec793;
+  --brand-accent-400: #d2b277;
+  --brand-accent-500: #d8c096;
+  --brand-accent-600: #b3925c;
+  --brand-accent-700: #96794b;
+  --brand-accent-800: #7a623c;
+  --brand-accent-900: #5e4b2e;
+  --brand-accent-950: #433521;
 
-  --brand-price-2-from: #f5d78e;
-  --brand-price-2-via: #e6b450;
-  --brand-price-2-to: #b98a2e;
+  --brand-price-1-from: #6b4a62;
+  --brand-price-1-via: #4e3349;
+  --brand-price-1-to: #4b3147;
 
-  --brand-price-3-from: #c24a68;
-  --brand-price-3-via: #a32a4b;
-  --brand-price-3-to: #8b1e3f;
+  --brand-price-2-from: #e5c88a;
+  --brand-price-2-via: #d5b57e;
+  --brand-price-2-to: #d8c096;
 
-  --brand-price-4-from: #7fc7a5;
-  --brand-price-4-via: #45a37d;
-  --brand-price-4-to: #2f7d5f;
+  --brand-price-3-from: #d9c8ce;
+  --brand-price-3-via: #c8acba;
+  --brand-price-3-to: #b995a5;
+
+  --brand-price-4-from: #4a3a46;
+  --brand-price-4-via: #362731;
+  --brand-price-4-to: #241621;
 }
 
 .dark {
-  --background: #1b1216;
-  --foreground: #f8eef0;
-  --card: #25191f;
-  --card-foreground: #f8eef0;
-  --popover: #25191f;
-  --popover-foreground: #f8eef0;
-  --primary: oklch(0.72 0.17 15);
-  --primary-foreground: #1b1216;
-  --secondary: #33222a;
-  --secondary-foreground: #f6dfe5;
-  --muted: #2b1e24;
-  --muted-foreground: #c4aeb3;
-  --accent: #3a242d;
-  --accent-foreground: #f8eef0;
-  --destructive: #f4788c;
-  --destructive-foreground: #1b1216;
-  --border: #3a2a31;
-  --input: #3a2a31;
-  --ring: oklch(0.72 0.17 15);
-  --chart-1: oklch(0.72 0.17 15);
-  --chart-2: oklch(0.78 0.14 20);
-  --chart-3: oklch(0.8 0.13 75);
-  --chart-4: oklch(0.7 0.19 350);
-  --chart-5: oklch(0.7 0.15 160);
-  --sidebar: #170f13;
-  --sidebar-foreground: #f8eef0;
-  --sidebar-primary: oklch(0.72 0.17 15);
-  --sidebar-primary-foreground: #1b1216;
-  --sidebar-accent: #33222a;
-  --sidebar-accent-foreground: #f6dfe5;
-  --sidebar-border: #3a2a31;
-  --sidebar-ring: #3a2a31;
+  --background: #1a1218;
+  --foreground: #f5edef;
+  --card: #241a21;
+  --card-foreground: #f5edef;
+  --popover: #241a21;
+  --popover-foreground: #f5edef;
+  --primary: #d8c096;
+  --primary-foreground: #241621;
+  --secondary: #3a2833;
+  --secondary-foreground: #e7d3dc;
+  --muted: #2a1e25;
+  --muted-foreground: #c0aeb6;
+  --accent: #3a2833;
+  --accent-foreground: #f5edef;
+  --destructive: #e2698a;
+  --destructive-foreground: #1a1218;
+  --border: #3d2e38;
+  --input: #3d2e38;
+  --ring: #d8c096;
+  --chart-1: #d8c096;
+  --chart-2: #b995a5;
+  --chart-3: #d9c8ce;
+  --chart-4: #6b4a62;
+  --chart-5: #a5798f;
+  --sidebar: #150e14;
+  --sidebar-foreground: #f5edef;
+  --sidebar-primary: #d8c096;
+  --sidebar-primary-foreground: #241621;
+  --sidebar-accent: #3a2833;
+  --sidebar-accent-foreground: #e7d3dc;
+  --sidebar-border: #3d2e38;
+  --sidebar-ring: #3d2e38;
 
-  /* ── Jewel Box brand — dark wine ── */
-  --brand-primary: #e2698a;
-  --brand-primary-foreground: #1b1216;
-  --brand-primary-dark: #f08fa9;
-  --brand-primary-light: #f4adbd;
-  --brand-primary-darker: #c24a68;
-  --brand-secondary: #f0a9bc;
-  --brand-secondary-foreground: #1b1216;
-  --brand-secondary-dark: #e2698a;
-  --brand-section-bg: #22161c;
-  --brand-section-bg-subtle: #22161c80;
-  --brand-gradient-from: #e2698a;
-  --brand-gradient-to: #b8446a;
-  --brand-heading: #f4adbd;
+  /* ── Jewel Box brand — dark plum & gold ── */
+  --brand-primary: #d8c096;
+  --brand-primary-foreground: #241621;
+  --brand-primary-dark: #bda173;
+  --brand-primary-light: #ecd7ac;
+  --brand-primary-darker: #a4885c;
+  --brand-secondary: #b995a5;
+  --brand-secondary-foreground: #241621;
+  --brand-secondary-dark: #9a7585;
+  --brand-section-bg: #221620;
+  --brand-section-bg-subtle: #22162080;
+  --brand-gradient-from: #4a3a46;
+  --brand-gradient-to: #1a1218;
+  --brand-heading: #d9c8ce;
 
-  --brand-card-1-bg: oklch(0.28 0.05 85);
-  --brand-card-1-icon: oklch(0.82 0.12 85);
-  --brand-card-1-ring: oklch(0.4 0.07 85);
+  --brand-plum: #d9c8ce;
+  --brand-cream: #1a1218;
+  --brand-gold: #d8c096;
+  --brand-gold-dark: #bda173;
+  --brand-mauve: #b995a5;
+  --brand-rose: #d9c8ce;
+  --brand-surface: #3d2e38;
+  --brand-ink: #f5edef;
 
-  --brand-card-2-bg: oklch(0.28 0.07 10);
-  --brand-card-2-icon: oklch(0.78 0.15 15);
-  --brand-card-2-ring: oklch(0.42 0.1 10);
+  --brand-card-1-bg: #33291f;
+  --brand-card-1-icon: #d5b57e;
+  --brand-card-1-ring: #4d4032;
 
-  --brand-card-3-bg: oklch(0.28 0.05 160);
-  --brand-card-3-icon: oklch(0.78 0.13 160);
-  --brand-card-3-ring: oklch(0.42 0.08 160);
+  --brand-card-2-bg: #352432;
+  --brand-card-2-icon: #e3ccd6;
+  --brand-card-2-ring: #4d3a45;
 
-  --brand-card-4-bg: oklch(0.28 0.05 320);
-  --brand-card-4-icon: oklch(0.75 0.13 320);
-  --brand-card-4-ring: oklch(0.42 0.08 320);
+  --brand-card-3-bg: #382a33;
+  --brand-card-3-icon: #c9a9b8;
+  --brand-card-3-ring: #553f4b;
 
-  --brand-card-5-bg: oklch(0.28 0.07 350);
-  --brand-card-5-icon: oklch(0.75 0.17 350);
-  --brand-card-5-ring: oklch(0.42 0.11 350);
+  --brand-card-4-bg: #3a2b33;
+  --brand-card-4-icon: #b995a5;
+  --brand-card-4-ring: #57414b;
 
-  --brand-50: #4a0d21;
-  --brand-100: #6e1531;
-  --brand-200: #8b1e3f;
-  --brand-300: #a32a4b;
-  --brand-400: #c24a68;
-  --brand-500: #df5478;
-  --brand-600: #ec7f99;
-  --brand-700: #f4adbd;
-  --brand-800: #f9d2db;
-  --brand-900: #fce7ec;
-  --brand-950: #fdf3f5;
+  --brand-card-5-bg: #241a21;
+  --brand-card-5-icon: #f0e2e7;
+  --brand-card-5-ring: #3d2e38;
 
-  --brand-accent-50: #4a0d21;
-  --brand-accent-100: #6e1531;
-  --brand-accent-200: #8b1e3f;
-  --brand-accent-300: #a32a4b;
-  --brand-accent-400: #c24a68;
-  --brand-accent-500: #df5478;
-  --brand-accent-600: #ec7f99;
-  --brand-accent-700: #f4adbd;
-  --brand-accent-800: #f9d2db;
-  --brand-accent-900: #fce7ec;
-  --brand-accent-950: #fdf3f5;
+  --brand-50: #1f121c;
+  --brand-100: #2e1b29;
+  --brand-200: #4b3147;
+  --brand-300: #55394f;
+  --brand-400: #6e4a60;
+  --brand-500: #8a5d74;
+  --brand-600: #a5798f;
+  --brand-700: #c2a6b4;
+  --brand-800: #dac7d1;
+  --brand-900: #ede3e9;
+  --brand-950: #f6f1f3;
+
+  --brand-accent-50: #433521;
+  --brand-accent-100: #5e4b2e;
+  --brand-accent-200: #7a623c;
+  --brand-accent-300: #96794b;
+  --brand-accent-400: #b3925c;
+  --brand-accent-500: #d8c096;
+  --brand-accent-600: #d2b277;
+  --brand-accent-700: #dec793;
+  --brand-accent-800: #ebdcbb;
+  --brand-accent-900: #f5eddc;
+  --brand-accent-950: #fbf7ef;
 }
 
 /* ── Utility classes ── */
@@ -297,8 +351,8 @@
   }
 
   .section-heading {
-    @apply text-3xl md:text-4xl lg:text-5xl font-sans text-foreground tracking-tight;
-    font-weight: var(--font-heading);
+    @apply text-3xl md:text-4xl lg:text-5xl font-display text-foreground tracking-tight;
+    font-weight: 500;
   }
 
   .section-subheading {
@@ -418,4 +472,491 @@
   .custom-scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: var(--brand-primary);
   }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Royal Jewellers design language (see docs/ui-design-review.md)
+   Serif display type, gold eyebrow labels, paisley ornament,
+   arched imagery, frosted promo cards, marquee strip.
+   ───────────────────────────────────────────────────────────── */
+
+@layer components {
+  /* Eyebrow label — uppercase, wide-tracked, gold, sparkle prefix */
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.28em;
+    color: var(--brand-gold-dark);
+  }
+
+  @media (min-width: 640px) {
+    .eyebrow {
+      font-size: 0.875rem;
+    }
+  }
+
+  /* Display heading — Playfair serif, tight tracking */
+  .display-heading {
+    font-family: var(--font-playfair), "Playfair Display", Georgia, serif;
+    letter-spacing: -0.02em;
+    color: var(--brand-heading);
+  }
+
+  /* Italic accent word inside a display heading — gold Playfair italic */
+  .accent-italic {
+    font-family: var(--font-playfair), "Playfair Display", Georgia, serif;
+    font-style: italic;
+    color: var(--brand-gold-dark);
+  }
+
+  /* Small gold divider rule */
+  .gold-rule {
+    height: 1px;
+    width: 3rem;
+    background-color: var(--brand-gold);
+  }
+
+  /* Paisley ornamental band (asset: /images/paisley-band.svg) */
+  .paisley-band {
+    height: 52px;
+    background-image: url("/images/paisley-band.svg");
+    background-repeat: repeat-x;
+    background-position: center top;
+    background-size: auto 100%;
+  }
+
+  /* Full paisley line-art field (asset: /images/paisley-pattern.svg) */
+  .paisley-field {
+    background-image: url("/images/paisley-pattern.svg");
+    background-repeat: repeat;
+    background-size: 300px auto;
+  }
+
+  /* Temple-arch top mask — semicircular top, softly squared base */
+  .arch-top {
+    border-radius: 9999px 9999px 0.75rem 0.75rem;
+    overflow: hidden;
+  }
+
+  /* Frosted glass promo card for dark grounds */
+  .frosted-card {
+    background: color-mix(in srgb, white 10%, transparent);
+    backdrop-filter: blur(10px);
+    border: 1px solid color-mix(in srgb, white 18%, transparent);
+  }
+
+  /* Marquee strip — infinite horizontal scroll */
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: jb-marquee 32s linear infinite;
+  }
+
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes jb-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Editorial homepage language (Homepage v2 / PDP reference)
+   Plum-and-gold bands, framed image tiles, gold pill CTAs,
+   outlined feature cards, premium price cards.
+   ───────────────────────────────────────────────────────────── */
+
+@layer components {
+  /* Dark editorial band — near-black plum with a soft centre glow */
+  .editorial-dark {
+    background-color: #14100f;
+    background-image:
+      radial-gradient(120% 90% at 50% 0%, #4b3147 0%, #2a1a27 45%, #1a1318 100%);
+    color: var(--brand-cream);
+  }
+
+  /* Repeating ornamental band, sits at the top edge of dark sections */
+  .ornament-band {
+    height: 46px;
+    background-image: url("/images/paisley-band.svg");
+    background-repeat: repeat-x;
+    background-position: center;
+    background-size: auto 100%;
+    opacity: 0.55;
+  }
+
+  /* Gold pill CTA */
+  .btn-gold {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #e0c386 0%, var(--brand-gold) 52%, #b1873f 100%);
+    color: var(--brand-plum);
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    padding: 0.8rem 1.6rem;
+    box-shadow: 0 10px 24px -14px rgba(166, 133, 79, 0.9);
+    transition: transform 220ms ease, box-shadow 220ms ease, filter 220ms ease;
+  }
+
+  .btn-gold:hover {
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+    box-shadow: 0 16px 30px -16px rgba(166, 133, 79, 0.95);
+  }
+
+  /* Outlined pill CTA for dark grounds */
+  .btn-ghost-gold {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    border-radius: 9999px;
+    border: 1px solid color-mix(in srgb, var(--brand-gold) 65%, transparent);
+    color: var(--brand-gold);
+    font-size: 0.875rem;
+    padding: 0.8rem 1.6rem;
+    background: transparent;
+    transition: background 220ms ease, color 220ms ease;
+  }
+
+  .btn-ghost-gold:hover {
+    background: color-mix(in srgb, var(--brand-gold) 14%, transparent);
+  }
+
+  /* Framed image tile used by product cards and collages */
+  .framed-tile {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(160deg, #f6f1ec 0%, #efe6df 100%);
+  }
+
+  /* Small round slider arrow (light on dark, dark on light) */
+  .rail-arrow {
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    border: 1px solid color-mix(in srgb, var(--brand-gold) 45%, transparent);
+    color: currentColor;
+    transition: background 200ms ease, border-color 200ms ease, transform 200ms ease;
+  }
+
+  .rail-arrow:hover {
+    background: color-mix(in srgb, var(--brand-gold) 18%, transparent);
+    transform: translateY(-1px);
+  }
+
+  /* Premium price band card (Shop by Price reference) */
+  .price-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 168px;
+    border-radius: 1.25rem;
+    border: 1px solid color-mix(in srgb, var(--brand-gold) 26%, transparent);
+    background-color: #fdf7f8;
+    background-image: radial-gradient(circle at 1px 1px, rgba(62, 39, 57, 0.14) 1px, transparent 0);
+    background-size: 12px 12px;
+    padding: 1.5rem;
+    overflow: hidden;
+    transition: transform 260ms ease, box-shadow 260ms ease;
+  }
+
+  .price-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 40px -28px rgba(62, 39, 57, 0.55);
+  }
+
+  /* Gold spine on the right edge of a price card */
+  .price-spine {
+    position: absolute;
+    inset-block: 0;
+    right: 5%;
+    width: 3px;
+    background: linear-gradient(180deg, #ecdcb4, var(--brand-gold), #bda173);
+    opacity: 0.85;
+  }
+
+  .price-card-featured {
+    background-color: #bd3d6b;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.2) 1px, transparent 0),
+      linear-gradient(160deg, #cd4a79 0%, #ab2f5c 100%);
+    background-size: 12px 12px, 100% 100%;
+    border-color: transparent;
+    box-shadow: 0 20px 45px -30px rgba(141, 43, 79, 0.9);
+    color: #fff;
+  }
+
+  /* Thin gold hairline divider used inside cards */
+  .hairline {
+    height: 1px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--brand-gold) 55%, transparent), transparent);
+  }
+
+  /* Hide scrollbars on horizontal rails */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Shared premium tab bar — used by every collection tab group */
+  .tab-pill-track {
+    display: inline-flex;
+    flex-wrap: wrap;
+    height: auto !important;
+    min-height: 0 !important;
+    justify-content: center;
+    gap: 0.2rem;
+    padding: 0.35rem !important;
+    border-radius: 9999px;
+    border: 1px solid color-mix(in srgb, var(--brand-gold) 28%, transparent);
+    background: #ffffff !important;
+    box-shadow: 0 14px 34px -28px rgba(74, 37, 66, 0.45);
+  }
+
+  .tab-pill {
+    display: inline-flex;
+    flex: 0 0 auto !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    height: auto !important;
+    border: 0 !important;
+    border-radius: 9999px;
+    padding: 0.62rem 1.15rem;
+    white-space: nowrap;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: color-mix(in srgb, var(--brand-ink) 55%, transparent) !important;
+    box-shadow: none !important;
+    transition: background 220ms ease, color 220ms ease, box-shadow 220ms ease;
+    cursor: pointer;
+  }
+
+  .tab-pill svg {
+    color: var(--brand-gold-dark);
+  }
+
+  .tab-pill:hover {
+    color: var(--brand-plum) !important;
+    background: var(--brand-rose);
+  }
+
+  .tab-pill[data-state="active"] {
+    background: var(--brand-plum) !important;
+    color: var(--brand-cream) !important;
+    box-shadow: 0 8px 18px -12px rgba(74, 37, 66, 0.55) !important;
+  }
+
+  .tab-pill[data-state="active"] svg {
+    color: var(--brand-gold) !important;
+  }
+
+  @media (min-width: 640px) {
+    .tab-pill {
+      gap: 0.45rem;
+      padding: 0.7rem 1.4rem;
+      font-size: 0.75rem;
+    }
+  }
+}
+
+/* Header search pill — cream field, gold hairline and a gold submit button */
+.header-search-pill {
+  height: 46px !important;
+  background: #ffffff !important;
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 42%, transparent) !important;
+  box-shadow: 0 1px 0 rgba(74, 37, 66, 0.03) !important;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.header-search-pill:focus-within {
+  border-color: var(--brand-gold) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-gold) 22%, transparent) !important;
+}
+
+.header-search-pill .header-search-placeholder {
+  padding-left: 3.1rem !important;
+}
+
+.header-search-pill input {
+  padding-left: 3.1rem !important;
+  padding-right: 3.25rem !important;
+  font-size: 0.875rem !important;
+  color: var(--brand-ink) !important;
+}
+
+.header-search-pill input::placeholder {
+  color: color-mix(in srgb, var(--brand-ink) 45%, transparent);
+}
+
+.header-search-pill button[type="submit"] {
+  background: var(--brand-gold) !important;
+  color: var(--brand-plum) !important;
+  right: 6px !important;
+}
+
+.header-search-pill button[type="submit"] svg {
+  color: var(--brand-plum) !important;
+}
+
+.header-search-pill button[type="submit"]:disabled {
+  background: color-mix(in srgb, var(--brand-gold) 35%, transparent) !important;
+}
+
+.header-search-pill button[type="submit"]:disabled svg {
+  color: color-mix(in srgb, var(--brand-plum) 55%, transparent) !important;
+}
+
+/* Swiper pagination restyled as the reference's small rectangular dots */
+.jb-hero .swiper-pagination {
+  bottom: 24px !important;
+  left: 50% !important;
+  transform: translateX(-50%);
+  width: auto !important;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.jb-hero .swiper-pagination-bullet {
+  width: 26px;
+  height: 3px;
+  border-radius: 0;
+  background: rgba(250, 247, 243, 0.45);
+  opacity: 1;
+  margin: 0 !important;
+  transition: background 250ms ease, width 250ms ease;
+}
+
+.jb-hero .swiper-pagination-bullet-active {
+  width: 40px;
+  background: var(--brand-gold);
+}
+
+/* ── Toasts — ivory card, gold hairline, serif title ────────────── */
+[data-sonner-toaster] {
+  --width: 360px;
+  font-family: var(--font-lato), "Lato", system-ui, sans-serif;
+}
+
+[data-sonner-toast] {
+  gap: 10px !important;
+  align-items: flex-start !important;
+  padding: 14px 16px !important;
+  border-width: 1px !important;
+  border-radius: 0.9rem !important;
+  border-color: color-mix(in srgb, var(--brand-gold) 38%, transparent) !important;
+  background: #ffffff !important;
+  color: var(--brand-heading) !important;
+  box-shadow: 0 18px 45px -30px rgba(74, 37, 66, 0.55) !important;
+}
+
+[data-sonner-toast][data-type="error"] {
+  border-color: color-mix(in srgb, var(--destructive) 35%, transparent) !important;
+}
+
+[data-sonner-toast] [data-title] {
+  font-family: var(--font-playfair), "Playfair Display", Georgia, serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--brand-heading);
+}
+
+[data-sonner-toast] [data-description] {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+[data-sonner-toast] [data-icon] {
+  color: var(--brand-gold-dark) !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-icon] {
+  color: var(--destructive) !important;
+}
+
+[data-sonner-toast] [data-button] {
+  border-radius: 9999px !important;
+  background: var(--brand-plum) !important;
+  color: var(--brand-cream) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+[data-sonner-toast] [data-close-button] {
+  top: 8px !important;
+  left: auto !important;
+  right: 8px !important;
+  width: 22px !important;
+  height: 22px !important;
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 30%, transparent) !important;
+  background: #ffffff !important;
+  color: var(--muted-foreground) !important;
+  opacity: 1 !important;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease !important;
+}
+
+[data-sonner-toast] [data-close-button] svg {
+  width: 12px !important;
+  height: 12px !important;
+  color: currentColor !important;
+  stroke: currentColor !important;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  border-color: color-mix(in srgb, var(--brand-gold) 55%, transparent) !important;
+  background: var(--brand-rose) !important;
+  color: var(--brand-plum) !important;
+}
+
+@media (max-width: 600px) {
+  [data-sonner-toaster] {
+    --width: calc(100vw - 2rem);
+  }
+}
+
+/* Strip default swiper arrows — every rail uses its own buttons */
+.jb-hero .swiper-button-prev,
+.jb-hero .swiper-button-next {
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  border: 1px solid rgba(250, 247, 243, 0.35);
+  background: rgba(20, 16, 15, 0.25);
+  backdrop-filter: blur(6px);
+  color: var(--brand-cream);
+}
+
+.jb-hero .swiper-button-prev::after,
+.jb-hero .swiper-button-next::after {
+  font-size: 14px;
+  font-weight: 700;
 }

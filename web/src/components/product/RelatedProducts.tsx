@@ -13,20 +13,26 @@ export default function RelatedProducts({ id, subCategory, subSubCategory }: { i
   if (relatedProducts.length === 0 && !isLoading) return null;
 
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-hidden py-10">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-center"
+        className="mx-auto mb-8 max-w-7xl px-4 sm:px-6 lg:px-8"
       >
-        <h3 className="text-4xl sm:text-5xl py-3 font-extralight text-foreground mb-2 tracking-tight">
-          You Might Also Love
-        </h3>
-        <div className="flex items-center justify-center gap-3 mt-4">
-          <div className="h-px w-16 bg-gradient-to-r from-transparent to-brand-300" />
-          <Sparkles size={16} className="text-brand-600" strokeWidth={1.5} />
-          <div className="h-px w-16 bg-gradient-to-l from-transparent to-brand-300" />
+        <p className="eyebrow mb-2">
+          <span className="mr-2">✦</span>
+          Complete the look
+        </p>
+        <div className="flex items-end justify-between gap-4 border-b border-[var(--brand-gold)]/25 pb-4">
+          <h3 className="display-heading text-2xl sm:text-3xl lg:text-4xl">
+            Similar <span className="accent-italic">Products</span>
+          </h3>
+          <div className="flex items-center gap-2 text-[var(--brand-plum)]">
+            <span className="grid size-9 place-items-center rounded-full border border-[var(--brand-gold)]/40">
+              <Sparkles size={13} />
+            </span>
+          </div>
         </div>
       </motion.div>
       <div className="">
@@ -38,12 +44,12 @@ export default function RelatedProducts({ id, subCategory, subSubCategory }: { i
           </div>
         ) : (
           <Swiper
-            className="w-full max-w-[1200px] mx-auto !overflow-visible py-4"
+            className="mx-auto w-full max-w-7xl !overflow-visible px-4 !py-4 sm:px-6 lg:px-8"
             modules={[Autoplay]}
             slidesPerView={4}
-            spaceBetween={10}
+            spaceBetween={18}
             autoplay={{
-              delay: 2500,
+              delay: 3800,
               disableOnInteraction: false,
             }}
             breakpoints={{

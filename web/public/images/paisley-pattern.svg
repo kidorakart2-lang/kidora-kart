@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150" viewBox="0 0 300 150">
+  <defs>
+    <g id="p" fill="none" stroke="#C6A875" stroke-width="1.2" stroke-linecap="round">
+      <path d="M0 0 C -10 5 -12 20 -2 28 C 7 22 9 5 0 0 Z"/>
+      <circle cx="-1" cy="10" r="1.2" fill="#C6A875" stroke="none" opacity="0.6"/>
+    </g>
+  </defs>
+  <g opacity="0.5">
+    <use href="#p" transform="translate(30 30)"/>
+    <use href="#p" transform="translate(90 30) scale(-1 1)"/>
+    <use href="#p" transform="translate(150 30)"/>
+    <use href="#p" transform="translate(210 30) scale(-1 1)"/>
+    <use href="#p" transform="translate(270 30)"/>
+    <use href="#p" transform="translate(60 100)"/>
+    <use href="#p" transform="translate(120 100) scale(-1 1)"/>
+    <use href="#p" transform="translate(180 100)"/>
+    <use href="#p" transform="translate(240 100) scale(-1 1)"/>
+    <use href="#p" transform="translate(300 100)"/>
+  </g>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="52" viewBox="0 0 150 52">
+  <defs>
+    <g id="paisley" fill="none" stroke="#C6A875" stroke-width="1.5" stroke-linecap="round">
+      <path d="M0 0 C -12 6 -14 24 -2 34 C 8 26 10 6 0 0 Z"/>
+      <path d="M0 8 C -7 11 -8 23 -1 30 C 6 23 7 11 0 8 Z" stroke-width="1" opacity="0.45"/>
+    </g>
+  </defs>
+  <use href="#paisley" transform="translate(20 8)"/>
+  <use href="#paisley" transform="translate(55 8) scale(-1 1)"/>
+  <use href="#paisley" transform="translate(90 8)"/>
+  <use href="#paisley" transform="translate(125 8) scale(-1 1)"/>
+  <g fill="#C6A875">
+    <circle cx="37.5" cy="26" r="2.5"/>
+    <circle cx="72.5" cy="26" r="2.5"/>
+    <circle cx="107.5" cy="26" r="2.5"/>
+    <circle cx="142.5" cy="26" r="2.5"/>
+    <circle cx="10" cy="14" r="1.5" opacity="0.7"/>
+    <circle cx="10" cy="38" r="1.5" opacity="0.7"/>
+  </g>
+</svg>

@@ -1,6 +1,5 @@
 import { cacheLife, cacheTag } from "next/cache"
 import { serverFetch } from "@/lib/server-fetch"
-import BannerSingle from "./BannerSingle"
 import BannerSlider from "./BannerSlider"
 import { TAG_HOMEPAGE } from "@/lib/revalidation-tags"
 import type { BannerItem } from "@/types"
@@ -20,8 +19,7 @@ async function GetBanners() {
 }
 
 export default async function DefaultBanner() {
-  const banners = await GetBanners()
-  if (!banners || banners.length === 0) return null
+  const banners = (await GetBanners()) ?? []
 
   const slides = banners.map((item) => ({
     src: item.image,
@@ -29,9 +27,7 @@ export default async function DefaultBanner() {
     external: item.link?.type === "external",
   }))
 
-  if (slides.length === 1) {
-    return <BannerSingle slide={slides[0]} />
-  }
-
+  // No banners configured? The carousel still renders its gradient hero so the
+  // homepage never opens on a bare header.
   return <BannerSlider slides={slides} />
 }

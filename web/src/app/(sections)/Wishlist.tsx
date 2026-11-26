@@ -119,31 +119,31 @@ export default function Wishlist({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="min-h-[70vh] flex items-center justify-center py-16"
+        className="flex min-h-[70vh] items-center justify-center bg-[var(--brand-cream)] px-4 py-16"
       >
-        <div className="text-center space-y-8 max-w-md px-4">
+        <div className="max-w-sm space-y-7 text-center">
           <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
+            animate={{ scale: [1, 1.04, 1] }}
             transition={{ duration: 3, repeat: Infinity }}
-            className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-brand-accent-100 to-brand-accent-200 dark:from-brand-accent-900/30 dark:to-brand-accent-800/30 flex items-center justify-center shadow-lg border border-brand-accent-200 dark:border-brand-accent-700/30"
+            className="mx-auto grid size-24 place-items-center rounded-full border border-[var(--brand-gold)]/40 bg-white"
           >
-            <Heart className="w-12 h-12 text-brand-accent-500" strokeWidth={1.5} fill="currentColor" />
+            <Heart className="h-9 w-9 text-[var(--brand-gold)]" strokeWidth={1.3} fill="currentColor" />
           </motion.div>
 
-          <div className="space-y-3">
-            <h2 className="text-3xl fw-heading text-foreground tracking-tight">
-              Your Wishlist is Empty
+          <div className="space-y-2">
+            <h2 className="display-heading text-3xl">
+              Your Wishlist is <span className="accent-italic">Empty</span>
             </h2>
-            <p className="text-muted-foreground text-sm fw-body leading-relaxed">
-              Save your favorite items and create your dream collection. Start exploring our jewellery!
+            <p className="text-[12.5px] leading-relaxed text-[var(--brand-ink)]/55">
+              Save your favourite pieces and create your dream collection. Start exploring our jewellery.
             </p>
           </div>
 
           <Link
             href="/"
-            className="inline-flex items-center gap-2 btn-gradient fw-cta py-3.5 px-8 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
+            className="btn-gold inline-flex items-center gap-2 !text-[10.5px] uppercase tracking-[0.18em]"
           >
-            <ShoppingBag size={17} />
+            <ShoppingBag size={15} />
             Start Shopping
           </Link>
         </div>
@@ -154,20 +154,20 @@ export default function Wishlist({
   // ── Loading state ──
   if (isLoading) {
     return (
-      <section className="py-12 md:py-16 bg-gradient-to-b from-background to-muted/30 min-h-screen">
+      <section className="min-h-screen bg-[var(--brand-cream)] py-12 md:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-10">
-            <div className="h-8 w-48 bg-muted rounded-lg animate-pulse" />
-            <div className="h-4 w-32 bg-muted rounded animate-pulse mt-2" />
+            <div className="h-8 w-48 animate-pulse rounded bg-[var(--brand-gold)]/15" />
+            <div className="mt-2 h-4 w-32 animate-pulse rounded bg-[var(--brand-gold)]/10" />
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-background rounded-xl border border-border overflow-hidden">
-                <div className="h-40 bg-muted animate-pulse" />
-                <div className="p-3 space-y-2">
-                  <div className="h-3 bg-muted rounded animate-pulse w-3/4" />
-                  <div className="h-5 bg-muted rounded animate-pulse w-1/3" />
-                  <div className="h-8 bg-muted rounded-lg animate-pulse w-full" />
+              <div key={i} className="overflow-hidden rounded-xl border border-[var(--brand-gold)]/25 bg-white">
+                <div className="h-40 animate-pulse bg-[var(--brand-cream)]" />
+                <div className="space-y-2 p-3">
+                  <div className="h-3 w-3/4 animate-pulse rounded bg-[var(--brand-gold)]/10" />
+                  <div className="h-5 w-1/3 animate-pulse rounded bg-[var(--brand-gold)]/10" />
+                  <div className="h-8 w-full animate-pulse rounded-full bg-[var(--brand-gold)]/10" />
                 </div>
               </div>
             ))}
@@ -180,7 +180,7 @@ export default function Wishlist({
   // ── Wishlist grid ──
   return (
     <>
-      <section className="py-12 md:py-16 bg-gradient-to-b from-background to-muted/30 min-h-screen">
+      <section className="min-h-screen bg-[var(--brand-cream)] py-12 md:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <motion.div
@@ -189,18 +189,19 @@ export default function Wishlist({
             transition={{ duration: 0.4 }}
             className="mb-10"
           >
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl md:text-4xl fw-heading tracking-tight text-foreground">
-                My Wishlist
+            <p className="eyebrow mb-2"><span className="mr-2">✦</span>Saved for later</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="display-heading text-3xl md:text-4xl">
+                My <span className="accent-italic">Wishlist</span>
               </h1>
-              <span className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-brand-accent-100 text-brand-accent-600 text-sm fw-heading">
-                {displayItems.length} items
+              <span className="inline-flex items-center justify-center rounded-full border border-[var(--brand-gold)]/40 px-3 py-1 text-[10px] uppercase tracking-[0.14em] text-[var(--brand-gold-dark)]">
+                {displayItems.length} {displayItems.length === 1 ? "item" : "items"}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-1.5 fw-body">
-              Items you&apos;ve saved for later
+            <p className="mt-1.5 text-[12px] text-[var(--brand-ink)]/50">
+              Pieces you&apos;ve kept close to your heart
             </p>
-            <div className="h-px bg-gradient-to-r from-border via-border to-transparent mt-4" />
+            <div className="mt-4 h-px bg-gradient-to-r from-[var(--brand-gold)]/50 via-[var(--brand-gold)]/20 to-transparent" />
           </motion.div>
 
           {/* Wishlist Grid */}
@@ -229,9 +230,9 @@ export default function Wishlist({
             >
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 btn-gradient fw-cta py-3.5 px-8 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
+                className="btn-gold inline-flex items-center gap-2 !text-[10.5px] uppercase tracking-[0.18em]"
               >
-                <ShoppingBag size={17} />
+                <ShoppingBag size={15} />
                 Continue Shopping
               </Link>
             </motion.div>
@@ -269,12 +270,12 @@ function WishlistCard({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.3 } }}
       transition={{ duration: 0.4, delay: index * 0.05, layout: { duration: 0.3 } }}
-      className="group relative bg-background rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col"
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-[var(--brand-gold)]/25 bg-white transition-all duration-300 hover:border-[var(--brand-gold)]/50 hover:shadow-md"
     >
       {/* Remove Button */}
       <motion.button
         onClick={() => onRemove(item._id)}
-        className="absolute top-2 right-2 z-20 w-7 h-7 bg-background/80 backdrop-blur-sm rounded-full border border-border flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-all duration-300 opacity-0 group-hover:opacity-100"
+        className="absolute right-2 top-2 z-20 grid size-7 place-items-center rounded-full border border-[var(--brand-gold)]/40 bg-white/90 text-[var(--brand-ink)]/50 backdrop-blur-sm transition-all duration-300 hover:border-destructive/40 hover:bg-destructive hover:text-white md:opacity-0 md:group-hover:opacity-100"
         whileHover={{ rotate: 90 }}
         whileTap={{ scale: 0.9 }}
         aria-label="Remove from wishlist"
@@ -285,18 +286,18 @@ function WishlistCard({
       {/* Stock Badge */}
       <div className="absolute top-2 left-2 z-20">
         {item.stock <= 0 ? (
-          <span className="inline-flex items-center gap-1 bg-destructive/90 text-destructive-foreground text-[10px] fw-cta px-1.5 py-0.5 rounded-full shadow-lg backdrop-blur-sm">
-            <span className="w-1 h-1 bg-destructive-foreground rounded-full animate-pulse" />
+          <span className="inline-flex items-center gap-1 rounded-full border border-[var(--brand-gold)]/30 bg-white/90 px-2 py-0.5 text-[9px] uppercase tracking-[0.1em] text-[var(--brand-ink)]/55 backdrop-blur-sm">
+            <span className="size-1 animate-pulse rounded-full bg-destructive" />
             Out of Stock
           </span>
         ) : item.stock <= 5 ? (
-          <span className="inline-flex items-center gap-1 bg-amber-500/90 text-white text-[10px] fw-cta px-1.5 py-0.5 rounded-full shadow-lg backdrop-blur-sm">
+          <span className="inline-flex items-center gap-1 rounded-full border border-[var(--brand-mauve)]/35 bg-[var(--brand-rose)]/40 px-2 py-0.5 text-[9px] uppercase tracking-[0.1em] text-[var(--brand-plum)] backdrop-blur-sm">
             <Clock size={8} />
             {item.stock} left
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 bg-emerald-500/90 text-white text-[10px] fw-cta px-1.5 py-0.5 rounded-full shadow-lg backdrop-blur-sm">
-            <span className="w-1 h-1 bg-white rounded-full" />
+          <span className="inline-flex items-center gap-1 rounded-full border border-[var(--brand-gold)]/40 bg-[var(--brand-cream)]/90 px-2 py-0.5 text-[9px] uppercase tracking-[0.1em] text-[var(--brand-gold-dark)] backdrop-blur-sm">
+            <span className="size-1 rounded-full bg-[var(--brand-gold)]" />
             In Stock
           </span>
         )}
@@ -311,7 +312,7 @@ function WishlistCard({
 
       {/* Image */}
       <div
-        className="relative aspect-[1/1] bg-muted/30 overflow-hidden cursor-pointer"
+        className="relative aspect-square cursor-pointer overflow-hidden bg-[var(--brand-cream)]"
         onClick={() => router.push(`/product-details/${item.slug}`)}
       >          <motion.div
             whileHover={{ scale: 1.06 }}
@@ -334,7 +335,7 @@ function WishlistCard({
       {/* Details */}
       <div className="p-3 flex flex-col gap-1.5 flex-1">
         <h3
-          className="text-sm fw-heading text-foreground line-clamp-2 hover:text-brand-700 transition-colors cursor-pointer leading-snug min-h-[2.5rem]"
+          className="line-clamp-2 min-h-[2.5rem] cursor-pointer text-[13.5px] leading-snug text-[var(--brand-ink)] transition-colors hover:text-[var(--brand-mauve)]"
           onClick={() => router.push(`/product-details/${item.slug}`)}
         >
           {item.name}
@@ -342,11 +343,11 @@ function WishlistCard({
 
         {/* Price */}
         <div className="flex items-baseline gap-1.5">
-          <span className="text-base fw-heading text-foreground">
+          <span className="display-heading text-[16px] text-[var(--brand-plum)]">
             ₹{(item.discount_price || item.price || 0).toLocaleString()}
           </span>
           {item.price && item.discount_price && item.price > item.discount_price && (
-            <span className="text-xs text-muted-foreground line-through">
+            <span className="text-[11px] text-[var(--brand-ink)]/40 line-through">
               ₹{item.price.toLocaleString()}
             </span>
           )}
@@ -356,7 +357,7 @@ function WishlistCard({
         <div className="flex gap-1.5 mt-auto pt-1.5">
           <button
             onClick={() => router.push(`/product-details/${item.slug}`)}
-            className="flex-1 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 fw-body text-[11px] transition-all duration-300 flex items-center justify-center gap-1"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[var(--brand-gold)]/40 py-2 text-[10px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65 transition-all duration-300 hover:border-[var(--brand-plum)] hover:bg-[var(--brand-plum)] hover:text-[var(--brand-cream)]"
           >
             <Eye size={12} strokeWidth={1.5} />
             View

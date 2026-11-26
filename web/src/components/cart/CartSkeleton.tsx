@@ -3,7 +3,7 @@
 export default function CartSkeleton({ itemCount }: { itemCount: number }) {
   const cards = Array.from({ length: Math.max(itemCount, 2) });
   return (
-    <main className="py-12 md:py-16 bg-gradient-to-b from-background via-background to-muted/30 min-h-screen">
+    <main className="min-h-screen bg-[var(--brand-cream)] py-10 md:py-14">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-10">
@@ -18,10 +18,8 @@ export default function CartSkeleton({ itemCount }: { itemCount: number }) {
             {cards.map((_, i) => (
               <div
                 key={i}
-                className="bg-background rounded-2xl border border-border p-5 sm:p-6 shadow-sm relative overflow-hidden"
+                className="relative overflow-hidden rounded-xl border border-[var(--brand-gold)]/25 bg-white p-4 sm:p-5"
               >
-                {/* Accent stripe */}
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-brand-500/30 via-brand-400/30 to-brand-600/30" />
 
                 <div className="flex gap-5 relative z-10">
                   <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-xl bg-muted animate-pulse shrink-0" />
@@ -52,7 +50,7 @@ export default function CartSkeleton({ itemCount }: { itemCount: number }) {
 
           {/* Order Summary Skeleton */}
           <div className="lg:col-span-1">
-            <div className="bg-background rounded-2xl border border-border shadow-sm sticky top-24 overflow-hidden">
+            <div className="sticky top-24 overflow-hidden rounded-xl border border-[var(--brand-gold)]/30 bg-white">
               <div className="px-6 pt-8 pb-4">
                 <div className="h-6 w-32 bg-muted animate-pulse rounded" />
               </div>

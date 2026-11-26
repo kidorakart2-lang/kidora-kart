@@ -250,28 +250,33 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
 
   return (
     <>
-      <main className="py-12 md:py-16 bg-gradient-to-b from-background via-background to-muted/30 min-h-screen">
+      <main className="min-h-screen bg-white py-10 md:py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="mb-10"
+            className="mb-8"
           >
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl md:text-4xl fw-heading text-foreground tracking-tight">
-                Shopping Cart
-              </h1>
-              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand-100 text-brand-700 text-sm fw-heading">
-                {effectiveCart?._data?.totalItems || 0}
-              </span>
-            </div>
-            <p className="text-muted-foreground text-sm mt-1.5 fw-body">
-              {effectiveCart?._data?.totalItems || 0}{" "}
-              {effectiveCart?._data?.totalItems === 1 ? "item" : "items"} in your cart
+            <p className="eyebrow mb-2">
+              <span className="mr-2">✦</span>
+              Your selection
             </p>
-            <div className="h-px bg-gradient-to-r from-border via-border to-transparent mt-4" />
+            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--brand-gold)]/25 pb-4">
+              <div className="flex items-center gap-3">
+                <h1 className="display-heading text-3xl sm:text-4xl">
+                  Shopping Cart
+                </h1>
+                <span className="inline-flex size-7 items-center justify-center rounded-full border border-[var(--brand-gold)]/45 text-[12px] text-[var(--brand-gold-dark)]">
+                  {effectiveCart?._data?.totalItems || 0}
+                </span>
+              </div>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/50">
+                {effectiveCart?._data?.totalItems || 0}{" "}
+                {effectiveCart?._data?.totalItems === 1 ? "item" : "items"} in your bag
+              </p>
+            </div>
           </motion.div>
 
           {(effectiveCart?._data?.items?.length ?? 0) > 0 && (

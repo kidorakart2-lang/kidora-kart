@@ -10,21 +10,21 @@ const TAB_TIERS = {
     color: "var(--brand-card-5-icon)",
     soft: "var(--brand-card-5-bg)",
     icon: Gem,
-    label: "Silver Collection",
+    label: "Silver",
     tagline: "Timeless elegance in sterling silver",
   },
   gold: {
     color: "var(--brand-card-1-icon)",
     soft: "var(--brand-card-1-bg)",
     icon: Crown,
-    label: "Gold Collection",
+    label: "Gold",
     tagline: "Luxury crafted in precious gold",
   },
   gift: {
     color: "var(--brand-card-2-icon)",
     soft: "var(--brand-card-2-bg)",
     icon: GiftIcon,
-    label: "Gift Collection",
+    label: "Gifting",
     tagline: "Perfect presents for every occasion",
   },
 } as const;
@@ -36,30 +36,29 @@ export default function TabProducts({
 }) {
   return (
     <section
-      className="py-5 lg:py-12 bg-section relative overflow-hidden"
+      className="relative overflow-hidden bg-[var(--brand-section-bg)] py-16 lg:py-20"
       id="Products For You"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="section-container relative z-10">
         <Tabs defaultValue="silver" className="w-full">
-          <div className="flex flex-col items-center mb-12">
-            <span className="text-sm font-medium text-muted-foreground tracking-wider uppercase mb-6">
-              Discover Our Collections
-            </span>
+          <div className="mb-10 flex flex-col items-center lg:mb-12">
+            <p className="eyebrow mb-3">
+              <span className="mr-2">✦</span>
+              Discover our collections
+            </p>
+            <h2 className="display-heading text-center text-3xl sm:text-4xl lg:text-[2.75rem]">
+              Shop the <span className="accent-italic">Collections</span>
+            </h2>
 
-            <TabsList className="inline-flex bg-card rounded-full p-1.5 shadow-lg gap-1 border border-border">
+            <TabsList className="tab-pill-track mt-7">
               {(Object.keys(TAB_TIERS) as Array<keyof typeof TAB_TIERS>).map(
                 (key) => {
                   const tier = TAB_TIERS[key];
                   const Icon = tier.icon;
                   return (
-                    <TabsTrigger
-                      key={key}
-                      value={key}
-                      style={{ ["--tab-active-bg" as string]: tier.color }}
-                      className="flex items-center gap-1.5 px-6 md:px-8 py-3 rounded-full fw-cta text-sm uppercase transition-all duration-300 text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:bg-[var(--tab-active-bg)] data-[state=active]:text-white data-[state=active]:shadow-md"
-                    >
+                    <TabsTrigger key={key} value={key} className="tab-pill">
                       <Icon className="h-3.5 w-3.5" />
-                      {key}
+                      {tier.label}
                     </TabsTrigger>
                   );
                 },
@@ -67,7 +66,7 @@ export default function TabProducts({
             </TabsList>
           </div>
 
-          <div className="text-center mb-10 min-h-[60px] flex items-center justify-center">
+          <div className="mb-9 flex min-h-[64px] items-center justify-center text-center">
             {(Object.keys(TAB_TIERS) as Array<keyof typeof TAB_TIERS>).map(
               (key) => {
                 const tier = TAB_TIERS[key];
@@ -77,12 +76,12 @@ export default function TabProducts({
                     value={key}
                     className="m-0 animate-in fade-in-0 slide-in-from-bottom-4 duration-500"
                   >
-                    <h2 className="text-3xl text-center md:text-4xl lg:text-5xl fw-heading text-foreground flex items-center gap-3">
-                      <span style={{ color: tier.color }}>✦</span>
-                      {tier.label}
-                      <span style={{ color: tier.color }}>✦</span>
-                    </h2>
-                    <p className="text-muted-foreground mt-3 text-sm md:text-base fw-body text-center">
+                    <h3 className="display-heading flex items-center justify-center gap-3 text-center text-2xl sm:text-3xl">
+                      <span className="text-[var(--brand-gold)]">✦</span>
+                      {tier.label} Collection
+                      <span className="text-[var(--brand-gold)]">✦</span>
+                    </h3>
+                    <p className="mt-2 text-center text-[13px] text-[var(--brand-ink)]/55">
                       {tier.tagline}
                     </p>
                   </TabsContent>
@@ -109,19 +108,13 @@ export default function TabProducts({
             ),
           )}
 
-          <div className="flex justify-center mt-12 lg:mt-16">
-            <Link href="/category/new-arrivals">
-              <button
-                type="button"
-                className="group inline-flex items-center gap-3 rounded-full px-10 py-4 fw-cta text-sm uppercase tracking-wider text-white shadow-lg transition-all duration-300 hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-section"
-                style={{
-                  backgroundColor: "var(--brand-primary)",
-                  ["--tw-ring-color" as string]: "var(--brand-primary)",
-                }}
-              >
-                View More
-                <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
-              </button>
+          <div className="mt-11 flex justify-center lg:mt-14">
+            <Link
+              href="/category/new-arrivals"
+              className="btn-gold group !px-8 !py-3"
+            >
+              View More
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
         </Tabs>
