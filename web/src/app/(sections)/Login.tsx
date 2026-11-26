@@ -161,9 +161,9 @@ const LoginPage = () => {
             Ratnavya
           </p>
           <CardTitle className="display-heading text-center text-2xl md:text-3xl">
-            Welcome <span className="accent-italic">back</span>
+            Welcome Back
           </CardTitle>
-          <CardDescription className="mt-1 text-center text-[12px] text-[var(--brand-ink)]/50">
+          <CardDescription className="mt-1 text-center text-[12px] text-[var(--brand-ink)]/65">
             Log in to your account and continue shopping
           </CardDescription>
         </CardHeader>
@@ -177,7 +177,7 @@ const LoginPage = () => {
             <div>
               <Label
                 htmlFor="email"
-                className="mb-2 block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55"
+                className="mb-2 block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65"
               >
                 Email Address
               </Label>
@@ -301,7 +301,7 @@ className={`w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white py-3
               <div className="w-full border-t border-[var(--brand-gold)]/25"></div>
             </div>
             <div className="relative flex justify-center text-[10px] uppercase tracking-[0.18em]">
-              <span className="bg-white px-4 text-[var(--brand-ink)]/40">
+              <span className="bg-white px-4 text-[var(--brand-ink)]/65">
                 Or continue with
               </span>
             </div>
@@ -311,7 +311,7 @@ className={`w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white py-3
             <GoogleLoginBtn />
           </div>
 
-          <p className="text-center text-[12px] text-[var(--brand-ink)]/55">
+          <p className="text-center text-[12px] text-[var(--brand-ink)]/65">
             Don't have an account?{" "}
             <Link
               href="/signup"

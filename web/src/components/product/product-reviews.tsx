@@ -185,7 +185,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               Reviews
             </h2>
           </div>
-          <span className="inline-flex items-center gap-1.5 text-[11px] text-[var(--brand-ink)]/45">
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-[var(--brand-ink)]/65">
             <Award size={14} className="text-[var(--brand-gold-dark)]" />
             {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
           </span>

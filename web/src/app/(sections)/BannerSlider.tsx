@@ -40,7 +40,7 @@ export default function BannerSlider({ slides }: BannerSliderProps) {
 
   const copy = (
     <div className="relative z-20 max-w-xl px-5 sm:px-8 lg:px-14">
-      <p className="eyebrow mb-5 tracking-[0.32em]">
+      <p className="eyebrow mb-5">
         <span className="mr-2 text-[var(--brand-gold)]">✦</span>
         The art of fine jewellery
       </p>

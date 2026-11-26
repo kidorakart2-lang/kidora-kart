@@ -34,7 +34,7 @@ export default function SignatureEdit({
           <h2 className="display-heading mt-4 text-3xl sm:text-4xl lg:text-[2.75rem]">
             The Signature <span className="accent-italic">Edit</span>
           </h2>
-          <p className="mt-4 max-w-xl text-[13px] leading-relaxed text-[var(--brand-ink)]/60 sm:text-sm">
+          <p className="mt-4 max-w-xl text-[13px] leading-relaxed text-[var(--brand-ink)]/70 sm:text-sm">
             The pieces our stylists keep coming back to — layer them, stack
             them, or let one quietly do the talking.
           </p>

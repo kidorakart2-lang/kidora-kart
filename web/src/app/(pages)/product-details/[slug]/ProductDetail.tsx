@@ -268,9 +268,9 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
       : null;
 
   return (
-    <main className="bg-white">
+    <main className="bg-[var(--brand-cream)]/40">
       {/* ── Breadcrumb area ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
         <Breadcrumb
           items={[
             {
@@ -289,14 +289,50 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
         />
       </div>
 
+      {/* ── Editorial product header ── */}
+      <header className="mx-auto max-w-7xl px-4 pb-7 pt-5 text-center sm:px-6 lg:px-8 lg:pt-7">
+        {product.category?.[0]?.name && (
+          <p className="eyebrow">{product.category[0].name}</p>
+        )}
+
+        <h1 className="display-heading mx-auto mt-3 max-w-4xl text-[2.25rem] leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.35rem]">
+          {product.name}
+        </h1>
+
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[12.5px] text-[var(--brand-ink)]/70">
+          <span className="inline-flex items-center gap-2">
+            <span className="flex items-center gap-0.5">
+              {renderStars(product.rating ?? 0)}
+            </span>
+            <span>
+              {product.rating ? Number(product.rating).toFixed(1) : "0.0"} ·{" "}
+              {product.reviewCount || 0}{" "}
+              {product.reviewCount === 1 ? "review" : "reviews"}
+            </span>
+          </span>
+          <span className="hidden size-1 rounded-full bg-[var(--brand-gold)]/60 sm:block" />
+          <span className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
+            SKU {product.sku || product._id.slice(-6)}
+          </span>
+          <button
+            type="button"
+            onClick={handleShare}
+            className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--brand-plum)]"
+          >
+            <Share2 size={13} /> Share
+          </button>
+        </div>
+      </header>
+
       {/* ── Product hero section ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-14">
+      <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-7 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:gap-12">
           {/* ── Left: Images ── */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
+            className="min-w-0"
           >
             <ImageSlider
               images={allImages}
@@ -309,39 +345,23 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
             />
           </motion.div>
 
-          {/* ── Right: Product Info (sticky on desktop) ── */}
+          {/* ── Right: Purchase panel (sticky on desktop) ── */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="flex flex-col lg:sticky lg:top-28 lg:self-start"
+            className="flex min-w-0 flex-col lg:sticky lg:top-28 lg:self-start"
           >
-            {product.category?.[0]?.name && (
-              <p className="mb-3 text-[10px] uppercase tracking-[0.26em] text-[var(--brand-gold-dark)]">
-                {product.category[0].name}
-              </p>
-            )}
-
-            <h1 className="display-heading text-[2.1rem] leading-[1.1] tracking-tight sm:text-4xl lg:text-[2.75rem]">
-              {product.name}
-            </h1>
-
-            {/* Rating row */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="flex items-center gap-3 mb-5"
-            >
-              <div className="flex items-center gap-0.5">
-                {renderStars(product.rating ?? 0)}
+            <div className="rounded-[4px] border border-[var(--brand-gold)]/25 bg-white p-5 shadow-[0_30px_70px_-52px_rgba(74,37,66,0.55)] sm:p-6 lg:p-7">
+              <div className="mb-5 flex items-center justify-between gap-4">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--brand-gold-dark)]">
+                  The piece
+                </p>
+                <span className={`inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] ${(product.stock ?? 0) > 0 ? "text-[#4c6b4f]" : "text-[var(--brand-mauve)]"}`}>
+                  <span className={`size-1.5 rounded-full ${(product.stock ?? 0) > 0 ? "bg-[#6f8f6f]" : "bg-[var(--brand-mauve)]"}`} />
+                  {(product.stock ?? 0) > 0 ? "Ready to ship" : "Sold out"}
+                </span>
               </div>
-              <span className="text-[13px] text-[var(--brand-ink)]/60">
-                {product.rating ? Number(product.rating).toFixed(1) : "0.0"} ·{" "}
-                {product.reviewCount || 0}{" "}
-                {product.reviewCount === 1 ? "review" : "reviews"}
-              </span>
-            </motion.div>
 
             {/* Price */}
             <motion.div
@@ -389,7 +409,7 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                   </span>
                 )}
               </div>
-              <p className="mt-2 text-[10.5px] text-[var(--brand-ink)]/40">
+              <p className="mt-2 text-[10.5px] text-[var(--brand-ink)]/65">
                 Inclusive of all taxes · Free shipping across India
               </p>
             </motion.div>
@@ -484,59 +504,82 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
               }
             />
 
-            {/* Trust row */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.9 }}
-              className="mt-7 grid grid-cols-3 gap-4 border-y border-[var(--brand-gold)]/25 py-5"
-            >
-              {TRUST_BADGES.slice(0, 3).map((badge) => (
-                <div key={badge.label} className="flex items-start gap-2.5">
-                  <badge.icon
-                    size={18}
-                    className="mt-0.5 shrink-0 text-[var(--brand-gold-dark)]"
-                    strokeWidth={1.4}
-                  />
-                  <span>
-                    <span className="block text-[11.5px] leading-tight text-[var(--brand-ink)]">
-                      {badge.label}
-                    </span>
-                    <span className="mt-0.5 block text-[10.5px] text-[var(--brand-ink)]/50">
-                      {badge.desc}
-                    </span>
-                  </span>
-                </div>
-              ))}
-            </motion.div>
+            {product.estimated_delivery_time && (
+              <div className="mt-5 flex items-center gap-2.5 rounded-[3px] border border-[var(--brand-gold)]/20 bg-[var(--brand-section-bg)]/70 px-4 py-3 text-[12.5px] text-[var(--brand-ink)]/75">
+                <Truck size={15} className="shrink-0 text-[var(--brand-gold-dark)]" strokeWidth={1.5} />
+                <span>
+                  Expected delivery in{" "}
+                  <strong className="fw-heading text-[var(--brand-ink)]">
+                    {product.estimated_delivery_time}
+                  </strong>
+                </span>
+              </div>
+            )}
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
+      {/* ── Assurance strip ── */}
+      <section className="border-y border-[var(--brand-gold)]/20 bg-white">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-7 px-4 py-7 sm:px-6 md:grid-cols-4 lg:px-8">
+          {TRUST_BADGES.map((badge) => (
+            <div key={badge.label} className="flex items-start gap-3">
+              <span className="grid size-9 shrink-0 place-items-center rounded-full border border-[var(--brand-gold)]/30 bg-[var(--brand-cream)] text-[var(--brand-gold-dark)]">
+                <badge.icon size={16} strokeWidth={1.4} />
+              </span>
+              <span>
+                <span className="block text-[12px] leading-tight text-[var(--brand-ink)]">
+                  {badge.label}
+                </span>
+                <span className="mt-1 block text-[10.5px] leading-snug text-[var(--brand-ink)]/65">
+                  {badge.desc}
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Personalized section ── */}
+      {product?.isPersonalized && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+          <Personalized />
+        </div>
+      )}
+
+      {/* ── The details ── */}
+      <section className="bg-white py-12 lg:py-16">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.36fr)_minmax(0,0.64fr)] lg:gap-16 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="lg:sticky lg:top-28 lg:self-start"
+          >
+            <p className="eyebrow">
+              <span className="mr-2">✦</span>
+              The details
+            </p>
+            <h2 className="display-heading mt-3 text-3xl leading-tight sm:text-4xl">
+              Considered in every detail.
+            </h2>
             <ProductSpecifications product={product} />
 
-            {/* SKU + categories meta */}
-            <div className="mt-5 grid grid-cols-2 gap-4 text-[11.5px]">
-              <div>
-                <p className="mb-1 text-[10px] uppercase tracking-[0.2em] text-[var(--brand-ink)]/45">
-                  SKU
-                </p>
-                <p className="text-[var(--brand-ink)]/80">
-                  {product.sku || product._id}
-                </p>
-              </div>
-              <div>
-                <p className="mb-1 text-[10px] uppercase tracking-[0.2em] text-[var(--brand-ink)]/45">
-                  Categories
-                </p>
-                <p className="text-[var(--brand-ink)]/80">
-                  {[
-                    ...(product.category ?? []).map((c) => c.name),
-                    ...(product.subCategory ?? []).map((c) => c.name),
-                  ].join(", ") || "Jewellery"}
-                </p>
-              </div>
+            <div className="mt-5 border-t border-[var(--brand-gold)]/20 pt-4 text-[11.5px]">
+              <p className="mb-1 text-[10px] uppercase tracking-[0.2em] text-[var(--brand-ink)]/65">
+                Categories
+              </p>
+              <p className="text-[var(--brand-ink)]/80">
+                {[
+                  ...(product.category ?? []).map((c) => c.name),
+                  ...(product.subCategory ?? []).map((c) => c.name),
+                ].join(", ") || "Jewellery"}
+              </p>
             </div>
 
-            {/* Utility links */}
-            <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[var(--brand-gold)]/20 pt-4 text-[10.5px] uppercase tracking-[0.16em] text-[var(--brand-ink)]/55">
+            <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-[10.5px] uppercase tracking-[0.16em] text-[var(--brand-ink)]/65">
               <Link
                 href="/contact-us"
                 className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--brand-plum)]"
@@ -557,93 +600,72 @@ export default function ProductDetailsPage({ details }: ProductDetailsPageProps)
                 <Share2 size={12} /> Share
               </button>
             </div>
+          </motion.div>
 
-            {/* Estimate delivery */}
-            {product.estimated_delivery_time && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.1 }}
-                className="mt-4 flex items-center gap-2.5 text-sm text-muted-foreground fw-body bg-muted/50 rounded-xl px-4 py-3 border border-border"
-              >
-                <Truck size={15} className="text-brand-600 shrink-0" strokeWidth={1.5} />
-                <span>Expected delivery in <strong className="text-foreground fw-heading">{product.estimated_delivery_time}</strong></span>
-              </motion.div>
-            )}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <div className="flex items-end justify-between gap-4 border-b border-[var(--brand-gold)]/25 pb-4">
+              <div>
+                <p className="eyebrow">Good to know</p>
+                <h3 className="display-heading mt-2 text-2xl sm:text-3xl">
+                  Care, delivery &amp; returns
+                </h3>
+              </div>
+              <span className="mb-1 text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
+                {product.sku || "Ratnavya"}
+              </span>
+            </div>
+
+            <Accordion
+              type="single"
+              collapsible
+              defaultValue="description"
+              className="w-full"
+            >
+              <AccordionItem value="description" className="border-b border-[var(--brand-gold)]/20">
+                <AccordionTrigger className="py-5 text-[11.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)] hover:no-underline">
+                  Description
+                </AccordionTrigger>
+                <AccordionContent className="whitespace-pre-line pb-6 pr-4 text-[13.5px] leading-relaxed text-[var(--brand-ink)]/70">
+                  {product.description}
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="shipping" className="border-b border-[var(--brand-gold)]/20">
+                <AccordionTrigger className="py-5 text-[11.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)] hover:no-underline">
+                  Shipping
+                </AccordionTrigger>
+                <AccordionContent className="pb-6 pr-4 text-[13.5px] leading-relaxed text-[var(--brand-ink)]/70">
+                  Free shipping on every order across India. Dispatched within 1–2
+                  business days; delivery usually takes 3–7 working days. You will
+                  receive tracking details as soon as the parcel leaves our studio.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="packaging" className="border-b border-[var(--brand-gold)]/20">
+                <AccordionTrigger className="py-5 text-[11.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)] hover:no-underline">
+                  Packaging
+                </AccordionTrigger>
+                <AccordionContent className="pb-6 pr-4 text-[13.5px] leading-relaxed text-[var(--brand-ink)]/70">
+                  Each piece arrives in a signature keepsake box with a soft pouch,
+                  ready to gift. Complimentary gift wrapping is available on request.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="returns" className="border-b-0">
+                <AccordionTrigger className="py-5 text-[11.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)] hover:no-underline">
+                  Returns &amp; Cancellations
+                </AccordionTrigger>
+                <AccordionContent className="pb-6 pr-4 text-[13.5px] leading-relaxed text-[var(--brand-ink)]/70">
+                  Easy 15-day returns on unworn pieces in original packaging.
+                  Cancellations are accepted before the order is dispatched — just
+                  reach out to our care team.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </motion.div>
         </div>
-      </div>
-
-      {/* ── Personalized section ── */}
-      {product?.isPersonalized && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-          <Personalized />
-        </div>
-      )}
-
-      {/* ── Details accordion ── */}
-      <section className="mx-auto mb-12 max-w-7xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="rounded-2xl border border-[var(--brand-gold)]/25 bg-white px-6 py-2 sm:px-8"
-        >
-          <Accordion
-            type="single"
-            collapsible
-            defaultValue="description"
-            className="w-full"
-          >
-            <AccordionItem
-              value="description"
-              className="border-b border-[var(--brand-gold)]/20"
-            >
-              <AccordionTrigger className="text-[11px] uppercase tracking-[0.22em] text-[var(--brand-ink)] hover:no-underline">
-                Description
-              </AccordionTrigger>
-              <AccordionContent className="max-w-4xl whitespace-pre-line pb-5 text-[13.5px] leading-relaxed text-[var(--brand-ink)]/70">
-                {product.description}
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem
-              value="shipping"
-              className="border-b border-[var(--brand-gold)]/20"
-            >
-              <AccordionTrigger className="text-[11px] uppercase tracking-[0.22em] text-[var(--brand-ink)] hover:no-underline">
-                Shipping
-              </AccordionTrigger>
-              <AccordionContent className="pb-5 text-[13.5px] leading-relaxed text-[var(--brand-ink)]/70">
-                Free shipping on every order across India. Dispatched within 1–2
-                business days; delivery usually takes 3–7 working days. You will
-                receive tracking details as soon as the parcel leaves our studio.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem
-              value="packaging"
-              className="border-b border-[var(--brand-gold)]/20"
-            >
-              <AccordionTrigger className="text-[11px] uppercase tracking-[0.22em] text-[var(--brand-ink)] hover:no-underline">
-                Packaging
-              </AccordionTrigger>
-              <AccordionContent className="pb-5 text-[13.5px] leading-relaxed text-[var(--brand-ink)]/70">
-                Each piece arrives in a signature keepsake box with a soft pouch,
-                ready to gift. Complimentary gift wrapping is available on request.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="returns" className="border-b-0">
-              <AccordionTrigger className="text-[11px] uppercase tracking-[0.22em] text-[var(--brand-ink)] hover:no-underline">
-                Returns &amp; Cancellations
-              </AccordionTrigger>
-              <AccordionContent className="pb-5 text-[13.5px] leading-relaxed text-[var(--brand-ink)]/70">
-                Easy 15-day returns on unworn pieces in original packaging.
-                Cancellations are accepted before the order is dispatched — just
-                reach out to our care team.
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </motion.div>
       </section>
 
       {/* ── Gift Images Gallery ── */}

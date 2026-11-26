@@ -309,7 +309,7 @@ export default function ProductCard({
               {(data.reviewCount ?? 0) > 0 && (
                 <>
                   <span className="mx-0.5 h-2.5 w-px bg-[var(--brand-ink)]/15" />
-                  <span className="text-[9.5px] text-[var(--brand-ink)]/55">
+                  <span className="text-[9.5px] text-[var(--brand-ink)]/65">
                     {data.reviewCount}
                   </span>
                 </>
@@ -352,7 +352,7 @@ export default function ProductCard({
               ? "text-[var(--brand-gold)]"
               : isDark
                 ? "text-[var(--brand-cream)]/70"
-                : "text-[var(--brand-ink)]/60"
+                : "text-[var(--brand-ink)]/70"
           }`}
           aria-hidden="true"
         />
@@ -389,7 +389,7 @@ export default function ProductCard({
                   className={`text-[10.5px] line-through ${
                     isDark
                       ? "text-[var(--brand-cream)]/45"
-                      : "text-[var(--brand-ink)]/40"
+                      : "text-[var(--brand-ink)]/65"
                   }`}
                   aria-label={`Original price: ${displayPrice} rupees`}
                 >

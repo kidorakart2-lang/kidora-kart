@@ -31,11 +31,11 @@ export default function OrderSummaryCard({ pricing, isCodAdvance }: OrderSummary
       </div>
       <div className="space-y-3">
         <div className="flex justify-between text-[12.5px]">
-          <span className="text-[var(--brand-ink)]/55">Subtotal</span>
+          <span className="text-[var(--brand-ink)]/65">Subtotal</span>
           <span className="text-[var(--brand-ink)]">₹{pricing.subtotal?.toLocaleString("en-IN")}</span>
         </div>
         <div className="flex justify-between text-[12.5px]">
-          <span className="text-[var(--brand-ink)]/55">Shipping</span>
+          <span className="text-[var(--brand-ink)]/65">Shipping</span>
           <span className="text-[var(--brand-ink)]">{pricing.shipping === 0 ? "Free" : `₹${pricing.shipping?.toLocaleString("en-IN")}`}</span>
         </div>
         {pricing.discount?.amount != null && pricing.discount.amount > 0 && (
@@ -46,12 +46,12 @@ export default function OrderSummaryCard({ pricing, isCodAdvance }: OrderSummary
         )}
         {isCodAdvance && pricing.advance != null && (
           <div className="flex justify-between text-[12.5px]">
-            <span className="text-[var(--brand-ink)]/55">Amount Left</span>
+            <span className="text-[var(--brand-ink)]/65">Amount Left</span>
             <span className="text-[var(--brand-ink)]">₹{(pricing.total - pricing.advance).toLocaleString("en-IN")}</span>
           </div>
         )}
         <div className="flex items-baseline justify-between border-t border-[var(--brand-gold)]/25 pt-3">
-          <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/55">Total</span>
+          <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/65">Total</span>
           <span className="display-heading text-xl text-[var(--brand-plum)]">₹{pricing.total.toLocaleString("en-IN")}</span>
         </div>
       </div>

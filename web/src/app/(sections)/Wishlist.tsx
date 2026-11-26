@@ -132,9 +132,9 @@ export default function Wishlist({
 
           <div className="space-y-2">
             <h2 className="display-heading text-3xl">
-              Your Wishlist is <span className="accent-italic">Empty</span>
+              Your Wishlist is Empty
             </h2>
-            <p className="text-[12.5px] leading-relaxed text-[var(--brand-ink)]/55">
+            <p className="text-[12.5px] leading-relaxed text-[var(--brand-ink)]/65">
               Save your favourite pieces and create your dream collection. Start exploring our jewellery.
             </p>
           </div>
@@ -192,13 +192,13 @@ export default function Wishlist({
             <p className="eyebrow mb-2"><span className="mr-2">✦</span>Saved for later</p>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="display-heading text-3xl md:text-4xl">
-                My <span className="accent-italic">Wishlist</span>
+                My Wishlist
               </h1>
               <span className="inline-flex items-center justify-center rounded-full border border-[var(--brand-gold)]/40 px-3 py-1 text-[10px] uppercase tracking-[0.14em] text-[var(--brand-gold-dark)]">
                 {displayItems.length} {displayItems.length === 1 ? "item" : "items"}
               </span>
             </div>
-            <p className="mt-1.5 text-[12px] text-[var(--brand-ink)]/50">
+            <p className="mt-1.5 text-[12px] text-[var(--brand-ink)]/65">
               Pieces you&apos;ve kept close to your heart
             </p>
             <div className="mt-4 h-px bg-gradient-to-r from-[var(--brand-gold)]/50 via-[var(--brand-gold)]/20 to-transparent" />
@@ -275,7 +275,7 @@ function WishlistCard({
       {/* Remove Button */}
       <motion.button
         onClick={() => onRemove(item._id)}
-        className="absolute right-2 top-2 z-20 grid size-7 place-items-center rounded-full border border-[var(--brand-gold)]/40 bg-white/90 text-[var(--brand-ink)]/50 backdrop-blur-sm transition-all duration-300 hover:border-destructive/40 hover:bg-destructive hover:text-white md:opacity-0 md:group-hover:opacity-100"
+        className="absolute right-2 top-2 z-20 grid size-7 place-items-center rounded-full border border-[var(--brand-gold)]/40 bg-white/90 text-[var(--brand-ink)]/65 backdrop-blur-sm transition-all duration-300 hover:border-destructive/40 hover:bg-destructive hover:text-white md:opacity-0 md:group-hover:opacity-100"
         whileHover={{ rotate: 90 }}
         whileTap={{ scale: 0.9 }}
         aria-label="Remove from wishlist"
@@ -286,7 +286,7 @@ function WishlistCard({
       {/* Stock Badge */}
       <div className="absolute top-2 left-2 z-20">
         {item.stock <= 0 ? (
-          <span className="inline-flex items-center gap-1 rounded-full border border-[var(--brand-gold)]/30 bg-white/90 px-2 py-0.5 text-[9px] uppercase tracking-[0.1em] text-[var(--brand-ink)]/55 backdrop-blur-sm">
+          <span className="inline-flex items-center gap-1 rounded-full border border-[var(--brand-gold)]/30 bg-white/90 px-2 py-0.5 text-[9px] uppercase tracking-[0.1em] text-[var(--brand-ink)]/65 backdrop-blur-sm">
             <span className="size-1 animate-pulse rounded-full bg-destructive" />
             Out of Stock
           </span>
@@ -347,7 +347,7 @@ function WishlistCard({
             ₹{(item.discount_price || item.price || 0).toLocaleString()}
           </span>
           {item.price && item.discount_price && item.price > item.discount_price && (
-            <span className="text-[11px] text-[var(--brand-ink)]/40 line-through">
+            <span className="text-[11px] text-[var(--brand-ink)]/65 line-through">
               ₹{item.price.toLocaleString()}
             </span>
           )}

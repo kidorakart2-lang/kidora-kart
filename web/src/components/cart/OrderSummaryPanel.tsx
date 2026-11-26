@@ -46,7 +46,7 @@ export default function OrderSummaryPanel({
         <div className="px-6">
           <div className="space-y-3 border-t border-[var(--brand-gold)]/20 py-4">
             <div className="flex justify-between text-[13px]">
-              <span className="text-[var(--brand-ink)]/60">Subtotal</span>
+              <span className="text-[var(--brand-ink)]/70">Subtotal</span>
               <span className="text-[var(--brand-ink)]">₹{subtotal.toFixed(2)}</span>
             </div>
 
@@ -60,7 +60,7 @@ export default function OrderSummaryPanel({
             )}
 
             <div className="flex justify-between text-[13px]">
-              <span className="text-[var(--brand-ink)]/60">Shipping</span>
+              <span className="text-[var(--brand-ink)]/70">Shipping</span>
               <span className="text-[var(--brand-ink)]">
                 {shipping === 0 ? (
                   <span className="text-[var(--brand-gold-dark)]">Free</span>
@@ -74,7 +74,7 @@ export default function OrderSummaryPanel({
 
         <div className="px-6">
           <div className="flex items-center justify-between border-t border-[var(--brand-gold)]/20 py-4">
-            <span className="text-[11px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/55">
+            <span className="text-[11px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/65">
               Estimated total
             </span>
             <motion.span
@@ -112,7 +112,7 @@ export default function OrderSummaryPanel({
             {TRUST.map(({ icon: Icon, label }) => (
               <li
                 key={label}
-                className="flex items-center gap-2.5 text-[11.5px] text-[var(--brand-ink)]/60"
+                className="flex items-center gap-2.5 text-[11.5px] text-[var(--brand-ink)]/70"
               >
                 <Icon
                   size={14}

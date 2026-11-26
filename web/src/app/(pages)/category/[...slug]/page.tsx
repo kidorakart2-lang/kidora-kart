@@ -267,7 +267,7 @@ async function CategoryContent({
       <div className="relative py-5 md:py-10 animate-fadeIn">
         {query ? (
           <div className="relative text-center space-y-3">
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-extralight text-foreground capitalize tracking-tight leading-tight">
+            <h1 className="text-[2.25rem] sm:text-5xl md:text-6xl font-normal text-foreground capitalize tracking-tight leading-tight">
               Search Results for &quot;{query}&quot;
             </h1>
             <div className="h-px bg-gradient-to-r from-transparent via-brand-400 to-transparent mt-4 mx-auto animate-expandLine" style={{ width: "60%" }} />
@@ -288,7 +288,7 @@ async function CategoryContent({
               </div>
             )}
             <div className="relative inline-block">
-              <h1 className="text-5xl sm:text-6xl md:text-7xl font-extralight text-foreground capitalize tracking-tight leading-tight">
+              <h1 className="text-[2.25rem] sm:text-5xl md:text-6xl font-normal text-foreground capitalize tracking-tight leading-tight">
                 {subSubCategorySlug ? subSubCategorySlug.replace(/[-0-9]/g, " ") : subCategorySlug ? subCategorySlug.replace(/[-0-9]/g, " ") : categorySlug.replace(/[-0-9]/g, " ")}
               </h1>
               <div className="h-px bg-gradient-to-r from-transparent via-brand-400 to-transparent mt-4 mx-auto animate-expandLine" style={{ width: "60%" }} />

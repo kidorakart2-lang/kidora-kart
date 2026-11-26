@@ -22,9 +22,9 @@ export default function FAQPage({ data }: { data: FAQItem[] | null | undefined }
       <div className="mb-12 text-center">
         <p className="eyebrow mb-2"><span className="mr-2">✦</span>Good to know</p>
         <h1 className="display-heading text-3xl md:text-4xl">
-          Frequently Asked <span className="accent-italic">Questions</span>
+          Frequently Asked Questions
         </h1>
-        <p className="mx-auto mt-3 max-w-2xl text-[12.5px] leading-relaxed text-[var(--brand-ink)]/55">
+        <p className="mx-auto mt-3 max-w-2xl text-[12.5px] leading-relaxed text-[var(--brand-ink)]/65">
           Answers about our silver, orders, shipping and returns.
         </p>
       </div>
@@ -48,7 +48,7 @@ export default function FAQPage({ data }: { data: FAQItem[] | null | undefined }
               </span>
             </AccordionTrigger>
             <AccordionContent className="border-t border-[var(--brand-gold)]/15 bg-white px-5 pb-5">
-              <p className="text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
+              <p className="text-[12.5px] leading-relaxed text-[var(--brand-ink)]/70">
                 {faq.answer}
               </p>
             </AccordionContent>
@@ -58,7 +58,7 @@ export default function FAQPage({ data }: { data: FAQItem[] | null | undefined }
 
       {/* Contact Section */}
       <div className="mt-16 rounded-xl border border-[var(--brand-gold)]/25 bg-white p-8 text-center">
-        <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/45">
+        <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/65">
           Still have questions?
         </p>
         <a

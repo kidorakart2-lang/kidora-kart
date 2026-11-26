@@ -86,13 +86,9 @@ export default function ProductSpecifications({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.5, duration: 0.5 }}
-      className="mt-7"
+      className="mt-6"
     >
-      <h3 className="text-[10px] uppercase tracking-[0.22em] text-[var(--brand-ink)]/45">
-        The details
-      </h3>
-
-      <dl className="mt-3 grid grid-cols-2 gap-x-8">
+      <dl className="grid grid-cols-1 gap-x-8 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
         {specs.map((spec, i) => (
           <motion.div
             key={spec.label}
@@ -107,7 +103,7 @@ export default function ProductSpecifications({
               strokeWidth={1.5}
             />
             <div className="min-w-0">
-              <dt className="text-[9px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/40">
+              <dt className="text-[9px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                 {spec.label}
               </dt>
               <dd className="mt-0.5 text-[12.5px] leading-snug text-[var(--brand-ink)]/80">

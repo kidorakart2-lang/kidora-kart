@@ -16,7 +16,7 @@ export default function GiftOptions({ isGift, giftMessage, giftWrap, onGiftChang
         <span className="grid size-8 place-items-center rounded-full border border-[var(--brand-gold)]/50 bg-[var(--brand-gold)]/10 text-[12px] text-[var(--brand-gold-dark)]">2</span>
         <div>
           <h2 className="display-heading text-lg">Gift Options</h2>
-          <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/50">Make your order extra special</p>
+          <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/65">Make your order extra special</p>
         </div>
       </div>
 
@@ -27,12 +27,12 @@ export default function GiftOptions({ isGift, giftMessage, giftWrap, onGiftChang
         </div>
         <div className="flex-1">
           <label htmlFor="is-gift" className="text-sm text-[var(--brand-ink)]">This is a gift</label>
-          <p className="mt-0.5 text-[11.5px] text-[var(--brand-ink)]/50">Add a gift message and gift wrap to your order</p>
+          <p className="mt-0.5 text-[11.5px] text-[var(--brand-ink)]/65">Add a gift message and gift wrap to your order</p>
 
           {isGift && (
             <div className="mt-4 space-y-4 pl-1">
               <div>
-                <label htmlFor="gift-message" className="mb-1 block text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">Gift Message (Optional)</label>
+                <label htmlFor="gift-message" className="mb-1 block text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">Gift Message (Optional)</label>
                 <textarea id="gift-message" rows={2} placeholder="Write a personal message..." value={giftMessage}
                   onChange={(e) => onMessageChange(e.target.value)}
                   className="w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white px-3 py-2 text-sm text-[var(--brand-ink)] transition-all focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30" />
@@ -44,7 +44,7 @@ export default function GiftOptions({ isGift, giftMessage, giftWrap, onGiftChang
                 </div>
                 <div>
                   <label htmlFor="gift-wrap" className="text-sm text-[var(--brand-ink)]">Add Gift Wrap (₹50)</label>
-                  <p className="mt-0.5 text-[11.5px] text-[var(--brand-ink)]/50">Premium gift wrapping with a personalized message card</p>
+                  <p className="mt-0.5 text-[11.5px] text-[var(--brand-ink)]/65">Premium gift wrapping with a personalized message card</p>
                 </div>
               </div>
             </div>

@@ -52,8 +52,8 @@ export default function ImageSlider({
           isActive
         />
       ) : (
-        <div className="group relative overflow-hidden rounded-xl border border-[var(--brand-gold)]/25 bg-white p-2">
-          <div className="relative overflow-hidden rounded-lg bg-[var(--brand-section-bg)]">
+        <div className="group relative overflow-hidden rounded-[4px] border border-[var(--brand-gold)]/30 bg-white p-1.5 shadow-[0_30px_70px_-55px_rgba(74,37,66,0.6)] sm:p-2">
+          <div className="relative overflow-hidden rounded-[2px] bg-[var(--brand-section-bg)]">
             <Swiper
               onSwiper={(swiper) => {
                 mainRef.current = swiper;
@@ -91,7 +91,7 @@ export default function ImageSlider({
                   type="button"
                   onClick={() => paginate(-1)}
                   aria-label="Previous image"
-                  className="absolute left-3 top-1/2 z-20 grid size-9 -translate-y-1/2 place-items-center rounded-full border border-[var(--brand-gold)]/35 bg-white/85 text-[var(--brand-plum)] backdrop-blur-sm transition-opacity hover:bg-white md:opacity-0 md:group-hover:opacity-100"
+                  className="absolute left-3 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-[var(--brand-gold)]/35 bg-white/90 text-[var(--brand-plum)] shadow-sm backdrop-blur-sm transition-all hover:bg-white md:opacity-0 md:group-hover:opacity-100"
                 >
                   <ChevronLeft size={17} />
                 </button>
@@ -99,14 +99,14 @@ export default function ImageSlider({
                   type="button"
                   onClick={() => paginate(1)}
                   aria-label="Next image"
-                  className="absolute right-3 top-1/2 z-20 grid size-9 -translate-y-1/2 place-items-center rounded-full border border-[var(--brand-gold)]/35 bg-white/85 text-[var(--brand-plum)] backdrop-blur-sm transition-opacity hover:bg-white md:opacity-0 md:group-hover:opacity-100"
+                  className="absolute right-3 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-[var(--brand-gold)]/35 bg-white/90 text-[var(--brand-plum)] shadow-sm backdrop-blur-sm transition-all hover:bg-white md:opacity-0 md:group-hover:opacity-100"
                 >
                   <ChevronRight size={17} />
                 </button>
               </>
             )}
 
-            <span className="absolute bottom-3 right-3 z-20 rounded-full bg-[var(--brand-plum)]/80 px-2.5 py-1 text-[10px] tracking-wide text-[var(--brand-cream)] backdrop-blur-sm">
+            <span className="absolute bottom-3 right-3 z-20 rounded-full border border-[var(--brand-gold)]/30 bg-white/90 px-2.5 py-1 text-[10px] tracking-[0.08em] text-[var(--brand-plum)] backdrop-blur-sm">
               {currentImage + 1} / {images.length}
             </span>
           </div>
@@ -130,10 +130,10 @@ export default function ImageSlider({
                 onClick={() => goTo(index)}
                 aria-label={`View ${productName} image ${index + 1}`}
                 aria-current={!showVideo && currentImage === index}
-                className={`size-[68px] overflow-hidden rounded-lg border-2 bg-[var(--brand-surface)] transition-all sm:size-[76px] ${
+                className={`size-[58px] overflow-hidden rounded-[2px] border bg-[var(--brand-surface)] transition-all sm:size-[68px] ${
                   !showVideo && currentImage === index
-                    ? "border-[var(--brand-gold)] shadow-[0_6px_16px_-12px_rgba(74,37,66,0.6)]"
-                    : "border-transparent opacity-75 hover:opacity-100"
+                    ? "border-[var(--brand-gold)] opacity-100 shadow-[0_6px_16px_-12px_rgba(74,37,66,0.6)]"
+                    : "border-transparent opacity-70 hover:opacity-100"
                 }`}
               >
                 <Image
@@ -142,6 +142,7 @@ export default function ImageSlider({
                   width={76}
                   height={76}
                   className="h-full w-full object-cover"
+                  sizes="64px"
                 />
               </button>
             </SwiperSlide>

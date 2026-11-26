@@ -58,7 +58,7 @@ export default function OrderTimeline({ status, statusHistory, isCancelled, isPa
         <div className="grid size-8 place-items-center rounded-full border border-[var(--brand-gold)]/50 bg-[var(--brand-gold)]/10 text-[12px] text-[var(--brand-gold-dark)]">1</div>
         <div>
           <h2 className="display-heading text-lg">Order Status</h2>
-          <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/50">Tracking your order progress</p>
+          <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/65">Tracking your order progress</p>
         </div>
       </div>
 
@@ -84,7 +84,7 @@ export default function OrderTimeline({ status, statusHistory, isCancelled, isPa
                     {getStatusIcon(s)}
                   </motion.div>
                   <span className="mt-2 text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">{s}</span>
-                  {item && <span className="mt-1 text-[10.5px] text-[var(--brand-ink)]/40">{new Date(item.timestamp).toLocaleDateString("en-IN")}</span>}
+                  {item && <span className="mt-1 text-[10.5px] text-[var(--brand-ink)]/65">{new Date(item.timestamp).toLocaleDateString("en-IN")}</span>}
                 </motion.div>
               );
             })}
@@ -102,7 +102,7 @@ export default function OrderTimeline({ status, statusHistory, isCancelled, isPa
                 <div className={`flex size-10 shrink-0 items-center justify-center rounded-full ${getStatusColor(s, isActive, isCompleted)}`}>{getStatusIcon(s)}</div>
                 <div className="flex-1">
                   <p className="text-[12px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/75">{s}</p>
-                  {item && <p className="text-[11px] text-[var(--brand-ink)]/40">{new Date(item.timestamp).toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</p>}
+                  {item && <p className="text-[11px] text-[var(--brand-ink)]/65">{new Date(item.timestamp).toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</p>}
                 </div>
               </motion.div>
             );

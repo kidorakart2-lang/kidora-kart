@@ -64,7 +64,7 @@ const WhyChooseUsItem = ({ item }: { item: WhyChooseUsData }) => {
       <h3 className="display-heading text-base leading-snug sm:text-[1.15rem] lg:text-xl">
         {item.title}
       </h3>
-      <p className="mt-2 text-[11.5px] leading-relaxed text-[var(--brand-ink)]/60 sm:mt-2.5 sm:text-[12.5px]">
+      <p className="mt-2 text-[11.5px] leading-relaxed text-[var(--brand-ink)]/70 sm:mt-2.5 sm:text-[12.5px]">
         {item.description}
       </p>
 
@@ -122,7 +122,7 @@ const WhyChooseUs = () => {
           >
             Why Choose <span className="accent-italic">Ratnavya?</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-[13px] leading-relaxed text-[var(--brand-ink)]/60 sm:text-sm">
+          <p className="mx-auto mt-4 max-w-xl text-[13px] leading-relaxed text-[var(--brand-ink)]/70 sm:text-sm">
             The little details that make every order feel as considered as the
             jewellery itself.
           </p>

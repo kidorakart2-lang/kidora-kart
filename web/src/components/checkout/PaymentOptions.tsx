@@ -20,13 +20,13 @@ const TRUST = [
 export default function PaymentOptions({ onPayOnline, onCashOnDelivery, loading }: PaymentOptionsProps) {
   return (
     <div className="mt-6 space-y-4 border-t border-[var(--brand-gold)]/20 pt-5">
-      <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--brand-ink)]/45">
+      <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--brand-ink)]/65">
         Payment method
       </p>
 
       <div className="space-y-2">
         <SwipeButton onSwipeComplete={onPayOnline} text="Pay Online" className="w-full" />
-        <p className="flex items-center justify-center gap-1 text-[10px] text-[var(--brand-ink)]/45">
+        <p className="flex items-center justify-center gap-1 text-[10px] text-[var(--brand-ink)]/65">
           <Shield size={10} /> Secured by Razorpay
         </p>
       </div>
@@ -36,7 +36,7 @@ export default function PaymentOptions({ onPayOnline, onCashOnDelivery, loading 
           <span className="w-full border-t border-[var(--brand-gold)]/20" />
         </div>
         <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em]">
-          <span className="bg-white px-3 text-[var(--brand-ink)]/40">or</span>
+          <span className="bg-white px-3 text-[var(--brand-ink)]/65">or</span>
         </div>
       </div>
 
@@ -70,7 +70,7 @@ export default function PaymentOptions({ onPayOnline, onCashOnDelivery, loading 
         {TRUST.map(({ icon: Icon, label }) => (
           <div key={label} className="text-center">
             <Icon size={16} className="mx-auto mb-1.5 text-[var(--brand-gold-dark)]" strokeWidth={1.5} />
-            <p className="text-[9.5px] uppercase leading-tight tracking-[0.1em] text-[var(--brand-ink)]/50">{label}</p>
+            <p className="text-[9.5px] uppercase leading-tight tracking-[0.1em] text-[var(--brand-ink)]/65">{label}</p>
           </div>
         ))}
       </div>

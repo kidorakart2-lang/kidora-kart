@@ -232,13 +232,13 @@ export default function OrderSuccess() {
             transition={{ delay: 0.3 }}
             className="display-heading text-3xl md:text-4xl"
           >
-            Thank you for your <span className="accent-italic">order.</span>
+            Thank you for your order.
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="mt-2 text-sm text-[var(--brand-ink)]/60"
+            className="mt-2 text-sm text-[var(--brand-ink)]/70"
           >
             We&apos;ll send you a confirmation when your order ships.
           </motion.p>
@@ -287,7 +287,7 @@ export default function OrderSuccess() {
                       <h3 className="display-heading text-lg">
                         Order Progress
                       </h3>
-                      <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/50">
+                      <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/65">
                         Estimated delivery by {estimatedDelivery(order.createdAt)}
                       </p>
                     </div>
@@ -314,7 +314,7 @@ export default function OrderSuccess() {
                       <h3 className="display-heading text-lg">
                         Your Items
                       </h3>
-                      <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/50">
+                      <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/65">
                         {order.items.length}{" "}
                         {order.items.length === 1 ? "item" : "items"} in this
                         order
@@ -352,7 +352,7 @@ export default function OrderSuccess() {
                       {order.shippingAddress.state} -{" "}
                       {order.shippingAddress.pincode}
                     </p>
-                    <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-[var(--brand-gold)]/25 pt-3 text-[11px] text-[var(--brand-ink)]/45">
+                    <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-[var(--brand-gold)]/25 pt-3 text-[11px] text-[var(--brand-ink)]/65">
                       <span className="flex items-center gap-1">
                         <Phone className="w-3 h-3" />
                         {order.shippingAddress.phone}
@@ -409,7 +409,7 @@ export default function OrderSuccess() {
                   {/* Price breakdown */}
                   <div className="space-y-3 border-y border-[var(--brand-gold)]/20 py-4">
                     <div className="flex justify-between text-sm">
-                      <span className="text-[var(--brand-ink)]/60">Subtotal</span>
+                      <span className="text-[var(--brand-ink)]/70">Subtotal</span>
                       <span className="text-foreground">
                         ₹{order.pricing.subtotal}
                       </span>
@@ -423,7 +423,7 @@ export default function OrderSuccess() {
                       </div>
                     )}
                     <div className="flex justify-between text-sm">
-                      <span className="text-[var(--brand-ink)]/60">Shipping</span>
+                      <span className="text-[var(--brand-ink)]/70">Shipping</span>
                       <span className="text-foreground">
                         {order.pricing.shipping > 0
                           ? `₹${order.pricing.shipping}`
@@ -434,7 +434,7 @@ export default function OrderSuccess() {
 
                   {/* Total */}
                   <div className="flex items-baseline justify-between pt-4">
-                    <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/55">
+                    <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/65">
                       Total
                     </span>
                     <span className="display-heading text-2xl text-[var(--brand-plum)]">
@@ -444,7 +444,7 @@ export default function OrderSuccess() {
 
                   {/* Payment method */}
                   <div className="mt-5 border-t border-[var(--brand-gold)]/20 pt-4">
-                    <div className="flex items-center gap-2 text-[12.5px] text-[var(--brand-ink)]/60">
+                    <div className="flex items-center gap-2 text-[12.5px] text-[var(--brand-ink)]/70">
                       <CreditCard className="h-4 w-4 text-[var(--brand-gold-dark)]" />
                       <span>
                         Paid via{" "}
@@ -466,7 +466,7 @@ export default function OrderSuccess() {
                   {/* Package ID */}
                   {packageId && (
                     <div className="mt-4 border-t border-[var(--brand-gold)]/20 pt-4">
-                      <p className="mb-1 text-[10px] uppercase tracking-[0.16em] text-[var(--brand-ink)]/45">
+                      <p className="mb-1 text-[10px] uppercase tracking-[0.16em] text-[var(--brand-ink)]/65">
                         Package ID
                       </p>
                       <p className="text-sm font-mono font-medium text-foreground">
@@ -504,7 +504,7 @@ export default function OrderSuccess() {
         {/* ── Loading state ─────────────────────────────────────── */}
         {!order && (
           <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-            <p className="text-sm text-[var(--brand-ink)]/50">
+            <p className="text-sm text-[var(--brand-ink)]/65">
               Loading order details...
             </p>
           </div>

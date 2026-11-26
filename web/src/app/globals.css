@@ -13,6 +13,8 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-lato), "Lato", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
   }
 
   /* One heading voice across the whole storefront. */
@@ -25,6 +27,8 @@
     font-family: var(--font-playfair), "Playfair Display", Georgia, serif;
     color: var(--brand-heading);
     letter-spacing: -0.01em;
+    line-height: 1.12;
+    text-wrap: balance;
   }
 
   button,
@@ -130,7 +134,7 @@
   --secondary: #fbeef3;
   --secondary-foreground: #4a2542;
   --muted: #fbf3f6;
-  --muted-foreground: #8c7280;
+  --muted-foreground: #7d6271;
   --accent: #fbeef3;
   --accent-foreground: #4a2542;
   --destructive: #c7304f;
@@ -171,7 +175,7 @@
   --brand-plum: #4a2542;
   --brand-cream: #fffaf6;
   --brand-gold: #cfa869;
-  --brand-gold-dark: #a97f3f;
+  --brand-gold-dark: #8a6428;
   --brand-mauve: #bf839c;
   --brand-rose: #f7e2ea;
   --brand-pink: #c94f72;
@@ -483,23 +487,31 @@
 @layer components {
   /* Eyebrow label — uppercase, wide-tracked, gold, sparkle prefix */
   .eyebrow {
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     font-weight: 500;
+    line-height: 1.45;
     text-transform: uppercase;
-    letter-spacing: 0.28em;
+    letter-spacing: 0.18em;
     color: var(--brand-gold-dark);
   }
 
   @media (min-width: 640px) {
     .eyebrow {
-      font-size: 0.875rem;
+      font-size: 0.75rem;
     }
+  }
+
+  /* Keep eyebrows legible on dark editorial surfaces */
+  .jb-hero .eyebrow,
+  .editorial-dark .eyebrow {
+    color: #e6d0a2;
   }
 
   /* Display heading — Playfair serif, tight tracking */
   .display-heading {
     font-family: var(--font-playfair), "Playfair Display", Georgia, serif;
     letter-spacing: -0.02em;
+    line-height: 1.08;
     color: var(--brand-heading);
   }
 
@@ -866,15 +878,16 @@
 }
 
 [data-sonner-toast] {
-  gap: 10px !important;
+  gap: 11px !important;
   align-items: flex-start !important;
-  padding: 14px 16px !important;
+  padding: 15px 44px 15px 15px !important;
   border-width: 1px !important;
-  border-radius: 0.9rem !important;
+  border-left-width: 2px !important;
+  border-radius: 0.75rem !important;
   border-color: color-mix(in srgb, var(--brand-gold) 38%, transparent) !important;
   background: #ffffff !important;
   color: var(--brand-heading) !important;
-  box-shadow: 0 18px 45px -30px rgba(74, 37, 66, 0.55) !important;
+  box-shadow: 0 20px 46px -32px rgba(74, 37, 66, 0.5) !important;
 }
 
 [data-sonner-toast][data-type="error"] {
@@ -896,7 +909,21 @@
 }
 
 [data-sonner-toast] [data-icon] {
+  display: flex !important;
+  width: 26px !important;
+  height: 26px !important;
+  flex: 0 0 26px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-top: 1px !important;
+  border-radius: 9999px !important;
+  background: color-mix(in srgb, var(--brand-gold) 15%, #ffffff) !important;
   color: var(--brand-gold-dark) !important;
+}
+
+[data-sonner-toast] [data-icon] svg {
+  width: 14px !important;
+  height: 14px !important;
 }
 
 [data-sonner-toast][data-type="error"] [data-icon] {
@@ -912,29 +939,33 @@
 }
 
 [data-sonner-toast] [data-close-button] {
-  top: 8px !important;
+  top: 11px !important;
   left: auto !important;
-  right: 8px !important;
-  width: 22px !important;
-  height: 22px !important;
-  border: 1px solid color-mix(in srgb, var(--brand-gold) 30%, transparent) !important;
-  background: #ffffff !important;
-  color: var(--muted-foreground) !important;
+  right: 11px !important;
+  width: 26px !important;
+  height: 26px !important;
+  padding: 0 !important;
+  border: 1px solid var(--brand-plum) !important;
+  border-radius: 9999px !important;
+  background: var(--brand-plum) !important;
+  color: var(--brand-cream) !important;
   opacity: 1 !important;
+  transform: none !important;
   transition: background 160ms ease, color 160ms ease, border-color 160ms ease !important;
 }
 
 [data-sonner-toast] [data-close-button] svg {
-  width: 12px !important;
-  height: 12px !important;
+  width: 13px !important;
+  height: 13px !important;
   color: currentColor !important;
   stroke: currentColor !important;
+  stroke-width: 1.8 !important;
 }
 
 [data-sonner-toast] [data-close-button]:hover {
-  border-color: color-mix(in srgb, var(--brand-gold) 55%, transparent) !important;
-  background: var(--brand-rose) !important;
-  color: var(--brand-plum) !important;
+  border-color: var(--brand-primary-dark) !important;
+  background: var(--brand-primary-dark) !important;
+  color: var(--brand-cream) !important;
 }
 
 @media (max-width: 600px) {

@@ -29,7 +29,7 @@ export default function AboutStory() {
   const collage = [0, 1, 2].map((i) => images[i] ?? FALLBACKS[i]);
 
   return (
-    <section className="relative overflow-hidden bg-white py-16 lg:py-24">
+    <section className="relative overflow-hidden bg-white py-14 lg:py-20">
       {/* fine gold editorial line work */}
       <svg
         viewBox="0 0 720 520"
@@ -58,7 +58,7 @@ export default function AboutStory() {
             The story behind the sparkle
           </p>
 
-          <h2 className="display-heading text-[2.6rem] leading-[1.06] sm:text-5xl lg:text-[3.6rem]">
+          <h2 className="display-heading text-[2.25rem] leading-[1.06] sm:text-5xl lg:text-[3.6rem]">
             More Than Jewellery.
             <br />
             <span className="accent-italic">A Legacy of Elegance.</span>
@@ -90,7 +90,7 @@ export default function AboutStory() {
                 <p className="display-heading text-xl text-[var(--brand-plum)]">
                   {value}
                 </p>
-                <p className="mt-1 text-[9.5px] uppercase tracking-[0.16em] text-[var(--brand-ink)]/45">
+                <p className="mt-1 text-[9.5px] uppercase tracking-[0.16em] text-[var(--brand-ink)]/65">
                   {label}
                 </p>
               </div>
@@ -137,7 +137,7 @@ export default function AboutStory() {
             <span className="grid size-8 place-items-center rounded-full bg-[var(--brand-section-bg)] text-[var(--brand-gold-dark)]">
               ✦
             </span>
-            <span className="text-[9.5px] uppercase leading-tight tracking-[0.18em] text-[var(--brand-ink)]/60">
+            <span className="text-[9.5px] uppercase leading-tight tracking-[0.18em] text-[var(--brand-ink)]/70">
               Crafted with
               <br />
               <span className="text-[var(--brand-plum)]">quiet luxury</span>

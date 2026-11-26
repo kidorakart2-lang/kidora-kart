@@ -55,7 +55,7 @@ export default function CartItemRow({
                     className="size-3 shrink-0 rounded-full border border-[var(--brand-gold)]/40"
                     style={{ backgroundColor: item.color.code }}
                   />
-                  <span className="text-[11.5px] text-[var(--brand-ink)]/55">
+                  <span className="text-[11.5px] text-[var(--brand-ink)]/65">
                     {item.color.name}
                   </span>
                 </div>
@@ -64,7 +64,7 @@ export default function CartItemRow({
 
             <button
               onClick={() => onRemove(item._id)}
-              className="grid size-8 shrink-0 place-items-center rounded-full text-[var(--brand-ink)]/40 transition-colors hover:bg-[var(--brand-rose)]/30 hover:text-destructive"
+              className="grid size-8 shrink-0 place-items-center rounded-full text-[var(--brand-ink)]/65 transition-colors hover:bg-[var(--brand-rose)]/30 hover:text-destructive"
               aria-label={`Remove ${item.product.name} from cart`}
             >
               <Trash2 size={15} strokeWidth={1.6} />
@@ -95,7 +95,7 @@ export default function CartItemRow({
                 </button>
               </div>
 
-              <span className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/40">
+              <span className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                 {item.product.stock ?? 0} in stock
               </span>
             </div>
@@ -105,7 +105,7 @@ export default function CartItemRow({
                 ₹{totalPrice.toFixed(2)}
               </p>
               {item.product.discount_price && (
-                <p className="text-[11px] text-[var(--brand-ink)]/40 line-through">
+                <p className="text-[11px] text-[var(--brand-ink)]/65 line-through">
                   ₹{(item.product.price * item.quantity).toFixed(2)}
                 </p>
               )}

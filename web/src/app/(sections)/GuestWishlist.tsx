@@ -59,7 +59,7 @@ export default function GuestWishlist() {
       <section className="flex min-h-[70vh] items-center justify-center bg-white py-16">
         <div className="space-y-4 text-center">
           <div className="mx-auto h-10 w-10 animate-spin rounded-full border-b-2 border-t-2 border-[var(--brand-gold)]" />
-          <p className="text-[12px] text-[var(--brand-ink)]/50">Loading your wishlist…</p>
+          <p className="text-[12px] text-[var(--brand-ink)]/65">Loading your wishlist…</p>
         </div>
       </section>
     );
@@ -79,9 +79,9 @@ export default function GuestWishlist() {
 
           <div className="space-y-2">
             <h2 className="display-heading text-2xl">
-              Your Wishlist is <span className="accent-italic">Empty</span>
+              Your Wishlist is Empty
             </h2>
-            <p className="text-[12.5px] text-[var(--brand-ink)]/55">
+            <p className="text-[12.5px] text-[var(--brand-ink)]/65">
               Save your favourite pieces and create your dream collection.
             </p>
           </div>
@@ -113,16 +113,16 @@ export default function GuestWishlist() {
         >
           <p className="eyebrow mb-2"><span className="mr-2">✦</span>Saved for later</p>
           <h1 className="display-heading text-2xl sm:text-3xl">
-            My <span className="accent-italic">Wishlist</span>
+            My Wishlist
           </h1>
-          <p className="mt-1.5 text-[12px] text-[var(--brand-ink)]/50">
+          <p className="mt-1.5 text-[12px] text-[var(--brand-ink)]/65">
             {items.length} {items.length === 1 ? "item" : "items"} saved
           </p>
 
           {/* Guest notice */}
           <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[var(--brand-gold)]/30 bg-white px-4 py-2">
             <LogIn size={14} className="text-[var(--brand-gold-dark)]" />
-            <span className="text-[11.5px] text-[var(--brand-ink)]/55">
+            <span className="text-[11.5px] text-[var(--brand-ink)]/65">
               <Link href="/login" className="text-[var(--brand-plum)] underline decoration-[var(--brand-gold)]/60 underline-offset-4 hover:no-underline">
                 Login
               </Link>{" "}
@@ -155,7 +155,7 @@ export default function GuestWishlist() {
                 {/* Remove Button */}
                 <motion.button
                   onClick={() => handleRemoveFromWishlist(item)}
-                  className="absolute right-2 top-2 z-20 grid size-7 place-items-center rounded-full border border-[var(--brand-gold)]/40 bg-white/90 text-[var(--brand-ink)]/50 backdrop-blur-sm transition-all duration-300 hover:border-destructive/40 hover:bg-destructive hover:text-white"
+                  className="absolute right-2 top-2 z-20 grid size-7 place-items-center rounded-full border border-[var(--brand-gold)]/40 bg-white/90 text-[var(--brand-ink)]/65 backdrop-blur-sm transition-all duration-300 hover:border-destructive/40 hover:bg-destructive hover:text-white"
                   whileHover={{ rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   aria-label="Remove from wishlist"
@@ -201,7 +201,7 @@ export default function GuestWishlist() {
                       item.discount_price &&
                       item.price > item.discount_price && (
                         <>
-                          <span className="text-[11px] text-[var(--brand-ink)]/40 line-through">
+                          <span className="text-[11px] text-[var(--brand-ink)]/65 line-through">
                             ₹{item.price.toLocaleString()}
                           </span>
                           <span className="rounded-full border border-[var(--brand-gold)]/40 bg-[var(--brand-gold)]/10 px-1.5 py-0.5 text-[9.5px] text-[var(--brand-gold-dark)]">

@@ -45,10 +45,10 @@ const OurPolicy = () => {
         >
            <p className="eyebrow mb-2"><span className="mr-2">✦</span>The small print</p>
           <h1 className="display-heading mb-3 text-3xl md:text-4xl">
-            Our <span className="accent-italic">Policies</span>
+            Our Policies
           </h1>
           <div className="mb-4 h-px w-16 bg-[var(--brand-gold)]"></div>
-          <p className="text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
+          <p className="text-[12.5px] leading-relaxed text-[var(--brand-ink)]/70">
             At {siteConfig.name}, we are committed to providing you with an
             exceptional shopping experience. Here's how we ensure your
             satisfaction at every step.
@@ -72,7 +72,7 @@ const OurPolicy = () => {
                   </div>
                   <h2 className="display-heading text-lg">{policy.title}</h2>
                 </div>
-                <p className="text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
+                <p className="text-[12.5px] leading-relaxed text-[var(--brand-ink)]/70">
                   {policy.description}
                 </p>
               </div>
@@ -104,7 +104,7 @@ const OurPolicy = () => {
                   Order Cancellation
                 </h3>
               </div>
-              <p className="pl-7 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
+              <p className="pl-7 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/70">
                 You can cancel your order within{" "}
                 <strong className="text-foreground">24 hours</strong> of placing
                 it. Simply contact our customer support team or use your account
@@ -119,7 +119,7 @@ const OurPolicy = () => {
                   Refund Processing
                 </h3>
               </div>
-              <p className="pl-7 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
+              <p className="pl-7 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/70">
                 Once your return or cancellation is approved, refunds will be
                 processed within{" "}
                 <strong className="text-foreground">3-5 business days</strong>{" "}
@@ -129,7 +129,7 @@ const OurPolicy = () => {
             </div>
 
             <div className="rounded-lg border border-[var(--brand-gold)]/25 bg-white p-4 pl-7">
-              <p className="text-[12px] leading-relaxed text-[var(--brand-ink)]/60">
+              <p className="text-[12px] leading-relaxed text-[var(--brand-ink)]/70">
                 <strong className="text-foreground">Note:</strong> For personalized or custom
                 jewellery orders, cancellations may not be available once
                 production has begun. Please contact us immediately if you need
@@ -155,7 +155,7 @@ const OurPolicy = () => {
             </h2>
           </div>
 
-          <div className="space-y-4 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
+          <div className="space-y-4 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/70">
             <p>
               We use cookies to help us recognize returning users and keep your
               shopping experience smooth. No personal data is shared with
@@ -208,7 +208,7 @@ const OurPolicy = () => {
                   Size Guide
                 </h3>
               </div>
-              <p className="pl-7 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
+              <p className="pl-7 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/70">
                 Not sure about the right size, length or fit? Contact our
                 customer service for assistance in finding the perfect piece
                 for every occasion.
@@ -222,7 +222,7 @@ const OurPolicy = () => {
                   Custom Orders
                 </h3>
               </div>
-              <p className="pl-7 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/60">
+              <p className="pl-7 text-[12.5px] leading-relaxed text-[var(--brand-ink)]/70">
                 Looking for something special? We offer custom jewellery and
                 gifting options. Contact us to discuss your needs and we'll
                 help find the perfect present.

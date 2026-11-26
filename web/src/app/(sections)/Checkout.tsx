@@ -675,7 +675,7 @@ export default function Checkout() {
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="group mb-6 inline-flex items-center gap-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/55 transition-colors hover:text-[var(--brand-plum)]"
+          className="group mb-6 inline-flex items-center gap-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/65 transition-colors hover:text-[var(--brand-plum)]"
         >
           <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
           <span>Back</span>
@@ -689,7 +689,7 @@ export default function Checkout() {
           </p>
           <div className="border-b border-[var(--brand-gold)]/25 pb-4">
             <h1 className="display-heading text-3xl sm:text-4xl">Checkout</h1>
-            <p className="mt-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/50">
+            <p className="mt-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/65">
               Complete your purchase in three short steps
             </p>
           </div>
@@ -743,7 +743,7 @@ export default function Checkout() {
                   <h2 className="display-heading text-lg">
                     Additional Information
                   </h2>
-                  <p className="text-[11px] text-[var(--brand-ink)]/50">
+                  <p className="text-[11px] text-[var(--brand-ink)]/65">
                     Order notes and preferences
                   </p>
                 </div>

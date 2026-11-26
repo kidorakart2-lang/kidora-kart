@@ -22,7 +22,7 @@ export default function CartEmptyState() {
           Nothing selected yet
         </p>
         <h1 className="display-heading text-3xl sm:text-4xl">
-          Your bag is <span className="accent-italic">empty.</span>
+          Your bag is empty.
         </h1>
         <p className="mx-auto mt-4 max-w-sm text-sm leading-relaxed text-[var(--brand-ink)]/65">
           Every heirloom starts with a first piece. Explore our collections of

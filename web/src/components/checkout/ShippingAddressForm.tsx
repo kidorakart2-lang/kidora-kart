@@ -42,7 +42,7 @@ export default function ShippingAddressForm({
           <span className="grid size-8 place-items-center rounded-full border border-[var(--brand-gold)]/50 bg-[var(--brand-gold)]/10 text-[12px] text-[var(--brand-gold-dark)]">1</span>
           <div>
             <h2 className="display-heading text-lg">Shipping Information</h2>
-            <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/50">Enter your delivery address</p>
+            <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/65">Enter your delivery address</p>
           </div>
         </div>
         {geolocationSupported && onDetectLocation && (
@@ -89,7 +89,7 @@ export default function ShippingAddressForm({
         <Field label="Full Name *" value={sa.fullName} onChange={(v) => update("fullName", v)} />
         {isLoggedIn ? (
           <div className="space-y-1">
-            <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">Email *</label>
+            <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">Email *</label>
             <div className="w-full rounded-lg border border-[var(--brand-gold)]/20 bg-[var(--brand-cream)]/60 px-4 py-2.5 text-[var(--brand-ink)]">
               {sa.email || "—"}
             </div>
@@ -99,7 +99,7 @@ export default function ShippingAddressForm({
           <Field label="Email *" value={sa.email} onChange={(v) => update("email", v)} readonly onClick={onEmailClick} />
         )}
         <div className="space-y-1">
-          <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">Phone *</label>
+          <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">Phone *</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <span className="text-muted-foreground text-sm">{siteConfig.contact.countryCode}</span>
@@ -109,7 +109,7 @@ export default function ShippingAddressForm({
           </div>
         </div>
         <div className="space-y-1">
-          <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">Pincode *</label>
+          <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">Pincode *</label>
           <div className="flex gap-2">
             <input type="text" value={sa.pincode} onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 6); update("pincode", v); }}
               className="flex-1 rounded-lg border border-[var(--brand-gold)]/30 bg-white px-4 py-2.5 text-[var(--brand-ink)] transition-all focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30" maxLength={6} required placeholder="Enter 6-digit pincode" />
@@ -139,7 +139,7 @@ export default function ShippingAddressForm({
                 {shippingEstimate.etd && <span className="rounded-full bg-white px-2.5 py-1 text-[10.5px] uppercase tracking-[0.12em] text-[var(--brand-mauve)]">Est. delivery {shippingEstimate.etd}</span>}
               </div>
               {shippingEstimate.courierName && (
-                <div className="mt-2 flex items-center gap-1.5 border-t border-[var(--brand-gold)]/20 pt-2"><MapPin className="h-3 w-3 text-[var(--brand-gold-dark)]" /><span className="text-[11px] text-[var(--brand-ink)]/55">{shippingEstimate.courierName}</span></div>
+                <div className="mt-2 flex items-center gap-1.5 border-t border-[var(--brand-gold)]/20 pt-2"><MapPin className="h-3 w-3 text-[var(--brand-gold-dark)]" /><span className="text-[11px] text-[var(--brand-ink)]/65">{shippingEstimate.courierName}</span></div>
               )}
             </div>
           </div>
@@ -149,7 +149,7 @@ export default function ShippingAddressForm({
         <Field label="Area *" value={sa.area} onChange={(v) => update("area", v)} placeholder="E.g., Near Central Park" />
         <Field label="City *" value={sa.city} onChange={(v) => update("city", v)} />
         <div className="space-y-1">
-          <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">State *</label>
+          <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">State *</label>
           <Select value={sa.state} onValueChange={(v) => update("state", v)} name="state" required>
             <SelectTrigger className="w-full"><SelectValue placeholder="Select State" /></SelectTrigger>
             <SelectContent>
@@ -160,7 +160,7 @@ export default function ShippingAddressForm({
       </div>
 
       <div className="mt-6">
-        <label className="mb-2 block text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">Delivery Instructions (Optional)</label>
+        <label className="mb-2 block text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">Delivery Instructions (Optional)</label>
         <textarea placeholder="Any special delivery instructions?" rows={2} value={sa.instructions}
           onChange={(e) => update("instructions", e.target.value)}
           className="w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white px-4 py-2.5 text-[var(--brand-ink)] transition-all focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30" />
@@ -174,7 +174,7 @@ function Field({ label, value, onChange, placeholder, readonly, onClick }: {
 }) {
   return (
     <div className="space-y-1">
-      <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">{label}</label>
+      <label className="text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">{label}</label>
       <input type="text" value={value} onChange={(e) => onChange(e.target.value)} readOnly={readonly}
         placeholder={placeholder} required onClick={onClick}
         className={`w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white px-4 py-2.5 text-[var(--brand-ink)] transition-all focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30 ${readonly && onClick ? 'cursor-pointer bg-[var(--brand-cream)]/60' : ''}`} />

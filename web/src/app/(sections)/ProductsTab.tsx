@@ -61,7 +61,7 @@ export default async function ProductsTab() {
           <h2 className="display-heading text-3xl sm:text-4xl lg:text-[2.75rem]">
             Our Jewellery <span className="accent-italic">Collection</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-[13px] leading-relaxed text-[var(--brand-ink)]/60 sm:text-sm">
+          <p className="mx-auto mt-4 max-w-xl text-[13px] leading-relaxed text-[var(--brand-ink)]/70 sm:text-sm">
             Exquisite, everyday jewellery crafted to add a little sparkle to
             every occasion.
           </p>

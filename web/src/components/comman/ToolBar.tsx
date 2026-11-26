@@ -43,7 +43,7 @@ const ToolBar = () => {
               <span className="block text-[12px] text-[var(--brand-ink)]">
                 WhatsApp
               </span>
-              <span className="block text-[10px] text-[var(--brand-ink)]/45">
+              <span className="block text-[10px] text-[var(--brand-ink)]/65">
                 Usually replies in minutes
               </span>
             </span>
@@ -62,7 +62,7 @@ const ToolBar = () => {
               <span className="block text-[12px] text-[var(--brand-ink)]">
                 Instagram
               </span>
-              <span className="block text-[10px] text-[var(--brand-ink)]/45">
+              <span className="block text-[10px] text-[var(--brand-ink)]/65">
                 See the latest edits
               </span>
             </span>

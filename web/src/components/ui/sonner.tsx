@@ -18,6 +18,9 @@ const Toaster = ({
           "--normal-text": "var(--brand-heading)",
           "--normal-border":
             "color-mix(in srgb, var(--brand-gold) 38%, transparent)",
+          "--toast-close-button-start": "auto",
+          "--toast-close-button-end": "10px",
+          "--toast-close-button-transform": "none",
         } as React.CSSProperties
       }
       {...props} />

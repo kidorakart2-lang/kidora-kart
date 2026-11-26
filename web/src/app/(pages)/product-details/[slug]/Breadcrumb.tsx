@@ -24,7 +24,7 @@ const Breadcrumb = ({ items = [] }: BreadcrumbProps) => {
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="mb-4 flex items-center gap-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/55"
+      className="mb-4 flex items-center gap-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/65"
       role="navigation"
       aria-label="Breadcrumb"
     >

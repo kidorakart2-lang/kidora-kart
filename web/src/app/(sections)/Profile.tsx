@@ -286,7 +286,7 @@ export default function AccountPage() {
             <h1 className="display-heading truncate text-2xl md:text-3xl">
               {data?.name || "My Account"}
             </h1>
-            <p className="mt-0.5 text-[12.5px] text-[var(--brand-ink)]/55">{data?.email}</p>
+            <p className="mt-0.5 text-[12.5px] text-[var(--brand-ink)]/65">{data?.email}</p>
           </div>
         </div>
 
@@ -312,7 +312,7 @@ export default function AccountPage() {
                         "hover:bg-white",
                         isActive
                           ? "text-[var(--brand-cream)]"
-                          : "border border-transparent text-[var(--brand-ink)]/60 hover:border-[var(--brand-gold)]/30"
+                          : "border border-transparent text-[var(--brand-ink)]/70 hover:border-[var(--brand-gold)]/30"
                       )}
                     >
                       <Icon className="w-4 h-4 z-10 shrink-0" />
@@ -397,7 +397,7 @@ export default function AccountPage() {
                                   <Upload size={16} />
                                   Choose Image
                                 </Label>
-                                <p className="mt-2 text-[11px] text-[var(--brand-ink)]/45">
+                                <p className="mt-2 text-[11px] text-[var(--brand-ink)]/65">
                                   JPG, PNG or GIF. Max size 5MB.
                                 </p>
 
@@ -405,7 +405,7 @@ export default function AccountPage() {
                                   <div className="flex gap-2 mt-4">
                                     <button
                                       onClick={removePreviewImage}
-                                      className="rounded-full border border-[var(--brand-gold)]/30 px-4 py-2 text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/60 transition-all duration-300 hover:bg-[var(--brand-cream)]"
+                                      className="rounded-full border border-[var(--brand-gold)]/30 px-4 py-2 text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/70 transition-all duration-300 hover:bg-[var(--brand-cream)]"
                                     >
                                       Cancel
                                     </button>
@@ -424,7 +424,7 @@ export default function AccountPage() {
                             <div className="space-y-4">
                               <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                                     Full Name
                                   </Label>
                                   <Input
@@ -441,7 +441,7 @@ export default function AccountPage() {
                                   />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                                     Gender
                                   </Label>
                                   <Select
@@ -464,13 +464,13 @@ export default function AccountPage() {
 
                               <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                                     Email Address
                                   </Label>
                                   <p className="text-sm text-[var(--brand-ink)]/75">{data?.email}</p>
                                 </div>
                                 <div className="space-y-2">
-                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                                     Phone Number
                                   </Label>
                                   <Input
@@ -501,7 +501,7 @@ export default function AccountPage() {
                             <div className="space-y-4">
                               <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                                     Street Address
                                   </Label>
                                   <Input
@@ -519,7 +519,7 @@ export default function AccountPage() {
                                   />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                                     Area
                                   </Label>
                                   <Input
@@ -540,7 +540,7 @@ export default function AccountPage() {
 
                               <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                                     City
                                   </Label>
                                   <Input
@@ -558,7 +558,7 @@ export default function AccountPage() {
                                   />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                                     State
                                   </Label>
                                   <Select
@@ -592,7 +592,7 @@ export default function AccountPage() {
 
                               <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                                  <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                                     Pincode
                                   </Label>
                                   <Input
@@ -612,7 +612,7 @@ export default function AccountPage() {
                               </div>
 
                               <div className="space-y-2">
-                                <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                                <Label className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                                   Delivery Instructions (Optional)
                                 </Label>
                                 <Textarea

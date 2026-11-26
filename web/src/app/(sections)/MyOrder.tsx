@@ -115,7 +115,7 @@ export default function MyOrders() {
   };
 
   const statusColors: Record<string, string> = {
-    pending: "bg-[var(--brand-cream)] text-[var(--brand-ink)]/60 border-[var(--brand-gold)]/25",
+    pending: "bg-[var(--brand-cream)] text-[var(--brand-ink)]/70 border-[var(--brand-gold)]/25",
     confirmed: "bg-[var(--brand-rose)]/25 text-[var(--brand-plum)] border-[var(--brand-mauve)]/35",
     shipped: "bg-[var(--brand-rose)]/25 text-[var(--brand-plum)] border-[var(--brand-mauve)]/35",
     delivered: "bg-[var(--brand-gold)]/15 text-[var(--brand-gold-dark)] border-[var(--brand-gold)]/45",
@@ -147,7 +147,7 @@ export default function MyOrders() {
           <div>
             <p className="eyebrow mb-1 text-[10px]"><span className="mr-1.5">✦</span>Purchase history</p>
             <h1 className="display-heading text-3xl">My Orders</h1>
-            <p className="mt-1 text-[11.5px] text-[var(--brand-ink)]/50">
+            <p className="mt-1 text-[11.5px] text-[var(--brand-ink)]/65">
               Track and manage your purchases
             </p>
           </div>
@@ -161,7 +161,7 @@ export default function MyOrders() {
         >
           <div className="mb-3 flex items-center gap-2">
             <Filter className="h-3.5 w-3.5 text-[var(--brand-gold-dark)]" />
-            <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/45">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/65">
               Filter by status
             </span>
           </div>
@@ -173,7 +173,7 @@ export default function MyOrders() {
                 className={`rounded-full border px-3.5 py-1.5 text-[10.5px] uppercase tracking-[0.12em] transition-all duration-300 ${
                   filter === filterOption.value
                     ? "border-[var(--brand-plum)] bg-[var(--brand-plum)] text-[var(--brand-cream)]"
-                    : "border-[var(--brand-gold)]/30 bg-white text-[var(--brand-ink)]/60 hover:border-[var(--brand-gold)]/60 hover:text-[var(--brand-ink)]"
+                    : "border-[var(--brand-gold)]/30 bg-white text-[var(--brand-ink)]/70 hover:border-[var(--brand-gold)]/60 hover:text-[var(--brand-ink)]"
                 }`}
               >
                 {filterOption.label}
@@ -202,7 +202,7 @@ export default function MyOrders() {
                     <p className="display-heading text-lg text-[var(--brand-ink)]/70">
                       No orders found yet
                     </p>
-                    <p className="mt-1 text-[11.5px] text-[var(--brand-ink)]/45">
+                    <p className="mt-1 text-[11.5px] text-[var(--brand-ink)]/65">
                       Your purchases will appear here once you place an order.
                     </p>
                   </CardContent>
@@ -222,7 +222,7 @@ export default function MyOrders() {
                             <h3 className="display-heading text-lg">
                               Order #{order.orderId}
                             </h3>
-                            <p className="text-[11.5px] text-[var(--brand-ink)]/45">
+                            <p className="text-[11.5px] text-[var(--brand-ink)]/65">
                               {new Date(order.createdAt).toLocaleDateString(
                                 "en-US",
                                 {
@@ -275,7 +275,7 @@ export default function MyOrders() {
                                 <p className="display-heading text-[14px] italic text-[var(--brand-ink)]">
                                   {item.name}
                                 </p>
-                                <p className="text-[11.5px] text-[var(--brand-ink)]/50">
+                                <p className="text-[11.5px] text-[var(--brand-ink)]/65">
                                   Quantity: {item.quantity}
                                 </p>
                                 {item.variantName && (
@@ -285,7 +285,7 @@ export default function MyOrders() {
                                 )}
                                 {/* Color display */}
                                 {item.color && (
-                                  <p className="flex items-center gap-1.5 text-[11.5px] text-[var(--brand-ink)]/50">
+                                  <p className="flex items-center gap-1.5 text-[11.5px] text-[var(--brand-ink)]/65">
                                     Colour:{" "}
                                     <span
                                       style={{
@@ -309,7 +309,7 @@ export default function MyOrders() {
 
                       <CardFooter className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--brand-gold)]/20 bg-[var(--brand-cream)]/50">
                         <div className="flex items-baseline gap-2">
-                          <span className="text-[9.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/50">Total</span>
+                          <span className="text-[9.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/65">Total</span>
                           <span className="display-heading text-lg text-[var(--brand-plum)]">₹{order.pricing.total}</span>
                         </div>
                         <div className="flex gap-2">
@@ -404,7 +404,7 @@ export default function MyOrders() {
                 <DialogTitle className="display-heading text-xl">
                   Cancel Order?
                 </DialogTitle>
-                <DialogDescription className="mt-1 text-[11.5px] text-[var(--brand-ink)]/50">
+                <DialogDescription className="mt-1 text-[11.5px] text-[var(--brand-ink)]/65">
                   This action cannot be undone
                 </DialogDescription>
               </div>
@@ -413,7 +413,7 @@ export default function MyOrders() {
 
           <div className="px-6 py-5 space-y-4 overflow-y-auto custom-scrollbar flex-1 min-h-0">
             <div className="rounded-lg border border-[var(--brand-gold)]/20 bg-[var(--brand-cream)] p-3">
-              <p className="mb-1 text-[9.5px] uppercase tracking-[0.16em] text-[var(--brand-ink)]/45">Order Number</p>
+              <p className="mb-1 text-[9.5px] uppercase tracking-[0.16em] text-[var(--brand-ink)]/65">Order Number</p>
               <p className="break-all font-mono text-[12px] text-[var(--brand-ink)]">
                 {selectedOrderId}
               </p>
@@ -422,7 +422,7 @@ export default function MyOrders() {
             <div className="space-y-2">
               <label
                 htmlFor="cancel-reason"
-                className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55"
+                className="block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65"
               >
                 Reason for cancellation <span className="text-destructive">*</span>
               </label>

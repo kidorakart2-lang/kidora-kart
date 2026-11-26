@@ -26,7 +26,7 @@ export default function OrderItemsList({ items, isGift, giftMessage }: OrderItem
         <div className="grid size-8 place-items-center rounded-full border border-[var(--brand-gold)]/50 bg-[var(--brand-gold)]/10 text-[12px] text-[var(--brand-gold-dark)]">2</div>
         <div>
           <h2 className="display-heading text-lg">Order Items</h2>
-          <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/50">{items.length} items in this order</p>
+          <p className="mt-0.5 text-[11px] text-[var(--brand-ink)]/65">{items.length} items in this order</p>
         </div>
       </div>
       <div className="space-y-3">
@@ -40,13 +40,13 @@ export default function OrderItemsList({ items, isGift, giftMessage }: OrderItem
             <div className="min-w-0 flex-1">
               <h3 className="display-heading truncate text-[14px] italic">{item.name}</h3>
               <div className="mt-1 flex flex-wrap items-center gap-4">
-                <span className="text-[11.5px] text-[var(--brand-ink)]/55">Qty: {item.quantity}</span>
+                <span className="text-[11.5px] text-[var(--brand-ink)]/65">Qty: {item.quantity}</span>
                 <span className="text-[13.5px] text-[var(--brand-ink)]">₹{(item.subtotal ?? item.priceAtPurchase * item.quantity).toLocaleString("en-IN")}</span>
               </div>
               {item.variantName && (
                 <p className="mt-1 text-[11.5px] text-[var(--brand-gold-dark)]">✦ {item.variantName}</p>
               )}
-              <p className="mt-2 flex items-center gap-1.5 text-[11.5px] text-[var(--brand-ink)]/55">
+              <p className="mt-2 flex items-center gap-1.5 text-[11.5px] text-[var(--brand-ink)]/65">
                 <span>Colour</span>
                 <span
                   style={{
@@ -72,7 +72,7 @@ export default function OrderItemsList({ items, isGift, giftMessage }: OrderItem
             <Gift className="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand-gold-dark)]" />
             <div>
               <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--brand-gold-dark)]">Gift Order</p>
-              <p className="mt-1 text-[12.5px] text-[var(--brand-ink)]/70"><span className="text-[var(--brand-ink)]/50">Message:</span> {giftMessage}</p>
+              <p className="mt-1 text-[12.5px] text-[var(--brand-ink)]/70"><span className="text-[var(--brand-ink)]/65">Message:</span> {giftMessage}</p>
             </div>
           </div>
         </motion.div>

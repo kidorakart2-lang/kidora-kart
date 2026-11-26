@@ -59,7 +59,7 @@ export default function IconGroup({
     : "relative grid size-9 place-items-center rounded-lg text-foreground/80 transition-colors hover:bg-muted hover:text-foreground";
 
   const labelClass =
-    "text-[10px] uppercase leading-none tracking-[0.12em] text-[var(--brand-ink)]/60";
+    "text-[10px] uppercase leading-none tracking-[0.12em] text-[var(--brand-ink)]/70";
 
   const countBadge = (count: number) =>
     count > 0 ? (

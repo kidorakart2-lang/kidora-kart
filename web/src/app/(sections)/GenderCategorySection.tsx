@@ -166,7 +166,7 @@ export default function GenderCategorySection({
           </h2>
         </div>
 
-        <p className="mt-6 text-sm tracking-widest text-[var(--brand-ink)]/55 md:text-base">
+        <p className="mt-6 text-sm tracking-widest text-[var(--brand-ink)]/65 md:text-base">
             Shop by Category
           </p>
       </div>

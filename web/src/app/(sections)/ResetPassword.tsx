@@ -222,7 +222,7 @@ export default function ResetPassword() {
                 ? "Verify Code"
                 : "Create New Password"}
           </CardTitle>
-          <CardDescription className="text-[12px] text-[var(--brand-ink)]/50">
+          <CardDescription className="text-[12px] text-[var(--brand-ink)]/65">
             {step === "request"
               ? "Enter your email to receive a password reset link"
               : step === "otp"
@@ -234,13 +234,13 @@ export default function ResetPassword() {
           {step === "request" ? (
             <form onSubmit={handleRequestReset} className="space-y-5">
               {isLoggedIn && !showEmailFallback ? (
-                <p className="text-center text-[12px] text-[var(--brand-ink)]/55">
+                <p className="text-center text-[12px] text-[var(--brand-ink)]/65">
                   You're signed in — a verification code will be sent to your
                   registered email address.
                 </p>
               ) : (
                 <div>
-                  <Label htmlFor="email" className="mb-2 block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                  <Label htmlFor="email" className="mb-2 block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                     Email Address
                   </Label>
                   <div className="relative">
@@ -281,7 +281,7 @@ export default function ResetPassword() {
           ) : step === "otp" ? (
             <form onSubmit={verifyOtp} className="space-y-5">
               <div className="space-y-2">
-                <Label className="mb-2 block text-center text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                <Label className="mb-2 block text-center text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                   Enter verification code
                 </Label>
                 <div className="flex justify-center">
@@ -329,7 +329,7 @@ export default function ResetPassword() {
                 onChange={setNewPassword}
               />
               <div>
-                <Label htmlFor="confirmPassword" className="mb-2 block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                <Label htmlFor="confirmPassword" className="mb-2 block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                   Confirm Password
                 </Label>
                 <div className="relative">
@@ -369,7 +369,7 @@ export default function ResetPassword() {
           )}
 
           {step !== "request" && (
-            <p className="mt-6 text-center text-[11.5px] text-[var(--brand-ink)]/55">
+            <p className="mt-6 text-center text-[11.5px] text-[var(--brand-ink)]/65">
               <button
                 type="button"
                 onClick={() => {

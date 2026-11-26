@@ -179,7 +179,7 @@ export default function DesktopNav({ categories }: DesktopNavProps) {
                   }}
                   type="button"
                   onClick={() => openMenu(idx)}
-                  className={`relative inline-flex items-center gap-1 px-4 py-2.5 text-[12.5px] tracking-[0.02em] transition-colors ${
+                  className={`relative inline-flex items-center gap-1 px-4 py-2.5 text-[13px] tracking-[0.01em] transition-colors ${
                     isActive
                       ? "text-[var(--brand-plum)]"
                       : "text-[var(--brand-ink)]/70 hover:text-[var(--brand-plum)]"
@@ -203,7 +203,7 @@ export default function DesktopNav({ categories }: DesktopNavProps) {
               ) : (
                 <Link
                   href={urlPrefix(cat.slug)}
-                  className="relative inline-flex items-center px-4 py-2.5 text-[12.5px] tracking-[0.02em] text-[var(--brand-ink)]/70 transition-colors hover:text-[var(--brand-plum)]"
+                  className="relative inline-flex items-center px-4 py-2.5 text-[13px] tracking-[0.01em] text-[var(--brand-ink)]/70 transition-colors hover:text-[var(--brand-plum)]"
                 >
                   {cat.name}
                 </Link>
@@ -289,7 +289,7 @@ function EditorialPanel({
                   className={`group flex items-center gap-2.5 py-1.5 text-[12px] tracking-[0.04em] transition-colors ${
                     isCurrent
                       ? "text-[var(--brand-plum)]"
-                      : "text-[var(--brand-ink)]/60 hover:text-[var(--brand-plum)]"
+                      : "text-[var(--brand-ink)]/70 hover:text-[var(--brand-plum)]"
                   }`}
                 >
                   <span

@@ -100,10 +100,10 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
                 <h3 className="display-heading truncate text-[13.5px] italic">
                   {item?.product?.name}
                 </h3>
-                <p className="text-[11.5px] text-[var(--brand-ink)]/55">
+                <p className="text-[11.5px] text-[var(--brand-ink)]/65">
                   Qty: {item?.quantity}{" "}
                   {type == "cart" && item?.color && (
-                    <span className="inline-flex items-center gap-1 text-[11px] text-[var(--brand-ink)]/60">
+                    <span className="inline-flex items-center gap-1 text-[11px] text-[var(--brand-ink)]/70">
                       <span
                         style={{ backgroundColor: item.color.code }}
                         className="w-3 h-3 rounded-full border border-border inline-block"
@@ -112,7 +112,7 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
                     </span>
                   )}
                   {type == "direct" && item?.colorCode && (
-                    <span className="inline-flex items-center gap-1 text-[11px] text-[var(--brand-ink)]/60">
+                    <span className="inline-flex items-center gap-1 text-[11px] text-[var(--brand-ink)]/70">
                       <span
                         style={{ backgroundColor: item.colorCode }}
                         className="w-3 h-3 rounded-full border border-border inline-block"
@@ -160,7 +160,7 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
 
         {/* Order Total */}
         <div className="space-y-3 border-t border-[var(--brand-gold)]/20 pt-4">
-          <div className="flex justify-between text-[12.5px] text-[var(--brand-ink)]/60">
+          <div className="flex justify-between text-[12.5px] text-[var(--brand-ink)]/70">
             <span>Subtotal</span>
             <span>
               ₹
@@ -176,7 +176,7 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
             </span>
           </div>
 
-          <div className="flex justify-between text-[12.5px] text-[var(--brand-ink)]/60">
+          <div className="flex justify-between text-[12.5px] text-[var(--brand-ink)]/70">
             <span className="flex items-center gap-1.5">
               <Truck className="h-3.5 w-3.5" />
               Shipping
@@ -192,7 +192,7 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
 
           {shippingEstimate?.courierName && (
             <div className="flex justify-between text-xs">
-              <span className="text-[var(--brand-ink)]/50">Courier</span>
+              <span className="text-[var(--brand-ink)]/65">Courier</span>
               <span className="text-[var(--brand-ink)]/80">
                 {shippingEstimate.courierName}
               </span>
@@ -201,13 +201,13 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
 
           {shippingEstimate?.etd && (
             <div className="flex justify-between text-xs">
-              <span className="text-[var(--brand-ink)]/50">Est. Delivery</span>
+              <span className="text-[var(--brand-ink)]/65">Est. Delivery</span>
               <span className="text-[var(--brand-mauve)]">{shippingEstimate.etd}</span>
             </div>
           )}
 
           {orderData.giftWrap && (
-            <div className="flex justify-between text-[12.5px] text-[var(--brand-ink)]/60">
+            <div className="flex justify-between text-[12.5px] text-[var(--brand-ink)]/70">
               <span>Gift Wrap</span>
               <span>₹50</span>
             </div>
@@ -221,14 +221,14 @@ export default function OrederSummery({ cartItems, type, orderData, coupon, ship
 
           <div className="mt-2 border-t border-[var(--brand-gold)]/25 pt-3">
             <div className="flex items-center justify-between">
-              <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/55">
+              <span className="text-[10.5px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/65">
                 Total
               </span>
               <span className="display-heading text-xl text-[var(--brand-plum)]">
                 ₹{total}
               </span>
             </div>
-            <p className="mt-1 text-[10.5px] text-[var(--brand-ink)]/40">
+            <p className="mt-1 text-[10.5px] text-[var(--brand-ink)]/65">
               Inclusive of all taxes
             </p>
           </div>

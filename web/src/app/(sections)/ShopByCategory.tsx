@@ -48,7 +48,7 @@ export default function ShopByCategory() {
           <h2 className="display-heading mt-4 text-3xl sm:text-4xl lg:text-[2.75rem]">
             Find Your <span className="accent-italic">Everyday Forever</span>
           </h2>
-          <p className="mt-4 max-w-xl text-[13px] leading-relaxed text-[var(--brand-ink)]/60 sm:text-sm">
+          <p className="mt-4 max-w-xl text-[13px] leading-relaxed text-[var(--brand-ink)]/70 sm:text-sm">
             From quiet everyday studs to pieces made for the biggest moments —
             explore the collections and find yours.
           </p>

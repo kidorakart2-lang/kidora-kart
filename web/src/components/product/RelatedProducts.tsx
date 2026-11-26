@@ -26,7 +26,7 @@ export default function RelatedProducts({ id, subCategory, subSubCategory }: { i
         </p>
         <div className="flex items-end justify-between gap-4 border-b border-[var(--brand-gold)]/25 pb-4">
           <h3 className="display-heading text-2xl sm:text-3xl lg:text-4xl">
-            Similar <span className="accent-italic">Products</span>
+            Similar Products
           </h3>
           <div className="flex items-center gap-2 text-[var(--brand-plum)]">
             <span className="grid size-9 place-items-center rounded-full border border-[var(--brand-gold)]/40">

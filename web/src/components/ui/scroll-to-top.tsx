@@ -3,50 +3,38 @@
 import { useEffect, useState } from "react";
 import { ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "./button";
 
 export default function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false);
 
   const toggleVisibility = () => {
-    if (window.pageYOffset > 300) {
-      setIsVisible(true);
-    } else {
-      setIsVisible(false);
-    }
+    setIsVisible(window.pageYOffset > 300);
   };
 
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   useEffect(() => {
-    window.addEventListener("scroll", toggleVisibility);
-    return () => {
-      window.removeEventListener("scroll", toggleVisibility);
-    };
+    window.addEventListener("scroll", toggleVisibility, { passive: true });
+    return () => window.removeEventListener("scroll", toggleVisibility);
   }, []);
 
   return (
-    <div className="fixed bottom-8 right-7   z-50">
-      <Button
-        type="button"
-        onClick={scrollToTop}
-        className={cn(
-          "bg-background backdrop-blur-sm rounded-full p-2 shadow-lg transition-all duration-300 ease-in-out",
-          "hover:bg-background hover:scale-115 focus:outline-none focus:ring-2 focus:ring-brand-300 focus:ring-offset-2",
-          "dark:bg-card/80 dark:hover:bg-card",
-          isVisible
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-4 pointer-events-none"
-        )}
-        aria-label="Scroll to top"
-      >
-        <ChevronUp className="h-5 w-5 text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300" />
-      </Button>
-    </div>
+    <button
+      type="button"
+      onClick={scrollToTop}
+      aria-label="Scroll to top"
+      className={cn(
+        "no-print fixed bottom-40 right-5 z-40 grid size-11 place-items-center rounded-full border border-[var(--brand-gold)]/40 bg-white/95 text-[var(--brand-plum)] shadow-[0_16px_34px_-22px_rgba(74,37,66,0.6)] backdrop-blur-sm transition-all duration-300",
+        "hover:-translate-y-0.5 hover:border-[var(--brand-gold)] hover:bg-[var(--brand-cream)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-gold)]/50 focus-visible:ring-offset-2",
+        "md:bottom-28 md:right-7",
+        isVisible
+          ? "translate-y-0 opacity-100"
+          : "pointer-events-none translate-y-3 opacity-0",
+      )}
+    >
+      <ChevronUp className="size-5" strokeWidth={1.6} />
+    </button>
   );
 }

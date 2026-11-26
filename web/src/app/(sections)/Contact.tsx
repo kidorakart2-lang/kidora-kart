@@ -95,10 +95,10 @@ export default function ContactPage() {
         <div className="mb-12 text-center">
           <p className="eyebrow mb-2"><span className="mr-2">✦</span>We're listening</p>
           <h1 className="display-heading text-4xl md:text-5xl">
-            Contact <span className="accent-italic">us</span>
+            Contact Us
           </h1>
         </div>
-        <p className="mx-auto mb-12 max-w-2xl text-center text-[13px] leading-relaxed text-[var(--brand-ink)]/55">
+        <p className="mx-auto mb-12 max-w-2xl text-center text-[13px] leading-relaxed text-[var(--brand-ink)]/65">
           Questions about a piece, an order or a gift? Send us a note and our
           team will get back to you within one working day.
         </p>
@@ -142,7 +142,7 @@ export default function ContactPage() {
                         </h3>
                         <p className="text-[12.5px] text-[var(--brand-ink)]/70">{info.content}</p>
                         {info.subContent && (
-                          <p className="mt-1 text-[11px] text-[var(--brand-ink)]/45">
+                          <p className="mt-1 text-[11px] text-[var(--brand-ink)]/65">
                             {info.subContent}
                           </p>
                         )}
@@ -176,7 +176,7 @@ export default function ContactPage() {
                   aria-label="Contact form"
                 >
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                    <Label htmlFor="name" className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                       Your Name
                     </Label>
                     <Input
@@ -195,7 +195,7 @@ export default function ContactPage() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="email"
-                      className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55"
+                      className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65"
                     >
                       Your Email
                     </Label>
@@ -215,7 +215,7 @@ export default function ContactPage() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="message"
-                      className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55"
+                      className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65"
                     >
                       Message
                     </Label>

@@ -97,7 +97,7 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
       <LoadingOverlay hidden={loading} />
       {/* Security Section */}
       <div className="space-y-6">
-        <h3 className="mb-4 text-[10px] uppercase tracking-[0.2em] text-[var(--brand-ink)]/45">Security</h3>
+        <h3 className="mb-4 text-[10px] uppercase tracking-[0.2em] text-[var(--brand-ink)]/65">Security</h3>
 
         {/* Forgot Password Button */}
         <Link href="/reset-password">
@@ -110,7 +110,7 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
               </div>
               <div className="text-left">
                 <p className="display-heading text-[15px]">Forgot Password</p>
-                <p className="text-[11.5px] text-[var(--brand-ink)]/50">
+                <p className="text-[11.5px] text-[var(--brand-ink)]/65">
                   Reset your password via email
                 </p>
               </div>
@@ -130,7 +130,7 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
               </div>
               <div className="text-left">
                 <p className="display-heading text-[15px]">Change Password</p>
-                <p className="text-[11.5px] text-[var(--brand-ink)]/50">
+                <p className="text-[11.5px] text-[var(--brand-ink)]/65">
                   Update your password regularly
                 </p>
               </div>
@@ -153,7 +153,7 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
                 <p className="display-heading flex items-center gap-2 text-[15px]">
                   Verify Email
                   {!data?.isEmailVerified && (
-                    <span className="rounded-full border border-[var(--brand-gold)]/35 bg-[var(--brand-cream)] px-2 py-0.5 text-[9.5px] uppercase tracking-[0.12em] text-[var(--brand-ink)]/50">
+                    <span className="rounded-full border border-[var(--brand-gold)]/35 bg-[var(--brand-cream)] px-2 py-0.5 text-[9.5px] uppercase tracking-[0.12em] text-[var(--brand-ink)]/65">
                       Pending
                     </span>
                   )}
@@ -161,7 +161,7 @@ export default function SettingsSection({ data }: { data: UserDetails }) {
                     <CheckCircle size={14} className="text-[var(--brand-gold-dark)]" />
                   )}
                 </p>
-                <p className="text-[11.5px] text-[var(--brand-ink)]/50">
+                <p className="text-[11.5px] text-[var(--brand-ink)]/65">
                   {data?.isEmailVerified
                     ? "Your email is verified"
                     : "Verify your email address"}

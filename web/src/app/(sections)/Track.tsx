@@ -202,7 +202,7 @@ export default function OrderTracking() {
         >
           <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
           <h2 className="display-heading mb-2 text-2xl">Order Not Found</h2>
-          <p className="mb-6 text-sm text-[var(--brand-ink)]/60">
+          <p className="mb-6 text-sm text-[var(--brand-ink)]/70">
             We couldn&apos;t find an order with that ID. Please check and try again.
           </p>
           <Button onClick={() => setSearchOrderId("")} className="btn-gold !text-[11px] uppercase tracking-[0.18em]">
@@ -230,17 +230,17 @@ export default function OrderTracking() {
           className="max-w-3xl mx-auto"
         >
           <p className="eyebrow mb-2"><span className="mr-2">✦</span>Order concierge</p>
-          <h1 className="display-heading mb-2 text-3xl md:text-4xl">Track Your <span className="accent-italic">Order</span></h1>
-          <p className="mb-6 text-sm text-[var(--brand-ink)]/60">
+          <h1 className="display-heading mb-2 text-3xl md:text-4xl">Track Your Order</h1>
+          <p className="mb-6 text-sm text-[var(--brand-ink)]/70">
             Enter your order details to see its current status. <br />
-            <span className="text-[11.5px] text-[var(--brand-ink)]/45">
+            <span className="text-[11.5px] text-[var(--brand-ink)]/65">
               You can also check your order status in your profile.
             </span>
           </p>
 
           <div className="mb-10 rounded-xl border border-[var(--brand-gold)]/25 bg-white p-6 sm:p-8">
             <div className="mb-4">
-              <Label className="mb-1.5 block text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+              <Label className="mb-1.5 block text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                 Order Number
               </Label>
               <Input
@@ -329,7 +329,7 @@ export default function OrderTracking() {
                     <div className="inline-flex flex-col rounded-lg border border-[var(--brand-gold)]/35 bg-[var(--brand-cream)] px-4 py-2 text-[var(--brand-ink)]">
                       <div className="flex items-center gap-2">
                         <Truck className="h-4 w-4 text-[var(--brand-gold-dark)]" />
-                        <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/55">
+                        <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                           Estimated delivery
                         </span>
                         <span className="text-[12.5px]">
@@ -342,7 +342,7 @@ export default function OrderTracking() {
                         </span>
                       </div>
                       {orderDetails?.order?.shipping?.carrier && (
-                        <p className="mt-0.5 text-[10px] text-[var(--brand-ink)]/45">
+                        <p className="mt-0.5 text-[10px] text-[var(--brand-ink)]/65">
                           via {orderDetails.order.shipping.carrier}
                         </p>
                       )}
@@ -377,7 +377,7 @@ export default function OrderTracking() {
                   </motion.div>
                 )}
 
-                <p className="mt-2 flex items-center gap-2 text-[11.5px] text-[var(--brand-ink)]/50">
+                <p className="mt-2 flex items-center gap-2 text-[11.5px] text-[var(--brand-ink)]/65">
                   <Clock className="h-3.5 w-3.5" />
                   Placed on{" "}
                   {new Date(orderDetails?.order?.createdAt ?? "").toLocaleDateString(
@@ -395,7 +395,7 @@ export default function OrderTracking() {
               <div className="flex items-center gap-3 no-print">
                 <button
                   onClick={handlePrint}
-                  className="inline-flex items-center gap-2 rounded-full border border-[var(--brand-gold)]/35 px-3.5 py-2 text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/60 transition-colors hover:bg-[var(--brand-cream)]"
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--brand-gold)]/35 px-3.5 py-2 text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/70 transition-colors hover:bg-[var(--brand-cream)]"
                   title="Print invoice"
                 >
                   <Printer className="w-4 h-4" />
@@ -450,7 +450,7 @@ export default function OrderTracking() {
                 <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center"><XCircle className="w-8 h-8 text-destructive" /></div>
                 <div>
                   <h3 className="display-heading text-xl">Order Cancelled</h3>
-                  <p className="mt-1 text-[12px] text-[var(--brand-ink)]/55">This order was cancelled on {new Date(orderDetails?.order?.statusHistory?.find((s) => s.status === "cancelled")?.timestamp || orderDetails?.order?.updatedAt).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })}</p>
+                  <p className="mt-1 text-[12px] text-[var(--brand-ink)]/65">This order was cancelled on {new Date(orderDetails?.order?.statusHistory?.find((s) => s.status === "cancelled")?.timestamp || orderDetails?.order?.updatedAt).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })}</p>
                 </div>
               </div>
             </motion.div>
@@ -469,7 +469,7 @@ export default function OrderTracking() {
                   <div className="w-10 h-10 bg-destructive/10 rounded-full flex items-center justify-center">
                     <AlertTriangle className="w-5 h-5 text-destructive" />
                   </div>
-                  <p className="text-[12.5px] text-[var(--brand-ink)]/60">
+                  <p className="text-[12.5px] text-[var(--brand-ink)]/70">
                     Your payment was unsuccessful. Please retry to complete your purchase.
                   </p>
                 </div>
@@ -545,7 +545,7 @@ export default function OrderTracking() {
             </div>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-[var(--brand-ink)]/55">Payment Method</span>
+                <span className="text-[var(--brand-ink)]/65">Payment Method</span>
                 <span className="font-medium text-foreground">
                   {orderDetails?.order?.payment?.method === "COD"
                     ? "Cash on Delivery"
@@ -553,14 +553,14 @@ export default function OrderTracking() {
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-[var(--brand-ink)]/55">Payment Status</span>
+                <span className="text-[var(--brand-ink)]/65">Payment Status</span>
                 <span className="font-medium text-foreground capitalize">
                   {orderDetails?.order?.payment?.status?.replace("_", " ")}
                 </span>
               </div>
               {orderDetails?.order?.payment?.codAdvance && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-[var(--brand-ink)]/55">Advance Paid</span>
+                  <span className="text-[var(--brand-ink)]/65">Advance Paid</span>
                   <span className="font-medium text-foreground">
                     ₹{orderDetails?.order?.pricing?.advance}
                   </span>
@@ -605,7 +605,7 @@ export default function OrderTracking() {
                     <p>
                       India - {orderDetails?.order?.shippingAddress?.pincode}
                     </p>
-                    <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-[var(--brand-gold)]/25 pt-3 text-[11px] text-[var(--brand-ink)]/45">
+                    <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-[var(--brand-gold)]/25 pt-3 text-[11px] text-[var(--brand-ink)]/65">
                       <span className="flex items-center gap-1">
                         <Phone className="w-3 h-3" />
                         {orderDetails?.order?.shippingAddress?.phone}
@@ -634,7 +634,7 @@ export default function OrderTracking() {
                   <div className="space-y-3">
                     {orderDetails?.order?.shippingAddress?.instructions && (
                       <div className="rounded-r-lg border-l-2 border-[var(--brand-gold)]/40 bg-[var(--brand-cream)] p-4">
-                        <p className="mb-1 text-[10px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/50">
+                        <p className="mb-1 text-[10px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                           Delivery Instructions
                         </p>
                         <p className="text-[12px] text-[var(--brand-ink)]/65">
@@ -644,7 +644,7 @@ export default function OrderTracking() {
                     )}
 
                     <div className="rounded-r-lg border-l-2 border-[var(--brand-gold)]/40 bg-[var(--brand-cream)] p-4">
-                      <p className="mb-1 text-[10px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/50">
+                      <p className="mb-1 text-[10px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
                         Package ID
                       </p>
                       <p className="font-mono text-[12px] text-[var(--brand-ink)]/70">
@@ -662,12 +662,12 @@ export default function OrderTracking() {
                           </p>
                           <div className="space-y-1.5 text-sm">
                             <div className="flex items-center justify-between">
-                              <span className="text-[var(--brand-ink)]/55">Courier Partner</span>
+                              <span className="text-[var(--brand-ink)]/65">Courier Partner</span>
                               <span className="text-[var(--brand-ink)]">{orderDetails.order.shipping.carrier}</span>
                             </div>
                             {orderDetails.order.shipping.estimatedDelivery && (
                               <div className="flex items-center justify-between">
-                                <span className="text-[var(--brand-ink)]/55">Estimated Delivery</span>
+                                <span className="text-[var(--brand-ink)]/65">Estimated Delivery</span>
                                 <span className="text-[var(--brand-gold-dark)]">
                                   {new Date(orderDetails.order.shipping.estimatedDelivery).toLocaleDateString("en-IN", {
                                     weekday: "short",
@@ -691,7 +691,7 @@ export default function OrderTracking() {
 
                             <div className="space-y-1.5 text-sm">
                               <div className="flex items-center justify-between">
-                                <span className="text-[var(--brand-ink)]/55">AWB Number</span>
+                                <span className="text-[var(--brand-ink)]/65">AWB Number</span>
                                 <span className="font-mono text-[12px] text-[var(--brand-ink)]">
                                   {orderDetails.order.shipping.trackingNumber}
                                 </span>
@@ -699,14 +699,14 @@ export default function OrderTracking() {
 
                               {orderDetails.order.shipping.carrier && (
                                 <div className="flex items-center justify-between">
-                                  <span className="text-[var(--brand-ink)]/55">Courier</span>
+                                  <span className="text-[var(--brand-ink)]/65">Courier</span>
                                   <span className="text-[var(--brand-ink)]">{orderDetails.order.shipping.carrier}</span>
                                 </div>
                               )}
 
                               {orderDetails.order.shipping.shippedAt && (
                                 <div className="flex items-center justify-between">
-                                  <span className="text-[var(--brand-ink)]/55">Shipped On</span>
+                                  <span className="text-[var(--brand-ink)]/65">Shipped On</span>
                                   <span className="text-[var(--brand-ink)]">
                                     {new Date(orderDetails.order.shipping.shippedAt).toLocaleDateString("en-IN", {
                                       year: "numeric",
@@ -719,7 +719,7 @@ export default function OrderTracking() {
                             </div>
 
                             {trackingLoading && (
-                              <div className="mt-2 flex animate-pulse items-center gap-2 text-[11px] text-[var(--brand-ink)]/50">
+                              <div className="mt-2 flex animate-pulse items-center gap-2 text-[11px] text-[var(--brand-ink)]/65">
                                 <Loader2 className="w-3 h-3 animate-spin" />
                                 Fetching tracking updates...
                               </div>

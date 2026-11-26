@@ -81,7 +81,7 @@ export default function TabProducts({
                       {tier.label} Collection
                       <span className="text-[var(--brand-gold)]">✦</span>
                     </h3>
-                    <p className="mt-2 text-center text-[13px] text-[var(--brand-ink)]/55">
+                    <p className="mt-2 text-center text-[13px] text-[var(--brand-ink)]/65">
                       {tier.tagline}
                     </p>
                   </TabsContent>

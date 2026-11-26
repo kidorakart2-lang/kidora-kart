@@ -121,7 +121,7 @@ export const SearchBar = ({ className, inputId, formClassName }: SearchBarProps)
           {isFetching && (
             <div className="p-6 flex items-center justify-center gap-2">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--brand-gold)]/30 border-t-[var(--brand-gold-dark)]" />
-              <span className="text-[11.5px] text-[var(--brand-ink)]/50">
+              <span className="text-[11.5px] text-[var(--brand-ink)]/65">
                 Searching...
               </span>
             </div>
@@ -134,7 +134,7 @@ export const SearchBar = ({ className, inputId, formClassName }: SearchBarProps)
               (suggestions?.products?.length ?? 0) > 0 ? (
                 <>
                   <div className="p-4">
-                    <h3 className="mb-2 text-[9.5px] uppercase tracking-[0.2em] text-[var(--brand-ink)]/40">
+                    <h3 className="mb-2 text-[9.5px] uppercase tracking-[0.2em] text-[var(--brand-ink)]/65">
                       <span>Suggestions</span>
                     </h3>
                     <div className="space-y-2">
@@ -156,7 +156,7 @@ export const SearchBar = ({ className, inputId, formClassName }: SearchBarProps)
 
                   {/* Products Column */}
                   <div className="p-4">
-                    <h3 className="mb-2 flex items-center justify-between text-[9.5px] uppercase tracking-[0.2em] text-[var(--brand-ink)]/40">
+                    <h3 className="mb-2 flex items-center justify-between text-[9.5px] uppercase tracking-[0.2em] text-[var(--brand-ink)]/65">
                       <span>Products</span>
                       <span
                         onClick={() => setIsSuggestionsOpen(false)}
@@ -194,7 +194,7 @@ export const SearchBar = ({ className, inputId, formClassName }: SearchBarProps)
                   </div>
                 </>
               ) : (
-                <div className="col-span-2 p-4 text-center text-[var(--brand-ink)]/45">
+                <div className="col-span-2 p-4 text-center text-[var(--brand-ink)]/65">
                   <h3 className="mb-2 flex items-center justify-between text-[9.5px] uppercase tracking-[0.2em]">
                     <span>No suggestions found</span>
                     <span

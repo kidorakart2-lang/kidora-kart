@@ -272,7 +272,7 @@ export default function Cart({ cart }: { cart: CartApiResponse | null }) {
                   {effectiveCart?._data?.totalItems || 0}
                 </span>
               </div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/50">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--brand-ink)]/65">
                 {effectiveCart?._data?.totalItems || 0}{" "}
                 {effectiveCart?._data?.totalItems === 1 ? "item" : "items"} in your bag
               </p>

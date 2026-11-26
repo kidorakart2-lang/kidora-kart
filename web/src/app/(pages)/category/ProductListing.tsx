@@ -140,9 +140,9 @@ export default function ProductListing() {
       <div className="lg:flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-3">
         <div>
           <h2 className="display-heading text-2xl sm:text-[1.75rem]">
-            All <span className="accent-italic">Products</span>
+            All Products
           </h2>
-          <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/45">
+          <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65">
             {totalProducts || sortedProducts.length} piece
             {(totalProducts || sortedProducts.length) !== 1 ? "s" : ""}
           </p>
@@ -154,7 +154,7 @@ export default function ProductListing() {
               className={`grid size-8 place-items-center rounded-full transition-colors ${
                 gridLayout === "normal"
                   ? "bg-[var(--brand-plum)] text-[var(--brand-cream)]"
-                  : "text-[var(--brand-ink)]/50 hover:bg-[var(--brand-section-bg)]"
+                  : "text-[var(--brand-ink)]/65 hover:bg-[var(--brand-section-bg)]"
               }`}
               title="Grid view"
             >
@@ -165,7 +165,7 @@ export default function ProductListing() {
               className={`grid size-8 place-items-center rounded-full transition-colors ${
                 gridLayout === "single"
                   ? "bg-[var(--brand-plum)] text-[var(--brand-cream)]"
-                  : "text-[var(--brand-ink)]/50 hover:bg-[var(--brand-section-bg)]"
+                  : "text-[var(--brand-ink)]/65 hover:bg-[var(--brand-section-bg)]"
               }`}
               title="List view"
             >
