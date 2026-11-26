@@ -27,7 +27,11 @@ export const getCart = asyncHandler(async (req: Request, res: Response) => {
 
   const items = await Promise.all(
     cart.items.map(async (item) => {
-      const product = await Product.findById(item.product)
+      const product = await Product.findOne({
+        _id: item.product,
+        status: "active",
+        deletedAt: null,
+      })
         .select("name price discount_price image images slug stock")
         .lean();
       if (!product) return null;
@@ -192,7 +196,11 @@ export const updateCartItem = asyncHandler(
         return fail(res, "Item not found in cart", 404);
       }
 
-      const product = await Product.findById(item.product)
+      const product = await Product.findOne({
+        _id: item.product,
+        status: "active",
+        deletedAt: null,
+      })
         .select("stock")
         .lean();
 

@@ -14,7 +14,7 @@ import { AiAgentSuggestions } from "@/components/ai-agent/AiAgentSuggestions";
 import { ToolCallIndicators } from "@/components/ai-agent/ToolCallIndicators";
 import { StreamSkeleton } from "@/components/chat/StreamSkeleton";
 import { AlertDialogUse } from "@/components/alert-dialog";
-import { Sparkles, PanelLeftOpen } from "lucide-react";
+import { Sparkles, PanelLeftOpen, Plus, ShieldCheck, Database } from "lucide-react";
 import type { AiHistoryItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -128,6 +128,10 @@ export default function AiAgentPage() {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
+  }, []);
+
+  useEffect(() => {
+    if (window.innerWidth < 1024) setShowHistory(false);
   }, []);
 
   const { data: providers = [] } = useQuery<string[]>({
@@ -246,9 +250,19 @@ export default function AiAgentPage() {
     inputRef.current?.focus();
   };
 
+  const agentStatus = isStreaming
+    ? status === "submitted"
+      ? "Connecting"
+      : "Working"
+    : status === "error"
+      ? "Needs attention"
+      : messages.length > 0
+        ? "Ready"
+        : "Idle";
+
   return (
     <div className="h-dvh w-screen overflow-hidden bg-background">
-      <div className="h-full w-full flex">
+      <div className="flex h-full w-full">
         <HistorySidebar
           show={showHistory}
           onClose={() => setShowHistory(false)}
@@ -266,38 +280,67 @@ export default function AiAgentPage() {
           onNewChat={startNewChat}
         />
 
-        <div className="flex-1 flex flex-col min-w-0 min-h-0">
-          <header className="flex items-center justify-between px-6 py-3 border-b border-border backdrop-blur-2xl bg-card/50 z-10 shrink-0 shadow-lg">
-            <div className="flex items-center gap-3">
+        <div className="relative isolate flex min-h-0 min-w-0 flex-1 flex-col">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(75%_48%_at_80%_0%,rgba(198,168,117,0.13),transparent_62%),radial-gradient(60%_45%_at_8%_100%,rgba(74,37,66,0.06),transparent_60%)]"
+          />
+
+          <header className="z-10 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-[#c6a875]/20 bg-card/75 px-4 backdrop-blur-xl sm:px-5">
+            <div className="flex min-w-0 items-center gap-2.5">
               {!showHistory && (
                 <button
                   onClick={() => setShowHistory(true)}
-                  className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-accent transition-colors text-muted-foreground"
+                  className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  title="Show chat history"
                 >
                   <PanelLeftOpen className="h-4 w-4" />
                 </button>
               )}
-              <h1 className="text-base font-semibold flex items-center gap-2 text-foreground">
-                <Sparkles className="h-4 w-4 text-primary" />
-                AI Agent
-                {isStreaming && (
-                  <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-chart-3 bg-chart-3/15 backdrop-blur-sm px-2 py-0.5 rounded-full border border-chart-3/30">
-                    {status === "submitted" ? "Connecting..." : "Streaming"}
+              <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#1c141c] text-[#e6d0a2] shadow-sm">
+                <Sparkles className="h-4 w-4" strokeWidth={1.6} />
+              </span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h1 className="admin-display truncate text-[17px] leading-none text-foreground">
+                    Ratnavya Studio
+                  </h1>
+                  <span className="rounded-full border border-[#c6a875]/35 bg-[#c6a875]/10 px-1.5 py-0.5 text-[8px] font-medium uppercase tracking-[0.18em] text-[#8a6428]">
+                    AI
                   </span>
+                </div>
+                <p className="mt-1 truncate text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Store operations copilot
+                </p>
+              </div>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2">
+              <span
+                className={cn(
+                  "hidden items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium sm:inline-flex",
+                  isStreaming && "border-[#c6a875]/40 bg-[#c6a875]/10 text-[#8a6428]",
+                  status === "error" && "border-destructive/30 bg-destructive/10 text-destructive",
+                  !isStreaming && status !== "error" && "border-border bg-card/70 text-muted-foreground",
                 )}
-                {status === "error" && (
-                  <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-destructive bg-destructive/15 backdrop-blur-sm px-2 py-0.5 rounded-full border border-destructive/30">
-                    <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
-                    Error
-                  </span>
-                )}
-                {status === "ready" && messages.length > 0 && (
-                  <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-chart-1 bg-chart-1/15 backdrop-blur-sm px-2 py-0.5 rounded-full border border-chart-1/30">
-                    <span className="w-1.5 h-1.5 rounded-full bg-chart-1" />
-                    Ready
-                  </span>
-                )}
-              </h1>
+              >
+                <span
+                  className={cn(
+                    "size-1.5 rounded-full",
+                    isStreaming && "animate-pulse bg-[#c6a875]",
+                    status === "error" && "bg-destructive",
+                    !isStreaming && status !== "error" && "bg-emerald-500",
+                  )}
+                />
+                {agentStatus}
+              </span>
+              <button
+                onClick={startNewChat}
+                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#c6a875]/35 bg-card px-2.5 text-[11px] font-medium text-foreground shadow-sm transition-colors hover:border-[#c6a875]/60 hover:bg-accent"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">New chat</span>
+              </button>
             </div>
           </header>
 
@@ -307,48 +350,70 @@ export default function AiAgentPage() {
                 key="landing"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0, y: -20 }}
+                exit={{ opacity: 0, y: -16 }}
                 transition={{ duration: 0.3 }}
-                className="flex-1 flex flex-col items-center justify-center px-4 overflow-hidden"
+                className="relative flex-1 overflow-y-auto"
               >
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  className="text-center mb-8"
-                >
-                  <h2 className="text-3xl font-semibold text-foreground mb-2">
-                    Where should we begin?
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    I can help you manage your store — create products, FAQs, and more.
-                  </p>
-                </motion.div>
+                <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col justify-center px-5 py-10 sm:px-8">
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, delay: 0.05 }}
+                    className="text-center"
+                  >
+                    <div className="relative mx-auto mb-5 grid size-14 place-items-center rounded-2xl border border-[#c6a875]/35 bg-[#1c141c] text-[#e6d0a2] shadow-[0_18px_45px_-26px_rgba(28,20,28,0.9)]">
+                      <Sparkles className="h-6 w-6" strokeWidth={1.4} />
+                      <span className="absolute -right-1 -top-1 size-2.5 rounded-full bg-[#c6a875] ring-4 ring-background" />
+                    </div>
+                    <p className="admin-eyebrow">Ratnavya intelligence</p>
+                    <h2 className="admin-display mx-auto mt-3 max-w-2xl text-[2.15rem] leading-[1.06] text-foreground sm:text-5xl">
+                      What shall we take care of?
+                    </h2>
+                    <p className="mx-auto mt-3 max-w-xl text-[13px] leading-relaxed text-muted-foreground">
+                      Draft products, organise your catalogue, and find answers across your store — in plain language.
+                    </p>
+                  </motion.div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="w-full max-w-2xl"
-                >
-                  <ChatInput
-                    ref={inputRef}
-                    input={input}
-                    onInputChange={setInput}
-                    onSend={handleSend}
-                    onStop={stop}
-                    onRegenerate={regenerate}
-                    isStreaming={isStreaming}
-                    providers={providers}
-                    selectedProvider={selectedProvider}
-                    onProviderChange={setSelectedProvider}
-                    messagesLength={messages.length}
-                    hasError={!!error}
-                    centered
-                  />
-                </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, delay: 0.14 }}
+                    className="mt-8"
+                  >
+                    <ChatInput
+                      ref={inputRef}
+                      input={input}
+                      onInputChange={setInput}
+                      onSend={handleSend}
+                      onStop={stop}
+                      onRegenerate={regenerate}
+                      isStreaming={isStreaming}
+                      providers={providers}
+                      selectedProvider={selectedProvider}
+                      onProviderChange={setSelectedProvider}
+                      messagesLength={messages.length}
+                      hasError={!!error}
+                      centered
+                    />
+                  </motion.div>
 
-                <AiAgentSuggestions onSuggestion={handleSuggestion} />
+                  <AiAgentSuggestions onSuggestion={handleSuggestion} />
+
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.4, delay: 0.35 }}
+                    className="mt-9 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground/70"
+                  >
+                    <span className="inline-flex items-center gap-1.5">
+                      <ShieldCheck className="h-3 w-3" /> Admin-only workspace
+                    </span>
+                    <span className="size-1 rounded-full bg-[#c6a875]/60" />
+                    <span className="inline-flex items-center gap-1.5">
+                      <Database className="h-3 w-3" /> Connected to live catalogue
+                    </span>
+                  </motion.div>
+                </div>
               </motion.div>
             ) : (
               <motion.div
@@ -356,13 +421,21 @@ export default function AiAgentPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
-                className="flex-1 flex flex-col min-h-0 overflow-hidden relative"
+                className="relative flex min-h-0 flex-1 flex-col overflow-hidden"
               >
                 <div
                   ref={scrollContainerRef}
-                  className="flex-1 overflow-y-auto overscroll-contain min-h-0"
+                  className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
                 >
-                  <div className="px-4 pt-6 max-w-3xl mx-auto space-y-6 pb-4">
+                  <div className="mx-auto max-w-3xl space-y-7 px-4 pb-8 pt-7 sm:px-8">
+                    <div className="flex items-center gap-3">
+                      <span className="h-px flex-1 bg-[#c6a875]/20" />
+                      <span className="text-[9px] uppercase tracking-[0.22em] text-muted-foreground/60">
+                        {conversationKey.startsWith("new") ? "New conversation" : "Conversation"}
+                      </span>
+                      <span className="h-px flex-1 bg-[#c6a875]/20" />
+                    </div>
+
                     {messages.map((msg, i) => (
                       <ChatMessageComponent
                         key={msg.id || i}
@@ -380,11 +453,11 @@ export default function AiAgentPage() {
 
                     {error && (
                       <div className="flex justify-center">
-                        <div className="backdrop-blur-xl bg-destructive/15 border border-destructive/30 rounded-lg px-4 py-3 text-center max-w-md">
-                          <p className="text-xs text-destructive mb-2">{error.message}</p>
+                        <div className="max-w-md rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-center backdrop-blur-xl">
+                          <p className="mb-2 text-xs text-destructive">{error.message}</p>
                           <button
                             onClick={() => { clearError(); regenerate(); }}
-                            className="inline-flex items-center gap-1 text-xs bg-destructive/80 hover:bg-destructive text-destructive-foreground px-3 py-1.5 rounded transition-colors backdrop-blur-sm"
+                            className="inline-flex items-center gap-1 rounded-full bg-destructive px-3 py-1.5 text-[10px] font-medium text-destructive-foreground transition-colors hover:bg-destructive/90"
                           >
                             Retry
                           </button>
@@ -392,18 +465,17 @@ export default function AiAgentPage() {
                       </div>
                     )}
                   </div>
-
-                  {/* Scroll to bottom button */}
-                  {showScrollBtn && (
-                    <button
-                      onClick={() => scrollToBottom(true)}
-                      className="absolute bottom-20 right-6 h-8 w-8 rounded-full bg-card border-border backdrop-blur-xl flex items-center justify-center shadow-lg hover:bg-accent transition-all z-10"
-                      title="Scroll to bottom"
-                    >
-                      <span className="text-muted-foreground text-lg leading-none">↓</span>
-                    </button>
-                  )}
                 </div>
+
+                {showScrollBtn && (
+                  <button
+                    onClick={() => scrollToBottom(true)}
+                    className="absolute bottom-24 right-5 z-20 grid size-8 place-items-center rounded-full border border-[#c6a875]/35 bg-card text-muted-foreground shadow-lg transition-colors hover:bg-accent hover:text-foreground"
+                    title="Scroll to bottom"
+                  >
+                    <span className="text-base leading-none">↓</span>
+                  </button>
+                )}
 
                 <ChatInput
                   ref={inputRef}

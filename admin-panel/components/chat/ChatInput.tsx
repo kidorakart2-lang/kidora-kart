@@ -64,16 +64,16 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
       "flex items-center justify-between mb-2 px-1",
       centered && "justify-center gap-3 mb-3",
     )}>
-      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-        <Sparkles className="h-3 w-3" />
-        AI Provider
+      <span className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground flex items-center gap-1.5">
+        <Sparkles className="h-3 w-3 text-[#c6a875]" />
+        Model
       </span>
       <Select
         value={selectedProvider}
         onValueChange={onProviderChange}
         disabled={isStreaming}
       >
-        <SelectTrigger className="w-auto h-6 text-[10px] gap-1 border-0 bg-muted hover:bg-accent px-2 text-foreground">
+        <SelectTrigger className="h-7 w-auto gap-1 rounded-full border border-[#c6a875]/30 bg-[#c6a875]/10 px-2.5 text-[10px] text-[#8a6428] hover:bg-[#c6a875]/15">
           <SelectValue placeholder="Select" />
         </SelectTrigger>
         <SelectContent>
@@ -117,27 +117,25 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
 
   return (
     <div className={cn(
-      "flex-shrink-0",
+      "shrink-0",
       centered
-        ? "backdrop-blur-2xl bg-card/40 border border-border rounded-2xl shadow-2xl"
-        : "backdrop-blur-2xl bg-card/50 border-t border-border",
+        ? "rounded-2xl border border-[#c6a875]/30 bg-card/90 shadow-[0_28px_70px_-45px_rgba(28,20,28,0.65)] backdrop-blur-xl"
+        : "border-t border-[#c6a875]/20 bg-card/80 backdrop-blur-xl",
     )}>
       <div className={cn(
-        "px-4 py-3",
-        centered ? "max-w-2xl mx-auto" : "max-w-3xl mx-auto",
+        "px-3 py-3 sm:px-4",
+        centered ? "mx-auto max-w-2xl" : "mx-auto max-w-3xl",
       )}>
         {providerSelector}
 
         <div
           className={cn(
-            "flex gap-2 items-end backdrop-blur-xl border rounded-xl px-3 py-2 transition-all shadow-lg",
-            centered
-              ? "bg-card border-border"
-              : "bg-card border-border",
+            "flex items-end gap-2 rounded-xl border px-3.5 py-2.5 transition-all",
+            "border-[#c6a875]/25 bg-background/65",
             isFocused
-              ? "ring-2 ring-primary/40 border-primary/50"
+              ? "border-[#c6a875]/60 ring-2 ring-[#c6a875]/20"
               : "",
-            isStreaming && "ring-1 ring-chart-3/30 border-chart-3/40",
+            isStreaming && "border-chart-3/40 ring-1 ring-chart-3/25",
           )}
         >
           <textarea
@@ -164,8 +162,8 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
             disabled={isStreaming || providers.length === 0}
             rows={1}
             className={cn(
-              "flex-1 bg-transparent border-none outline-none resize-none placeholder:text-muted-foreground disabled:opacity-50 max-h-[200px] leading-relaxed text-foreground",
-              centered ? "text-base py-1" : "text-sm",
+              "max-h-[200px] flex-1 resize-none border-none bg-transparent py-1 leading-relaxed text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-50",
+              centered ? "text-[15px]" : "text-sm",
             )}
           />
 
@@ -173,7 +171,7 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
             <button
               type="button"
               onClick={onStop}
-              className="h-8 w-8 flex items-center justify-center rounded-lg bg-destructive/80 hover:bg-destructive text-destructive-foreground transition-colors flex-shrink-0 backdrop-blur-sm"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-destructive text-destructive-foreground transition-colors hover:bg-destructive/90"
               title="Stop generating"
             >
               <StopCircle className="h-4 w-4" />
@@ -184,10 +182,10 @@ export const ChatInput = forwardRef<{ focus: () => void }, ChatInputProps>(funct
               onClick={onSend}
               disabled={!canSend}
               className={cn(
-                "h-8 w-8 flex items-center justify-center rounded-lg transition-all flex-shrink-0 backdrop-blur-sm",
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-all",
                 canSend
-                  ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl active:scale-95"
-                  : "bg-muted text-muted-foreground cursor-not-allowed",
+                  ? "bg-[#1c141c] text-[#f7efe6] shadow-md shadow-[#1c141c]/20 hover:bg-[#2e1b29] active:scale-95"
+                  : "cursor-not-allowed bg-muted text-muted-foreground",
               )}
               title="Send message"
             >

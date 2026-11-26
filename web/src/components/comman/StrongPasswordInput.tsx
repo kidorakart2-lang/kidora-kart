@@ -85,12 +85,15 @@ export default function StrongPasswordInput({
 
   return (
     <div>
-      <Label htmlFor={id} className="block text-muted-foreground mb-2 font-medium text-sm">
+      <Label
+        htmlFor={id}
+        className="mb-2 block text-[10.5px] uppercase tracking-[0.14em] text-[var(--brand-ink)]/65"
+      >
         Password
       </Label>
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Lock size={18} className="text-foreground z-10" />
+          <Lock size={16} className="text-[var(--brand-gold-dark)] z-10" strokeWidth={1.6} />
         </div>
         <input
           type={showPassword ? "text" : "password"}
@@ -99,7 +102,7 @@ export default function StrongPasswordInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="********"
-          className="w-full pl-10 pr-12 py-3 bg-background/70 backdrop-blur-sm border border-border rounded-xl focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-300 shadow-sm hover:shadow-md"
+          className="w-full pl-10 pr-14 py-3 bg-white border border-[var(--brand-gold)]/30 rounded-lg text-[var(--brand-ink)] transition-all duration-300 focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30"
           required
           aria-required="true"
           aria-describedby="password-description"
@@ -108,11 +111,11 @@ export default function StrongPasswordInput({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="text-muted-foreground hover:text-muted-foreground transition-colors cursor-pointer"
+            className="text-[var(--brand-gold-dark)] hover:text-[var(--brand-plum)] transition-colors cursor-pointer"
             tabIndex={-1}
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
-            {showPassword ? <EyeClosed size={18} /> : <Eye size={18} />}
+            {showPassword ? <EyeClosed size={17} /> : <Eye size={17} />}
           </button>
           {value.length > 0 && <AnimatedCheckmarkCircle progress={passwordProgress} />}
         </div>
@@ -128,8 +131,8 @@ export default function StrongPasswordInput({
             return (
               <div
                 key={index}
-                className={`flex items-center gap-2 text-sm transition-colors duration-200 ${
-                  isValid ? "text-emerald-500 font-medium" : "text-muted-foreground"
+                className={`flex items-center gap-2 text-[11.5px] transition-colors duration-200 ${
+                  isValid ? "text-emerald-600 font-medium" : "text-[var(--brand-ink)]/60"
                 }`}
               >
                 <div className="flex items-center justify-center w-3.5 h-3.5">

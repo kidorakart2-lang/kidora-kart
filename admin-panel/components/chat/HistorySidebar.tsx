@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
 import {
   ChevronDown,
-  History,
   MessageSquare,
   PanelLeftClose,
   Plus,
@@ -140,38 +139,38 @@ export function HistorySidebar({
           animate={{ width: 300, opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
           transition={{ duration: 0.2, ease: "easeInOut" }}
-          className="flex-shrink-0 overflow-hidden"
+          className="flex-shrink-0 overflow-hidden max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50"
         >
-          <div className="w-[300px] h-full flex flex-col backdrop-blur-2xl bg-sidebar border-r border-sidebar-border shadow-2xl">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-sidebar-border">
-              <h2 className="text-sm font-semibold flex items-center gap-2 text-sidebar-foreground">
-                <History className="h-4 w-4 text-sidebar-foreground/60" />
-                Chat History
-                {total !== undefined && (
-                  <span className="text-[10px] font-normal text-sidebar-foreground/50 bg-sidebar-accent px-1.5 py-0.5 rounded-full">
-                    {total}
-                  </span>
-                )}
-              </h2>
+          <div className="flex h-full w-[300px] flex-col border-r border-sidebar-border bg-sidebar shadow-2xl backdrop-blur-2xl">
+            <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
+              <div>
+                <p className="admin-eyebrow text-[8px]">Workspace</p>
+                <h2 className="admin-display mt-1 flex items-center gap-2 text-[17px] leading-none text-sidebar-foreground">
+                  Conversations
+                  {total !== undefined && (
+                    <span className="rounded-full border border-[#c6a875]/25 bg-[#c6a875]/10 px-1.5 py-0.5 text-[9px] font-normal text-[#8a6428]">
+                      {total}
+                    </span>
+                  )}
+                </h2>
+              </div>
               <button
                 onClick={onClose}
-                className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-sidebar-accent transition-colors text-sidebar-foreground/60"
+                className="grid size-7 place-items-center rounded-lg text-sidebar-foreground/55 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 title="Close sidebar"
               >
                 <PanelLeftClose className="h-4 w-4" />
               </button>
             </div>
 
-            {/* New Chat button — pinned right below header */}
-            <div className="px-3 pt-3 pb-2">
+            <div className="px-3 pb-3 pt-3">
               <Button
-                variant="outline"
                 size="sm"
-                className="w-full text-xs h-9 gap-1.5 bg-sidebar-accent border-sidebar-border hover:bg-sidebar-accent/80 backdrop-blur-sm"
+                className="h-10 w-full gap-2 rounded-lg bg-[#1c141c] text-[10.5px] uppercase tracking-[0.12em] text-[#f7efe6] shadow-sm hover:bg-[#2e1b29]"
                 onClick={onNewChat}
               >
                 <Plus className="h-3.5 w-3.5" />
-                New Chat
+                New conversation
               </Button>
             </div>
 
@@ -201,10 +200,10 @@ export function HistorySidebar({
                       <div
                         key={item._id}
                         className={cn(
-                          "group relative rounded-xl transition-all duration-150",
+                          "group relative rounded-lg border-l-2 transition-all duration-150",
                           isActive
-                            ? "bg-sidebar-accent ring-1 ring-sidebar-ring"
-                            : "hover:bg-sidebar-accent/50",
+                            ? "border-[#c6a875] bg-[#c6a875]/10"
+                            : "border-transparent hover:bg-sidebar-accent/60",
                         )}
                       >
                         <button
@@ -215,34 +214,27 @@ export function HistorySidebar({
                           <div className="flex items-start gap-2.5">
                             <div
                               className={cn(
-                                "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors",
-                              isActive
-                                ? "bg-primary/20"
-                                : "bg-sidebar-accent group-hover:bg-sidebar-accent/80",
+                                "mt-0.5 flex size-8 flex-shrink-0 items-center justify-center rounded-lg transition-colors",
+                                isActive
+                                  ? "bg-[#1c141c] text-[#e6d0a2]"
+                                  : "bg-sidebar-accent text-sidebar-foreground/60 group-hover:bg-sidebar-accent/80",
                               )}
                             >
-                              <MessageSquare
-                                className={cn(
-                                  "h-4 w-4",
-                                  isActive
-                                    ? "text-primary"
-                                    : "text-sidebar-foreground/60",
-                                )}
-                              />
+                              <MessageSquare className="h-4 w-4" />
                             </div>
 
                             <div className="min-w-0 flex-1">
                               <p
                                 className={cn(
-                                  "text-sm font-medium leading-snug truncate",
+                                  "truncate text-[12.5px] font-medium leading-snug",
                                   isActive
-                                    ? "text-primary"
-                                    : "text-sidebar-foreground",
+                                    ? "text-sidebar-foreground"
+                                    : "text-sidebar-foreground/90",
                                 )}
                               >
                                 {title}
                               </p>
-                              <p className="text-xs text-sidebar-foreground/60 truncate mt-1 leading-relaxed">
+                              <p className="mt-1 truncate text-[10.5px] leading-relaxed text-sidebar-foreground/55">
                                 {subtitle}
                               </p>
                               <div className="flex items-center gap-1.5 mt-1.5">

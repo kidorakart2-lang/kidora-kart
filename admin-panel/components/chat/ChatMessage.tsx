@@ -38,16 +38,16 @@ export const ChatMessage = memo(function ChatMessage({ message, isLastAssistant,
   return (
     <div className={cn("flex gap-3 group", isUser ? "justify-end" : "justify-start")}>
       {!isUser && (
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-chart-4 flex items-center justify-center flex-shrink-0 mt-1 shadow-lg shadow-primary/20">
-          <Bot className="h-3.5 w-3.5 text-primary-foreground" />
+        <div className="mt-0.5 grid size-8 flex-shrink-0 place-items-center rounded-lg bg-[#1c141c] text-[#e6d0a2] shadow-sm">
+          <Bot className="h-4 w-4" strokeWidth={1.6} />
         </div>
       )}
 
-      <div className="relative max-w-[85%]">
+      <div className="relative max-w-[88%]">
         {!isUser && !streaming && textContent && (
           <button
             onClick={handleCopy}
-            className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-card border-border backdrop-blur-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-accent z-10"
+            className="absolute -right-2 -top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-[#c6a875]/30 bg-card opacity-0 shadow-sm transition-opacity hover:bg-accent group-hover:opacity-100"
             title={copied ? "Copied!" : "Copy response"}
           >
             {copied ? <Check className="h-3 w-3 text-chart-1" /> : <Copy className="h-3 w-3 text-muted-foreground" />}
@@ -56,10 +56,10 @@ export const ChatMessage = memo(function ChatMessage({ message, isLastAssistant,
 
         <div
           className={cn(
-            "rounded-2xl px-4 py-3 backdrop-blur-xl",
+            "px-4 py-3",
             isUser
-              ? "bg-primary text-primary-foreground rounded-br-sm shadow-lg shadow-primary/20"
-              : "bg-card border-border rounded-bl-sm shadow-xl",
+              ? "rounded-2xl rounded-br-md bg-primary text-primary-foreground shadow-md shadow-primary/15"
+              : "rounded-2xl rounded-tl-md border border-[#c6a875]/20 bg-card text-card-foreground shadow-sm",
           )}
         >
           {isUser ? (
@@ -73,8 +73,8 @@ export const ChatMessage = memo(function ChatMessage({ message, isLastAssistant,
       </div>
 
       {isUser && (
-        <div className="w-7 h-7 rounded-full bg-muted-foreground/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0 mt-1 shadow-lg">
-          <User className="h-3.5 w-3.5 text-muted-foreground" />
+        <div className="mt-0.5 grid size-8 flex-shrink-0 place-items-center rounded-lg border border-[#c6a875]/25 bg-[#c6a875]/10 text-[#8a6428]">
+          <User className="h-4 w-4" strokeWidth={1.6} />
         </div>
       )}
     </div>

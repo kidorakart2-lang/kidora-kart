@@ -27,14 +27,20 @@ export const getWishlist = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user?._id;
     const wishlist = await Wishlist.findOne({ user: userId })
-      .populate("products", "name price discount_price image images slug stock")
+      .populate({
+        path: "products",
+        match: { deletedAt: null, status: "active" },
+        select: "name price discount_price image images slug stock",
+      })
       .lean<PopulatedWishlist | null>();
 
     if (!wishlist || wishlist.products.length === 0) {
       return success(res, [], "Your wishlist is empty");
     }
 
-    const items = wishlist.products.map((product) => ({
+    const items = wishlist.products
+      .filter((product): product is PopulatedWishlistProduct => Boolean(product))
+      .map((product) => ({
       _id: product._id,
       name: product.name,
       price: product.price,
@@ -157,6 +163,18 @@ export const checkInWishlist = asyncHandler(
 
     if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
       return fail(res, "Invalid product ID", 400);
+    }
+
+    const product = await Product.findOne({
+      _id: productId,
+      status: "active",
+      deletedAt: null,
+    })
+      .select("_id")
+      .lean();
+
+    if (!product) {
+      return success(res, { isInWishlist: false }, "Wishlist status retrieved");
     }
 
     const wishlist = await Wishlist.findOne({

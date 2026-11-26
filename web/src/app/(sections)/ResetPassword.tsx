@@ -195,7 +195,7 @@ export default function ResetPassword() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-white px-4 py-12">
       <Card className="w-full max-w-md rounded-xl border border-[var(--brand-gold)]/25 bg-white shadow-none">
-        <div className="flex justify-center mt-6">
+        <div className="flex justify-center mt-7">
           <Link href="/">
             {logo ? (
               <Image
@@ -210,8 +210,7 @@ export default function ResetPassword() {
             )}
           </Link>
         </div>
-        <CardHeader className="space-y-2 pb-2 text-center">
-          <p className="eyebrow text-[10px]"><span className="mr-1.5">✦</span>Account care</p>
+        <CardHeader className="space-y-2 pb-2 pt-4 text-center">
           <div className="mx-auto flex size-12 items-center justify-center rounded-full border border-[var(--brand-gold)]/40 bg-[var(--brand-gold)]/10">
             <Lock className="h-5 w-5 text-[var(--brand-gold-dark)]" strokeWidth={1.6} />
           </div>

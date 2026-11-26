@@ -20,7 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
 
 import { Label } from "@/components/ui/label";
-import { Lock, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -140,7 +140,7 @@ const LoginPage = () => {
   return (
     <main className="relative flex min-h-[80vh] items-center justify-center overflow-hidden bg-white px-4 py-12">
       <Card className="w-full max-w-md rounded-xl border border-[var(--brand-gold)]/25 bg-white shadow-none">
-        <div className="flex justify-center mt-6">
+        <div className="flex justify-center mt-7">
           <Link href="/">
             {logo ? (
               <Image
@@ -155,11 +155,7 @@ const LoginPage = () => {
             )}
           </Link>
         </div>
-        <CardHeader className="pb-2 pt-6">
-          <p className="eyebrow mb-2 text-center text-[10px]">
-            <span className="mr-1.5">✦</span>
-            Ratnavya
-          </p>
+        <CardHeader className="pb-2 pt-4">
           <CardTitle className="display-heading text-center text-2xl md:text-3xl">
             Welcome Back
           </CardTitle>
@@ -214,9 +210,9 @@ className={`w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white py-3
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="********"
-className={`w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white py-3 text-[var(--brand-ink)] transition-all duration-300 focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30 ${
-                   formState.errors.password ? "border-destructive" : ""
-                 }`}
+                inputClassName={`w-full rounded-lg border border-[var(--brand-gold)]/30 bg-white py-3 text-[var(--brand-ink)] transition-all duration-300 focus:border-[var(--brand-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-gold)]/30 ${
+                  formState.errors.password ? "border-destructive" : ""
+                }`}
                 aria-required="true"
                 aria-invalid={!!formState.errors.password}
                 aria-describedby="password-error"

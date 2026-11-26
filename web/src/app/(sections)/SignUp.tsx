@@ -123,7 +123,7 @@ const SignUpPage = () => {
   return (
     <main className="relative flex min-h-[80vh] items-center justify-center overflow-hidden bg-white px-4 py-12">
       <Card className="w-full max-w-md rounded-xl border border-[var(--brand-gold)]/25 bg-white shadow-none">
-        <div className="flex justify-center mt-6">
+        <div className="flex justify-center mt-7">
           <Link href="/">
             {logo ? (
               <Image
@@ -138,11 +138,7 @@ const SignUpPage = () => {
             )}
           </Link>
         </div>
-        <CardHeader className="pb-2 pt-6">
-          <p className="eyebrow mb-2 text-center text-[10px]">
-            <span className="mr-1.5">✦</span>
-            Join Ratnavya
-          </p>
+        <CardHeader className="pb-2 pt-4">
           <CardTitle className="display-heading text-center text-2xl md:text-3xl">
             Create your account
           </CardTitle>

@@ -13,11 +13,11 @@ const ToolBar = () => {
   )}`;
 
   return (
-    <div className="no-print fixed bottom-24 right-5 z-50 flex flex-col items-end gap-3 md:bottom-8 md:right-7">
+    <div className="no-print pointer-events-none fixed bottom-24 right-5 z-50 flex flex-col items-end gap-3 md:bottom-8 md:right-7">
       <div
         className={`w-60 origin-bottom-right overflow-hidden rounded-2xl border border-[var(--brand-gold)]/30 bg-white shadow-[0_26px_60px_-30px_rgba(74,37,66,0.5)] transition-all duration-300 ${
           isExpanded
-            ? "translate-y-0 scale-100 opacity-100"
+            ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
             : "pointer-events-none translate-y-3 scale-95 opacity-0"
         }`}
         aria-hidden={!isExpanded}
@@ -74,7 +74,7 @@ const ToolBar = () => {
         onClick={() => setIsExpanded((v) => !v)}
         aria-expanded={isExpanded}
         aria-label={isExpanded ? "Close contact menu" : "Open contact menu"}
-        className="group flex size-12 items-center justify-center gap-2 rounded-full border border-[var(--brand-gold)]/45 bg-[var(--brand-plum)] p-0 text-[var(--brand-cream)] shadow-[0_18px_40px_-24px_rgba(74,37,66,0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--brand-primary-dark)] sm:h-auto sm:w-auto sm:justify-start sm:py-3 sm:pl-4 sm:pr-[18px]"
+        className="pointer-events-auto group flex size-12 items-center justify-center gap-2 rounded-full border border-[var(--brand-gold)]/45 bg-[var(--brand-plum)] p-0 text-[var(--brand-cream)] shadow-[0_18px_40px_-24px_rgba(74,37,66,0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--brand-primary-dark)] sm:h-auto sm:w-auto sm:justify-start sm:py-3 sm:pl-4 sm:pr-[18px]"
       >
         {isExpanded ? (
           <X size={16} strokeWidth={1.8} />
